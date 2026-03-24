@@ -194,7 +194,7 @@ void MainWindow::applySliderLabelRuntimeSettings()
 // 信号槽连接
 void MainWindow::setupConnections()
 {
-    setupNavigationConnections();
+    // setupNavigationConnections();
     setupRecordAndPermissionConnections();
     setupControlConnections();
     setupSubsystemConnections();
@@ -212,7 +212,7 @@ void MainWindow::setupNavigationConnections()
         updateNavButtonStyles(nullptr);
     });
 
-    connect(ui->Btn_SwitchVerticalSupport, &QPushButton::clicked, [=]() {
+    /* connect(ui->Btn_SwitchVerticalSupport, &QPushButton::clicked, [=]() {
         ui->StackedWidget->setCurrentIndex(1);
         updateNavButtonStyles(ui->Btn_SwitchVerticalSupport);
     });
@@ -231,7 +231,7 @@ void MainWindow::setupNavigationConnections()
     connect(ui->Btn_SwitchEOAT, &QPushButton::clicked, [=]() {
         ui->StackedWidget->setCurrentIndex(3);
         updateNavButtonStyles(ui->Btn_SwitchEOAT);
-    });
+    }); */
 }
 
 void MainWindow::setupRecordAndPermissionConnections()
@@ -369,9 +369,9 @@ void MainWindow::setupStyles()
 
 
     //模式切换btn
-    QList<QPushButton *>CommonBtns = {
-        ui->Btn_SwitchHorizontalSupport,ui->Btn_SwitchVerticalSupport,ui->Btn_SwitchEOAT,ui->Btn_SwitchAGV
-    };
+    // QList<QPushButton *>CommonBtns = {
+    //     ui->Btn_SwitchHorizontalSupport,ui->Btn_SwitchVerticalSupport,ui->Btn_SwitchEOAT,ui->Btn_SwitchAGV
+    // };
     //方向TBtn
     QList<QToolButton *>CommonTBtns = this->findChildren<QToolButton*>();
     //普通LineEdit
@@ -383,7 +383,7 @@ void MainWindow::setupStyles()
 
 
     // 应用样式
-    applyPushButtonStyles(CommonBtns);
+    // applyPushButtonStyles(CommonBtns);
     applyToolButtonStyles(CommonTBtns);
     applyLineEditStyles(AllLEdits);
 
@@ -728,6 +728,46 @@ void MainWindow::initTechButtons() {
 
 void MainWindow::initSpeedGaugeUI()
 {
+    // 初始化 4 个环形仪表 (TechArcGauge)
+    // 映射关系：widget_test1 -> arcGauge_1, widget_test2 -> arcGauge_2, ...
+    struct ArcConfig {
+        QWidget* placeholder;
+        QString name;
+        QString label;
+        QString suffix;
+        double min;
+        double max;
+        int precision;
+    };
+
+    QList<ArcConfig> configs = {
+        {ui->widget_test1, "robot_ArcGauge_J1Angle", "悬臂角度", "°", -90, 90, 1},
+        {ui->widget_test2, "robot_ArcGauge_J2Height", "升降高度", "mm", -850, 1150, 0},
+        {ui->widget_test3, "robot_ArcGauge_J3Length", "悬臂长度", "mm", 0, 840, 0},
+        {ui->widget_test4, "robot_ArcGauge_J4Angle", "末端角度", "°", -180, 180, 1}
+    };
+
+    for (int i = 0; i < configs.size(); ++i) {
+        const auto& cfg = configs[i];
+        if (cfg.placeholder) {
+            TechArcGauge *arcGauge = new TechArcGauge(cfg.placeholder->parentWidget());
+            arcGauge->setGeometry(cfg.placeholder->geometry());
+            arcGauge->setObjectName(cfg.name);
+            arcGauge->setRange(cfg.min, cfg.max);
+            arcGauge->setValue(0);
+            arcGauge->setLabelText(cfg.label);
+            arcGauge->setSuffix(cfg.suffix);
+            arcGauge->setPrecision(cfg.precision);
+            arcGauge->setForceControlMode(true);
+            
+            cfg.placeholder->hide();
+            arcGauge->show();
+
+            // 存入映射表，Key 使用规范化后的名称
+            m_arcGauges[cfg.name] = arcGauge;
+        }
+    }
+
     // 1. 创建 QQuickWidget 来承载 QML
     m_speedGaugeQml = new QQuickWidget(this);
     m_speedGaugeQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
@@ -2420,8 +2460,8 @@ void MainWindow::setupModbusManager()
 
     qDebug() << "Modbus信号连接完成";
 
-    // 连接到设备 - 默认 192.168.1.13:502
-    QString modbusHost = "192.168.1.13";
+    // 连接到设备 - 13 -> 88
+    QString modbusHost = "192.168.1.88";
     quint16 modbusPort = 502;
 
     // 如果开启本机 TCP 模拟器模式，则重定向到本机模拟端口
@@ -2436,10 +2476,10 @@ void MainWindow::setupModbusManager()
     }
 
     bool deviceConnected = m_modbusManager->connectToDevice(modbusHost, modbusPort);
-    qDebug() << "192.168.1.13 Modbus连接状态:" << (deviceConnected ? "已连接" : "连接失败");
+    qDebug() << "192.168.1.88 Modbus连接状态:" << (deviceConnected ? "已连接" : "连接失败");
 
     // 显示连接状态消息
-    ui->statusBar->showMessage("正在连接192.168.1.13 Modbus...", 3000);
+    ui->statusBar->showMessage("正在连接192.168.1.88 Modbus...", 3000);
 
     // 设置轮询间隔（毫秒）
     m_modbusManager->setPollInterval(m_mainModbusPollIntervalMs);
@@ -2447,7 +2487,7 @@ void MainWindow::setupModbusManager()
     // 设置自动重连
     m_modbusManager->setAutoReconnect(true, m_mainReconnectIntervalMs);
 
-    qDebug() << "192.168.1.13 Modbus管理器设置完成";
+    qDebug() << "192.168.1.88 Modbus管理器设置完成";
 }
 // 修改setupSliderModbusAddresses函数，添加对TechSliderLabel的支持
 void MainWindow::setupSliderModbusAddresses()
@@ -2714,6 +2754,12 @@ void MainWindow::setupModbusLabels()
 // 启动Modbus变量轮询
 void MainWindow::startModbusPolling()
 {
+    if (m_modbusPollTimer && m_modbusPollTimer->isActive()) {
+        m_modbusPollTimer->stop();
+    }
+    qDebug() << "主设备通用地址轮询已停用，仅保留四个SliderLabel地址轮询";
+    return;
+
     if (!isFeatureEnabled("modbus_main", "modbus_main.polling")) {
         qDebug() << "主控Modbus轮询功能已关闭";
         return;
@@ -2749,6 +2795,13 @@ void MainWindow::startModbusPolling()
 // 轮询Modbus变量
 void MainWindow::pollModbusVariables()
 {
+    static bool warned = false;
+    if (!warned) {
+        qDebug() << "pollModbusVariables已停用，避免轮询main其他地址";
+        warned = true;
+    }
+    return;
+
     if (!isFeatureEnabled("modbus_main", "modbus_main.polling")) {
         return;
     }
@@ -2795,6 +2848,11 @@ void MainWindow::updateSliderLabelValue(const QString& labelName, float value)
             }
         }
     }
+
+    // 更新对应的环形仪表 (TechArcGauge)
+    if (m_arcGauges.contains(labelName)) {
+        m_arcGauges[labelName]->setValue(static_cast<double>(value));
+    }
 }
 
 // 处理Modbus值变化
@@ -2802,62 +2860,83 @@ void MainWindow::updateSliderLabelValue(const QString& labelName, float value)
 // 处理Modbus值变化
 void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 {
-    // qDebug() << "【MainWindow收到寄存器值】地址:" << address
-    //          << "值:" << value << "(0x" << QString::number(value, 16).toUpper() << ")";
+    // [调试] 无论如何都会输出，用来确认数据到底回来没
+    if (address < 25) { 
+        qWarning() << "[Modbus原始数据] 地址:" << address << "值:" << value;
+    }
 
     // 更新寄存器缓存
     static QMap<int, quint16> registerCache;
     registerCache[address] = value;
 
-    // 定义地址到配置名的映射
-    static QMap<int, QString> addressToLabelMap = {
-        {201, "label_Value1"}, {202, "label_Value1"},
-        {203, "label_Value2"}, {204, "label_Value2"},
-        {205, "label_Value3"}, {206, "label_Value3"},
-        {207, "label_Value4"}, {208, "label_Value4"}
+    const QStringList targetLabels = {
+        "robot_ArcGauge_J1Angle", "robot_ArcGauge_J2Height", "robot_ArcGauge_J3Length", "robot_ArcGauge_J4Angle"
     };
 
-    // 检查这个地址属于哪个配置
-    if (addressToLabelMap.contains(address)) {
-        QString labelName = addressToLabelMap[address];
+    for (const QString &labelName : targetLabels) {
+        if (!m_sliderLabelConfigs.contains(labelName)) {
+            continue;
+        }
 
-        // 获取对应的寄存器对地址
-        int highAddr, lowAddr;
-        const SliderLabelConfig* config = m_sliderLabelConfigs.contains(labelName)
-                                              ? &m_sliderLabelConfigs[labelName]
-                                              : nullptr;
+        const SliderLabelConfig &config = m_sliderLabelConfigs[labelName];
+        const QVector<int> regs = {
+            config.modbusAddress1,
+            config.modbusAddress2,
+            config.modbusAddress3,
+            config.modbusAddress4
+        };
 
-        if (config) {
-            highAddr = config->modbusAddress1;
-            lowAddr = config->modbusAddress2;
-        } else {
-            // 如果没有配置，使用默认映射
-            if (labelName == "label_Value1") {
-                highAddr = 201; lowAddr = 202;
-            } else if (labelName == "label_Value2") {
-                highAddr = 203; lowAddr = 204;
-            } else if (labelName == "label_Value3") {
-                highAddr = 205; lowAddr = 206;
-            } else {
-                highAddr = 207; lowAddr = 208;
+        if (!regs.contains(address)) {
+            continue;
+        }
+
+        bool ready = true;
+        for (int reg : regs) {
+            if (!registerCache.contains(reg)) {
+                ready = false;
+                break;
             }
         }
 
-        // 只有当两个寄存器都有值时才计算
-        if (registerCache.contains(highAddr) && registerCache.contains(lowAddr)) {
-            quint16 high = registerCache[highAddr];
-            quint16 low = registerCache[lowAddr];
-
-            float floatValue = registersToFloat(high, low);
-
-            // qDebug() << "【" << labelName << "】"
-            //          << "高位(0x" << QString::number(high, 16).toUpper() << ")"
-            //          << "低位(0x" << QString::number(low, 16).toUpper() << ")"
-            //          << "值:" << floatValue;
-
-            // 更新所有页面的对应控件
-            updateSliderLabelValue(labelName, floatValue);
+        if (!ready) {
+            continue;
         }
+
+        const quint16 reg1 = registerCache[config.modbusAddress1];
+        const quint16 reg2 = registerCache[config.modbusAddress2];
+        const quint16 reg3 = registerCache[config.modbusAddress3];
+        const quint16 reg4 = registerCache[config.modbusAddress4];
+        double value64 = registersToDoubleDCBAFEHG(reg1, reg2, reg3, reg4);
+
+        // 如果开启了求和模式 (用于 J3Length = 12-15 + 16-19)
+        if (config.isSumMode) {
+            bool sumReady = true;
+            for (int i = 0; i < 4; ++i) {
+                if (!registerCache.contains(config.sumAddress[i])) {
+                    sumReady = false;
+                    break;
+                }
+            }
+
+            if (sumReady) {
+                const double sumPart = registersToDoubleDCBAFEHG(
+                    registerCache[config.sumAddress[0]],
+                    registerCache[config.sumAddress[1]],
+                    registerCache[config.sumAddress[2]],
+                    registerCache[config.sumAddress[3]]
+                );
+                value64 += sumPart;
+            }
+        }
+
+        static QMap<QString, int> debugCounter;
+        if (debugCounter[labelName]++ % 8 == 0) {
+            qWarning() << "[四控件读数]" << labelName
+                     << (config.isSumMode ? " (求和模式)" : "")
+                     << "解析值:" << value64;
+        }
+
+        updateSliderLabelValue(labelName, static_cast<float>(value64));
     }
     // ============ 新增：检测报警地址 ============
     if (address == 804) {
@@ -3080,6 +3159,50 @@ float MainWindow::registersToFloat(quint16 high, quint16 low)
     //qDebug() << "【浮点数转换结果】" << result;
     return result;
 }
+
+double MainWindow::registersToDoubleDCBAFEHG(quint16 reg1, quint16 reg2, quint16 reg3, quint16 reg4)
+{
+    // 修改：根据 64位大端 IEEE754 与 BADC FEHG 顺序转换
+    // 从日志 [Modbus网络读] 收到字节数: 17 Hex: "... 00 00 00 00 00 00 3f 1a" 分析得到：
+    // reg1: 0, 0
+    // reg2: 0, 0
+    // reg3: 0, 0
+    // reg4: 3f, 1a
+    // 假设目标是小值 (如 0.0001)，3f 应该是最高字节。
+    // 这意味着寄存器顺序是 reg4, reg3, reg2, reg1 (或者 reg1/2/3/4 是相反的)
+    // 且每个寄存器内是 Big Endian (0x3F1A -> 3F then 1A)
+    
+    // 重新映射：
+    // 如果 Payload 是 00 00 00 00 00 00 3f 1a，而 3f 是指数位 (A)
+    // A=3f, B=1a, C=00, D=00, E=00, F=00, G=00, H=00
+    // A,B 来源 reg4 (high, low)
+    // C,D 来源 reg3 (high, low)
+    // E,F 来源 reg2 (high, low)
+    // G,H 来源 reg1 (high, low)
+
+    const quint8 A = static_cast<quint8>((reg4 >> 8) & 0xFF);
+    const quint8 B = static_cast<quint8>(reg4 & 0xFF);
+    const quint8 C = static_cast<quint8>((reg3 >> 8) & 0xFF);
+    const quint8 D = static_cast<quint8>(reg3 & 0xFF);
+    const quint8 E = static_cast<quint8>((reg2 >> 8) & 0xFF);
+    const quint8 F = static_cast<quint8>(reg2 & 0xFF);
+    const quint8 G = static_cast<quint8>((reg1 >> 8) & 0xFF);
+    const quint8 H = static_cast<quint8>(reg1 & 0xFF);
+
+    const quint64 combined =
+        (static_cast<quint64>(A) << 56) |
+        (static_cast<quint64>(B) << 48) |
+        (static_cast<quint64>(C) << 40) |
+        (static_cast<quint64>(D) << 32) |
+        (static_cast<quint64>(E) << 24) |
+        (static_cast<quint64>(F) << 16) |
+        (static_cast<quint64>(G) << 8) |
+        static_cast<quint64>(H);
+
+    double result = 0.0;
+    memcpy(&result, &combined, sizeof(double));
+    return result;
+}
 //注册到sliderlabel
 
 void MainWindow::setupModbusFloatReading()
@@ -3136,80 +3259,95 @@ void MainWindow::setupModbusFloatReading()
 
 void MainWindow::readAllFloatRegisters()
 {
+    // 修正轮询逻辑：J1-J4 以及其他状态数据在大全设备 (192.168.1.88) 上
     if (!m_modbusManager || !m_modbusManager->isConnected()) {
-        qDebug() << "Modbus未连接，无法读取数据";
+        static int warnCount = 0;
+        if (warnCount++ % 10 == 0) {
+            qWarning() << "[警告] 主 Modbus (192.168.1.88) 未连接，无法读取数据";
+        }
         return;
     }
 
-    // 读取浮点数寄存器（201-208）使用功能码0x04
-    m_modbusManager->readMultipleRegisters(201, 8);
+    // [调试日志] 
+    static int timerExecCount = 0;
+    if (timerExecCount++ % 20 == 0) {
+        qWarning() << "[轮询执行] 正在批量读取寄存器 (地址 0 - 71)...";
+    }
 
-    // 单独读取报警地址（804/805和403）
-    // 804: 立柱急停, 805: 底盘急停
-    m_modbusManager->readHoldingRegisters(804, 2);  // 读取804和805地址
-    m_modbusManager->readHoldingRegisters(403, 1);  // 读取403地址
-
-    qDebug() << "已发送批量读取请求：浮点数(201-208) + 报警地址(804,805,403)";
+    // 改为一次性读取 0 到 71 号寄存器 (共 72 个)
+    // 这样涵盖了 J1-J4 (0,4,12,20) 以及后续可能的报警和状态位
+    m_modbusManager->readHoldingRegisters(0, 72);
 }
 // 配置所有TechSliderLabel的参数
 void MainWindow::setupSliderLabelConfigs()
 {
+    qWarning() << "[配置中心] 正在初始化 J1-J4 地址映射...";
     m_sliderLabelConfigs.clear();
 
     // 所有四个控件都需要在三个页面中查找匹配
     QStringList allTargetPages = {"回转升降", "伸缩臂", "EOAT控制"};
 
-    m_sliderLabelConfigs["label_Value1"] = {
+    m_sliderLabelConfigs["robot_ArcGauge_J1Angle"] = {
         "悬臂组件当前角度:",           // labelText
         "°",                  // unit
         -90.0,               // minValue
         90.0,                // maxValue
         60.0,                // defaultValue
         "°",                 // suffix
-        201,                 // modbusAddress1 (浮点数高位)
-        202,                 // modbusAddress2 (浮点数低位)
+        0,                   // modbusAddress1
+        1,                   // modbusAddress2
+        2,                   // modbusAddress3
+        3,                   // modbusAddress4
         true,                // isMainPage
         allTargetPages,      // 在所有三个页面中查找
         1                    // 精度：1位小数
     };
 
-    m_sliderLabelConfigs["label_Value2"] = {
+    m_sliderLabelConfigs["robot_ArcGauge_J2Height"] = {
         "升降组件当前高度:",           // labelText
         "mm",                // unit
         -850.0,              // minValue
         1150.0,              // maxValue
         432.0,               // defaultValue
         "mm",                // suffix
-        203,                 // modbusAddress1
-        204,                 // modbusAddress2
+        4,                   // modbusAddress1
+        5,                   // modbusAddress2
+        6,                   // modbusAddress3
+        7,                   // modbusAddress4
         true,                // isMainPage
         allTargetPages,      // 在所有三个页面中查找
         0                    // 精度：0位小数
     };
 
-    m_sliderLabelConfigs["label_Value3"] = {
+    m_sliderLabelConfigs["robot_ArcGauge_J3Length"] = {
         "悬臂组件当前长度:",           // labelText
         "mm",                // unit
         0.0,                 // minValue
-        840.0,               // maxValue
-        560.0,              // defaultValue
+        1500.0,              // maxValue (修改最大值以容纳求和)
+        560.0,               // defaultValue
         "mm",                // suffix
-        205,                 // modbusAddress1
-        206,                 // modbusAddress2
+        12,                  // modbusAddress1
+        13,                  // modbusAddress2
+        14,                  // modbusAddress3
+        15,                  // modbusAddress4
         true,                // isMainPage
         allTargetPages,      // 在所有三个页面中查找
-        0                    // 精度：0位小数
+        0,                   // 精度：0位小数
+        true,                // isSumMode
+        {16, 17, 18, 19}     // sumAddress
     };
 
-    m_sliderLabelConfigs["label_Value4"] = {
+    m_sliderLabelConfigs["robot_ArcGauge_J4Angle"] = {
         "末端组件当前角度:",    // labelText (修改为末端组件)
         "°",                  // unit
         -180.0,              // minValue
         180.0,               // maxValue
         -34.0,               // defaultValue
         "°",                 // suffix
-        207,                 // modbusAddress1
-        208,                 // modbusAddress2
+        20,                  // modbusAddress1
+        21,                  // modbusAddress2
+        22,                  // modbusAddress3
+        23,                  // modbusAddress4
         true,                // isMainPage
         allTargetPages,      // 在所有三个页面中查找
         1                    // 精度：1位小数
@@ -3380,8 +3518,8 @@ void MainWindow::setupAGVModbus()
     m_agvModbusManager->setPollInterval(m_agvPollIntervalMs);
     m_agvModbusManager->setAutoReconnect(true, m_agvReconnectIntervalMs);
 
-    // 连接到设备 - 默认 192.168.1.88:502
-    QString agvHost = "192.168.1.88";
+    // 连接到设备 - 88 -> 100
+    QString agvHost = "192.168.1.100";
     quint16 agvPort = 502;
 
     // 如果开启本机 TCP 模拟器模式，则重定向到本机 AGV 模拟端口
@@ -3397,7 +3535,7 @@ void MainWindow::setupAGVModbus()
 
     m_agvModbusManager->connectToDevice(agvHost, agvPort);
 
-    qDebug() << "AGV Modbus管理器初始化完成";
+    qDebug() << "192.168.1.100 AGV Modbus管理器初始化完成";
 
     // 添加定时器检查连接状态
     QTimer::singleShot(2000, this, [this]() {
@@ -4043,41 +4181,9 @@ void MainWindow::processEnableButton(bool enabled)
 // 修改 MainWindow::performStartupWrites() 函数
 void MainWindow::performStartupWrites()
 {
-    if (!isFeatureEnabled("startup_checks", "startup.write_registers")) {
-        qDebug() << "启动写寄存器功能已关闭，跳过";
-        return;
-    }
-
-    qDebug() << "=== 执行开机写入操作 ===";
-
-    // 1. 给192.168.1.88设备的0地址写192
-    writeToAGVDevice(0, 64);
-
-
-    // 2. 给192.168.1.88设备的3地址写500
-    writeToAGVDevice(3, 500);
-
-    // 3. 给192.168.1.13设备的19地址写1
-    writeToMainDevice(19, 1);
-
-    // 4. 给192.168.1.13设备的119地址写0
-    writeToMainDevice(119, 0);
-
-    // 5. 给192.168.1.13设备的124地址写0
-    writeToMainDevice(124, 0);
-
-    // 6. 给192.168.1.13设备的400地址写0,力控关闭
-    writeToMainDevice(400, 0);
-
-    // 7. 给192.168.1.13设备的79地址写50,一半的速度
-
-    writeToMainDevice(79, 50);
-
-
-
-    qDebug() << "开机写入完成";
+    qDebug() << "=== 启动写寄存器功能已关闭，跳过所有开机写入 ===";
+    return;
 }
-
 
 // 修改 writeToAGVDevice 函数以支持负数（如果需要）
 /**
@@ -5104,34 +5210,9 @@ void MainWindow::setupSmallForceLabels()
 
 void MainWindow::setupForceReading()
 {
-    if (!isBigFeatureEnabled("force_sensor")) {
-        return;
-    }
-
-    // 创建六维力读取定时器
-    m_forceReadTimer = new QTimer(this);
-
-    // 连接到读取函数
-    connect(m_forceReadTimer, &QTimer::timeout, this, [this]() {
-        // 合并读取：一次读取24个寄存器 (612-635)
-        // 包含大六维力(612-623)和小六维力(624-635)
-        // qDebug() << "定时器触发：尝试读取六维力数据 (地址 612, 长度 24)...";
-        if (m_modbusManager && m_modbusManager->isConnected()) {
-             bool success = m_modbusManager->readHoldingRegisters(612, 24);
-             if (!success) {
-                 qWarning() << "请求读取六维力数据失败 (readHoldingRegisters returned false)";
-             }
-        }
-    });
-
-    // 立即读取一次
-    if (m_modbusManager && m_modbusManager->isConnected()) {
-         m_modbusManager->readHoldingRegisters(612, 24);
-    }
-
-    // 每500毫秒读取一次
-    m_forceReadTimer->start(500);
-    qDebug() << "六维力读取定时器已启动，间隔500ms";
+    // 已根据要求删除六维力传感器轮询功能，以减少主 Modbus 队列负载
+    qDebug() << "六维力传感器轮询功能已禁用";
+    return;
 }
 
 void MainWindow::setupBigForceReading()
@@ -6260,8 +6341,31 @@ void MainWindow::onTestAlarmButtonClicked()
     });
 }
 
+void MainWindow::on_Btn_test_clicked()
+{
+    if (!m_poseProvider) return;
 
+    static double angle = 0;
+    static double distance = 0;
+    
+    // 模拟角度变化
+    angle += 5.0;
+    if (angle > 360.0) angle = 0;
+    
+    // 模拟平移变化 (往复运动)
+    distance += 10.0;
+    if (distance > 200.0) distance = -200.0;
 
+    m_poseProvider->setX(distance);
+    m_poseProvider->setY(distance * 0.8);
+    m_poseProvider->setZ(distance * 0.5);
+
+    m_poseProvider->setRoll(angle);
+    m_poseProvider->setPitch(angle * 0.5);
+    m_poseProvider->setYaw(angle * 1.2);
+
+    qDebug() << "Test Pose Update - Angle:" << angle << "Distance:" << distance;
+}
 
 // ============ 转向模式切换报警逻辑 ============
 

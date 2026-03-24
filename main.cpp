@@ -70,7 +70,7 @@ bool clearServoAlarm(QSplashScreen* splash, const QString& message)
         modbusManager->setAutoReconnect(false);
 
         FeatureSwitchManager *featureSwitch = FeatureSwitchManager::instance();
-        QString host = "192.168.1.13";
+        QString host = "192.168.1.88";
         quint16 port = 502;
 
         if (featureSwitch->isFeatureEnabled("tcp_transmission", "tcp.local_simulator")) {
@@ -214,9 +214,9 @@ bool performSystemChecks(QSplashScreen* splash, MainWindow* mainWindow) {
         return true;
     }
 
-    QString mainCheckIp = "192.168.1.13";
+    QString mainCheckIp = "192.168.1.88";
     int mainCheckPort = 502;
-    QString agvCheckIp = "192.168.1.88";
+    QString agvCheckIp = "192.168.1.100";
     int agvCheckPort = 502;
 
     if (featureSwitch->isFeatureEnabled("tcp_transmission", "tcp.local_simulator")) {
@@ -416,41 +416,9 @@ bool performSystemChecks(QSplashScreen* splash, MainWindow* mainWindow) {
 
             case 6: // 伺服报警清除（新增）
             {
-                if (!featureSwitch->isSmallFeatureEnabled("startup.clear_servo_alarm")) {
-                    check.message = "伺服报警清除功能关闭，跳过";
-                    check.status = CHECK_WARNING;
-                    break;
-                }
-
-                // 如果主控制器未连接，跳过伺服报警清除
-                if (skipChecks || checks[3].status == CHECK_WARNING || checks[3].status == CHECK_FAILED) {
-                    check.message = "警告：跳过伺服报警清除（主控制器未连接）";
-                    check.status = CHECK_WARNING;
-                    // warning noted
-                    break;
-                }
-
-                // 清除伺服报警
-                QString clearMessage = QString("正在清除伺服报警\n地址: 29 (&MB29)\n值: 1");
-
-                bool clearSuccess = clearServoAlarm(splash, clearMessage);
-
-                if (clearSuccess) {
-                    check.message = "伺服报警已清除";
-                    check.status = CHECK_SUCCESS;
-
-                    // 伺服报警清除后，执行额外的初始化写入
-                    // 使用传入的mainWindow参数
-                    QTimer::singleShot(1000, mainWindow, [mainWindow, featureSwitch](){
-                        if (featureSwitch->isSmallFeatureEnabled("startup.write_registers")) {
-                            mainWindow->performStartupWrites();
-                        }
-                    });
-                } else {
-                    check.message = "警告：伺服报警清除失败（设备可能未连接）";
-                    check.status = CHECK_WARNING;
-                    // warning noted
-                }
+                Q_UNUSED(mainWindow);
+                check.message = "伺服报警清除步骤已禁用（跳过所有启动写入）";
+                check.status = CHECK_WARNING;
                 break;
             }
 

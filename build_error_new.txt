@@ -1,0 +1,71 @@
+mainwindow_lifecycle.cpp: In member function ‘void MainWindow::updateNavButtonStyles(QPushButton*)’:
+mainwindow_lifecycle.cpp:427:13: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchVerticalSupport’
+  427 |         ui->Btn_SwitchVerticalSupport,
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~
+mainwindow_lifecycle.cpp:428:13: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchHorizontalSupport’
+  428 |         ui->Btn_SwitchHorizontalSupport,
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+mainwindow_lifecycle.cpp:429:13: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchAGV’
+  429 |         ui->Btn_SwitchAGV,
+      |             ^~~~~~~~~~~~~
+mainwindow_lifecycle.cpp:430:13: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchEOAT’
+  430 |         ui->Btn_SwitchEOAT
+      |             ^~~~~~~~~~~~~~
+mainwindow_lifecycle.cpp:431:5: error: could not convert ‘{<expression error>, <expression error>, <expression error>, <expression error>}’ from ‘<brace-enclosed initializer list>’ to ‘QList<QPushButton*>’
+  431 |     };
+      |     ^
+      |     |
+      |     <brace-enclosed initializer list>
+mainwindow.cpp: In member function ‘void MainWindow::setupNavigationConnections()’:
+mainwindow.cpp:215:17: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchVerticalSupport’
+  215 |     connect(ui->Btn_SwitchVerticalSupport, &QPushButton::clicked, [=]() {
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~
+mainwindow.cpp: In lambda function:
+mainwindow.cpp:217:35: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchVerticalSupport’
+  217 |         updateNavButtonStyles(ui->Btn_SwitchVerticalSupport);
+      |                                   ^~~~~~~~~~~~~~~~~~~~~~~~~
+mainwindow.cpp: In member function ‘void MainWindow::setupNavigationConnections()’:
+mainwindow.cpp:220:17: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchHorizontalSupport’
+  220 |     connect(ui->Btn_SwitchHorizontalSupport, &QPushButton::clicked, [=]() {
+      |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+mainwindow.cpp: In lambda function:
+mainwindow.cpp:222:35: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchHorizontalSupport’
+  222 |         updateNavButtonStyles(ui->Btn_SwitchHorizontalSupport);
+      |                                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+mainwindow.cpp: In member function ‘void MainWindow::setupNavigationConnections()’:
+mainwindow.cpp:225:17: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchAGV’
+  225 |     connect(ui->Btn_SwitchAGV, &QPushButton::clicked, [=]() {
+      |                 ^~~~~~~~~~~~~
+mainwindow.cpp: In lambda function:
+mainwindow.cpp:228:35: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchAGV’
+  228 |         updateNavButtonStyles(ui->Btn_SwitchAGV);
+      |                                   ^~~~~~~~~~~~~
+mainwindow.cpp: In member function ‘void MainWindow::setupNavigationConnections()’:
+mainwindow.cpp:231:17: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchEOAT’
+  231 |     connect(ui->Btn_SwitchEOAT, &QPushButton::clicked, [=]() {
+      |                 ^~~~~~~~~~~~~~
+mainwindow.cpp: In lambda function:
+mainwindow.cpp:233:35: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchEOAT’
+  233 |         updateNavButtonStyles(ui->Btn_SwitchEOAT);
+      |                                   ^~~~~~~~~~~~~~
+mainwindow.cpp: In member function ‘void MainWindow::setupStyles()’:
+mainwindow.cpp:373:13: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchHorizontalSupport’
+  373 |         ui->Btn_SwitchHorizontalSupport,ui->Btn_SwitchVerticalSupport,ui->Btn_SwitchEOAT,ui->Btn_SwitchAGV
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+mainwindow.cpp:373:45: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchVerticalSupport’
+  373 |         ui->Btn_SwitchHorizontalSupport,ui->Btn_SwitchVerticalSupport,ui->Btn_SwitchEOAT,ui->Btn_SwitchAGV
+      |                                             ^~~~~~~~~~~~~~~~~~~~~~~~~
+mainwindow.cpp:373:75: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchEOAT’
+  373 |         ui->Btn_SwitchHorizontalSupport,ui->Btn_SwitchVerticalSupport,ui->Btn_SwitchEOAT,ui->Btn_SwitchAGV
+      |                                                                           ^~~~~~~~~~~~~~
+mainwindow.cpp:373:94: error: ‘class Ui::MainWindow’ has no member named ‘Btn_SwitchAGV’
+  373 |         ui->Btn_SwitchHorizontalSupport,ui->Btn_SwitchVerticalSupport,ui->Btn_SwitchEOAT,ui->Btn_SwitchAGV
+      |                                                                                              ^~~~~~~~~~~~~
+mainwindow.cpp:374:5: error: could not convert ‘{<expression error>, <expression error>, <expression error>, <expression error>}’ from ‘<brace-enclosed initializer list>’ to ‘QList<QPushButton*>’
+  374 |     };
+      |     ^
+      |     |
+      |     <brace-enclosed initializer list>
+make: *** [Makefile:5997：build/obj/mainwindow_lifecycle.o] 错误 1
+make: *** 正在等待未完成的任务....
+make: *** [Makefile:5685：build/obj/mainwindow.o] 错误 1

@@ -27,6 +27,7 @@
 #include "matrixkeythreadmanager.h"
 #include "modbusthreadmanager.h"
 #include "techsliderlabel.h"
+#include "techarcgauge.h"
 #include "speedmodeselector.h"
 #include "modbusvariables.h"
 #include "agvmodbusmanager.h"
@@ -46,6 +47,7 @@
 #include <QQuickItem>
 #include <QQmlContext>
 #include <QSet>
+#include "poseprovider.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -216,6 +218,8 @@ public:
     void readAllFloatRegisters();
     /** @brief 将两个寄存器转换为 float */
     float registersToFloat(quint16 high, quint16 low);
+    /** @brief 按 DCBA FEHG 字节顺序将4个寄存器转换为 double */
+    double registersToDoubleDCBAFEHG(quint16 reg1, quint16 reg2, quint16 reg3, quint16 reg4);
 
     // ==========================================
     // 5. 传感器与周边硬件 (Sensors & Peripherals)
@@ -447,6 +451,8 @@ private slots:
     /** @brief 特定按钮释放回调 */
     void on_TBtn_VeSupSec_Rise_released();
 
+    void on_Btn_test_clicked();
+
 signals:
     void modbusValueChangedForAlarm();
 
@@ -455,6 +461,7 @@ private:
     // 9. 私有成员变量 (Private Data Members)
     // ==========================================
     Ui::MainWindow *ui;
+    PoseProvider *m_poseProvider = nullptr;
     FeatureSwitchManager *m_featureSwitchManager = nullptr;
     FeatureSwitchWidget *m_featureSwitchWidget = nullptr;
 
@@ -566,6 +573,7 @@ private:
     QVector<TechSliderEdit*> m_sliders;
     QVector<TechSliderLabel*> m_sliderLabels;
     QMap<QString, TechSliderLabel*> m_sliderLabelInstances;
+    QMap<QString, TechArcGauge*> m_arcGauges;
     QMap<QString, QVector<TechSliderLabel*>> m_pageSliders;
     QToolButton *m_btnStepMove = nullptr;
     QLineEdit *m_editJ1MoveStep = nullptr;
@@ -730,8 +738,12 @@ private:
 
     struct SliderLabelConfig {
         QString labelText; QString unit; double minValue; double maxValue;
-        double defaultValue; QString suffix; int modbusAddress1; int modbusAddress2;
+        double defaultValue; QString suffix;
+        int modbusAddress1; int modbusAddress2; int modbusAddress3; int modbusAddress4;
         bool isMainPage; QStringList copyPages; int precision = 0;
+        
+        bool isSumMode = false;
+        int sumAddress[4] = {-1, -1, -1, -1};
     };
 public:
     QMap<QString, SliderLabelConfig> m_sliderLabelConfigs;

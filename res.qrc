@@ -54,5 +54,6 @@
         <file>TechSpeedGauge.qml</file>
         <file>HistoryList.qml</file>
         <file>BatteryWidget.qml</file>
+        <file>PoseDisplay.qml</file>
     </qresource>
 </RCC>

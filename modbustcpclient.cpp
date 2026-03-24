@@ -62,6 +62,7 @@ bool ModbusTCPClient::connectToServer(const QString &host, quint16 port, int sla
     if (m_socket->state() != QAbstractSocket::UnconnectedState) {
         m_socket->abort();
     }
+    qWarning() << "[Modbus连接] 正在连接" << host << ":" << port << "SlaveID:" << slaveId;
     m_socket->connectToHost(host, port);
 
     return true;
@@ -96,7 +97,10 @@ void ModbusTCPClient::onConnected()
     m_responseBuffer.clear();
     m_transactionAddressMap.clear();
     m_transactionMapMismatchLogged = false;
-    qCDebug(lcModbusTCPClient) << "Modbus TCP连接成功:" << m_host << ":" << m_port;
+    qWarning() << "[Modbus连接] 连接成功"
+               << "目标:" << m_host << ":" << m_port
+               << "Peer:" << m_socket->peerAddress().toString() << ":" << m_socket->peerPort()
+               << "SlaveID:" << m_slaveId;
     emit connected();
 
     if (m_autoReconnect) {
@@ -179,21 +183,48 @@ bool ModbusTCPClient::readInputRegisters(int startAddress, int count)
 // 通用读取方法
 bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 functionCode)
 {
-    constexpr int kMaxPendingRequests = 256;
+    constexpr int kMaxPendingRequests = 16;
 
     if (!isConnected() || count <= 0 || count > 125) {
         return false;
     }
 
+    // 如果待处理请求过多，说明异步响应没回来，直接清理旧请求
     if (m_transactionAddressMap.size() >= kMaxPendingRequests) {
-        qWarning() << "Modbus待处理请求过多(" << m_transactionAddressMap.size()
-                   << ")，丢弃本次读取请求，起始地址:" << startAddress;
+        static int dropCount = 0;
+        if (dropCount++ % 10 == 0) {
+            qWarning() << "[Modbus阻塞] 待处理请求:" << m_transactionAddressMap.size()
+                       << "试图清理事务。当前状态:" << (isConnected() ? "已连接" : "断开")
+                       << "套接字状态:" << (m_socket ? m_socket->state() : -1);
+        }
         return false;
     }
 
     QByteArray request = createReadRequest(startAddress, count, functionCode);
+    const quint16 requestId = static_cast<quint16>(m_transactionId - 1);
+    const qint64 bytesWritten = m_socket->write(request);
 
-    m_socket->write(request);
+    if (bytesWritten != request.size()) {
+        m_transactionAddressMap.remove(requestId);
+        qWarning() << "[Modbus发送失败]"
+                   << "ReqID:" << requestId
+                   << "地址:" << startAddress
+                   << "数量:" << count
+                   << "期望字节:" << request.size()
+                   << "实际写入:" << bytesWritten
+                   << "错误:" << m_socket->errorString();
+        return false;
+    }
+
+    static int sendCount = 0;
+    if (sendCount++ % 20 == 0) {
+        qWarning() << "[Modbus发送]"
+                   << "ReqID:" << requestId
+                   << "FC:" << QString("0x%1").arg(functionCode, 2, 16, QChar('0')).toUpper()
+                   << "地址:" << startAddress
+                   << "数量:" << count
+                   << "Hex:" << request.toHex(' ');
+    }
 
     return true;
 }
@@ -347,16 +378,22 @@ QByteArray ModbusTCPClient::createWriteMultipleRequest(int startAddress, const Q
 
 void ModbusTCPClient::onReadyRead()
 {
-    constexpr quint16 kMinMbapLength = 3;    // UnitId(1) + Function(1) + Data(>=1)
-    constexpr quint16 kMaxMbapLength = 260;  // 保守上限，避免异常长度卡住解析
-
     const QByteArray chunk = m_socket->readAll();
     if (chunk.isEmpty()) {
         return;
     }
 
+    // 强行输出原始数据报文
+    static int readLog = 0;
+    if (readLog++ % 5 == 0) {
+        qWarning() << "[Modbus网络读] 收到字节数:" << chunk.size() << "Hex:" << chunk.toHex(' ');
+    }
+
     emit dataReceived(chunk);
     m_responseBuffer.append(chunk);
+
+    constexpr quint16 kMinMbapLength = 3;    // UnitId(1) + Function(1) + Data(>=1)
+    constexpr quint16 kMaxMbapLength = 260;  // 保守上限，避免异常长度卡住解析
 
     bool parsedAnyFrame = false;
 
@@ -445,10 +482,13 @@ bool ModbusTCPClient::parseResponse(const QByteArray &data)
     }
 
     // 处理功能码 0x03, 0x04, 0x06, 0x10 响应
-    if (functionCode == 0x03 || functionCode == 0x04 || functionCode == 0x06 || functionCode == 0x10) {
+    if (functionCode == 0x03 || functionCode == 0x04 || functionCode == 0x05 || functionCode == 0x06 || functionCode == 0x10) {
         
-        // 对于写操作响应(0x06, 0x10)，我们只记录日志，不需要解析数据
-        if (functionCode == 0x06 || functionCode == 0x10) {
+        // 对于写操作响应(0x05, 0x06, 0x10)，我们只从 Map 中移除事务并记录日志
+        if (functionCode == 0x05 || functionCode == 0x06 || functionCode == 0x10) {
+            if (m_transactionAddressMap.contains(transactionId)) {
+                m_transactionAddressMap.remove(transactionId);
+            }
             // qCDebug(lcModbusTCPClient) << "收到写操作响应，功能码:" << QString::number(functionCode, 16);
             return true;
         }

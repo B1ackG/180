@@ -83,11 +83,6 @@ void ModbusThreadManager::registerSlider(TechSliderEdit *slider, int address)
     slider->setModbusAddress(address);
 
     connect(slider, &QObject::destroyed, this, &ModbusThreadManager::onSliderDestroyed);
-
-    if (m_modbusClient) {
-        QString sliderName = QString("%1_%2").arg(slider->labelText()).arg((quintptr)slider);
-        m_modbusClient->addRegisterToPoll(address, sliderName);
-    }
 }
 
 void ModbusThreadManager::unregisterSlider(TechSliderEdit *slider)
@@ -135,11 +130,6 @@ void ModbusThreadManager::registerSliderLabel(TechSliderLabel *sliderLabel, int 
     sliderLabel->setModbusAddress(address);
 
     connect(sliderLabel, &QObject::destroyed, this, &ModbusThreadManager::onSliderLabelDestroyed);
-
-    if (m_modbusClient) {
-        QString sliderName = QString("%1_%2").arg(sliderLabel->labelText()).arg((quintptr)sliderLabel);
-        m_modbusClient->addRegisterToPoll(address, sliderName);
-    }
 }
 
 void ModbusThreadManager::unregisterSliderLabel(TechSliderLabel *sliderLabel)

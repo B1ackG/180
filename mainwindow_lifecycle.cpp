@@ -11,6 +11,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , m_poseProvider(new PoseProvider(this))
     , m_featureSwitchManager(FeatureSwitchManager::instance())
     , m_enableButtonThread(nullptr)
     , m_enableButtonWorker(nullptr)
@@ -65,6 +66,11 @@ MainWindow::MainWindow(QWidget *parent)
     loadPollingRuntimeSettings();
     initializeCorePagesAndUi();
     initializeCoreSubsystems();
+
+    if (ui->sixAxisQuickWidget) {
+        ui->sixAxisQuickWidget->rootContext()->setContextProperty("poseData", m_poseProvider);
+        ui->sixAxisQuickWidget->setSource(QUrl("qrc:/PoseDisplay.qml"));
+    }
 
     ui->StackedWidget->setCurrentIndex(0);
     ui->lab_Overall->setScaledContents(true);
@@ -417,22 +423,23 @@ void MainWindow::initializeUI()
 
 void MainWindow::updateNavButtonStyles(QPushButton *activeBtn)
 {
-    QList<QPushButton *> navButtons = {
+    /* QList<QPushButton *> navButtons = {
         ui->Btn_SwitchVerticalSupport,
         ui->Btn_SwitchHorizontalSupport,
         ui->Btn_SwitchAGV,
         ui->Btn_SwitchEOAT
-    };
+    }; */
 
     const QString activeStyle = "QPushButton { border: 2px solid #00FFFF; background-color: transparent; border-radius: 10px; }";
     const QString normalStyle = "QPushButton { border: none; background-color: transparent; }";
 
-    for (QPushButton *btn : navButtons) {
+    /* for (QPushButton *btn : navButtons) {
         if (!btn) {
             continue;
         }
         btn->setStyleSheet(btn == activeBtn ? activeStyle : normalStyle);
-    }
+    } */
+    Q_UNUSED(activeBtn);
 }
 
 

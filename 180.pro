@@ -25,8 +25,10 @@ SOURCES += \
     modbusthreadmanager.cpp \
     modbusvariables.cpp \
     operationrecorder.cpp \
+    poseprovider.cpp \
     speedmodeselector.cpp \
     steeringmodeselector.cpp \
+    techarcgauge.cpp \
     techpushbutton.cpp \
     techslideredit.cpp \
     techsliderlabel.cpp \
@@ -47,8 +49,10 @@ HEADERS += \
     modbusthreadmanager.h \
     modbusvariables.h \
     operationrecorder.h \
+    poseprovider.h \
     speedmodeselector.h \
     steeringmodeselector.h \
+    techarcgauge.h \
     techpushbutton.h \
     techslideredit.h \
     techsliderlabel.h \
