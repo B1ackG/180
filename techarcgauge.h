@@ -24,9 +24,13 @@ public:
     double minimum() const { return m_minimum; }
     double maximum() const { return m_maximum; }
     
+    double secondValue() const { return m_secondValue; }
+    double secondMaximum() const { return m_secondMaximum; }
+    
     void setRange(double min, double max);
     void setLabelText(const QString &text);
     void setSuffix(const QString &suffix);
+    void setSecondSuffix(const QString &suffix);
     void setPrecision(int precision);
     void setForceControlMode(bool enabled);
     void setModbusAddress(int address) { m_modbusAddress = address; }
@@ -34,6 +38,8 @@ public:
 
 public slots:
     void setValue(double value);
+    void setSecondValue(double value);
+    void setSecondMaximum(double max);
     void setMinimum(double min);
     void setMaximum(double max);
     void updateAnimation();
@@ -41,6 +47,7 @@ public slots:
 
 signals:
     void valueChanged(double value);
+    void secondValueChanged(double value);
     void modbusAddressChanged(int address);
 
 protected:
@@ -54,8 +61,13 @@ private:
     double m_value;
     double m_minimum;
     double m_maximum;
+    
+    double m_secondValue;    // 新增：第二数值（如速度）
+    double m_secondMaximum;  // 新增：第二数值最大值
+    
     int m_precision;
     QString m_suffix;
+    QString m_secondSuffix;  // 新增：第二数值单位
     QString m_labelText;
     int m_modbusAddress;
 

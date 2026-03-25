@@ -743,7 +743,7 @@ void MainWindow::initSpeedGaugeUI()
     QList<ArcConfig> configs = {
         {ui->widget_test1, "robot_ArcGauge_J1Angle", "悬臂角度", "°", -90, 90, 1},
         {ui->widget_test2, "robot_ArcGauge_J2Height", "升降高度", "mm", -850, 1150, 0},
-        {ui->widget_test3, "robot_ArcGauge_J3Length", "悬臂长度", "mm", 0, 840, 0},
+        {ui->widget_test3, "robot_ArcGauge_J3Length", "总伸展长度", "mm", 0, 1600, 0},
         {ui->widget_test4, "robot_ArcGauge_J4Angle", "末端角度", "°", -180, 180, 1}
     };
 
@@ -755,6 +755,23 @@ void MainWindow::initSpeedGaugeUI()
             arcGauge->setObjectName(cfg.name);
             arcGauge->setRange(cfg.min, cfg.max);
             arcGauge->setValue(0);
+            
+            // 如果是 J3，设置速度显示相关参数
+            if (cfg.name == "robot_ArcGauge_J3Length") {
+                arcGauge->setSecondMaximum(40.0); // J3 速度范围 0~40 mm/s
+                arcGauge->setSecondSuffix("mm/s");
+                arcGauge->setSecondValue(0.0);
+            } else if (cfg.name == "robot_ArcGauge_J1Angle") {
+                arcGauge->setSecondMaximum(2.0);  // J1 速度范围 0~2 °/s
+                arcGauge->setSecondSuffix("°/s");
+            } else if (cfg.name == "robot_ArcGauge_J2Height") {
+                arcGauge->setSecondMaximum(15.0); // J2 速度范围 0~15 mm/s
+                arcGauge->setSecondSuffix("mm/s");
+            } else if (cfg.name == "robot_ArcGauge_J4Angle") {
+                arcGauge->setSecondMaximum(2.0);  // J4 速度范围 0~2 °/s
+                arcGauge->setSecondSuffix("°/s");
+            }
+            
             arcGauge->setLabelText(cfg.label);
             arcGauge->setSuffix(cfg.suffix);
             arcGauge->setPrecision(cfg.precision);
@@ -883,11 +900,11 @@ void MainWindow::initSliderEditUI()
         }
         else if (objName == "TechSliderEdit_EOAT_RotationSpeed") {
             // EOAT旋转速度：0-5 °/s，支持一位小数
-            slider->setLabelText("旋转速度");
-            slider->setRange(0, 5);
+            slider->setLabelText("全局速度");
+            slider->setRange(0, 100);
             slider->setValue(3); // 默认值设为整数
-            slider->setSuffix("°/s");
-            slider->setPrecision(1); // 可以输入一位小数
+            slider->setSuffix("%");
+            slider->setPrecision(0); // 可以输入一位小数
             nonAGVSliders.append(slider);
 
             qDebug() << "初始化: TechSliderEdit_EOAT_RotationSpeed, 范围:0-5 °/s, 默认值:3 °/s, 精度:1";
@@ -2831,6 +2848,9 @@ void MainWindow::pollModbusVariables()
 
     currentIndex++;
 }
+
+static QMap<int, quint16> g_registerCache; 
+
 void MainWindow::updateSliderLabelValue(const QString& labelName, float value)
 {
     // 根据首页控件名，更新所有相关页面的对应控件
@@ -2852,12 +2872,44 @@ void MainWindow::updateSliderLabelValue(const QString& labelName, float value)
     // 更新对应的环形仪表 (TechArcGauge)
     if (m_arcGauges.contains(labelName)) {
         m_arcGauges[labelName]->setValue(static_cast<double>(value));
+        
+        // 特殊逻辑：根据不同仪表解析对应的速度寄存器
+        if (labelName == "robot_ArcGauge_J3Length") {
+            // J3 速度 = (48-51) 的 double + (52-55) 的 double, 范围 0~40
+            const int v1_addr[4] = {48, 49, 50, 51};
+            const int v2_addr[4] = {52, 53, 54, 55};
+            if (g_registerCache.contains(48) && g_registerCache.contains(51) && 
+                g_registerCache.contains(52) && g_registerCache.contains(55)) {
+                double v1 = registersToDoubleDCBAFEHG(g_registerCache[48], g_registerCache[49], g_registerCache[50], g_registerCache[51]);
+                double v2 = registersToDoubleDCBAFEHG(g_registerCache[52], g_registerCache[53], g_registerCache[54], g_registerCache[55]);
+                m_arcGauges[labelName]->setSecondValue(qAbs(v1 + v2));
+            }
+        } else if (labelName == "robot_ArcGauge_J1Angle") {
+            // J1 速度 = 36-39, 范围 0~2
+            if (g_registerCache.contains(36) && g_registerCache.contains(39)) {
+                double v = registersToDoubleDCBAFEHG(g_registerCache[36], g_registerCache[37], g_registerCache[38], g_registerCache[39]);
+                m_arcGauges[labelName]->setSecondValue(qAbs(v));
+            }
+        } else if (labelName == "robot_ArcGauge_J2Height") {
+            // J2 速度 = 40-43, 范围 0~15
+            if (g_registerCache.contains(40) && g_registerCache.contains(43)) {
+                double v = registersToDoubleDCBAFEHG(g_registerCache[40], g_registerCache[41], g_registerCache[42], g_registerCache[43]);
+                m_arcGauges[labelName]->setSecondValue(qAbs(v));
+            }
+        } else if (labelName == "robot_ArcGauge_J4Angle") {
+            // J4 速度 = 56-59, 范围 0~2
+            if (g_registerCache.contains(56) && g_registerCache.contains(59)) {
+                double v = registersToDoubleDCBAFEHG(g_registerCache[56], g_registerCache[57], g_registerCache[58], g_registerCache[59]);
+                m_arcGauges[labelName]->setSecondValue(qAbs(v));
+            }
+        }
     }
 }
 
 // 处理Modbus值变化
 // 在mainwindow.cpp中添加这个函数
 // 处理Modbus值变化
+
 void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 {
     // [调试] 无论如何都会输出，用来确认数据到底回来没
@@ -2866,8 +2918,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
     }
 
     // 更新寄存器缓存
-    static QMap<int, quint16> registerCache;
-    registerCache[address] = value;
+    g_registerCache[address] = value;
 
     const QStringList targetLabels = {
         "robot_ArcGauge_J1Angle", "robot_ArcGauge_J2Height", "robot_ArcGauge_J3Length", "robot_ArcGauge_J4Angle"
@@ -2892,7 +2943,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
         bool ready = true;
         for (int reg : regs) {
-            if (!registerCache.contains(reg)) {
+            if (!g_registerCache.contains(reg)) {
                 ready = false;
                 break;
             }
@@ -2902,17 +2953,17 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             continue;
         }
 
-        const quint16 reg1 = registerCache[config.modbusAddress1];
-        const quint16 reg2 = registerCache[config.modbusAddress2];
-        const quint16 reg3 = registerCache[config.modbusAddress3];
-        const quint16 reg4 = registerCache[config.modbusAddress4];
+        const quint16 reg1 = g_registerCache[config.modbusAddress1];
+        const quint16 reg2 = g_registerCache[config.modbusAddress2];
+        const quint16 reg3 = g_registerCache[config.modbusAddress3];
+        const quint16 reg4 = g_registerCache[config.modbusAddress4];
         double value64 = registersToDoubleDCBAFEHG(reg1, reg2, reg3, reg4);
 
         // 如果开启了求和模式 (用于 J3Length = 12-15 + 16-19)
         if (config.isSumMode) {
             bool sumReady = true;
             for (int i = 0; i < 4; ++i) {
-                if (!registerCache.contains(config.sumAddress[i])) {
+                if (!g_registerCache.contains(config.sumAddress[i])) {
                     sumReady = false;
                     break;
                 }
@@ -2920,10 +2971,10 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
             if (sumReady) {
                 const double sumPart = registersToDoubleDCBAFEHG(
-                    registerCache[config.sumAddress[0]],
-                    registerCache[config.sumAddress[1]],
-                    registerCache[config.sumAddress[2]],
-                    registerCache[config.sumAddress[3]]
+                    g_registerCache[config.sumAddress[0]],
+                    g_registerCache[config.sumAddress[1]],
+                    g_registerCache[config.sumAddress[2]],
+                    g_registerCache[config.sumAddress[3]]
                 );
                 value64 += sumPart;
             }

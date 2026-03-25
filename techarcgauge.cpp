@@ -8,8 +8,11 @@ TechArcGauge::TechArcGauge(QWidget *parent)
     , m_value(0.0)
     , m_minimum(0.0)
     , m_maximum(100.0)
+    , m_secondValue(0.0)
+    , m_secondMaximum(100.0)
     , m_precision(0)
     , m_suffix("")
+    , m_secondSuffix("")
     , m_labelText("Parameter")
     , m_modbusAddress(-1)
     , m_primaryColor(QColor(0, 200, 255))
@@ -53,6 +56,22 @@ void TechArcGauge::setValue(double value)
     }
 }
 
+void TechArcGauge::setSecondValue(double value)
+{
+    value = qBound(0.0, value, m_secondMaximum);
+    if (qAbs(m_secondValue - value) > 0.0001) {
+        m_secondValue = value;
+        emit secondValueChanged(m_secondValue);
+        requestRepaint();
+    }
+}
+
+void TechArcGauge::setSecondMaximum(double max)
+{
+    m_secondMaximum = qMax(0.1, max);
+    requestRepaint();
+}
+
 void TechArcGauge::setMinimum(double min)
 {
     m_minimum = min;
@@ -81,6 +100,12 @@ void TechArcGauge::setLabelText(const QString &text)
 void TechArcGauge::setSuffix(const QString &suffix)
 {
     m_suffix = suffix;
+    requestRepaint();
+}
+
+void TechArcGauge::setSecondSuffix(const QString &suffix)
+{
+    m_secondSuffix = suffix;
     requestRepaint();
 }
 
@@ -173,35 +198,75 @@ void TechArcGauge::paintEvent(QPaintEvent *)
     painter.drawEllipse(QPointF(width() / 2.0 + scanR * cos(scanRad), 
                                 height() / 2.0 + scanR * sin(scanRad)), 3, 3);
 
+    // --- 绘制第二数值（例如速度）的进度条（在内圈） ---
+    if (m_secondMaximum > 0) {
+        float innerRatio = qBound(0.0, m_secondValue / m_secondMaximum, 1.0);
+        float secondSpan = spanAngle * innerRatio;
+        
+        QPen secondPen;
+        secondPen.setColor(QColor(255, 165, 0, 180)); // 科技橙 (Orange)
+        secondPen.setWidth(4);
+        secondPen.setCapStyle(Qt::RoundCap);
+        
+        painter.setPen(secondPen);
+        painter.drawArc(rect.adjusted(25, 25, -25, -25), startAngle * 16, secondSpan * 16);
+    }
+
     // 绘制文字
     painter.setPen(Qt::white);
     QFont font = painter.font();
     
-    // 当前值
+    // 当前主数值（长度/角度）
     font.setPixelSize(size / 6);
     font.setBold(true);
     painter.setFont(font);
     QString valueStr = QString::number(m_value, 'f', m_precision);
-    painter.drawText(rect, Qt::AlignCenter, valueStr);
+    painter.drawText(rect.adjusted(0, -size/15, 0, -size/15), Qt::AlignCenter, valueStr);
 
-    // 后缀/单位 (在数值下方)
-    font.setPixelSize(size / 12);
+    // 主数值单位
+    font.setPixelSize(size / 15);
     font.setBold(false);
     painter.setFont(font);
-    painter.drawText(rect.adjusted(0, size/4, 0, 0), Qt::AlignCenter, m_suffix);
+    painter.drawText(rect.adjusted(0, size/8, 0, size/8), Qt::AlignCenter, m_suffix);
 
-    // 参数名称 (在数值上方)
-    font.setPixelSize(size / 14);
+    // 绘制第二数值文字（速度）
+    if (!m_secondSuffix.isEmpty() || m_secondValue != 0) {
+        font.setPixelSize(size / 13); // 增大字体由 18 变为 15 (数值越小字体越大)
+        font.setBold(true);           // 设置为加粗增加辨识度
+        painter.setFont(font);
+        painter.setPen(QColor(255, 120, 0)); // 科技感橙色
+        QString secondStr = QString("V: %1 %2").arg(QString::number(m_secondValue, 'f', 1)).arg(m_secondSuffix);
+        painter.drawText(rect.adjusted(0, size/3.8, 0, size/3.8), Qt::AlignCenter, secondStr); // 稍微下移位置以避免拥挤
+    }
+
+    // 参数名称 (在顶部)
+    font.setPixelSize(size / 10);
+    painter.setPen(Qt::white);
     painter.setFont(font);
-    painter.drawText(rect.adjusted(0, -size/4, 0, 0), Qt::AlignCenter, m_labelText);
+    painter.drawText(rect.adjusted(0, -size/3.5, 0, -size/3.5), Qt::AlignCenter, m_labelText);
     
     // Min / Max
-    font.setPixelSize(size / 18);
+    font.setPixelSize(size / 12); // 增大字体由 20 变为 15
     painter.setFont(font);
-    painter.setPen(QColor(200, 200, 200));
-    // 稍微计算一下起止点位置绘制Min/Max文本
-    painter.drawText(rect.adjusted(size*0.1, size*0.35, -size*0.1, -size*0.05), Qt::AlignLeft | Qt::AlignBottom, QString::number(m_minimum));
-    painter.drawText(rect.adjusted(size*0.1, size*0.35, -size*0.1, -size*0.05), Qt::AlignRight | Qt::AlignBottom, QString::number(m_maximum));
+    painter.setPen(QColor(180, 180, 180));
+    
+    // 计算圆弧起点 (-225度) 和 终点 (45度) 的坐标
+    // 注意：Qt 的 drawArc 使用的角度单位是 1/16 度，且顺时针为负，我们计算位置使用弧度
+    float rText = size / 2.0 - 5; // 稍微靠外一点
+    float centerX = width() / 2.0;
+    float centerY = height() / 2.0;
+
+    // 起点 (Min)
+    float minRad = qDegreesToRadians(225.0f); // -(-225)
+    QPointF minPos(centerX + rText * cos(minRad), centerY + rText * sin(minRad));
+    
+    // 终点 (Max)
+    float maxRad = qDegreesToRadians(-45.0f); // -(45)
+    QPointF maxPos(centerX + rText * cos(maxRad), centerY + rText * sin(maxRad));
+
+    // 绘制文本，稍微偏移以避免覆盖圆弧
+    painter.drawText(QRectF(minPos.x() - 40, minPos.y() - 20, 40, 20), Qt::AlignRight | Qt::AlignVCenter, QString::number(m_minimum));
+    painter.drawText(QRectF(maxPos.x(), maxPos.y() - 20, 40, 20), Qt::AlignLeft | Qt::AlignVCenter, QString::number(m_maximum));
 }
 
 void TechArcGauge::resizeEvent(QResizeEvent *event)
