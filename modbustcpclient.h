@@ -279,10 +279,16 @@ private:
 
     // 新增私有函数
     bool readRegisters(int startAddress, int count, quint8 functionCode);
-    bool parseResponse(const QByteArray &data);  // 新增
+    bool parseResponse(const QByteArray &data);
+    
+    struct TransactionInfo {
+        int address;
+        qint64 timestamp; // 发送时的时间戳 (ms)
+    };
 
-    QMap<quint16, int> m_transactionAddressMap;  // 事务ID -> 地址映射
+    QMap<quint16, TransactionInfo> m_transactionAddressMap;  // 事务ID -> 事务信息映射
     QByteArray m_responseBuffer;
+    int m_maxTimeoutMs; // 事务超时时间 (ms)
 
     bool parseReadResponse(const QByteArray &data, int startAddress, QVector<quint16> &values);
     bool parseWriteResponse(const QByteArray &data, int expectedAddress);

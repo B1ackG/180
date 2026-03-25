@@ -253,14 +253,18 @@ void MainWindow::setupRecordAndPermissionConnections()
         }
     });
 
-    connect(ui->TBtn_craft, &QPushButton::clicked, [=]() {
-        if (m_currentUserRole >= UserRole::Engineer) {
-            ui->StackedWidget->setCurrentIndex(7);
-            showNotification("已进入工艺界面");
+    ui->TBtn_MoveMode->setText("关节模式");
+
+    connect(ui->TBtn_MoveMode, &QPushButton::clicked, [=]() {
+        m_isJointMode = !m_isJointMode;
+        if (m_isJointMode) {
+            writeToMainDevice(525, 2);
+            ui->TBtn_MoveMode->setText("关节模式");
+            showNotification("已切换至关节模式");
         } else {
-            const QString tip = "权限不足：进入工艺界面需要工程师权限";
-            showNotification(tip);
-            updateStatusTip(tip);
+            writeToMainDevice(525, 1);
+            ui->TBtn_MoveMode->setText("坐标模式");
+            showNotification("已切换至坐标模式");
         }
     });
 
@@ -2209,7 +2213,40 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     int currentPage = ui->StackedWidget->currentIndex();
     QString pageName = m_pageNames.value(currentPage, "未知");
 
-    // 处理124地址的写入（原有逻辑保持不变）
+    // 特殊处理：如果是机械臂页面（索引为0），执行唯一的 500/514 寄存器逻辑并直接返回
+    if (currentPage == 0 || pageName == "机械臂" || pageName == "page_Robot") {
+        // 新增条件：只有当 TBtn_Stepmove 处于“点动模式”且 TBtn_MoveMode 处于“关节模式”时才执行
+        if (!m_stepModeEnabled && m_isJointMode) {
+            if (keyNumber >= 1 && keyNumber <= 8) {
+                int value500 = 0;
+                int value514 = 0;
+                if (pressed) {
+                    // 地址500逻辑：○1,○2->1; ○3,○4->2; ○5,○6->3; ○7,○8->4
+                    value500 = (keyNumber + 1) / 2;
+
+                    // 地址514逻辑：奇数按键写4，偶数按键写2
+                    value514 = (keyNumber % 2 != 0) ? 4 : 2;
+
+                    writeToMainDevice(500, value500);
+                    writeToMainDevice(514, value514);
+                } else {
+                    // 松开时的逻辑：500寄存器不再写0，514寄存器写0
+                    value500 = -1; // 用-1表示不操作
+                    value514 = 0;
+                    writeToMainDevice(514, 0);
+                }
+
+                qDebug() << "page_Robot (Index 0, 点动/关节) 按键 ○" << keyNumber << " " << (pressed ? "按下" : "释放")
+                         << " -> 地址500写入:" << (pressed ? QString::number(value500) : "保持") 
+                         << ", 地址514写入:" << value514;
+            }
+        } else {
+            qDebug() << "机械臂页面按键忽略：当前未处于[点动+关节]模式";
+        }
+        return; // 机械臂页面不再执行后续逻辑
+    }
+
+    // 处理124地址的写入
     if (keyNumber >= 1 && keyNumber <= 4) {
         int value = getValueFor124Address(keyNumber, pressed);
 
@@ -2554,10 +2591,6 @@ void MainWindow::onModbusConnected()
 
     if (isFeatureEnabled("modbus_main", "modbus_main.float_reading")) {
         setupModbusFloatReading();
-    }
-
-    if (isBigFeatureEnabled("force_sensor")) {
-        setupForceReading();
     }
 
     if (isBigFeatureEnabled("tcp_transmission")) {
@@ -2914,7 +2947,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 {
     // [调试] 无论如何都会输出，用来确认数据到底回来没
     if (address < 25) { 
-        qWarning() << "[Modbus原始数据] 地址:" << address << "值:" << value;
+        // qWarning() << "[Modbus原始数据] 地址:" << address << "值:" << value;
     }
 
     // 更新寄存器缓存
@@ -2982,9 +3015,9 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
         static QMap<QString, int> debugCounter;
         if (debugCounter[labelName]++ % 8 == 0) {
-            qWarning() << "[四控件读数]" << labelName
-                     << (config.isSumMode ? " (求和模式)" : "")
-                     << "解析值:" << value64;
+            // qWarning() << "[四控件读数]" << labelName
+            //          << (config.isSumMode ? " (求和模式)" : "")
+            //          << "解析值:" << value64;
         }
 
         updateSliderLabelValue(labelName, static_cast<float>(value64));
@@ -3322,7 +3355,7 @@ void MainWindow::readAllFloatRegisters()
     // [调试日志] 
     static int timerExecCount = 0;
     if (timerExecCount++ % 20 == 0) {
-        qWarning() << "[轮询执行] 正在批量读取寄存器 (地址 0 - 71)...";
+        // qWarning() << "[轮询执行] 正在批量读取寄存器 (地址 0 - 71)...";
     }
 
     // 改为一次性读取 0 到 71 号寄存器 (共 72 个)
@@ -4209,20 +4242,20 @@ void MainWindow::processEnableButton(bool enabled)
             qDebug() << "外部使能按钮激活，允许运动控制";
 
             // 执行原来的 onEnableButtonPressed 逻辑
-            writeToMainDevice(19, 1);
-            writeToMainDevice(119, 1);
+            // writeToMainDevice(19, 1);
+            // writeToMainDevice(119, 1);
 
-            qDebug() << "使能按钮按下，地址19写入1，地址119写入1";
+            qDebug() << "使能按钮按下，跳过地址19和119写入";
             ui->statusBar->showMessage("使能按钮按下，运动控制已激活", 2000);
         } else {
             // 使能按钮释放（未激活）时的处理
             qDebug() << "外部使能按钮未激活，禁止运动控制";
 
             // 执行原来的 onEnableButtonReleased 逻辑
-            writeToMainDevice(19, 0);
-            writeToMainDevice(119, 0);
+            // writeToMainDevice(19, 0);
+            // writeToMainDevice(119, 0);
 
-            qDebug() << "使能按钮释放，地址119写入0";
+            qDebug() << "使能按钮释放，跳过地址19和119写入";
             ui->statusBar->showMessage("使能按钮释放，运动控制已禁用", 2000);
         }
     }
@@ -5691,11 +5724,10 @@ void MainWindow::onStepMoveButtonClicked()
         ui->TBtn_Stepmove->setText("步进模式");
         ui->TBtn_Stepmove->setToolTip("当前模式：步进模式");
 
-        // 给192.168.1.13设备的5地址写2，44地址写1
-        writeToMainDevice(5, 2);
-        writeToMainDevice(44, 1);
+        // 给501寄存器写入2
+        writeToMainDevice(501, 2);
 
-        qDebug() << "切换到步进模式，地址5写入2，地址44写入1";
+        qDebug() << "切换到步进模式，地址501写入2";
         ui->statusBar->showMessage("已切换到步进模式", 2000);
 
         // 更新状态栏显示
@@ -5704,9 +5736,6 @@ void MainWindow::onStepMoveButtonClicked()
             runModeLabel->setText("步进模式");
             runModeLabel->setStyleSheet("color: #00ff00; font-weight: bold; font-size: 11px;");
         }
-
-        // 清空步进寄存器
-        clearStepMoveRegisters();
 
     } else {
         // 切换到点动模式
@@ -5720,14 +5749,11 @@ void MainWindow::onStepMoveButtonClicked()
             runModeLabel->setStyleSheet("color: #00ccff; font-weight: bold; font-size: 11px;");
         }
 
-        // 给192.168.1.13设备的5地址写1
-        writeToMainDevice(5, 1);
+        // 给501寄存器写入1
+        writeToMainDevice(501, 1);
 
-        qDebug() << "切换到点动模式，地址5写入1";
+        qDebug() << "切换到点动模式，地址501写入1";
         ui->statusBar->showMessage("已切换到点动模式", 2000);
-
-        // 清空步进寄存器
-        clearStepMoveRegisters();
     }
 
     // 记录操作
@@ -5748,7 +5774,7 @@ void MainWindow::onEnableButtonPressedStepMode()
     qDebug() << "步进模式下使能按钮按下";
 
     // 给192.168.1.13设备的19地址写1，10地址写1
-    writeToMainDevice(19, 1);
+    // writeToMainDevice(19, 1);
     writeToMainDevice(10, 1);
 
     // 写入步进值到寄存器
@@ -5788,7 +5814,7 @@ void MainWindow::onEnableButtonReleasedStepMode()
     qDebug() << "步进模式下使能按钮释放";
 
     // 给192.168.1.13设备的19地址写0，10地址写0，500-503地址写0
-    writeToMainDevice(19, 0);
+    // writeToMainDevice(19, 0);
     writeToMainDevice(10, 0);
 
     // 清空步进寄存器

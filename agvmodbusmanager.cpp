@@ -94,11 +94,13 @@ void AGVModbusManager::onConnected()
     m_disconnectedWriteWarnedAddresses.clear();
     qDebug() << "AGV Modbus连接成功:" << m_host << ":" << m_port;
 
-    // 启动轮询
+    // 已禁用开机自动轮询
+    /*
     if (m_pollTimer) {
         m_pollTimer->start(m_pollInterval);
         qDebug() << "轮询定时器已启动，间隔:" << m_pollInterval << "ms";
     }
+    */
 
     // 停止重连定时器
     if (m_autoReconnect && m_reconnectTimer) {

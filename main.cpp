@@ -53,88 +53,6 @@ struct SystemCheckItem {
     int timeout; // 超时时间(ms)
 };
 
-// 清除伺服报警函数
-bool clearServoAlarm(QSplashScreen* splash, const QString& message)
-{
-    splash->showMessage(message, Qt::AlignBottom | Qt::AlignCenter, Qt::white);
-    qApp->processEvents();
-
-    QElapsedTimer timer;
-    timer.start();
-
-    try {
-        // 获取Modbus管理器实例
-        ModbusThreadManager* modbusManager = ModbusThreadManager::instance();
-
-        // 清报警过程临时关闭自动重连，避免手动断开触发抖动
-        modbusManager->setAutoReconnect(false);
-
-        FeatureSwitchManager *featureSwitch = FeatureSwitchManager::instance();
-        QString host = "192.168.1.88";
-        quint16 port = 502;
-
-        if (featureSwitch->isFeatureEnabled("tcp_transmission", "tcp.local_simulator")) {
-            host = "127.0.0.1";
-            port = 5020;
-        } else if (featureSwitch->isFeatureEnabled("tcp_transmission", "tcp.remote_simulator")) {
-            host = "192.168.1.70";
-            port = 5020;
-        }
-
-        // 如果尚未连接，则连接到主设备
-        if (!modbusManager->isConnected()) {
-            bool connected = modbusManager->connectToDevice(host, port);
-            if (!connected) {
-                modbusManager->setAutoReconnect(true, 5000);
-                return false;
-            }
-
-            // 连接状态检查
-            int waitCount = 0;
-            while (!modbusManager->isConnected() && waitCount < 20) {
-                QThread::msleep(100);
-                waitCount++;
-                qApp->processEvents();
-            }
-        }
-
-        if (!modbusManager->isConnected()) {
-            qDebug() << "清除伺服报警失败：Modbus连接超时";
-            modbusManager->setAutoReconnect(true, 5000);
-            return false;
-        }
-
-        qDebug() << "Modbus连接成功，准备清除伺服报警...";
-
-        // 写入地址29（实际地址28，因为Modbus地址从0开始）
-        int servoAlarmAddress = 29;  // 40029对应的0-based地址
-
-        // 写入值1到地址29
-        bool writeSuccess = modbusManager->writeSingleRegister(servoAlarmAddress, 1);
-
-        // 等待写入完成
-        QThread::msleep(500);
-
-        // 恢复自动重连，保持当前连接给主界面继续复用
-        modbusManager->setAutoReconnect(true, 5000);
-
-        if (writeSuccess) {
-            qDebug() << "伺服报警清除成功 - 地址:" << servoAlarmAddress << "(&MB" << (servoAlarmAddress + 1) << ")";
-            return true;
-        } else {
-            qDebug() << "伺服报警清除失败";
-            return false;
-        }
-
-    } catch (const std::exception& e) {
-        qDebug() << "清除伺服报警异常:" << e.what();
-        return false;
-    } catch (...) {
-        qDebug() << "清除伺服报警未知异常";
-        return false;
-    }
-}
-
 // 检查Modbus连接函数
 
 // 检查Modbus连接函数
@@ -238,7 +156,6 @@ bool performSystemChecks(QSplashScreen* splash, MainWindow* mainWindow) {
         {"主控制器连接", CHECK_PENDING, QString("连接主控制器(%1:%2)...").arg(mainCheckIp).arg(mainCheckPort), 5000},
         {"AGV控制器连接", CHECK_PENDING, QString("连接AGV控制器(%1:%2)...").arg(agvCheckIp).arg(agvCheckPort), 5000},
         {"矩阵键盘检测", CHECK_PENDING, "检测输入设备...", 1000},
-        {"伺服报警清除", CHECK_PENDING, "清除伺服报警...", 5000},  // 新增：清除伺服报警
         {"UI初始化", CHECK_PENDING, "初始化用户界面...", 1500}
     };
 
@@ -414,15 +331,7 @@ bool performSystemChecks(QSplashScreen* splash, MainWindow* mainWindow) {
                 break;
             }
 
-            case 6: // 伺服报警清除（新增）
-            {
-                Q_UNUSED(mainWindow);
-                check.message = "伺服报警清除步骤已禁用（跳过所有启动写入）";
-                check.status = CHECK_WARNING;
-                break;
-            }
-
-            case 7: // UI初始化
+            case 6: // UI初始化
             {
                 // UI已经在创建MainWindow时初始化
                 check.message = "用户界面初始化完成";

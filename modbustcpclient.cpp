@@ -18,6 +18,7 @@ ModbusTCPClient::ModbusTCPClient(QObject *parent)
     , m_pollInterval(1000)  // 默认1秒轮询
     , m_pollTimer(nullptr)
     , m_transactionId(0)
+    , m_maxTimeoutMs(3000) // 默认3秒超时
 {
     // 保持socket与当前对象在同一线程，避免跨线程访问
     m_socket = new QTcpSocket();
@@ -218,12 +219,12 @@ bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 function
 
     static int sendCount = 0;
     if (sendCount++ % 20 == 0) {
-        qWarning() << "[Modbus发送]"
-                   << "ReqID:" << requestId
-                   << "FC:" << QString("0x%1").arg(functionCode, 2, 16, QChar('0')).toUpper()
-                   << "地址:" << startAddress
-                   << "数量:" << count
-                   << "Hex:" << request.toHex(' ');
+        // qWarning() << "[Modbus发送]"
+        //            << "ReqID:" << requestId
+        //            << "FC:" << QString("0x%1").arg(functionCode, 2, 16, QChar('0')).toUpper()
+        //            << "地址:" << startAddress
+        //            << "数量:" << count
+        //            << "Hex:" << request.toHex(' ');
     }
 
     return true;
@@ -232,12 +233,25 @@ bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 function
 bool ModbusTCPClient::writeSingleRegister(int address, quint16 value)
 {
     if (!isConnected()) {
+        qWarning() << "[Modbus写失败] 未连接到服务器";
         return false;
     }
 
     QByteArray request = createWriteSingleRequest(address, value);
 
-    m_socket->write(request);
+    const qint64 bytesWritten = m_socket->write(request);
+    m_socket->flush(); // 强制立即发出报文
+
+    if (bytesWritten != request.size()) {
+        qWarning() << "[Modbus写失败] 地址:" << address << "期望:" << request.size() << "实际:" << bytesWritten;
+        return false;
+    }
+
+    qWarning() << "[Modbus发送写请求]"
+               << "ReqID:" << (m_transactionId - 1)
+               << "FC: 0x06 地址:" << address
+               << "值:" << value
+               << "Hex:" << request.toHex(' ');
 
     return true;
 }
@@ -259,12 +273,30 @@ QByteArray ModbusTCPClient::createReadRequest(int startAddress, int count, quint
 {
     QByteArray request;
 
+    // 清理超时请求
+    const qint64 currentTime = QDateTime::currentMSecsSinceEpoch();
+    auto it = m_transactionAddressMap.begin();
+    while (it != m_transactionAddressMap.end()) {
+        if (currentTime - it.value().timestamp > m_maxTimeoutMs) {
+            static int timeoutCount = 0;
+            if (timeoutCount++ % 10 == 0) {
+                 qWarning() << "[Modbus超时清理]" 
+                            << "ReqID:" << it.key() 
+                            << "地址:" << it.value().address 
+                            << "等待时长(ms):" << (currentTime - it.value().timestamp);
+            }
+            it = m_transactionAddressMap.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
     // 事务标识符 (2字节)
     request.append(static_cast<char>((m_transactionId >> 8) & 0xFF));
     request.append(static_cast<char>(m_transactionId & 0xFF));
 
-    // 记录事务ID到起始地址的映射
-    m_transactionAddressMap[m_transactionId] = startAddress;
+    // 记录事务ID到起始地址和当前时间戳的映射
+    m_transactionAddressMap[m_transactionId] = {startAddress, currentTime};
     m_transactionId++;
 
     // 协议标识符 (2字节) - Modbus = 0
@@ -303,6 +335,9 @@ QByteArray ModbusTCPClient::createWriteSingleRequest(int address, quint16 value)
     // 事务标识符
     request.append(static_cast<char>((m_transactionId >> 8) & 0xFF));
     request.append(static_cast<char>(m_transactionId & 0xFF));
+    
+    // 将事务 ID 映射到地址，以便 parseResponse 理解响应
+    m_transactionAddressMap[m_transactionId] = {address, QDateTime::currentMSecsSinceEpoch()};
     m_transactionId++;
 
     // 协议标识符
@@ -338,6 +373,9 @@ QByteArray ModbusTCPClient::createWriteMultipleRequest(int startAddress, const Q
     // 事务标识符
     request.append(static_cast<char>((m_transactionId >> 8) & 0xFF));
     request.append(static_cast<char>(m_transactionId & 0xFF));
+    
+    // 记录事务 ID
+    m_transactionAddressMap[m_transactionId] = {startAddress, QDateTime::currentMSecsSinceEpoch()};
     m_transactionId++;
 
     // 协议标识符
@@ -386,7 +424,7 @@ void ModbusTCPClient::onReadyRead()
     // 强行输出原始数据报文
     static int readLog = 0;
     if (readLog++ % 5 == 0) {
-        qWarning() << "[Modbus网络读] 收到字节数:" << chunk.size() << "Hex:" << chunk.toHex(' ');
+        // qWarning() << "[Modbus网络读] 收到字节数:" << chunk.size() << "Hex:" << chunk.toHex(' ');
     }
 
     emit dataReceived(chunk);
@@ -486,9 +524,7 @@ bool ModbusTCPClient::parseResponse(const QByteArray &data)
         
         // 对于写操作响应(0x05, 0x06, 0x10)，我们只从 Map 中移除事务并记录日志
         if (functionCode == 0x05 || functionCode == 0x06 || functionCode == 0x10) {
-            if (m_transactionAddressMap.contains(transactionId)) {
-                m_transactionAddressMap.remove(transactionId);
-            }
+            m_transactionAddressMap.remove(transactionId);
             // qCDebug(lcModbusTCPClient) << "收到写操作响应，功能码:" << QString::number(functionCode, 16);
             return true;
         }
@@ -500,14 +536,16 @@ bool ModbusTCPClient::parseResponse(const QByteArray &data)
             // 通过事务ID获取起始地址
             int startAddress = -1;
             if (m_transactionAddressMap.contains(transactionId)) {
-                startAddress = m_transactionAddressMap.take(transactionId);
+                TransactionInfo info = m_transactionAddressMap.take(transactionId);
+                startAddress = info.address;
                 m_transactionMapMismatchLogged = false;
                 qCDebug(lcModbusTCPClient) << "批量读取响应 - 起始地址:" << startAddress;
             } else {
                 // 容错处理：如果Map中只有一个元素，尝试使用之（兼容不规范设备）
                 if (m_transactionAddressMap.size() == 1) {
                     transactionId = m_transactionAddressMap.keys().first();
-                    startAddress = m_transactionAddressMap.take(transactionId);
+                    TransactionInfo info = m_transactionAddressMap.take(transactionId);
+                    startAddress = info.address;
                     if (!m_transactionMapMismatchLogged) {
                         qWarning() << "未找到事务ID" << transactionId << "对应的地址映射，启用容错模式";
                     }
@@ -582,7 +620,8 @@ void ModbusTCPClient::parseSingleResponse(const QByteArray &response, quint16 tr
 
                 // 通过事务ID映射找到对应的起始地址
                 if (m_transactionAddressMap.contains(transactionId)) {
-                    int startAddress = m_transactionAddressMap.take(transactionId);
+                    TransactionInfo info = m_transactionAddressMap.take(transactionId);
+                    int startAddress = info.address;
                     m_transactionMapMismatchLogged = false;
                     int registerCount = byteCount / 2;  // 每个寄存器2字节
 

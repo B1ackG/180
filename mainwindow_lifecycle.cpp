@@ -283,46 +283,6 @@ void MainWindow::initializeForceAndFloatSubsystem()
             QPair<int, int>(207, 208)
         },
         "浮点");
-
-    if (isFeatureEnabled("force_sensor", "force.big_sensor")) {
-        setupBigForceLabels();
-    }
-
-    if (isFeatureEnabled("force_sensor", "force.small_sensor")) {
-        setupSmallForceLabels();
-    }
-
-    initializeRegisterCache(
-        m_bigForceRegisters,
-        {
-            QPair<int, int>(612, 613),
-            QPair<int, int>(614, 615),
-            QPair<int, int>(616, 617),
-            QPair<int, int>(618, 619),
-            QPair<int, int>(620, 621),
-            QPair<int, int>(622, 623)
-        },
-        "大六维力");
-
-    initializeRegisterCache(
-        m_smallForceRegisters,
-        {
-            QPair<int, int>(624, 625),
-            QPair<int, int>(626, 627),
-            QPair<int, int>(628, 629),
-            QPair<int, int>(630, 631),
-            QPair<int, int>(632, 633),
-            QPair<int, int>(634, 635)
-        },
-        "小六维力");
-
-    if (isFeatureEnabled("force_sensor", "force.clear_zero")) {
-        setupForceClearButton();
-    }
-
-    if (isBigFeatureEnabled("force_sensor")) {
-        setupForceDisplayModeButtons();
-    }
 }
 
 void MainWindow::scheduleStartupTasks()

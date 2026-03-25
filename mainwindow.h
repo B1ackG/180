@@ -544,6 +544,7 @@ private:
     ControlMode m_controlMode = WIRED_MODE;
     
     bool m_stepModeEnabled = false;
+    bool m_isJointMode = true;
     bool m_forcecontrolMode = false;
 
     // ----- 通信轮询与重连参数（可持久化） -----
