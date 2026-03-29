@@ -2,6 +2,11 @@
 #include "ui_mainwindow.h"
 #include "featureswitchmanager.h"
 #include "featureswitchwidget.h"
+#include "maindevicemodbusapi.h"
+#include "mainmodbusconnector.h"
+#include "mainmodbuslabelmapper.h"
+#include "mainmodbuspoller.h"
+#include "mainmodbusstatus.h"
 #include <QMovie>
 #include <QDateTime>
 #include <QDebug>
@@ -2514,32 +2519,21 @@ void MainWindow::setupModbusManager()
 
     qDebug() << "Modbus信号连接完成";
 
-    // 连接到设备 - 13 -> 88
-    QString modbusHost = "192.168.1.88";
-    quint16 modbusPort = 502;
-
-    // 如果开启本机 TCP 模拟器模式，则重定向到本机模拟端口
-    if (isFeatureEnabled("tcp_transmission", "tcp.local_simulator")) {
-        modbusHost = "127.0.0.1";
-        modbusPort = 5020;
-        qDebug() << "启用本机 TCP 模拟器模式：主设备 ->" << modbusHost << ":" << modbusPort;
-    } else if (isFeatureEnabled("tcp_transmission", "tcp.remote_simulator")) {
-        modbusHost = "192.168.1.70";
-        modbusPort = 5020;
-        qDebug() << "启用远程 TCP 模拟器模式：主设备 ->" << modbusHost << ":" << modbusPort;
+    const MainModbusEndpoint endpoint = MainModbusConnector::selectEndpoint(
+        isFeatureEnabled("tcp_transmission", "tcp.local_simulator"),
+        isFeatureEnabled("tcp_transmission", "tcp.remote_simulator"));
+    if (endpoint.host == "127.0.0.1") {
+        qDebug() << "启用本机 TCP 模拟器模式：主设备 ->" << endpoint.host << ":" << endpoint.port;
+    } else if (endpoint.port == 5020) {
+        qDebug() << "启用远程 TCP 模拟器模式：主设备 ->" << endpoint.host << ":" << endpoint.port;
     }
 
-    bool deviceConnected = m_modbusManager->connectToDevice(modbusHost, modbusPort);
+    bool deviceConnected = MainModbusConnector::connectAndConfigure(
+        m_modbusManager, endpoint, m_mainModbusPollIntervalMs, m_mainReconnectIntervalMs);
     qDebug() << "192.168.1.88 Modbus连接状态:" << (deviceConnected ? "已连接" : "连接失败");
 
     // 显示连接状态消息
     ui->statusBar->showMessage("正在连接192.168.1.88 Modbus...", 3000);
-
-    // 设置轮询间隔（毫秒）
-    m_modbusManager->setPollInterval(m_mainModbusPollIntervalMs);
-
-    // 设置自动重连
-    m_modbusManager->setAutoReconnect(true, m_mainReconnectIntervalMs);
 
     qDebug() << "192.168.1.88 Modbus管理器设置完成";
 }
@@ -2582,7 +2576,7 @@ void MainWindow::setupSliderModbusAddresses()
 void MainWindow::onModbusConnected()
 {
     qDebug() << "Modbus连接成功，启动交互任务...";
-    ui->statusBar->showMessage("Modbus连接成功", 3000);
+    MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Connected);
 
     // 立即启动原本推迟的数据读取子系统
     if (isFeatureEnabled("startup_checks", "startup.write_registers")) {
@@ -2597,73 +2591,23 @@ void MainWindow::onModbusConnected()
         enableTcpTransmission(true);
     }
 
-    // 更新状态栏指示器
-    QLabel *mainIndicator = ui->statusBar->findChild<QLabel*>("mainModbusStatusIndicator");
-    if (mainIndicator) {
-        mainIndicator->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
-        mainIndicator->setToolTip("主设备 Modbus连接正常");
-    }
-
-    // 记录连接事件
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = "系统";
-    record.controlName = "Modbus连接";
-    record.controlType = "ModbusTCP";
-    record.operation = "connected";
-    record.oldValue = "";
-    record.newValue = "连接成功";
-    m_recorder->addRecord(record);
+    MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Connected);
 }
 
 // Modbus断开连接槽函数
 void MainWindow::onModbusDisconnected()
 {
     qDebug() << "Modbus设备断开连接";
-    ui->statusBar->showMessage("Modbus设备断开连接", 3000);
-
-    // 更新状态栏指示器
-    QLabel *mainIndicator = ui->statusBar->findChild<QLabel*>("mainModbusStatusIndicator");
-    if (mainIndicator) {
-        mainIndicator->setStyleSheet("color: #ff5555; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
-        mainIndicator->setToolTip("主设备 Modbus已断开");
-    }
-
-    // 记录断开事件
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = "系统";
-    record.controlName = "Modbus连接";
-    record.controlType = "ModbusTCP";
-    record.operation = "disconnected";
-    record.oldValue = "";
-    record.newValue = "连接断开";
-    m_recorder->addRecord(record);
+    MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Disconnected);
+    MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Disconnected);
 }
 
 // Modbus错误槽函数
 void MainWindow::onModbusError(const QString &error)
 {
     qDebug() << "Modbus错误:" << error;
-    ui->statusBar->showMessage(QString("Modbus错误: %1").arg(error), 5000);
-
-    // 更新状态栏指示器
-    QLabel *mainIndicator = ui->statusBar->findChild<QLabel*>("mainModbusStatusIndicator");
-    if (mainIndicator) {
-        mainIndicator->setStyleSheet("color: #ffaa00; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
-        mainIndicator->setToolTip(QString("主设备 Modbus错误: %1").arg(error));
-    }
-
-    // 记录错误事件
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = "系统";
-    record.controlName = "Modbus连接";
-    record.controlType = "ModbusTCP";
-    record.operation = "error";
-    record.oldValue = "";
-    record.newValue = error;
-    m_recorder->addRecord(record);
+    MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Error, error);
+    MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Error, error);
 }
 // 速度选择
 void MainWindow::initSpeedModeSelector()
@@ -2742,61 +2686,7 @@ void MainWindow::setupModbusVariables()
 // 设置Modbus地址到Label的映射
 void MainWindow::setupModbusLabels()
 {
-    // 清空现有映射
-    m_modbusLabels.clear();
-
-    // 查找所有以特定模式命名的Label
-    QList<QLabel*> allLabels = this->findChildren<QLabel*>();
-
-    for (QLabel *label : allLabels) {
-        QString objName = label->objectName();
-
-        // 支持多种命名模式：
-        // label_MX100_0, lbl_MX100_0, status_MX100_0, MX100_0_Label
-        if (objName.contains("MX") || objName.contains("MW")) {
-            QString addrStr;
-
-            // 提取地址部分
-            if (objName.contains("_MX") || objName.contains("_MW")) {
-                // 从最后一个下划线开始提取
-                int mxPos = objName.indexOf("_MX");
-                int mwPos = objName.indexOf("_MW");
-                int pos = (mxPos != -1) ? mxPos : mwPos;
-                if (pos != -1) {
-                    addrStr = objName.mid(pos + 1); // 去掉前面的下划线
-                }
-            } else {
-                // 如果没有前缀，直接使用整个名称
-                addrStr = objName;
-            }
-
-            if (addrStr.startsWith("MX")) {
-                // 位变量，如 MX100_0
-                QStringList parts = addrStr.mid(2).split('_');
-                if (parts.size() == 2) {
-                    int address = parts[0].toInt();
-                    int bitPos = parts[1].toInt();
-                    // 创建复合键：地址*1000 + 位位置
-                    int key = address * 1000 + bitPos;
-                    m_modbusLabels[key] = label;
-                    label->setText("等待读取...");
-                    label->setStyleSheet("color: gray;");
-
-                    qDebug() << "注册位变量Label:" << objName
-                             << "-> 地址:" << address << "位:" << bitPos;
-                }
-            } else if (addrStr.startsWith("MW")) {
-                // 字变量，如 MW102
-                int address = addrStr.mid(2).toInt();
-                m_modbusLabels[address] = label;
-                label->setText("等待读取...");
-                label->setStyleSheet("color: gray;");
-
-                qDebug() << "注册字变量Label:" << objName
-                         << "-> 地址:" << address;
-            }
-        }
-    }
+    m_modbusLabels = MainModbusLabelMapper::buildMap(this);
 
     qDebug() << "找到" << m_modbusLabels.size() << "个Modbus显示Label";
 }
@@ -2804,11 +2694,10 @@ void MainWindow::setupModbusLabels()
 // 启动Modbus变量轮询
 void MainWindow::startModbusPolling()
 {
-    if (m_modbusPollTimer && m_modbusPollTimer->isActive()) {
-        m_modbusPollTimer->stop();
+    if (MainModbusPoller::shouldSkipStart(m_modbusPollTimer)) {
+        qDebug() << "主设备通用地址轮询已停用，仅保留四个SliderLabel地址轮询";
+        return;
     }
-    qDebug() << "主设备通用地址轮询已停用，仅保留四个SliderLabel地址轮询";
-    return;
 
     if (!isFeatureEnabled("modbus_main", "modbus_main.polling")) {
         qDebug() << "主控Modbus轮询功能已关闭";
@@ -2845,41 +2734,13 @@ void MainWindow::startModbusPolling()
 // 轮询Modbus变量
 void MainWindow::pollModbusVariables()
 {
-    static bool warned = false;
-    if (!warned) {
+    if (MainModbusPoller::shouldSkipPoll()) {
         qDebug() << "pollModbusVariables已停用，避免轮询main其他地址";
-        warned = true;
-    }
-    return;
-
-    if (!isFeatureEnabled("modbus_main", "modbus_main.polling")) {
         return;
     }
-
-    if (!m_modbusManager || !m_modbusManager->isConnected()) {
-        return;
-    }
-
     static int currentIndex = 0;
-    QList<ModbusVariable> variables = m_modbusVariables->getAllVariables();
-
-    if (variables.isEmpty()) return;
-
-    // 循环读取每个变量（避免一次读取太多）
-    if (currentIndex >= variables.size()) {
-        currentIndex = 0;
-    }
-
-    const ModbusVariable &var = variables[currentIndex];
-    int modbusAddress = 0;
-    int bitPos = -1;
-
-    if (ModbusVariables::parseAddress(var.address, modbusAddress, bitPos)) {
-        // 读取变量
-        m_modbusManager->readAndDebugAddress(modbusAddress);
-    }
-
-    currentIndex++;
+    Q_UNUSED(MainModbusPoller::pollNextVariable(m_modbusManager, m_modbusVariables, currentIndex));
+    return;
 }
 
 static QMap<int, quint16> g_registerCache; 
@@ -3344,7 +3205,7 @@ void MainWindow::setupModbusFloatReading()
 void MainWindow::readAllFloatRegisters()
 {
     // 修正轮询逻辑：J1-J4 以及其他状态数据在大全设备 (192.168.1.88) 上
-    if (!m_modbusManager || !m_modbusManager->isConnected()) {
+    if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
         static int warnCount = 0;
         if (warnCount++ % 10 == 0) {
             qWarning() << "[警告] 主 Modbus (192.168.1.88) 未连接，无法读取数据";
@@ -3360,7 +3221,7 @@ void MainWindow::readAllFloatRegisters()
 
     // 改为一次性读取 0 到 71 号寄存器 (共 72 个)
     // 这样涵盖了 J1-J4 (0,4,12,20) 以及后续可能的报警和状态位
-    m_modbusManager->readHoldingRegisters(0, 72);
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 0, 72);
 }
 // 配置所有TechSliderLabel的参数
 void MainWindow::setupSliderLabelConfigs()
@@ -4320,7 +4181,7 @@ void MainWindow::writeToAGVDevice(int address, int value)
  */
 void MainWindow::writeToMainDevice(int address, int value)
 {
-    if (!m_modbusManager || !m_modbusManager->isConnected()) {
+    if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
         qWarning() << "主Modbus未连接，无法写入地址" << address;
         return;
     }
@@ -4328,8 +4189,7 @@ void MainWindow::writeToMainDevice(int address, int value)
     qDebug() << "[主设备] 写入地址:" << address << "(&MB" << (address + 1) << ")"
              << "值:" << value;
 
-    // 调用ModbusThreadManager的写入功能
-    m_modbusManager->writeSingleRegister(address, static_cast<quint16>(value));
+    MainDeviceModbusApi::writeRegister(m_modbusManager, address, value);
 }
 void MainWindow::onControlModeClicked()
 {
@@ -4963,7 +4823,11 @@ void MainWindow::updateSimulatorHost(const QString &hostSuffix)
     if (isFeatureEnabled("tcp_transmission", "tcp.remote_simulator")) {
         if (m_modbusManager) {
             m_modbusManager->disconnectFromDevice();
-            m_modbusManager->connectToDevice(newIp, 5020);
+            MainModbusConnector::connectAndConfigure(
+                m_modbusManager,
+                MainModbusEndpoint{newIp, 5020},
+                m_mainModbusPollIntervalMs,
+                m_mainReconnectIntervalMs);
             qDebug() << "[MainModbus] 已切换模拟器并重新连接:" << newIp << ":5020";
         }
         if (m_agvModbusManager) {
@@ -5318,27 +5182,23 @@ void MainWindow::setupBigForceReading()
 }
 void MainWindow::readBigForceRegisters()
 {
-    if (!m_modbusManager || !m_modbusManager->isConnected()) {
+    if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
         qDebug() << "Modbus未连接，无法读取大六维力数据";
         return;
     }
 
     // 读取612-623地址（12个寄存器，6个浮点数）
-    if (m_modbusManager) {
-        m_modbusManager->readHoldingRegisters(612, 12);
-    }
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 612, 12);
 }
 void MainWindow::readSmallForceRegisters()
 {
-    if (!m_modbusManager || !m_modbusManager->isConnected()) {
+    if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
         qDebug() << "Modbus未连接，无法读取小六维力数据";
         return;
     }
 
     // 读取624-635地址（12个寄存器，6个浮点数）
-    if (m_modbusManager) {
-        m_modbusManager->readHoldingRegisters(624, 12);
-    }
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 624, 12);
 }
 void MainWindow::updateBigForceLabel(const QString& labelName, float value)
 {

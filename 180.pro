@@ -16,8 +16,13 @@ SOURCES += \
     featureswitchmanager.cpp \
     featureswitchwidget.cpp \
     main.cpp \
+    maindevicemodbusapi.cpp \
+    mainmodbuslabelmapper.cpp \
+    mainmodbuspoller.cpp \
     mainwindow.cpp \
     mainwindow_lifecycle.cpp \
+    mainmodbusconnector.cpp \
+    mainmodbusstatus.cpp \
     mappingconfig.cpp \
     matrixkeymonitor.cpp \
     matrixkeythreadmanager.cpp \
@@ -41,7 +46,12 @@ HEADERS += \
     enablebuttonworker.h \
     featureswitchmanager.h \
     featureswitchwidget.h \
+    maindevicemodbusapi.h \
+    mainmodbuslabelmapper.h \
+    mainmodbuspoller.h \
     mainwindow.h \
+    mainmodbusconnector.h \
+    mainmodbusstatus.h \
     mappingconfig.h \
     matrixkeymonitor.h \
     matrixkeythreadmanager.h \
