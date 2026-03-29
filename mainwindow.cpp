@@ -199,7 +199,7 @@ void MainWindow::applySliderLabelRuntimeSettings()
 // 信号槽连接
 void MainWindow::setupConnections()
 {
-    // setupNavigationConnections();
+    setupNavigationConnections();
     setupRecordAndPermissionConnections();
     setupControlConnections();
     setupSubsystemConnections();
@@ -225,7 +225,7 @@ void MainWindow::setupNavigationConnections()
     connect(ui->Btn_SwitchHorizontalSupport, &QPushButton::clicked, [=]() {
         ui->StackedWidget->setCurrentIndex(2);
         updateNavButtonStyles(ui->Btn_SwitchHorizontalSupport);
-    });
+    });*/
 
     connect(ui->Btn_SwitchAGV, &QPushButton::clicked, [=]() {
         ui->StackedWidget->setCurrentIndex(4);
@@ -233,7 +233,7 @@ void MainWindow::setupNavigationConnections()
         updateNavButtonStyles(ui->Btn_SwitchAGV);
     });
 
-    connect(ui->Btn_SwitchEOAT, &QPushButton::clicked, [=]() {
+   /* connect(ui->Btn_SwitchEOAT, &QPushButton::clicked, [=]() {
         ui->StackedWidget->setCurrentIndex(3);
         updateNavButtonStyles(ui->Btn_SwitchEOAT);
     }); */
@@ -958,6 +958,18 @@ void MainWindow::initSliderEditUI()
                         onNonAGVSliderEditChanged(slider, newValue, nonAGVSliders);
                     }
                 });
+    }
+
+    TechSliderEdit *robotSpeedSlider = findChild<TechSliderEdit*>("TechSliderEdit_Robot_RobotSpeed");
+    if (robotSpeedSlider) {
+        connect(robotSpeedSlider, &TechSliderEdit::valueChangedWithRecord,
+                this, [this](double /*oldValue*/, double newValue) {
+                    const int writeValue = qRound(newValue);
+                    writeToMainDevice(510, writeValue);
+                    qDebug() << "RobotSpeed写入主设备寄存器510, 值:" << writeValue;
+                });
+    } else {
+        qWarning() << "未找到控件: TechSliderEdit_Robot_RobotSpeed";
     }
 }
 

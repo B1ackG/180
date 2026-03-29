@@ -10,11 +10,15 @@ build_*/
 
 .qtc_clangd/
 build_log.txt
+moc_predefs.h
+*.autosave
 
 # Project specific
 ModbusTCPAssistant
 *.user
 *.user.*
+*.pro.user*
+*.qbs.user*
 
 # OS files
 .DS_Store
@@ -22,3 +26,8 @@ Thumbs.db
 
 # Automatically added by Assistant
 build/
+180
+build.log
+system_check.log
+compile_commands.json
+documents/

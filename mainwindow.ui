@@ -60,7 +60,7 @@
        <string notr="true">background-color:</string>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page_Robot">
        <widget class="TechSliderLabel" name="label_Value1" native="true">
@@ -205,7 +205,7 @@
         <property name="geometry">
          <rect>
           <x>310</x>
-          <y>210</y>
+          <y>240</y>
           <width>131</width>
           <height>131</height>
          </rect>
@@ -214,8 +214,8 @@
        <widget class="QWidget" name="widget_test4" native="true">
         <property name="geometry">
          <rect>
-          <x>470</x>
-          <y>140</y>
+          <x>440</x>
+          <y>160</y>
           <width>131</width>
           <height>131</height>
          </rect>
@@ -272,13 +272,13 @@
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="res.qrc">:/Picture/190overall4.jpg</pixmap>
+         <pixmap resource="res.qrc">:/Picture/background10.jpg</pixmap>
         </property>
         <property name="scaledContents">
          <bool>true</bool>
         </property>
        </widget>
-       <widget class="TechSliderEdit" name="TechSliderEdit_EOAT_RotationSpeed" native="true">
+       <widget class="TechSliderEdit" name="TechSliderEdit_Robot_RobotSpeed" native="true">
         <property name="geometry">
          <rect>
           <x>610</x>
@@ -307,6 +307,22 @@
          <string>PushButton</string>
         </property>
        </widget>
+       <widget class="QPushButton" name="Btn_SwitchAGV">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>430</y>
+          <width>321</width>
+          <height>151</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>PushButton</string>
+        </property>
+       </widget>
        <zorder>lab_Overall</zorder>
        <zorder>label_Value1</zorder>
        <zorder>label_Value2</zorder>
@@ -317,8 +333,9 @@
        <zorder>widget_test4</zorder>
        <zorder>widget_test2</zorder>
        <zorder>widget_test1</zorder>
-       <zorder>TechSliderEdit_EOAT_RotationSpeed</zorder>
+       <zorder>TechSliderEdit_Robot_RobotSpeed</zorder>
        <zorder>pushButton_test</zorder>
+       <zorder>Btn_SwitchAGV</zorder>
       </widget>
       <widget class="QWidget" name="page_VeSupSec">
        <widget class="TechSliderLabel" name="label_Value2_VeSupSec" native="true">
