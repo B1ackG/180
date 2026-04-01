@@ -360,11 +360,6 @@ void MainWindow::setupControlConnections()
 
 void MainWindow::setupSubsystemConnections()
 {
-    if (isFeatureEnabled("motion_control", "motion.steering_mode") && m_steeringModeSelector) {
-        connect(m_steeringModeSelector, &SteeringModeSelector::modeChanged,
-                this, &MainWindow::onSteeringModeChanged);
-    }
-
     if (isBigFeatureEnabled("operation_records") && m_recorder) {
         connect(m_recorder, &OperationRecorder::tcpConnectionStatusChanged,
                 this, &MainWindow::onTcpConnectionStatusChanged);
@@ -672,10 +667,12 @@ void MainWindow::applyLineEditStyles(const QList<QLineEdit*> &lineEdits)
 {
     for(QLineEdit *edit : lineEdits) {
         if(edit) {
-            // 设置数字验证器
-            QRegularExpression  regExp("[0-9]*\\.?[0-9]*");
-            QRegularExpressionValidator *validator = new QRegularExpressionValidator(regExp, this);
-            edit->setValidator(validator);
+            // 仅在未配置验证器时设置默认数字验证器，避免覆盖业务控件（如TechSliderEdit）的负数范围校验。
+            if (!edit->validator()) {
+                QRegularExpression regExp("[0-9]*\\.?[0-9]*");
+                QRegularExpressionValidator *validator = new QRegularExpressionValidator(regExp, this);
+                edit->setValidator(validator);
+            }
 
             // 设置样式
             edit->setStyleSheet(
@@ -989,30 +986,10 @@ void MainWindow::initSliderEditUI()
         connect(robotSpeedSlider, &TechSliderEdit::valueChangedWithRecord,
                 this, [this](double /*oldValue*/, double newValue) {
                     const double speedPercent = qBound(0.0, newValue, 100.0);
-                    quint64 bits = 0;
-                    memcpy(&bits, &speedPercent, sizeof(double));
+                    const int speedValue = qBound(0, static_cast<int>(qRound(speedPercent)), 100);
+                    writeToMainDevice(5002, speedValue);
 
-                    const quint8 A = static_cast<quint8>((bits >> 56) & 0xFF);
-                    const quint8 B = static_cast<quint8>((bits >> 48) & 0xFF);
-                    const quint8 C = static_cast<quint8>((bits >> 40) & 0xFF);
-                    const quint8 D = static_cast<quint8>((bits >> 32) & 0xFF);
-                    const quint8 E = static_cast<quint8>((bits >> 24) & 0xFF);
-                    const quint8 F = static_cast<quint8>((bits >> 16) & 0xFF);
-                    const quint8 G = static_cast<quint8>((bits >> 8) & 0xFF);
-                    const quint8 H = static_cast<quint8>(bits & 0xFF);
-
-                    const quint16 reg1 = (static_cast<quint16>(G) << 8) | static_cast<quint16>(H);
-                    const quint16 reg2 = (static_cast<quint16>(E) << 8) | static_cast<quint16>(F);
-                    const quint16 reg3 = (static_cast<quint16>(C) << 8) | static_cast<quint16>(D);
-                    const quint16 reg4 = (static_cast<quint16>(A) << 8) | static_cast<quint16>(B);
-
-                    writeToMainDevice(510, reg1);
-                    writeToMainDevice(511, reg2);
-                    writeToMainDevice(512, reg3);
-                    writeToMainDevice(513, reg4);
-
-                    qCDebug(lcMainWindow) << "RobotSpeed(%)写64位浮点到510-513, 值:" << speedPercent
-                                          << "寄存器:" << reg1 << reg2 << reg3 << reg4;
+                    qCDebug(lcMainWindow) << "RobotSpeed(%)直写地址5002, 值:" << speedValue;
                 });
     } else {
         qWarning() << "未找到控件: TechSliderEdit_Robot_RobotSpeed";
@@ -2278,6 +2255,16 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
     // 特殊处理：如果是机械臂页面（索引为0），执行唯一的 500/514 寄存器逻辑并直接返回
     if (currentPage == 0 || pageName == "机械臂" || pageName == "page_Robot") {
+        // 将原AGV页面的○1/○2动作迁移为首页上的○9/○10。
+        if (keyNumber == 9) {
+            handleAGVKeyAction(keyNumber, pressed);
+            return;
+        }
+        if (keyNumber == 10) {
+            handleAGVKey2Action(keyNumber, pressed);
+            return;
+        }
+
         // 新增条件：只有当 TBtn_Stepmove 处于“点动模式”且 TBtn_MoveMode 处于“关节模式”时才执行
         if (!m_stepModeEnabled && m_isJointMode) {
             if (keyNumber >= 1 && keyNumber <= 8) {
@@ -2317,18 +2304,6 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             writeToMainDevice(124, value);
             qCDebug(lcMainWindow) << "" << keyNumber << (pressed ? "按下" : "释放")
                      << "，地址124写入:" << value;
-        }
-    }
-
-    // 处理AGV页面的特殊逻辑（原有逻辑保持不变）
-    if (keyNumber == 1 || keyNumber == 2) {
-        if (pageName == "AGV控制" || pageName == "page_AGV") {
-            if (keyNumber == 1) {
-                handleAGVKeyAction(keyNumber, pressed);
-            } else if (keyNumber == 2) {
-                handleAGVKey2Action(keyNumber, pressed);
-            }
-            return;
         }
     }
 
@@ -2391,53 +2366,60 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         }
     }
 
-    // 原有的其他按键处理逻辑保持不变
-    switch (keyNumber) {
-    case 9: // 按键○9
-        if (pressed) {
-            ui->StackedWidget->setCurrentIndex(0);
-        }
-        break;
-
-    case 10: // 按键○10
-        if (pressed) {
-            ui->StackedWidget->setCurrentIndex(1);
-        }
-        break;
-
-    default:
-        break;
-    }
 }
 // 新增：处理AGV页面的按键○1动作
 void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
 {
-    if (keyNumber == 1) {
+    if (keyNumber == 1 || keyNumber == 9) {
         if (pressed) {
-            // 按键○1按下
+            // 前进键按下（兼容旧映射○1与新映射○9）
             if (m_agvOaEnabled) {
-                // 避障开启时，给0地址写200
-                writeToAGVDevice(0, 72);
-                qCDebug(lcMainWindow) << "按键○1按下，避障开启，地址0写入200";
+                writeAGVRegisterBits(0,
+                                     {
+                                         qMakePair(1, false),
+                                         qMakePair(2, false),
+                                         qMakePair(3, true),
+                                         qMakePair(6, true),
+                                     },
+                                     "前进按下(避障开)");
+                qCDebug(lcMainWindow) << "按键○" << keyNumber << "按下，避障开启，地址0写入200";
                 ui->statusBar->showMessage("AGV前进（避障开启）", 2000);
             } else {
-                // 避障关闭时，给0地址写202
-                writeToAGVDevice(0, 74);
-                qCDebug(lcMainWindow) << "按键○1按下，避障关闭，地址0写入202";
+                writeAGVRegisterBits(0,
+                                     {
+                                         qMakePair(1, true),
+                                         qMakePair(2, false),
+                                         qMakePair(3, true),
+                                         qMakePair(6, true),
+                                     },
+                                     "前进按下(避障关)");
+                qCDebug(lcMainWindow) << "按键○" << keyNumber << "按下，避障关闭，地址0写入202";
                 ui->statusBar->showMessage("AGV前进（避障关闭）", 2000);
             }
         } else {
-            // 按键○1释放
+            // 前进键释放（兼容旧映射○1与新映射○9）
             if (m_agvOaEnabled) {
-                // 避障开启时，给0地址写192
-                writeToAGVDevice(0, 64);
+                writeAGVRegisterBits(0,
+                                     {
+                                         qMakePair(1, false),
+                                         qMakePair(2, false),
+                                         qMakePair(3, false),
+                                         qMakePair(6, true),
+                                     },
+                                     "前进释放(避障开)");
 
-                qCDebug(lcMainWindow) << "按键○1释放，避障开启，地址0写入192";
+                qCDebug(lcMainWindow) << "按键○" << keyNumber << "释放，避障开启，地址0写入192";
                 ui->statusBar->showMessage("AGV停止（避障开启）", 2000);
             } else {
-                // 避障关闭时，给0地址写194
-                writeToAGVDevice(0, 66);
-                qCDebug(lcMainWindow) << "按键○1释放，避障关闭，地址0写入194";
+                writeAGVRegisterBits(0,
+                                     {
+                                         qMakePair(1, true),
+                                         qMakePair(2, false),
+                                         qMakePair(3, false),
+                                         qMakePair(6, true),
+                                     },
+                                     "前进释放(避障关)");
+                qCDebug(lcMainWindow) << "按键○" << keyNumber << "释放，避障关闭，地址0写入194";
                 ui->statusBar->showMessage("AGV停止（避障关闭）", 2000);
             }
         }
@@ -3521,6 +3503,7 @@ void MainWindow::setupAGVModbus()
     // 添加registerValueChanged信号连接用于调试
     connect(m_agvModbusManager, &AGVModbusManager::registerValueChanged,
             this, [this](int address, quint16 value) {
+                m_agvRegisterShadow[address] = value;
                 if (isFeatureEnabled("modbus_agv", "modbus_agv.read_logs")) {
                     qCDebug(lcMainWindow) << "[AGV] 寄存器值变化 - 地址:" << address
                              << "值:" << value
@@ -4290,7 +4273,49 @@ void MainWindow::writeToAGVDevice(int address, int value)
 
     if (!writeSuccess) {
         qWarning() << "[AGV] 写入请求发送失败 - 地址:" << address;
+    } else {
+        m_agvRegisterShadow[address] = writeValue;
     }
+}
+
+bool MainWindow::writeAGVRegisterBits(int address,
+                                      const QList<QPair<int, bool>> &bitUpdates,
+                                      const QString &scene)
+{
+    quint16 baseValue = m_agvRegisterShadow.value(address, 0);
+    quint16 newValue = baseValue;
+
+    for (const auto &bitUpdate : bitUpdates) {
+        const int bit = bitUpdate.first;
+        const bool set = bitUpdate.second;
+        if (bit < 0 || bit > 15) {
+            qWarning() << "[AGV按位写入] 非法位索引:" << bit;
+            return false;
+        }
+
+        if (set) {
+            newValue = static_cast<quint16>(newValue | (static_cast<quint16>(1u) << bit));
+        } else {
+            newValue = static_cast<quint16>(newValue & ~(static_cast<quint16>(1u) << bit));
+        }
+    }
+
+    bool ok = m_agvModbusManager && m_agvModbusManager->writeSingleRegister(address, newValue);
+    if (ok) {
+        m_agvRegisterShadow[address] = newValue;
+        if (isFeatureEnabled("modbus_agv", "modbus_agv.write_logs")) {
+            qCDebug(lcMainWindow) << "[AGV按位写入]" << (scene.isEmpty() ? QString("场景未命名") : scene)
+                                  << "地址:" << address
+                                  << "基值:" << baseValue
+                                  << "新值:" << newValue;
+        }
+    } else {
+        qWarning() << "[AGV按位写入失败]" << (scene.isEmpty() ? QString("场景未命名") : scene)
+                   << "地址:" << address
+                   << "基值:" << baseValue
+                   << "目标值:" << newValue;
+    }
+    return ok;
 }
 
 
@@ -4416,6 +4441,22 @@ void MainWindow::setupAGVOAControl()
     } else {
         qWarning() << "未找到techBtn_AGV_OA按钮";
     }
+
+    // 查找驻车按钮（由techBtn_AGV_OA_2重命名为techBtn_AGV_驻车）
+    m_techBtnAGV_Park = findChild<TechPushButton*>("techBtn_AGV_驻车");
+    if (m_techBtnAGV_Park) {
+        m_agvParkingEnabled = false;
+        m_techBtnAGV_Park->setText("驻车关闭");
+        m_techBtnAGV_Park->setPrimaryColor(QColor("#7F8C8D"));
+        m_techBtnAGV_Park->setGlowColor(QColor(127, 140, 141, 100));
+
+        connect(m_techBtnAGV_Park, &TechPushButton::clicked,
+                this, &MainWindow::onAGVParkBtnClicked);
+
+        qCDebug(lcMainWindow) << "AGV驻车按钮初始化完成";
+    } else {
+        qWarning() << "未找到techBtn_AGV_驻车按钮";
+    }
 }
 
 // 设置AGV运动速度控制
@@ -4483,8 +4524,15 @@ void MainWindow::onAGVOABtnClicked()
         m_techBtnAGV_OA->setText("避障开启");
         m_techBtnAGV_OA->setPrimaryColor(QColor("#00C8FF"));
         m_techBtnAGV_OA->setGlowColor(QColor(0, 200, 255, 180));
-        // 给0地址写192
-        writeToAGVDevice(0, 64);
+        // 地址0：保留其他位，仅更新bit1/2/3/6 -> 0,0,0,1
+        writeAGVRegisterBits(0,
+                             {
+                                 qMakePair(1, false),
+                                 qMakePair(2, false),
+                                 qMakePair(3, false),
+                                 qMakePair(6, true),
+                             },
+                             "OA开启");
 
         qCDebug(lcMainWindow) << "AGV避障开启，地址0写入192";
         ui->statusBar->showMessage("AGV避障开启", 2000);
@@ -4493,8 +4541,15 @@ void MainWindow::onAGVOABtnClicked()
         m_techBtnAGV_OA->setText("避障关闭");
         m_techBtnAGV_OA->setPrimaryColor(QColor("#7F8C8D"));
         m_techBtnAGV_OA->setGlowColor(QColor(127, 140, 141, 100));
-        // 给0地址写194
-        writeToAGVDevice(0, 66);
+        // 地址0：保留其他位，仅更新bit1/2/3/6 -> 1,0,0,1
+        writeAGVRegisterBits(0,
+                             {
+                                 qMakePair(1, true),
+                                 qMakePair(2, false),
+                                 qMakePair(3, false),
+                                 qMakePair(6, true),
+                             },
+                             "OA关闭");
         qCDebug(lcMainWindow) << "AGV避障关闭，地址0写入194";
         ui->statusBar->showMessage("AGV避障关闭", 2000);
     }
@@ -4508,6 +4563,49 @@ void MainWindow::onAGVOABtnClicked()
     record.operation = "oa_mode_changed";
     record.oldValue = m_agvOaEnabled ? "避障关闭" : "避障开启";
     record.newValue = m_agvOaEnabled ? "避障开启" : "避障关闭";
+    m_recorder->addRecord(record);
+}
+
+void MainWindow::onAGVParkBtnClicked()
+{
+    m_agvParkingEnabled = !m_agvParkingEnabled;
+
+    if (m_agvParkingEnabled) {
+        m_techBtnAGV_Park->setText("驻车开启");
+        m_techBtnAGV_Park->setPrimaryColor(QColor("#00C8FF"));
+        m_techBtnAGV_Park->setGlowColor(QColor(0, 200, 255, 180));
+
+        // 按需求：bit9=1, bit10=0，保留其他位。
+        writeAGVRegisterBits(0,
+                             {
+                                 qMakePair(9, true),
+                                 qMakePair(10, false),
+                             },
+                             "驻车开启");
+        ui->statusBar->showMessage("AGV驻车开启", 2000);
+    } else {
+        m_techBtnAGV_Park->setText("驻车关闭");
+        m_techBtnAGV_Park->setPrimaryColor(QColor("#7F8C8D"));
+        m_techBtnAGV_Park->setGlowColor(QColor(127, 140, 141, 100));
+
+        // 按需求：bit9=0, bit10=1，保留其他位。
+        writeAGVRegisterBits(0,
+                             {
+                                 qMakePair(9, false),
+                                 qMakePair(10, true),
+                             },
+                             "驻车关闭");
+        ui->statusBar->showMessage("AGV驻车关闭", 2000);
+    }
+
+    OperationRecord record;
+    record.timestamp = QDateTime::currentDateTime();
+    record.pageName = "AGV控制";
+    record.controlName = "techBtn_AGV_驻车";
+    record.controlType = "TechPushButton";
+    record.operation = "parking_mode_changed";
+    record.oldValue = m_agvParkingEnabled ? "驻车关闭" : "驻车开启";
+    record.newValue = m_agvParkingEnabled ? "驻车开启" : "驻车关闭";
     m_recorder->addRecord(record);
 }
 
@@ -4534,12 +4632,15 @@ void MainWindow::onAGVMoveSpeedChanged(double value)
 // AGV转向角度变化槽函数
 void MainWindow::onAGVAngleChanged(double value)
 {
-    const int intValue = qBound(-25, static_cast<int>(qRound(value)), 25);
+    const qint16 signedValue = static_cast<qint16>(qBound(-25, static_cast<int>(qRound(value)), 25));
+    const quint16 rawUintValue = static_cast<quint16>(signedValue);
 
-    // 写入4地址，负数会自动转换为补码
-    writeToAGVDevice(4, intValue);
+    // 地址4为UINT寄存器：通过qint16->quint16显式转换，负数按16位补码发送。
+    writeToAGVDevice(4, static_cast<int>(signedValue));
 
-    qCDebug(lcMainWindow) << "AGV转向角度:" << value << "°，地址4写入:" << intValue;
+    qCDebug(lcMainWindow) << "AGV转向角度:" << value
+                          << "°，地址4写入(有符号):" << signedValue
+                          << "原始UINT:" << rawUintValue;
 
     // 记录操作
     OperationRecord record;
@@ -4557,7 +4658,7 @@ void MainWindow::onAGVAngleChanged(double value)
 // 新增：处理AGV页面的按键○2动作
 void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
 {
-    if (keyNumber == 2) {
+    if (keyNumber == 2 || keyNumber == 10) {
         // 查找避障按钮
         TechPushButton* oaButton = findChild<TechPushButton*>("techBtn_AGV_OA");
         if (!oaButton) {
@@ -4568,30 +4669,54 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         QString buttonText = oaButton->text();
 
         if (pressed) {
-            // 按键○2按下
+            // 后退键按下（兼容旧映射○2与新映射○10）
             if (buttonText == "避障开启") {
-                // 避障开启时，给0地址写196
-                writeToAGVDevice(0, 68);
-                qCDebug(lcMainWindow) << "按键○2按下，避障开启，地址0写入196";
+                writeAGVRegisterBits(0,
+                                     {
+                                         qMakePair(1, false),
+                                         qMakePair(2, true),
+                                         qMakePair(3, false),
+                                         qMakePair(6, true),
+                                     },
+                                     "后退按下(避障开)");
+                qCDebug(lcMainWindow) << "按键○" << keyNumber << "按下，避障开启，地址0写入196";
                 ui->statusBar->showMessage("AGV后退（避障开启）", 2000);
             } else if (buttonText == "避障关闭") {
-                // 避障关闭时，给0地址写198
-                writeToAGVDevice(0, 70);
-                qCDebug(lcMainWindow) << "按键○2按下，避障关闭，地址0写入198";
+                writeAGVRegisterBits(0,
+                                     {
+                                         qMakePair(1, true),
+                                         qMakePair(2, true),
+                                         qMakePair(3, false),
+                                         qMakePair(6, true),
+                                     },
+                                     "后退按下(避障关)");
+                qCDebug(lcMainWindow) << "按键○" << keyNumber << "按下，避障关闭，地址0写入198";
                 ui->statusBar->showMessage("AGV后退（避障关闭）", 2000);
             }
         } else {
-            // 按键○2释放
+            // 后退键释放（兼容旧映射○2与新映射○10）
             if (buttonText == "避障开启") {
-                // 避障开启时，给0地址写192
-                writeToAGVDevice(0, 64);
+                writeAGVRegisterBits(0,
+                                     {
+                                         qMakePair(1, false),
+                                         qMakePair(2, false),
+                                         qMakePair(3, false),
+                                         qMakePair(6, true),
+                                     },
+                                     "后退释放(避障开)");
 
-                qCDebug(lcMainWindow) << "按键○2释放，避障开启，地址0写入192";
+                qCDebug(lcMainWindow) << "按键○" << keyNumber << "释放，避障开启，地址0写入192";
                 ui->statusBar->showMessage("AGV停止（避障开启）", 2000);
             } else if (buttonText == "避障关闭") {
-                // 避障关闭时，给0地址写194
-                writeToAGVDevice(0, 66);
-                qCDebug(lcMainWindow) << "按键○2释放，避障关闭，地址0写入194";
+                writeAGVRegisterBits(0,
+                                     {
+                                         qMakePair(1, true),
+                                         qMakePair(2, false),
+                                         qMakePair(3, false),
+                                         qMakePair(6, true),
+                                     },
+                                     "后退释放(避障关)");
+                qCDebug(lcMainWindow) << "按键○" << keyNumber << "释放，避障关闭，地址0写入194";
                 ui->statusBar->showMessage("AGV停止（避障关闭）", 2000);
             }
         }
@@ -4643,7 +4768,8 @@ void MainWindow::setupSteeringModeControl()
 
         // 连接模式切换信号到报警逻辑
         connect(m_steeringModeSelector, &SteeringModeSelector::modeChanged,
-                this, &MainWindow::onSteeringModeChanged);
+            this, &MainWindow::onSteeringModeChanged,
+            Qt::UniqueConnection);
 
         qCDebug(lcMainWindow) << "转向模式选择器初始化完成";
     } else {

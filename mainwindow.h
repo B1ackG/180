@@ -211,6 +211,8 @@ public:
     void setupAGVUI();
     /** @brief 向 AGV 写寄存器 */
     void writeToAGVDevice(int address, int value);
+    /** @brief 按位更新 AGV 寄存器并写回，自动保留未修改位 */
+    bool writeAGVRegisterBits(int address, const QList<QPair<int, bool>> &bitUpdates, const QString &scene = QString());
     
     /** @brief 配置浮点寄存器读取 */
     void setupModbusFloatReading();
@@ -444,6 +446,8 @@ private slots:
     void toggleForceControl();
     /** @brief AGV OA 按钮点击 */
     void onAGVOABtnClicked();
+    /** @brief AGV 驻车按钮点击 */
+    void onAGVParkBtnClicked();
     /** @brief AGV 移动速度变化 */
     void onAGVMoveSpeedChanged(double value);
     /** @brief AGV 角度变化 */
@@ -501,6 +505,8 @@ private:
     QListWidget *m_agvFaultListWidget;
     QLabel *m_agvFaultsLabel;
     bool m_agvOaEnabled = true;
+    bool m_agvParkingEnabled = false;
+    QMap<int, quint16> m_agvRegisterShadow;
 
     // ----- 六维力 -----
     ForceDisplayMode m_forceDisplayMode = ForceDisplayBig;
@@ -584,6 +590,7 @@ private:
     QLineEdit *m_editJ3MoveStep = nullptr;
     QLineEdit *m_editJ4MoveStep = nullptr;
     TechPushButton *m_techBtnAGV_OA = nullptr;
+    TechPushButton *m_techBtnAGV_Park = nullptr;
     TechSliderEdit *m_editAGV_MoveSpeed = nullptr;
     TechSliderEdit *m_editAGV_Angle = nullptr;
     TechPushButton *m_btnForceControl = nullptr;

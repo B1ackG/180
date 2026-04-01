@@ -353,7 +353,6 @@ void TechSliderEdit::onPresetButtonClicked()
 void TechSliderEdit::onSliderValueChanged(int sliderValue)
 {
     double newValue = sliderToValue(sliderValue);
-    setValue(newValue);  // 程序调用时正常更新
 
     // 四舍五入到指定精度
     if (m_precision > 0) {
@@ -361,7 +360,7 @@ void TechSliderEdit::onSliderValueChanged(int sliderValue)
     }
 
     if (qAbs(newValue - m_value) > 0.0001) {
-         m_oldValue = m_value;  // 保存旧值
+        m_oldValue = m_value;  // 保存旧值
         m_value = newValue;
         updateLineEditFromValue();
         emit valueChanged(m_value);

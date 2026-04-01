@@ -499,7 +499,7 @@
          </size>
         </property>
        </widget>
-       <widget class="TechPushButton" name="techBtn_AGV_OA_2">
+      <widget class="TechPushButton" name="techBtn_AGV_驻车">
         <property name="geometry">
          <rect>
           <x>30</x>
@@ -663,7 +663,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <zorder>widget_test2</zorder>
        <zorder>widget_test1</zorder>
        <zorder>TechSliderEdit_Robot_RobotSpeed</zorder>
-       <zorder>techBtn_AGV_OA_2</zorder>
+      <zorder>techBtn_AGV_驻车</zorder>
        <zorder>SEdit_AGV_Angle</zorder>
        <zorder>SEdit_AGV_MoveSpeed</zorder>
        <zorder>AGV_speedGauge</zorder>
