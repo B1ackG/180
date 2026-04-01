@@ -49,7 +49,7 @@ public:
      *
      * 使用示例:
      * @code
-     * if (client->connectTo("192.168.1.88", 502)) {
+     * if (client->connectTo("192.168.1.13", 502)) {
      *     // 继续读写寄存器
      * }
      * @endcode

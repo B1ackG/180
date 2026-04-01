@@ -63,7 +63,7 @@ bool ModbusTCPClient::connectToServer(const QString &host, quint16 port, int sla
     if (m_socket->state() != QAbstractSocket::UnconnectedState) {
         m_socket->abort();
     }
-    qWarning() << "[Modbus连接] 正在连接" << host << ":" << port << "SlaveID:" << slaveId;
+    qDebug() << "[Modbus连接] 正在连接" << host << ":" << port << "SlaveID:" << slaveId;
     m_socket->connectToHost(host, port);
 
     return true;
@@ -98,7 +98,7 @@ void ModbusTCPClient::onConnected()
     m_responseBuffer.clear();
     m_transactionAddressMap.clear();
     m_transactionMapMismatchLogged = false;
-    qWarning() << "[Modbus连接] 连接成功"
+    qDebug() << "[Modbus连接] 连接成功"
                << "目标:" << m_host << ":" << m_port
                << "Peer:" << m_socket->peerAddress().toString() << ":" << m_socket->peerPort()
                << "SlaveID:" << m_slaveId;
@@ -194,7 +194,7 @@ bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 function
     if (m_transactionAddressMap.size() >= kMaxPendingRequests) {
         static int dropCount = 0;
         if (dropCount++ % 10 == 0) {
-            qWarning() << "[Modbus阻塞] 待处理请求:" << m_transactionAddressMap.size()
+            qDebug() << "[Modbus阻塞] 待处理请求:" << m_transactionAddressMap.size()
                        << "试图清理事务。当前状态:" << (isConnected() ? "已连接" : "断开")
                        << "套接字状态:" << (m_socket ? m_socket->state() : -1);
         }
@@ -208,12 +208,12 @@ bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 function
     if (bytesWritten != request.size()) {
         m_transactionAddressMap.remove(requestId);
         qWarning() << "[Modbus发送失败]"
-                   << "ReqID:" << requestId
-                   << "地址:" << startAddress
-                   << "数量:" << count
-                   << "期望字节:" << request.size()
-                   << "实际写入:" << bytesWritten
-                   << "错误:" << m_socket->errorString();
+               << "ReqID:" << requestId
+               << "地址:" << startAddress
+               << "数量:" << count
+               << "期望字节:" << request.size()
+               << "实际写入:" << bytesWritten
+               << "错误:" << m_socket->errorString();
         return false;
     }
 
@@ -247,7 +247,7 @@ bool ModbusTCPClient::writeSingleRegister(int address, quint16 value)
         return false;
     }
 
-    qWarning() << "[Modbus发送写请求]"
+    qDebug() << "[Modbus发送写请求]"
                << "ReqID:" << (m_transactionId - 1)
                << "FC: 0x06 地址:" << address
                << "值:" << value
@@ -280,7 +280,7 @@ QByteArray ModbusTCPClient::createReadRequest(int startAddress, int count, quint
         if (currentTime - it.value().timestamp > m_maxTimeoutMs) {
             static int timeoutCount = 0;
             if (timeoutCount++ % 10 == 0) {
-                 qWarning() << "[Modbus超时清理]" 
+                 qDebug() << "[Modbus超时清理]" 
                             << "ReqID:" << it.key() 
                             << "地址:" << it.value().address 
                             << "等待时长(ms):" << (currentTime - it.value().timestamp);

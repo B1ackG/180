@@ -120,13 +120,13 @@ public:
      * 如何使用: 调用并监听 connected()/errorOccurred() 信号以获取连接结果。
      * 如何修改: 若需通过 DHCP 或多地址尝试连接，可在实现中增加尝试逻辑。
      */
-    bool connectToDevice(const QString &host = "192.168.1.100", quint16 port = 502);
+    bool connectToDevice(const QString &host = "192.168.1.88", quint16 port = 502);
 
     /**
      * 使用示例:
      * @code
      * AGVModbusManager mgr;
-     * mgr.connectToDevice("192.168.1.100", 502);
+    * mgr.connectToDevice("192.168.1.88", 502);
      * @endcode
      */
 
@@ -307,6 +307,12 @@ private:
     bool m_connectedState = false;
     QSet<int> m_disconnectedWriteWarnedAddresses;
     QString m_lastSocketError;
+    bool m_writesEnabled = true; // 控制是否允许向AGV写入；默认开启，避免正常控制被静默拦截
+
+public:
+    // 运行时控制写入开关
+    void setWritesEnabled(bool enabled) { m_writesEnabled = enabled; }
+    bool writesEnabled() const { return m_writesEnabled; }
 };
 
 #endif // AGVMODBUSMANAGER_H

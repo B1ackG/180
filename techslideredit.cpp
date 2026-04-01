@@ -92,7 +92,7 @@ void TechSliderEdit::setupUI()
     m_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     m_label->setFixedWidth(120);
 
-    m_lineEdit->setFixedWidth(120);
+    m_lineEdit->setFixedWidth(50);
     m_lineEdit->setPlaceholderText("输入数值");
 
     m_firstRowLayout->addWidget(m_label);

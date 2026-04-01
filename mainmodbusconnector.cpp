@@ -7,7 +7,7 @@ MainModbusEndpoint MainModbusConnector::selectEndpoint(bool localSimulatorEnable
                                                        const QString &remoteSimulatorHost)
 {
     MainModbusEndpoint endpoint;
-    endpoint.host = QStringLiteral("192.168.1.88");
+    endpoint.host = QStringLiteral("192.168.1.13");
     endpoint.port = 502;
 
     if (localSimulatorEnabled) {

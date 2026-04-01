@@ -11,10 +11,19 @@ Item {
     property string unit: "mm/s"
     property string title: "行驶速度"
 
-    property bool obstacleFront: false
-    property bool obstacleBack: false
-    property bool obstacleLeft: false
-    property bool obstacleRight: false
+    // 触边状态（内环）
+    property bool touchFront: false
+    property bool touchBack: false
+    property bool touchLeft: false
+    property bool touchRight: false
+
+    // 避障状态（外环）：0=无, 1=减速(黄), 2=停止(红)
+    property int avoidFrontState: 0
+    property int avoidBackState: 0
+    property int avoidLeftState: 0
+    property int avoidRightState: 0
+
+    property string statusText: "正常"
 
     readonly property real safeRange: Math.max(1, maxValue - minValue)
     readonly property real clampedValue: Math.max(minValue, Math.min(maxValue, currentValue))
@@ -62,22 +71,40 @@ Item {
             ctx.arc(cx, cy, r, start, valueEnd, false)
             ctx.stroke()
 
-            // 障碍物环段
-            var ringR = r + 16
-            var ringW = 8
-            function drawSector(active, a1Deg, a2Deg) {
-                if (!active) return
+            // 外环：避障状态（减速黄、停止红）
+            var avoidRingR = r + 18
+            var avoidRingW = 8
+            function drawAvoidSector(state, a1Deg, a2Deg) {
+                if (state <= 0) return
                 ctx.beginPath()
-                ctx.lineWidth = ringW
-                ctx.strokeStyle = "#ff3b30"
-                ctx.arc(cx, cy, ringR, a1Deg * Math.PI / 180, a2Deg * Math.PI / 180, false)
+                ctx.lineWidth = avoidRingW
+                ctx.strokeStyle = state === 2 ? "#ff3b30" : "#ffd60a"
+                ctx.arc(cx, cy, avoidRingR, a1Deg * Math.PI / 180, a2Deg * Math.PI / 180, false)
                 ctx.stroke()
             }
+
+            // 内环：触边状态（红）
+            var touchRingR = r + 8
+            var touchRingW = 6
+            function drawTouchSector(active, a1Deg, a2Deg) {
+                if (!active) return
+                ctx.beginPath()
+                ctx.lineWidth = touchRingW
+                ctx.strokeStyle = "#ff3b30"
+                ctx.arc(cx, cy, touchRingR, a1Deg * Math.PI / 180, a2Deg * Math.PI / 180, false)
+                ctx.stroke()
+            }
+
             // 前/后/左/右
-            drawSector(root.obstacleFront, 225, 315)
-            drawSector(root.obstacleBack, 45, 135)
-            drawSector(root.obstacleLeft, 135, 225)
-            drawSector(root.obstacleRight, -45, 45)
+            drawAvoidSector(root.avoidFrontState, 225, 315)
+            drawAvoidSector(root.avoidBackState, 45, 135)
+            drawAvoidSector(root.avoidLeftState, 135, 225)
+            drawAvoidSector(root.avoidRightState, -45, 45)
+
+            drawTouchSector(root.touchFront, 225, 315)
+            drawTouchSector(root.touchBack, 45, 135)
+            drawTouchSector(root.touchLeft, 135, 225)
+            drawTouchSector(root.touchRight, -45, 45)
         }
     }
 
@@ -92,7 +119,15 @@ Item {
 
         Column {
             anchors.centerIn: parent
-            spacing: 2
+            spacing: 1
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+                text: root.statusText
+                color: root.statusText === "正常" ? "#9fc3ff" : "#ffb4b4"
+                font.bold: true
+                font.pixelSize: parent.parent.width * 0.14
+            }
 
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -123,9 +158,13 @@ Item {
     }
 
     onCurrentValueChanged: gaugeCanvas.requestPaint()
-    onObstacleFrontChanged: gaugeCanvas.requestPaint()
-    onObstacleBackChanged: gaugeCanvas.requestPaint()
-    onObstacleLeftChanged: gaugeCanvas.requestPaint()
-    onObstacleRightChanged: gaugeCanvas.requestPaint()
+    onTouchFrontChanged: gaugeCanvas.requestPaint()
+    onTouchBackChanged: gaugeCanvas.requestPaint()
+    onTouchLeftChanged: gaugeCanvas.requestPaint()
+    onTouchRightChanged: gaugeCanvas.requestPaint()
+    onAvoidFrontStateChanged: gaugeCanvas.requestPaint()
+    onAvoidBackStateChanged: gaugeCanvas.requestPaint()
+    onAvoidLeftStateChanged: gaugeCanvas.requestPaint()
+    onAvoidRightStateChanged: gaugeCanvas.requestPaint()
     Component.onCompleted: gaugeCanvas.requestPaint()
 }

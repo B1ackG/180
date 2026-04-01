@@ -68,7 +68,7 @@ public:
     /**
      * @brief 停止监控并关闭资源
      */
-    void stopMonitoring();   // 停止监控
+    Q_INVOKABLE void stopMonitoring();   // 停止监控
 
     /**
      * 使用示例:

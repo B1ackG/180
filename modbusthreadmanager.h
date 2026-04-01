@@ -87,7 +87,7 @@ public:
     /**
      * 使用示例:
      * @code
-     * ModbusThreadManager::instance()->connectToDevice("192.168.1.88", 502);
+    * ModbusThreadManager::instance()->connectToDevice("192.168.1.13", 502);
      * @endcode
      */
 

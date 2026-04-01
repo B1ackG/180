@@ -120,6 +120,10 @@ void FeatureSwitchWidget::setupUI()
     sdesc["tcp.remote_simulator"] = "远程 TCP 模拟器 (192.168.1.70)";
     sdesc["modbus_main.polling"] = "主控轮询";
     sdesc["modbus_main.float_reading"] = "浮点解析";
+    sdesc["modbus_main.read_logs"] = "主设备 Modbus 读日志";
+    sdesc["modbus_main.write_logs"] = "主设备 Modbus 写日志";
+    sdesc["modbus_agv.read_logs"] = "AGV Modbus 读日志";
+    sdesc["modbus_agv.write_logs"] = "AGV Modbus 写日志";
     sdesc["agv.fault_codes"] = "AGV 故障码";
     sdesc["agv.speed_gauge"] = "AGV 速度表";
     sdesc["motion.steering_mode"] = "转向模式";
@@ -135,6 +139,7 @@ void FeatureSwitchWidget::setupUI()
     sdesc["alarm.force_limit"] = "力控超限报警";
     sdesc["alarm.steering_switch"] = "转向模式切换报警";
     sdesc["alarm.popup"] = "报警弹窗显示";
+    sdesc["alarm.status_logs"] = "报警状态周期日志";
 
     for (const QString &key : smallKeys) {
         QString label = sdesc.contains(key) ? QString("%1 [%2]").arg(sdesc.value(key)).arg(key) : key;

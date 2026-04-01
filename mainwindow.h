@@ -553,6 +553,8 @@ private:
     int m_mainReconnectIntervalMs = 5000;
     int m_agvPollIntervalMs = 200;
     int m_agvReconnectIntervalMs = 5000;
+    QString m_agvHost = "192.168.1.88";
+    quint16 m_agvPort = 502;
 
     // ----- 其他组件与 UI 指针缓存 -----
     TechVirtualKeyboard *m_virtualKeyboard;

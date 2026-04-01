@@ -71,6 +71,11 @@ void FeatureSwitchManager::initializeFeatureSets()
 
         "modbus_main.polling",
         "modbus_main.float_reading",
+        "modbus_main.read_logs",
+        "modbus_main.write_logs",
+
+        "modbus_agv.read_logs",
+        "modbus_agv.write_logs",
 
         "agv.fault_codes",
         "agv.speed_gauge",
@@ -90,7 +95,8 @@ void FeatureSwitchManager::initializeFeatureSets()
         "alarm.emergency_stop",
         "alarm.force_limit",
         "alarm.steering_switch",
-        "alarm.popup"
+        "alarm.popup",
+        "alarm.status_logs"
     };
 }
 

@@ -26,7 +26,11 @@ int debug = 0;
 static void globalMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     if (type == QtDebugMsg && debug == 0) {
-        return; // 丢弃所有 qDebug 输出
+        // 在未开启全局 DEBUG 时，保留主窗口分类日志，便于运行期排查 AGV/UI 问题。
+        const QString category = context.category ? QString::fromUtf8(context.category) : QString();
+        if (category != "app.mainwindow") {
+            return; // 丢弃其它调试输出
+        }
     }
 
     QByteArray localMsg = msg.toLocal8Bit();
@@ -132,10 +136,14 @@ bool performSystemChecks(QSplashScreen* splash, MainWindow* mainWindow) {
         return true;
     }
 
-    QString mainCheckIp = "192.168.1.88";
+    QString mainCheckIp = "192.168.1.13";
     int mainCheckPort = 502;
-    QString agvCheckIp = "192.168.1.100";
-    int agvCheckPort = 502;
+    QSettings networkSettings("config.ini", QSettings::IniFormat);
+    networkSettings.beginGroup("Network");
+    QString agvCheckIp = networkSettings.value("agv_host", "192.168.1.88").toString();
+    int agvCheckPort = networkSettings.value("agv_port", 502).toInt();
+    networkSettings.endGroup();
+    agvCheckPort = qBound(1, agvCheckPort, 65535);
 
     if (featureSwitch->isFeatureEnabled("tcp_transmission", "tcp.local_simulator")) {
         mainCheckIp = "127.0.0.1";

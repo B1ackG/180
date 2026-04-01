@@ -19,7 +19,6 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #ifdef qDebug
 #undef qDebug
 #endif
-#define qDebug() qCDebug(lcMainWindow)
 #include <QComboBox>
 #include <QPlainTextEdit>
 #include <QMessageBox>
@@ -90,11 +89,17 @@ void MainWindow::loadPollingRuntimeSettings()
 
     settings.endGroup();
 
+    settings.beginGroup("Network");
+    m_agvHost = settings.value("agv_host", "192.168.1.88").toString();
+    m_agvPort = static_cast<quint16>(settings.value("agv_port", 502).toUInt());
+    settings.endGroup();
+
     m_mainModbusPollIntervalMs = qBound(50, m_mainModbusPollIntervalMs, 60000);
     m_mainUiPollIntervalMs = qBound(50, m_mainUiPollIntervalMs, 60000);
     m_mainReconnectIntervalMs = qBound(500, m_mainReconnectIntervalMs, 120000);
     m_agvPollIntervalMs = qBound(50, m_agvPollIntervalMs, 60000);
     m_agvReconnectIntervalMs = qBound(500, m_agvReconnectIntervalMs, 120000);
+    m_agvPort = static_cast<quint16>(qBound(1, static_cast<int>(m_agvPort), 65535));
 }
 
 void MainWindow::savePollingRuntimeSettings() const
@@ -106,6 +111,11 @@ void MainWindow::savePollingRuntimeSettings() const
     settings.setValue("main_reconnect_ms", m_mainReconnectIntervalMs);
     settings.setValue("agv_poll_ms", m_agvPollIntervalMs);
     settings.setValue("agv_reconnect_ms", m_agvReconnectIntervalMs);
+    settings.endGroup();
+
+    settings.beginGroup("Network");
+    settings.setValue("agv_host", m_agvHost);
+    settings.setValue("agv_port", m_agvPort);
     settings.endGroup();
     settings.sync();
 }
@@ -208,7 +218,7 @@ void MainWindow::setupConnections()
 void MainWindow::setupNavigationConnections()
 {
     if (!isBigFeatureEnabled("ui_navigation")) {
-        qDebug() << "UI导航功能已关闭，跳过导航连接";
+        qCDebug(lcMainWindow) << "UI导航功能已关闭，跳过导航连接";
         return;
     }
 
@@ -242,7 +252,7 @@ void MainWindow::setupNavigationConnections()
 void MainWindow::setupRecordAndPermissionConnections()
 {
     if (!isBigFeatureEnabled("operation_records") && !isBigFeatureEnabled("permission_system")) {
-        qDebug() << "记录与权限功能均关闭，跳过相关连接";
+        qCDebug(lcMainWindow) << "记录与权限功能均关闭，跳过相关连接";
         return;
     }
 
@@ -303,17 +313,17 @@ void MainWindow::setupRecordAndPermissionConnections()
 void MainWindow::setupControlConnections()
 {
     if (!isBigFeatureEnabled("motion_control")) {
-        qDebug() << "运动控制功能已关闭，跳过控制连接";
+        qCDebug(lcMainWindow) << "运动控制功能已关闭，跳过控制连接";
         return;
     }
 
     connect(ui->StackedWidget, &QStackedWidget::currentChanged,
             this, [this](int index) {
                 const QString pageName = m_pageNames.value(index, "未知");
-                qDebug() << "切换到页面:" << pageName;
+                qCDebug(lcMainWindow) << "切换到页面:" << pageName;
 
                 if (m_pageSliders.contains(pageName)) {
-                    qDebug() << "当前页面有" << m_pageSliders[pageName].size()
+                    qCDebug(lcMainWindow) << "当前页面有" << m_pageSliders[pageName].size()
                              << "个TechSliderLabel控件";
                 }
             });
@@ -341,7 +351,7 @@ void MainWindow::setupControlConnections()
         }
         connect(m_btnForceControl, &TechPushButton::clicked,
                 this, &MainWindow::toggleForceControl);
-        qDebug() << "力控按钮初始化完成，初始状态:"
+        qCDebug(lcMainWindow) << "力控按钮初始化完成，初始状态:"
                  << (m_forcecontrolMode ? "开启" : "关闭");
     } else {
         qWarning() << "未找到btn_ForceControl按钮";
@@ -370,7 +380,7 @@ void MainWindow::setupSubsystemConnections()
 void MainWindow::setupStyles()
 {
     if (!isFeatureEnabled("ui_navigation", "ui.styles")) {
-        qDebug() << "UI样式功能已关闭，跳过样式设置";
+        qCDebug(lcMainWindow) << "UI样式功能已关闭，跳过样式设置";
         return;
     }
 
@@ -498,7 +508,7 @@ void MainWindow::applyPushButtonStyles(const QList<QPushButton*> &buttons)
         if(btn) {
             btn->setStyleSheet(style);
         } else {
-            qDebug() << "发现空的QPushButton指针";
+            qCDebug(lcMainWindow) << "发现空的QPushButton指针";
         }
     }
 }
@@ -512,7 +522,7 @@ void MainWindow::applyToolButtonStyles(const QList<QToolButton*> &buttons)
         if(btn) {
             btn->setStyleSheet(style);
         } else {
-            qDebug() << "发现空的QToolButton指针";
+            qCDebug(lcMainWindow) << "发现空的QToolButton指针";
         }
     }
 }
@@ -563,7 +573,7 @@ QString MainWindow::TransparentWidgetStyle(const QString &WidgetType )
 void MainWindow::setupAnimations()
 {
     if (!isFeatureEnabled("ui_navigation", "ui.animations")) {
-        qDebug() << "UI动画功能已关闭，跳过动画设置";
+        qCDebug(lcMainWindow) << "UI动画功能已关闭，跳过动画设置";
         return;
     }
 
@@ -605,11 +615,11 @@ void MainWindow::loadBackgroundImage()
                                         Qt::IgnoreAspectRatio,
                                         Qt::SmoothTransformation);
         m_backgroundLoaded = true;
-        qDebug() << "背景图片预加载成功，尺寸:" << m_backgroundPixmap.size();
+        qCDebug(lcMainWindow) << "背景图片预加载成功，尺寸:" << m_backgroundPixmap.size();
     }
     else
     {
-        qDebug() << "无法加载背景图片";
+        qCDebug(lcMainWindow) << "无法加载背景图片";
         m_backgroundLoaded = false;
     }
 }
@@ -684,7 +694,7 @@ void MainWindow::applyLineEditStyles(const QList<QLineEdit*> &lineEdits)
                 "}"
                 );
         } else {
-            qDebug() << "发现空的QLineEdit指针";
+            qCDebug(lcMainWindow) << "发现空的QLineEdit指针";
         }
     }
 }
@@ -819,7 +829,7 @@ void MainWindow::initSpeedGaugeUI()
         rootItem->setProperty("unit", "mm/s");
     }
 
-    qDebug() << "QML 速度仪表初始化完成 - 量程: 0-900 mm/s";
+    qCDebug(lcMainWindow) << "QML 速度仪表初始化完成 - 量程: 0-900 mm/s";
 }
 
 // 示例：更新速度值
@@ -838,7 +848,7 @@ void MainWindow::setupDataSimulation()
     m_dataSimulator = new QTimer(this);
     connect(m_dataSimulator, &QTimer::timeout, this, [this]() {
         if (!(m_speedGaugeQml && m_speedGaugeQml->rootObject())) {
-            qDebug() << "错误：m_speedGaugeQml 为空指针！";
+            qCDebug(lcMainWindow) << "错误：m_speedGaugeQml 为空指针！";
             return;
         }
         // 生成随机速度波动（测试用）
@@ -854,7 +864,7 @@ void MainWindow::setupDataSimulation()
     if (ui->pushButton_5) {
         ui->pushButton_5->setText("测试报警"); 
         connect(ui->pushButton_5, &QPushButton::clicked, this, [this]() {
-            qDebug() << "测试按钮点击：手动触发力控超限报警";
+            qCDebug(lcMainWindow) << "测试按钮点击：手动触发力控超限报警";
             showAlarm("力控超限警报触发\n请点击下方按钮清除报警\n请手动移出超限位置", "#ff8800"); 
         });
     }
@@ -865,7 +875,7 @@ void MainWindow::setupDataSimulation()
 void MainWindow::initSliderEditUI()
 {
     QList<TechSliderEdit*> sliders = this->findChildren<TechSliderEdit*>();
-    qDebug() << "找到" << sliders.size() << "个TechSliderEdit控件";
+    qCDebug(lcMainWindow) << "找到" << sliders.size() << "个TechSliderEdit控件";
 
     // 存储所有非AGV的TechSliderEdit，用于联动更新
     QList<TechSliderEdit*> nonAGVSliders;
@@ -883,7 +893,7 @@ void MainWindow::initSliderEditUI()
             slider->setPrecision(1); // 可以输入一位小数
             nonAGVSliders.append(slider);
 
-            qDebug() << "初始化: TechSliderEdit_HoriSupSec_RotationSpeed, 范围:0-5 °/s, 默认值:1 °/s, 精度:1";
+            qCDebug(lcMainWindow) << "初始化: TechSliderEdit_HoriSupSec_RotationSpeed, 范围:0-5 °/s, 默认值:1 °/s, 精度:1";
         }
         else if (objName == "TechSliderEdit_HoriSupSec_MoveSpeed") {
             // 水平支撑段移动速度：0-20 mm/s，只能输入整数
@@ -894,7 +904,7 @@ void MainWindow::initSliderEditUI()
             slider->setPrecision(0); // 只能输入整数
             nonAGVSliders.append(slider);
 
-            qDebug() << "初始化: TechSliderEdit_HoriSupSec_MoveSpeed, 范围:0-20 mm/s, 默认值:10 mm/s";
+            qCDebug(lcMainWindow) << "初始化: TechSliderEdit_HoriSupSec_MoveSpeed, 范围:0-20 mm/s, 默认值:10 mm/s";
         }
         else if (objName == "TechSliderEdit_VeSupSec_MoveSpeed") {
             // 垂直支撑段移动速度：0-30 mm/s，只能输入整数
@@ -905,7 +915,7 @@ void MainWindow::initSliderEditUI()
             slider->setPrecision(0); // 只能输入整数
             nonAGVSliders.append(slider);
 
-            qDebug() << "初始化: TechSliderEdit_VeSupSec_MoveSpeed, 范围:0-30 mm/s, 默认值:15 mm/s";
+            qCDebug(lcMainWindow) << "初始化: TechSliderEdit_VeSupSec_MoveSpeed, 范围:0-30 mm/s, 默认值:15 mm/s";
         }
         else if (objName == "TechSliderEdit_EOAT_RotationSpeed") {
             // EOAT旋转速度：0-5 °/s，支持一位小数
@@ -916,28 +926,37 @@ void MainWindow::initSliderEditUI()
             slider->setPrecision(0); // 可以输入一位小数
             nonAGVSliders.append(slider);
 
-            qDebug() << "初始化: TechSliderEdit_EOAT_RotationSpeed, 范围:0-5 °/s, 默认值:3 °/s, 精度:1";
+            qCDebug(lcMainWindow) << "初始化: TechSliderEdit_EOAT_RotationSpeed, 范围:0-5 °/s, 默认值:3 °/s, 精度:1";
         }
-        // else if (objName == "SEdit_AGV_MoveSpeed") {
-        //     // AGV运动速度：0-834 mm/s，可以输入小数
-        //     slider->setLabelText("运动速度");
-        //     slider->setRange(0, 834);
-        //     slider->setValue(0);
-        //     slider->setSuffix("mm/s");
-        //     slider->setPrecision(0);
+        else if (objName == "SEdit_AGV_MoveSpeed") {
+            // 六自由度平台速度：0-100 mm/s
+            slider->setLabelText("六自由度平台速度");
+            slider->setRange(0, 100);
+            slider->setValue(0);
+            slider->setSuffix("mm/s");
+            slider->setPrecision(0);
 
-        //     qDebug() << "初始化: SEdit_AGV_MoveSpeed, 范围:0-834 mm/s, 默认值:0 mm/s";
-        // }
-        // else if (objName == "SEdit_AGV_Angle") {
-        //     // AGV转向角度：-25-25 °，可以输入小数
-        //     slider->setLabelText("转向角度");
-        //     slider->setRange(-25, 25);
-        //     slider->setValue(0);
-        //     slider->setSuffix("°");
-        //     slider->setPrecision(0);
+            qCDebug(lcMainWindow) << "初始化: SEdit_AGV_MoveSpeed, 范围:0-100 mm/s, 默认值:0 mm/s";
+        }
+        else if (objName == "SEdit_AGV_Angle") {
+            // AGV转向角度：-25~25 °
+            slider->setLabelText("六自由度平台转向角度");
+            slider->setRange(-25, 25);
+            slider->setValue(0);
+            slider->setSuffix("°");
+            slider->setPrecision(0);
 
-        //     qDebug() << "初始化: SEdit_AGV_Angle, 范围:-25-25 °, 默认值:0 °";
-        // }
+            qCDebug(lcMainWindow) << "初始化: SEdit_AGV_Angle, 范围:-25~25 °, 默认值:0 °";
+        }
+        else if (objName == "TechSliderEdit_Robot_RobotSpeed") {
+            slider->setLabelText("机器人全局速度");
+            slider->setRange(0, 100);
+            slider->setValue(0);
+            slider->setSuffix("%");
+            slider->setPrecision(0);
+
+            qCDebug(lcMainWindow) << "初始化: TechSliderEdit_Robot_RobotSpeed, 范围:0-100 %, 默认值:0 %";
+        }
         else {
             // 如果有其他未处理的TechSliderEdit控件，输出警告
             qWarning() << "未处理的TechSliderEdit控件:" << objName;
@@ -962,11 +981,38 @@ void MainWindow::initSliderEditUI()
 
     TechSliderEdit *robotSpeedSlider = findChild<TechSliderEdit*>("TechSliderEdit_Robot_RobotSpeed");
     if (robotSpeedSlider) {
+        robotSpeedSlider->setLabelText("机器人全局速度");
+        robotSpeedSlider->setRange(0, 100);
+        robotSpeedSlider->setSuffix("%");
+        robotSpeedSlider->setPrecision(0);
+
         connect(robotSpeedSlider, &TechSliderEdit::valueChangedWithRecord,
                 this, [this](double /*oldValue*/, double newValue) {
-                    const int writeValue = qRound(newValue);
-                    writeToMainDevice(510, writeValue);
-                    qDebug() << "RobotSpeed写入主设备寄存器510, 值:" << writeValue;
+                    const double speedPercent = qBound(0.0, newValue, 100.0);
+                    quint64 bits = 0;
+                    memcpy(&bits, &speedPercent, sizeof(double));
+
+                    const quint8 A = static_cast<quint8>((bits >> 56) & 0xFF);
+                    const quint8 B = static_cast<quint8>((bits >> 48) & 0xFF);
+                    const quint8 C = static_cast<quint8>((bits >> 40) & 0xFF);
+                    const quint8 D = static_cast<quint8>((bits >> 32) & 0xFF);
+                    const quint8 E = static_cast<quint8>((bits >> 24) & 0xFF);
+                    const quint8 F = static_cast<quint8>((bits >> 16) & 0xFF);
+                    const quint8 G = static_cast<quint8>((bits >> 8) & 0xFF);
+                    const quint8 H = static_cast<quint8>(bits & 0xFF);
+
+                    const quint16 reg1 = (static_cast<quint16>(G) << 8) | static_cast<quint16>(H);
+                    const quint16 reg2 = (static_cast<quint16>(E) << 8) | static_cast<quint16>(F);
+                    const quint16 reg3 = (static_cast<quint16>(C) << 8) | static_cast<quint16>(D);
+                    const quint16 reg4 = (static_cast<quint16>(A) << 8) | static_cast<quint16>(B);
+
+                    writeToMainDevice(510, reg1);
+                    writeToMainDevice(511, reg2);
+                    writeToMainDevice(512, reg3);
+                    writeToMainDevice(513, reg4);
+
+                    qCDebug(lcMainWindow) << "RobotSpeed(%)写64位浮点到510-513, 值:" << speedPercent
+                                          << "寄存器:" << reg1 << reg2 << reg3 << reg4;
                 });
     } else {
         qWarning() << "未找到控件: TechSliderEdit_Robot_RobotSpeed";
@@ -988,7 +1034,7 @@ void MainWindow::initSliderEditUI()
 void MainWindow::onNonAGVSliderEditChanged(TechSliderEdit *changedSlider, double newValue,
                                            const QList<TechSliderEdit*> &allNonAGVSliders)
 {
-    qDebug() << "非AGV TechSliderEdit值变化：" << changedSlider->objectName()
+    qCDebug(lcMainWindow) << "非AGV TechSliderEdit值变化：" << changedSlider->objectName()
              << "新值:" << newValue;
 
     // 1. 计算百分比：值 / 最大值 × 100，取整
@@ -996,7 +1042,7 @@ void MainWindow::onNonAGVSliderEditChanged(TechSliderEdit *changedSlider, double
     double percentage = (newValue / maxValue) * 100.0;
     int percentageInt = qRound(percentage); // 四舍五入取整
 
-    qDebug() << "计算百分比: (" << newValue << " / " << maxValue << ") × 100 = "
+    qCDebug(lcMainWindow) << "计算百分比: (" << newValue << " / " << maxValue << ") × 100 = "
              << percentage << "% → 取整后:" << percentageInt << "%";
 
     // 2. 写入192.168.1.13设备的79地址
@@ -1015,7 +1061,7 @@ void MainWindow::onNonAGVSliderEditChanged(TechSliderEdit *changedSlider, double
             if (newSliderValue < slider->minimum()) newSliderValue = slider->minimum();
             if (newSliderValue > sliderMax) newSliderValue = sliderMax;
 
-            qDebug() << "更新" << slider->objectName() << ": "
+            qCDebug(lcMainWindow) << "更新" << slider->objectName() << ": "
                      << sliderMax << " × " << percentageInt << "% / 100 = "
                      << newSliderValue;
 
@@ -1063,7 +1109,7 @@ void MainWindow::initSliderLabelUI()
             // 添加到页面映射
             m_pageSliders["软件参数"].append(sliderLabel);  // 首页名称
 
-            qDebug() << "初始化TechSliderLabel:" << objName
+            qCDebug(lcMainWindow) << "初始化TechSliderLabel:" << objName
                      << "文本:" << config.labelText
                      << "范围:" << config.minValue << "-" << config.maxValue;
         } else {
@@ -1087,11 +1133,11 @@ void MainWindow::initSliderLabelUI()
 
 void MainWindow::on_TBtn_VeSupSec_Rise_released()
 {
-    qDebug() << "按钮释放，尝试停止动图...";
+    qCDebug(lcMainWindow) << "按钮释放，尝试停止动图...";
 
     if (m_verticalMovie && m_verticalMovie->state() == QMovie::Running) {
         m_verticalMovie->stop();
-        qDebug() << "动图已停止。";
+        qCDebug(lcMainWindow) << "动图已停止。";
     }
 
 }
@@ -1105,7 +1151,7 @@ void MainWindow::on_TBtn_VeSupSec_Rise_released()
 void MainWindow::setupVirtualKeyboard()
 {
     if (!isFeatureEnabled("ui_navigation", "ui.virtual_keyboard")) {
-        qDebug() << "虚拟键盘功能已关闭，跳过初始化";
+        qCDebug(lcMainWindow) << "虚拟键盘功能已关闭，跳过初始化";
         return;
     }
 
@@ -1253,7 +1299,7 @@ void MainWindow::connectRecordSignals()
 void MainWindow::setupRecordUI()
 {
     if (!isBigFeatureEnabled("operation_records")) {
-        qDebug() << "操作记录功能已关闭，跳过记录UI初始化";
+        qCDebug(lcMainWindow) << "操作记录功能已关闭，跳过记录UI初始化";
         return;
     }
 
@@ -1316,7 +1362,7 @@ void MainWindow::setupRecordUI()
         }
     });
 
-    qDebug() << "QML 操作记录列表初始化完成";
+    qCDebug(lcMainWindow) << "QML 操作记录列表初始化完成";
 }
 
 void MainWindow::updateRecordDisplay()
@@ -2212,7 +2258,7 @@ void MainWindow::recordHorizontalSupportMoveAction(int keyNumber, bool pressed)
 //矩阵键盘
 void MainWindow::onMatrixKeyPressed(int keyNumber, bool pressed)
 {
-    qDebug() << "【主线程】按键信号接收 - 按键:" << keyNumber
+    qCDebug(lcMainWindow) << "【主线程】按键信号接收 - 按键:" << keyNumber
              << "状态:" << (pressed ? "按下" : "释放");
 
     QString action = pressed ? "按下" : "释放";
@@ -2253,12 +2299,12 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                     writeToMainDevice(514, 0);
                 }
 
-                qDebug() << "page_Robot (Index 0, 点动/关节) 按键 ○" << keyNumber << " " << (pressed ? "按下" : "释放")
+                qCDebug(lcMainWindow) << "page_Robot (Index 0, 点动/关节) 按键 ○" << keyNumber << " " << (pressed ? "按下" : "释放")
                          << " -> 地址500写入:" << (pressed ? QString::number(value500) : "保持") 
                          << ", 地址514写入:" << value514;
             }
         } else {
-            qDebug() << "机械臂页面按键忽略：当前未处于[点动+关节]模式";
+            qCDebug(lcMainWindow) << "机械臂页面按键忽略：当前未处于[点动+关节]模式";
         }
         return; // 机械臂页面不再执行后续逻辑
     }
@@ -2269,7 +2315,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
         if (value != 0 || !pressed) {  // 按下时写入特定值，释放时写入0
             writeToMainDevice(124, value);
-            qDebug() << "" << keyNumber << (pressed ? "按下" : "释放")
+            qCDebug(lcMainWindow) << "" << keyNumber << (pressed ? "按下" : "释放")
                      << "，地址124写入:" << value;
         }
     }
@@ -2372,12 +2418,12 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
             if (m_agvOaEnabled) {
                 // 避障开启时，给0地址写200
                 writeToAGVDevice(0, 72);
-                qDebug() << "按键○1按下，避障开启，地址0写入200";
+                qCDebug(lcMainWindow) << "按键○1按下，避障开启，地址0写入200";
                 ui->statusBar->showMessage("AGV前进（避障开启）", 2000);
             } else {
                 // 避障关闭时，给0地址写202
                 writeToAGVDevice(0, 74);
-                qDebug() << "按键○1按下，避障关闭，地址0写入202";
+                qCDebug(lcMainWindow) << "按键○1按下，避障关闭，地址0写入202";
                 ui->statusBar->showMessage("AGV前进（避障关闭）", 2000);
             }
         } else {
@@ -2386,12 +2432,12 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
                 // 避障开启时，给0地址写192
                 writeToAGVDevice(0, 64);
 
-                qDebug() << "按键○1释放，避障开启，地址0写入192";
+                qCDebug(lcMainWindow) << "按键○1释放，避障开启，地址0写入192";
                 ui->statusBar->showMessage("AGV停止（避障开启）", 2000);
             } else {
                 // 避障关闭时，给0地址写194
                 writeToAGVDevice(0, 66);
-                qDebug() << "按键○1释放，避障关闭，地址0写入194";
+                qCDebug(lcMainWindow) << "按键○1释放，避障关闭，地址0写入194";
                 ui->statusBar->showMessage("AGV停止（避障关闭）", 2000);
             }
         }
@@ -2465,12 +2511,12 @@ int MainWindow::getValueFor124Address(int keyNumber, bool pressed)
 void MainWindow::setupKeyManager()
 {
     if (!isFeatureEnabled("input_devices", "input.matrix_key")) {
-        qDebug() << "矩阵键输入功能已关闭，跳过键盘管理器";
+        qCDebug(lcMainWindow) << "矩阵键输入功能已关闭，跳过键盘管理器";
         return;
     }
 
-    qDebug() << "=== 设置键盘管理器 ===";
-    qDebug() << "当前线程:" << QThread::currentThread();
+    qCDebug(lcMainWindow) << "=== 设置键盘管理器 ===";
+    qCDebug(lcMainWindow) << "当前线程:" << QThread::currentThread();
 
 /**
  * @brief 设置 Modbus 线程管理器并完成基本连接配置
@@ -2482,7 +2528,7 @@ void MainWindow::setupKeyManager()
     connect(m_keyManager, &MatrixKeyThreadManager::keyPressed,
             this, &MainWindow::onMatrixKeyPressed);
 
-    qDebug() << "信号连接完成";
+    qCDebug(lcMainWindow) << "信号连接完成";
 
     // 2. 启动键盘监控
     if (m_keyManager->start("/dev/input/event0")) {
@@ -2494,9 +2540,9 @@ void MainWindow::setupKeyManager()
         }
 
         ui->statusBar->showMessage(QString("矩阵按键监控已启动%1").arg(threadInfo), 3000);
-        qDebug() << "键盘管理器启动成功";
-        qDebug() << "工作线程:" << workerThread;
-        qDebug() << "管理器线程:" << m_keyManager->thread();
+        qCDebug(lcMainWindow) << "键盘管理器启动成功";
+        qCDebug(lcMainWindow) << "工作线程:" << workerThread;
+        qCDebug(lcMainWindow) << "管理器线程:" << m_keyManager->thread();
     } else {
         ui->statusBar->showMessage("错误：无法启动矩阵按键监控！", 5000);
         qWarning() << "键盘管理器启动失败";
@@ -2509,14 +2555,14 @@ void MainWindow::setupKeyManager()
 void MainWindow::setupModbusManager()
 {
     if (!isBigFeatureEnabled("modbus_main")) {
-        qDebug() << "主控Modbus功能已关闭，跳过Modbus管理器";
+        qCDebug(lcMainWindow) << "主控Modbus功能已关闭，跳过Modbus管理器";
         return;
     }
 
     // 获取Modbus管理器实例
     m_modbusManager = ModbusThreadManager::instance();
 
-    qDebug() << "设置Modbus管理器，管理器地址:" << m_modbusManager;
+    qCDebug(lcMainWindow) << "设置Modbus管理器，管理器地址:" << m_modbusManager;
 
     // 连接信号到槽函数
     connect(m_modbusManager, &ModbusThreadManager::connected,
@@ -2529,25 +2575,25 @@ void MainWindow::setupModbusManager()
             this, &MainWindow::onModbusRegisterValueChanged,
             Qt::QueuedConnection);
 
-    qDebug() << "Modbus信号连接完成";
+    qCDebug(lcMainWindow) << "Modbus信号连接完成";
 
     const MainModbusEndpoint endpoint = MainModbusConnector::selectEndpoint(
         isFeatureEnabled("tcp_transmission", "tcp.local_simulator"),
         isFeatureEnabled("tcp_transmission", "tcp.remote_simulator"));
     if (endpoint.host == "127.0.0.1") {
-        qDebug() << "启用本机 TCP 模拟器模式：主设备 ->" << endpoint.host << ":" << endpoint.port;
+        qCDebug(lcMainWindow) << "启用本机 TCP 模拟器模式：主设备 ->" << endpoint.host << ":" << endpoint.port;
     } else if (endpoint.port == 5020) {
-        qDebug() << "启用远程 TCP 模拟器模式：主设备 ->" << endpoint.host << ":" << endpoint.port;
+        qCDebug(lcMainWindow) << "启用远程 TCP 模拟器模式：主设备 ->" << endpoint.host << ":" << endpoint.port;
     }
 
     bool deviceConnected = MainModbusConnector::connectAndConfigure(
         m_modbusManager, endpoint, m_mainModbusPollIntervalMs, m_mainReconnectIntervalMs);
-    qDebug() << "192.168.1.88 Modbus连接状态:" << (deviceConnected ? "已连接" : "连接失败");
+    qCDebug(lcMainWindow) << "192.168.1.13 Modbus连接状态:" << (deviceConnected ? "已连接" : "连接失败");
 
     // 显示连接状态消息
-    ui->statusBar->showMessage("正在连接192.168.1.88 Modbus...", 3000);
+    ui->statusBar->showMessage("正在连接192.168.1.13 Modbus...", 3000);
 
-    qDebug() << "192.168.1.88 Modbus管理器设置完成";
+    qCDebug(lcMainWindow) << "192.168.1.13 Modbus管理器设置完成";
 }
 // 修改setupSliderModbusAddresses函数，添加对TechSliderLabel的支持
 void MainWindow::setupSliderModbusAddresses()
@@ -2563,7 +2609,7 @@ void MainWindow::setupSliderModbusAddresses()
 
         m_modbusManager->registerSlider(slider, modbusAddress);
 
-        qDebug() << "注册slider到Modbus:" << sliderName
+        qCDebug(lcMainWindow) << "注册slider到Modbus:" << sliderName
                  << "地址:" << modbusAddress << "(对应400"
                  << QString("%1").arg(modbusAddress + 40001, 3, 10, QChar('0')) << ")";
     }
@@ -2579,7 +2625,7 @@ void MainWindow::setupSliderModbusAddresses()
 
         m_modbusManager->registerSliderLabel(sliderLabel, modbusAddress);
 
-        qDebug() << "注册sliderLabel到Modbus:" << sliderLabelName
+        qCDebug(lcMainWindow) << "注册sliderLabel到Modbus:" << sliderLabelName
                  << "地址:" << modbusAddress << "(对应400"
                  << QString("%1").arg(modbusAddress + 40001, 3, 10, QChar('0')) << ")";
     }
@@ -2587,7 +2633,7 @@ void MainWindow::setupSliderModbusAddresses()
 // Modbus连接成功槽函数
 void MainWindow::onModbusConnected()
 {
-    qDebug() << "Modbus连接成功，启动交互任务...";
+    qCDebug(lcMainWindow) << "Modbus连接成功，启动交互任务...";
     MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Connected);
 
     // 立即启动原本推迟的数据读取子系统
@@ -2609,7 +2655,7 @@ void MainWindow::onModbusConnected()
 // Modbus断开连接槽函数
 void MainWindow::onModbusDisconnected()
 {
-    qDebug() << "Modbus设备断开连接";
+    qCDebug(lcMainWindow) << "Modbus设备断开连接";
     MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Disconnected);
     MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Disconnected);
 }
@@ -2617,7 +2663,7 @@ void MainWindow::onModbusDisconnected()
 // Modbus错误槽函数
 void MainWindow::onModbusError(const QString &error)
 {
-    qDebug() << "Modbus错误:" << error;
+    qCDebug(lcMainWindow) << "Modbus错误:" << error;
     MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Error, error);
     MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Error, error);
 }
@@ -2625,7 +2671,7 @@ void MainWindow::onModbusError(const QString &error)
 void MainWindow::initSpeedModeSelector()
 {
     if (!isFeatureEnabled("motion_control", "motion.speed_mode")) {
-        qDebug() << "速度模式功能已关闭，跳过初始化";
+        qCDebug(lcMainWindow) << "速度模式功能已关闭，跳过初始化";
         return;
     }
 
@@ -2648,7 +2694,7 @@ void MainWindow::initSpeedModeSelector()
     // 连接模式改变信号
     connect(speedModeSelector, &SpeedModeSelector::modeChanged,
             this, [this](SpeedMode mode) {
-                qDebug() << "速度模式改变为:" << mode;
+                qCDebug(lcMainWindow) << "速度模式改变为:" << mode;
 
                 // 根据模式更新其他UI或执行操作
                 switch(mode) {
@@ -2700,24 +2746,24 @@ void MainWindow::setupModbusLabels()
 {
     m_modbusLabels = MainModbusLabelMapper::buildMap(this);
 
-    qDebug() << "找到" << m_modbusLabels.size() << "个Modbus显示Label";
+    qCDebug(lcMainWindow) << "找到" << m_modbusLabels.size() << "个Modbus显示Label";
 }
 
 // 启动Modbus变量轮询
 void MainWindow::startModbusPolling()
 {
     if (MainModbusPoller::shouldSkipStart(m_modbusPollTimer)) {
-        qDebug() << "主设备通用地址轮询已停用，仅保留四个SliderLabel地址轮询";
+        qCDebug(lcMainWindow) << "主设备通用地址轮询已停用，仅保留四个SliderLabel地址轮询";
         return;
     }
 
     if (!isFeatureEnabled("modbus_main", "modbus_main.polling")) {
-        qDebug() << "主控Modbus轮询功能已关闭";
+        qCDebug(lcMainWindow) << "主控Modbus轮询功能已关闭";
         return;
     }
 
     if (!m_modbusManager || !m_modbusManager->isConnected()) {
-        qDebug() << "Modbus未连接，无法启动轮询";
+        qCDebug(lcMainWindow) << "Modbus未连接，无法启动轮询";
         return;
     }
 
@@ -2732,7 +2778,7 @@ void MainWindow::startModbusPolling()
         if (ModbusVariables::parseAddress(var.address, modbusAddress, bitPos)) {
             // 添加到轮询（这里需要扩展ModbusThreadManager）
             // 暂时先记录需要读取的地址
-            qDebug() << "需要读取变量:" << var.name
+            qCDebug(lcMainWindow) << "需要读取变量:" << var.name
                      << "地址:" << var.address
                      << "Modbus地址:" << modbusAddress;
         }
@@ -2747,7 +2793,7 @@ void MainWindow::startModbusPolling()
 void MainWindow::pollModbusVariables()
 {
     if (MainModbusPoller::shouldSkipPoll()) {
-        qDebug() << "pollModbusVariables已停用，避免轮询main其他地址";
+        qCDebug(lcMainWindow) << "pollModbusVariables已停用，避免轮询main其他地址";
         return;
     }
     static int currentIndex = 0;
@@ -2769,7 +2815,7 @@ void MainWindow::updateSliderLabelValue(const QString& labelName, float value)
                 // 检查是否是首页控件或相关副本
                 if (objName == labelName || objName.startsWith(labelName + "_")) {
                     slider->setValue(value);
-                    // 移除高频日志: qDebug() << "更新" << objName << " = " << value;
+                    // 移除高频日志: qCDebug(lcMainWindow) << "更新" << objName << " = " << value;
                 }
             }
         }
@@ -2818,6 +2864,12 @@ void MainWindow::updateSliderLabelValue(const QString& labelName, float value)
 
 void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 {
+    if (isFeatureEnabled("modbus_main", "modbus_main.read_logs")) {
+        qCDebug(lcMainWindow) << "[Main] 寄存器值变化 - 地址:" << address
+                              << "值:" << value
+                              << "(0x" << QString::number(value, 16).toUpper() << ")";
+    }
+
     // [调试] 无论如何都会输出，用来确认数据到底回来没
     if (address < 25) { 
         // qWarning() << "[Modbus原始数据] 地址:" << address << "值:" << value;
@@ -2915,7 +2967,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             }
 
             m_emergencyStopColumnFlag = emergencyStop;
-            qDebug() << "立柱急停状态变化:" << (emergencyStop ? "触发" : "解除");
+            qCDebug(lcMainWindow) << "立柱急停状态变化:" << (emergencyStop ? "触发" : "解除");
 
             // 立即检查报警条件
             QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
@@ -2939,7 +2991,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             }
 
             m_emergencyStopChassisFlag = emergencyStop;
-            qDebug() << "底盘急停状态变化:" << (emergencyStop ? "触发" : "解除");
+            qCDebug(lcMainWindow) << "底盘急停状态变化:" << (emergencyStop ? "触发" : "解除");
 
             // 立即检查报警条件
             QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
@@ -2963,11 +3015,11 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             }
 
             m_forceLimitFlag = forceLimit;
-            qDebug() << "力控超限状态变化:" << (forceLimit ? "触发" : "解除");
+            qCDebug(lcMainWindow) << "力控超限状态变化:" << (forceLimit ? "触发" : "解除");
 
             // 新增：力控限位报警以后，自动执行一次力控关闭
             if (forceLimit && m_forcecontrolMode) {
-                qDebug() << "检测到力控超限报警且力控处于开启状态，自动执行关力控";
+                qCDebug(lcMainWindow) << "检测到力控超限报警且力控处于开启状态，自动执行关力控";
                 toggleForceControl();
             }
 
@@ -2981,7 +3033,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
     // ============ 新增：处理大六维力寄存器（612-623） ============
     if (address >= 612 && address <= 623) {
         // 调试输出：确认收到大六维力数据
-         qDebug() << "收到大六维力寄存器数据 - 地址:" << address << "值:" << value;
+         qCDebug(lcMainWindow) << "收到大六维力寄存器数据 - 地址:" << address << "值:" << value;
         
         // 定义地址到大六维力标签的映射
         static QMap<int, QString> bigForceAddressToLabelMap = {
@@ -3026,7 +3078,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                 // 调试输出
                 static int debugCount = 0;
                 if (debugCount++ % 6 == 0) // 减少刷屏，每6次（大约一组）打印一次
-                   qDebug() << "【大" << labelName << "】" << "值:" << floatValue << " (Raw: " << high << "," << low << ")";
+                   qCDebug(lcMainWindow) << "【大" << labelName << "】" << "值:" << floatValue << " (Raw: " << high << "," << low << ")";
 
                 // 更新标签显示
                 updateBigForceLabel(labelName, floatValue);
@@ -3038,7 +3090,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
     if (address >= 624 && address <= 635) {
         
         // 调试输出：确认收到小六维力数据
-        // qDebug() << "收到小六维力寄存器数据 - 地址:" << address << "值:" << value;
+        // qCDebug(lcMainWindow) << "收到小六维力寄存器数据 - 地址:" << address << "值:" << value;
 
         // 定义地址到小六维力标签的映射
         static QMap<int, QString> smallForceAddressToLabelMap = {
@@ -3083,7 +3135,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                 // 调试输出
                 static int smallDebugCount = 0;
                 if (smallDebugCount++ % 6 == 0)
-                   qDebug() << "【小" << labelName << "】"
+                   qCDebug(lcMainWindow) << "【小" << labelName << "】"
                             << "高位(0x" << QString::number(high, 16).toUpper() << ")"
                             << "低位(0x" << QString::number(low, 16).toUpper() << ")"
                             << "值:" << floatValue;
@@ -3103,17 +3155,17 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 float MainWindow::registersToFloat(quint16 high, quint16 low)
 {
     // 打印详细的调试信息
-   // qDebug() << "【浮点数转换】开始 - 高位:" << high << "(0x" << QString::number(high, 16).toUpper() << ")"
+   // qCDebug(lcMainWindow) << "【浮点数转换】开始 - 高位:" << high << "(0x" << QString::number(high, 16).toUpper() << ")"
    //           << "低位:" << low << "(0x" << QString::number(low, 16).toUpper() << ")";
 
     // 合并为32位整数
     uint32_t combined = (static_cast<uint32_t>(high) << 16) | low;
-    //qDebug() << "合并后的32位整数: 0x" << QString::number(combined, 16).toUpper();
+    //qCDebug(lcMainWindow) << "合并后的32位整数: 0x" << QString::number(combined, 16).toUpper();
 
     float result;
     memcpy(&result, &combined, sizeof(float));
 
-    //qDebug() << "【浮点数转换结果】" << result;
+    //qCDebug(lcMainWindow) << "【浮点数转换结果】" << result;
     return result;
 }
 
@@ -3175,19 +3227,22 @@ void MainWindow::setupModbusFloatReading()
 
     // 查找所有TechSliderLabel控件
     QList<TechSliderLabel*> allSliderLabels = this->findChildren<TechSliderLabel*>();
-    qDebug() << "找到" << allSliderLabels.size() << "个TechSliderLabel";
+    qCDebug(lcMainWindow) << "找到" << allSliderLabels.size() << "个TechSliderLabel";
 
     // 选择特定的四个TechSliderLabel（根据对象名或位置）
     // 方法1：按对象名筛选（如果对象名有规律）
     QStringList targetNames = {
-        "label_Value1", "label_Value2", "label_Value3", "label_Value4"  // 根据实际情况修改
+        "label_Value1_HoriSupSec",
+        "label_Value2_VeSupSec",
+        "label_Value3_HoriSupSec",
+        "label_Value4_EOAT"
     };
 
     for (const QString &name : targetNames) {
         TechSliderLabel* label = findChild<TechSliderLabel*>(name);
         if (label) {
             m_floatLabels.append(label);
-            qDebug() << "添加TechSliderLabel:" << name;
+            qCDebug(lcMainWindow) << "添加TechSliderLabel:" << name;
         } else {
             qWarning() << "未找到TechSliderLabel:" << name;
         }
@@ -3197,7 +3252,7 @@ void MainWindow::setupModbusFloatReading()
     if (m_floatLabels.isEmpty() && allSliderLabels.size() >= 4) {
         for (int i = 0; i < 4; ++i) {
             m_floatLabels.append(allSliderLabels[i]);
-            qDebug() << "添加第" << i+1 << "个TechSliderLabel:"
+            qCDebug(lcMainWindow) << "添加第" << i+1 << "个TechSliderLabel:"
                      << allSliderLabels[i]->objectName();
         }
     }
@@ -3216,11 +3271,11 @@ void MainWindow::setupModbusFloatReading()
 
 void MainWindow::readAllFloatRegisters()
 {
-    // 修正轮询逻辑：J1-J4 以及其他状态数据在大全设备 (192.168.1.88) 上
+    // 修正轮询逻辑：J1-J4 以及其他状态数据在大全设备 (192.168.1.13) 上
     if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
         static int warnCount = 0;
         if (warnCount++ % 10 == 0) {
-            qWarning() << "[警告] 主 Modbus (192.168.1.88) 未连接，无法读取数据";
+            qWarning() << "[警告] 主 Modbus (192.168.1.13) 未连接，无法读取数据";
         }
         return;
     }
@@ -3310,12 +3365,12 @@ void MainWindow::setupSliderLabelConfigs()
         1                    // 精度：1位小数
     };
 
-    qDebug() << "SliderLabel配置初始化完成";
-    qDebug() << "每个控件都需要在以下页面中查找匹配:" << allTargetPages;
+    qCDebug(lcMainWindow) << "SliderLabel配置初始化完成";
+    qCDebug(lcMainWindow) << "每个控件都需要在以下页面中查找匹配:" << allTargetPages;
 }
 void MainWindow::setupSliderLabelCopies()
 {
-    qDebug() << "=== 开始设置SliderLabel副本 ===";
+    qCDebug(lcMainWindow) << "=== 开始设置SliderLabel副本 ===";
 
     // 正则表达式，用于提取控件名中的数字部分
     QRegularExpression re("Value(\\d+)");
@@ -3327,7 +3382,7 @@ void MainWindow::setupSliderLabelCopies()
         QString controlName = QString("label_Value%1").arg(i);
         if (m_sliderLabelInstances.contains(controlName)) {
             mainControlsByNumber[i] = m_sliderLabelInstances[controlName];
-            qDebug() << "首页控件映射: " << i << " -> " << controlName;
+            qCDebug(lcMainWindow) << "首页控件映射: " << i << " -> " << controlName;
         }
     }
 
@@ -3336,7 +3391,7 @@ void MainWindow::setupSliderLabelCopies()
 
     // 遍历每个目标页面
     for (const QString& pageName : targetPages) {
-        qDebug() << "\n处理页面: " << pageName;
+        qCDebug(lcMainWindow) << "\n处理页面: " << pageName;
 
         // 找到目标页面的索引
         int pageIndex = -1;
@@ -3361,7 +3416,7 @@ void MainWindow::setupSliderLabelCopies()
 
         // 获取目标页面中所有的TechSliderLabel
         QList<TechSliderLabel*> targetSliders = targetPage->findChildren<TechSliderLabel*>();
-        qDebug() << "  页面中包含" << targetSliders.size() << "个TechSliderLabel";
+        qCDebug(lcMainWindow) << "  页面中包含" << targetSliders.size() << "个TechSliderLabel";
 
         // 遍历目标页面中的每个控件
         for (TechSliderLabel* targetSlider : targetSliders) {
@@ -3371,7 +3426,7 @@ void MainWindow::setupSliderLabelCopies()
             QRegularExpressionMatch match = re.match(targetName);
             if (match.hasMatch()) {
                 int targetNumber = match.captured(1).toInt();
-                qDebug() << "  检查控件:" << targetName << "，提取数字:" << targetNumber;
+                qCDebug(lcMainWindow) << "  检查控件:" << targetName << "，提取数字:" << targetNumber;
 
                 // 查找对应的首页控件
                 if (mainControlsByNumber.contains(targetNumber)) {
@@ -3382,7 +3437,7 @@ void MainWindow::setupSliderLabelCopies()
                     if (m_sliderLabelConfigs.contains(originalName)) {
                         const SliderLabelConfig& config = m_sliderLabelConfigs[originalName];
 
-                        qDebug() << "    匹配成功! 将" << originalName << "的配置复制给" << targetName;
+                        qCDebug(lcMainWindow) << "    匹配成功! 将" << originalName << "的配置复制给" << targetName;
 
                         // 复制配置
                         targetSlider->setLabelText(config.labelText);
@@ -3398,42 +3453,42 @@ void MainWindow::setupSliderLabelCopies()
                         qWarning() << "    警告: 找不到" << originalName << "的配置";
                     }
                 } else {
-                    qDebug() << "    没有找到编号为" << targetNumber << "的首页控件";
+                    qCDebug(lcMainWindow) << "    没有找到编号为" << targetNumber << "的首页控件";
                 }
             } else {
-                qDebug() << "  控件" << targetName << "不包含'ValueX'模式，跳过";
+                qCDebug(lcMainWindow) << "  控件" << targetName << "不包含'ValueX'模式，跳过";
             }
         }
     }
 
     // 验证结果
-    qDebug() << "\n=== 复制结果验证 ===";
+    qCDebug(lcMainWindow) << "\n=== 复制结果验证 ===";
     for (const QString& pageName : targetPages) {
         if (m_pageSliders.contains(pageName)) {
             const QVector<TechSliderLabel*>& sliders = m_pageSliders[pageName];
-            qDebug() << "页面[" << pageName << "]有" << sliders.size() << "个已配置的SliderLabel:";
+            qCDebug(lcMainWindow) << "页面[" << pageName << "]有" << sliders.size() << "个已配置的SliderLabel:";
             for (TechSliderLabel* slider : sliders) {
-                qDebug() << "  - " << slider->objectName() << "标签:" << slider->labelText();
+                qCDebug(lcMainWindow) << "  - " << slider->objectName() << "标签:" << slider->labelText();
             }
         } else {
-            qDebug() << "页面[" << pageName << "]没有已配置的SliderLabel";
+            qCDebug(lcMainWindow) << "页面[" << pageName << "]没有已配置的SliderLabel";
         }
     }
 
-    qDebug() << "=== SliderLabel副本设置完成 ===";
+    qCDebug(lcMainWindow) << "=== SliderLabel副本设置完成 ===";
 }
 
 
 void MainWindow::setupAGVModbus()
 {
     if (!isBigFeatureEnabled("modbus_agv")) {
-        qDebug() << "AGV Modbus功能已关闭，跳过初始化";
+        qCDebug(lcMainWindow) << "AGV Modbus功能已关闭，跳过初始化";
         return;
     }
 
     // 创建AGV Modbus管理器
     m_agvModbusManager = new AGVModbusManager(this);
-    qDebug() << "创建AGV Modbus管理器完成";
+    qCDebug(lcMainWindow) << "创建AGV Modbus管理器完成";
 
     // 连接信号槽
     connect(m_agvModbusManager, &AGVModbusManager::connected,
@@ -3466,9 +3521,11 @@ void MainWindow::setupAGVModbus()
     // 添加registerValueChanged信号连接用于调试
     connect(m_agvModbusManager, &AGVModbusManager::registerValueChanged,
             this, [this](int address, quint16 value) {
-                qDebug() << "[AGV] 寄存器值变化 - 地址:" << address
-                         << "值:" << value
-                         << "(0x" << QString::number(value, 16).toUpper() << ")";
+                if (isFeatureEnabled("modbus_agv", "modbus_agv.read_logs")) {
+                    qCDebug(lcMainWindow) << "[AGV] 寄存器值变化 - 地址:" << address
+                             << "值:" << value
+                             << "(0x" << QString::number(value, 16).toUpper() << ")";
+                }
             });
 
     // 配置
@@ -3476,31 +3533,31 @@ void MainWindow::setupAGVModbus()
     m_agvModbusManager->setAutoReconnect(true, m_agvReconnectIntervalMs);
 
     // 连接到设备 - 88 -> 100
-    QString agvHost = "192.168.1.100";
-    quint16 agvPort = 502;
+    QString agvHost = m_agvHost;
+    quint16 agvPort = m_agvPort;
 
     // 如果开启本机 TCP 模拟器模式，则重定向到本机 AGV 模拟端口
     if (isFeatureEnabled("tcp_transmission", "tcp.local_simulator")) {
         agvHost = "127.0.0.1";
         agvPort = 5021;
-        qDebug() << "启用本机 TCP 模拟器模式：AGV ->" << agvHost << ":" << agvPort;
+        qCDebug(lcMainWindow) << "启用本机 TCP 模拟器模式：AGV ->" << agvHost << ":" << agvPort;
     } else if (isFeatureEnabled("tcp_transmission", "tcp.remote_simulator")) {
         agvHost = "192.168.1.70";
         agvPort = 5021;
-        qDebug() << "启用远程 TCP 模拟器模式：AGV ->" << agvHost << ":" << agvPort;
+        qCDebug(lcMainWindow) << "启用远程 TCP 模拟器模式：AGV ->" << agvHost << ":" << agvPort;
     }
 
     m_agvModbusManager->connectToDevice(agvHost, agvPort);
 
-    qDebug() << "192.168.1.100 AGV Modbus管理器初始化完成";
+    qCDebug(lcMainWindow) << "AGV Modbus管理器初始化完成，目标:" << agvHost << ":" << agvPort;
 
     // 添加定时器检查连接状态
     QTimer::singleShot(2000, this, [this]() {
         if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
-            qDebug() << "AGV Modbus已成功连接";
+            qCDebug(lcMainWindow) << "AGV Modbus已成功连接";
             ui->statusBar->showMessage("AGV Modbus已连接", 3000);
         } else {
-            qDebug() << "AGV Modbus未连接";
+            qCDebug(lcMainWindow) << "AGV Modbus未连接";
             ui->statusBar->showMessage("AGV Modbus连接失败", 3000);
         }
     });
@@ -3508,7 +3565,7 @@ void MainWindow::setupAGVModbus()
     // 连接信号槽
     bool connected1 = connect(m_agvModbusManager, &AGVModbusManager::updateProgressBar,
                               this, &MainWindow::onAGVUpdateProgressBar, Qt::QueuedConnection);
-    qDebug() << "updateProgressBar信号连接状态:" << (connected1 ? "成功" : "失败");
+    qCDebug(lcMainWindow) << "updateProgressBar信号连接状态:" << (connected1 ? "成功" : "失败");
 }
 
 
@@ -3540,8 +3597,16 @@ void MainWindow::setupAGVUI()
         return;
     }
 
-    // 查找AGV页面上的控件
-    QWidget *agvPage = ui->StackedWidget->widget(4);  // AGV控制页面
+    // 查找AGV相关控件所在页面：当前UI中控件位于 page_Robot，而非 page_AGV。
+    QWidget *agvPage = ui->StackedWidget->findChild<QWidget*>("page_Robot");
+    if (!agvPage) {
+        agvPage = ui->StackedWidget->findChild<QWidget*>("page_AGV");
+    }
+    if (!agvPage) {
+        agvPage = ui->StackedWidget->widget(0);
+    }
+
+    qCDebug(lcMainWindow) << "AGV UI页面定位:" << (agvPage ? agvPage->objectName() : QString("<null>"));
 
     if (agvPage) {
         // 先清理可能存在的旧缓存，防止重复添加
@@ -3555,8 +3620,6 @@ void MainWindow::setupAGVUI()
 
         // 查找状态标签（根据您的UI命名）
         QStringList statusLabelNames = {
-            "label_front_touch", "label_back_touch", "label_left_touch", "label_right_touch",
-            "label_front_slow", "label_front_stop", "label_back_slow", "label_back_stop",
             "label_jog_running", "label_steering_align", "label_transverse_mode",
             "label_rotate_mode", "label_speed", "label_jog_displacement",
             "label_battery1_text", "label_battery2_text", "label_agv_connection"
@@ -3584,15 +3647,24 @@ void MainWindow::setupAGVUI()
             rootItem->setProperty("maxValue", 900);
             rootItem->setProperty("unit", "mm/s");
             rootItem->setProperty("currentValue", 0);
-            qDebug() << "QML AGV速度仪表初始化完成，量程:0-900 mm/s";
+            rootItem->setProperty("touchFront", false);
+            rootItem->setProperty("touchBack", false);
+            rootItem->setProperty("touchLeft", false);
+            rootItem->setProperty("touchRight", false);
+            rootItem->setProperty("avoidFrontState", 0);
+            rootItem->setProperty("avoidBackState", 0);
+            rootItem->setProperty("avoidLeftState", 0);
+            rootItem->setProperty("avoidRightState", 0);
+            rootItem->setProperty("statusText", "正常");
+            qCDebug(lcMainWindow) << "QML AGV速度仪表初始化完成，量程:0-900 mm/s";
         } else {
             qWarning() << "未找到QML AGV速度仪表";
         }
 
-        qDebug() << "找到" << m_agvStatusLabels.size() << "个AGV状态标签";
+        qCDebug(lcMainWindow) << "找到" << m_agvStatusLabels.size() << "个AGV状态标签";
     }
 
-    qDebug() << "找到" << m_agvStatusLabels.size() << "个AGV状态标签";
+    qCDebug(lcMainWindow) << "找到" << m_agvStatusLabels.size() << "个AGV状态标签";
 
 
 
@@ -3601,14 +3673,14 @@ void MainWindow::setupAGVUI()
     if (agvPage) {
         QList<QProgressBar*> allBars = agvPage->findChildren<QProgressBar*>();
         for (QProgressBar* bar : allBars) {
-            qDebug() << "进度条:" << bar->objectName()
+            qCDebug(lcMainWindow) << "进度条:" << bar->objectName()
                      << "当前值:" << bar->value()
                      << "范围:" << bar->minimum() << "-" << bar->maximum();
         }
 
         QList<BatteryWidget*> allBatteryWidgets = agvPage->findChildren<BatteryWidget*>();
         for (BatteryWidget* bar : allBatteryWidgets) {
-            qDebug() << "BatteryWidget:" << bar->objectName() << "当前值:" << bar->level();
+            qCDebug(lcMainWindow) << "BatteryWidget:" << bar->objectName() << "当前值:" << bar->level();
         }
     }
 }
@@ -3621,7 +3693,7 @@ void MainWindow::setupAGVUI()
  */
 void MainWindow::onAGVModbusConnected()
 {
-    qDebug() << "AGV Modbus连接成功";
+    qCDebug(lcMainWindow) << "AGV Modbus连接成功";
     m_agvDisconnectedWarnedAddresses.clear();
     ui->statusBar->showMessage("AGV Modbus已连接", 3000);
 
@@ -3651,7 +3723,7 @@ void MainWindow::onAGVModbusConnected()
  */
 void MainWindow::onAGVModbusDisconnected()
 {
-    qDebug() << "AGV Modbus连接断开";
+    qCDebug(lcMainWindow) << "AGV Modbus连接断开";
     ui->statusBar->showMessage("AGV Modbus连接断开", 3000);
 
     // 更新状态栏指示器
@@ -3686,7 +3758,7 @@ void MainWindow::onAGVModbusDisconnected()
  */
 void MainWindow::onAGVModbusError(const QString &error)
 {
-    qDebug() << "AGV Modbus错误:" << error;
+    qCDebug(lcMainWindow) << "AGV Modbus错误:" << error;
     ui->statusBar->showMessage(QString("AGV Modbus错误: %1").arg(error), 5000);
 
     // 更新状态栏指示器
@@ -3712,44 +3784,58 @@ void MainWindow::onAGVBitVariableChanged(int address, int bitPos, bool value)
 {
     // 处理障碍物传感器数据 (地址50)
     if (address == 50 && m_speedGaugeQml && m_speedGaugeQml->rootObject()) {
-        // 获取当前状态（从 gauge 中读取或自行维护，这里我们根据 bitPos 更新）
-        // 1: 前触边, 2: 后触边, 3: 左触边, 4: 右触边
-        // 5,6: 前避障, 7,8: 后避障
-        
-        static bool f = false, b = false, l = false, r = false;
-        
-        if (bitPos == 1 || bitPos == 5 || bitPos == 6) {
-            // 前方障碍物：触边 OR 减速 OR 停止
-            static bool t=false, s1=false, s2=false;
-            if(bitPos == 1) t = value;
-            if(bitPos == 5) s1 = value;
-            if(bitPos == 6) s2 = value;
-            f = t || s1 || s2;
-        } else if (bitPos == 2 || bitPos == 7 || bitPos == 8) {
-            // 后方障碍物
-            static bool bt=false, bs1=false, bs2=false;
-            if(bitPos == 2) bt = value;
-            if(bitPos == 7) bs1 = value;
-            if(bitPos == 8) bs2 = value;
-            b = bt || bs1 || bs2;
-        } else if (bitPos == 3) {
-            // 左侧触边
-            l = value;
-        } else if (bitPos == 4) {
-            // 右侧触边
-            r = value;
+        // 位定义：
+        // 1 前触边, 2 后触边, 3 左触边, 4 右触边
+        // 5 前避障减速, 6 前避障停止, 7 后避障减速, 8 后避障停止
+        static bool touchFront = false, touchBack = false, touchLeft = false, touchRight = false;
+        static bool avoidFrontSlow = false, avoidFrontStop = false;
+        static bool avoidBackSlow = false, avoidBackStop = false;
+
+        if (bitPos == 1) touchFront = value;
+        else if (bitPos == 2) touchBack = value;
+        else if (bitPos == 3) touchLeft = value;
+        else if (bitPos == 4) touchRight = value;
+        else if (bitPos == 5) avoidFrontSlow = value;
+        else if (bitPos == 6) avoidFrontStop = value;
+        else if (bitPos == 7) avoidBackSlow = value;
+        else if (bitPos == 8) avoidBackStop = value;
+
+        const int avoidFrontState = avoidFrontStop ? 2 : (avoidFrontSlow ? 1 : 0);
+        const int avoidBackState = avoidBackStop ? 2 : (avoidBackSlow ? 1 : 0);
+
+        QString statusText = "正常";
+        if (touchFront || touchBack || touchLeft || touchRight) {
+            statusText = "触边触发";
+        } else if (avoidFrontState > 0 || avoidBackState > 0) {
+            statusText = "避障触发";
         }
 
         QQuickItem *rootItem = m_speedGaugeQml->rootObject();
-        rootItem->setProperty("obstacleFront", f);
-        rootItem->setProperty("obstacleBack", b);
-        rootItem->setProperty("obstacleLeft", l);
-        rootItem->setProperty("obstacleRight", r);
+        rootItem->setProperty("touchFront", touchFront);
+        rootItem->setProperty("touchBack", touchBack);
+        rootItem->setProperty("touchLeft", touchLeft);
+        rootItem->setProperty("touchRight", touchRight);
+        rootItem->setProperty("avoidFrontState", avoidFrontState);
+        rootItem->setProperty("avoidBackState", avoidBackState);
+        rootItem->setProperty("avoidLeftState", 0);
+        rootItem->setProperty("avoidRightState", 0);
+        rootItem->setProperty("statusText", statusText);
     }
 }
 
 void MainWindow::onAGVWordVariableChanged(int address, quint16 value)
 {
+    // 电池电量寄存器兜底更新：避免仅依赖 updateProgressBar 路径
+    if (address == 102) {
+        int batteryPercent = qMin(static_cast<int>(value), 100);
+        onAGVUpdateProgressBar("progressBar_battery1", batteryPercent);
+        onAGVUpdateStatusLabel("label_battery1_text", QString("%1%").arg(batteryPercent));
+    } else if (address == 103) {
+        int batteryPercent = qMin(static_cast<int>(value), 100);
+        onAGVUpdateProgressBar("progressBar_battery2", batteryPercent);
+        onAGVUpdateStatusLabel("label_battery2_text", QString("%1%").arg(batteryPercent));
+    }
+
     // 特别处理行驶速度（地址104）
     if (address == 104 && isFeatureEnabled("modbus_agv", "agv.speed_gauge")) {
         // 行驶速度 (mm/s)
@@ -3776,23 +3862,38 @@ void MainWindow::onAGVUpdateFaultsLabel(const QString &text)
 }
 void MainWindow::onAGVUpdateProgressBar(const QString &name, int value)
 {
-    // 在 AGV 页面中动态查找控件进行更新
-    QWidget *agvPage = ui->StackedWidget->widget(4);
-    if (!agvPage) return;
+    // 在整个 StackedWidget（及其子页面）中递归查找控件进行更新，避免依赖特定页面索引
+    QObject *root = ui->StackedWidget;
 
     // 优先尝试查找并更新提升后的 BatteryWidget
-    BatteryWidget *bw = agvPage->findChild<BatteryWidget*>(name);
+    BatteryWidget *bw = root->findChild<BatteryWidget*>(name, Qt::FindChildrenRecursively);
     if (bw) {
         bw->setLevel(static_cast<double>(value));
         return;
     }
 
     // 后备方案：查找传统 QProgressBar (如果 UI 还没来得及替换或作为回退)
-    QProgressBar *progressBar = agvPage->findChild<QProgressBar*>(name);
+    QProgressBar *progressBar = root->findChild<QProgressBar*>(name, Qt::FindChildrenRecursively);
     if (progressBar) {
         progressBar->setValue(value);
         progressBar->update();
+        return;
     }
+
+    // 最后尝试在 MainWindow 范围内查找（更宽泛的回退）
+    bw = this->findChild<BatteryWidget*>(name, Qt::FindChildrenRecursively);
+    if (bw) {
+        bw->setLevel(static_cast<double>(value));
+        return;
+    }
+    progressBar = this->findChild<QProgressBar*>(name, Qt::FindChildrenRecursively);
+    if (progressBar) {
+        progressBar->setValue(value);
+        progressBar->update();
+        return;
+    }
+
+    qWarning() << "未找到AGV电池控件:" << name << "值:" << value;
 }
 
 void MainWindow::onAGVAddFaultCodeToList(const QString &faultCode)
@@ -3801,12 +3902,20 @@ void MainWindow::onAGVAddFaultCodeToList(const QString &faultCode)
         return;
     }
 
-    qDebug() << "[MainWindow] 添加故障代码到列表:" << faultCode;
+    if (isFeatureEnabled("modbus_agv", "modbus_agv.read_logs")) {
+        qCDebug(lcMainWindow) << "[MainWindow] 添加故障代码到列表:" << faultCode;
+    }
     if (m_agvFaultListWidget) {
         m_agvFaultListWidget->addItem(faultCode);
-        qDebug() << "  成功添加到列表";
+        if (isFeatureEnabled("modbus_agv", "modbus_agv.read_logs")) {
+            qCDebug(lcMainWindow) << "  成功添加到列表";
+        }
     } else {
-        qDebug() << "  错误：故障列表控件未找到";
+        static bool warnedOnce = false;
+        if (!warnedOnce) {
+            warnedOnce = true;
+            qWarning() << "故障列表控件未找到(listWidget_faultCodes)，后续同类日志已抑制";
+        }
     }
 }
 
@@ -3828,7 +3937,7 @@ void MainWindow::onAGVHeartbeatReceived()
     heartbeatCount++;
 
     if (heartbeatCount % 10 == 0) {
-        qDebug() << "AGV心跳 - 计数:" << heartbeatCount;
+        qCDebug(lcMainWindow) << "AGV心跳 - 计数:" << heartbeatCount;
     }
 }
 void MainWindow::onAGVUpdateStatusLabel(const QString &name, const QString &text)
@@ -3851,14 +3960,14 @@ void MainWindow::onEnableButtonStateChanged(bool enabled)
     }
 
     // 这个槽函数在主线程中执行
-    qDebug() << "[主线程] 收到使能按钮状态:" << (enabled ? "按下" : "松开");
+    qCDebug(lcMainWindow) << "[主线程] 收到使能按钮状态:" << (enabled ? "按下" : "松开");
 
     // 如果状态发生变化
     if (enabled != m_lastEnableButtonState) {
         m_lastEnableButtonState = enabled;
 
         QString statusText = enabled ? "使能按钮: 按下" : "使能按钮: 松开";
-        qDebug() << "=== 使能按钮状态变化: " << statusText << " ===";
+        qCDebug(lcMainWindow) << "=== 使能按钮状态变化: " << statusText << " ===";
 
         // 更新状态栏
         ui->statusBar->showMessage(statusText, 2000);
@@ -3895,11 +4004,11 @@ void MainWindow::onEnableButtonError(const QString &error)
 void MainWindow::setupEnableButton()
 {
     if (!isFeatureEnabled("input_devices", "input.enable_button")) {
-        qDebug() << "使能按钮功能已关闭，跳过初始化";
+        qCDebug(lcMainWindow) << "使能按钮功能已关闭，跳过初始化";
         return;
     }
 
-    qDebug() << "初始化使能按钮...";
+    qCDebug(lcMainWindow) << "初始化使能按钮...";
 
     // 检查设备文件是否存在
     if (access("/dev/buttonstop", F_OK) == -1) {
@@ -3918,7 +4027,7 @@ void MainWindow::setupEnableButton()
         return;
     }
 
-    qDebug() << "使能按钮设备打开成功，文件描述符:" << m_enableButtonFd;
+    qCDebug(lcMainWindow) << "使能按钮设备打开成功，文件描述符:" << m_enableButtonFd;
 
     // 创建工作线程读取使能按钮
 
@@ -3943,7 +4052,7 @@ void MainWindow::setupEnableButton()
     // 启动线程
     enableThread->start();
 
-    qDebug() << "使能按钮监控线程已启动";
+    qCDebug(lcMainWindow) << "使能按钮监控线程已启动";
     ui->statusBar->showMessage("使能按钮监控已启动", 3000);
 }
 
@@ -3959,7 +4068,7 @@ void MainWindow::pollEnableButton()
     // 调试输出
     static int debugCount = 0;
     if (debugCount++ % 20 == 0) {  // 每20次输出一次，避免日志过多
-        qDebug() << "轮询使能按钮，读取结果:" << bytesRead << "字节";
+        qCDebug(lcMainWindow) << "轮询使能按钮，读取结果:" << bytesRead << "字节";
     }
 
     if (bytesRead != sizeof(data)) {
@@ -3981,14 +4090,14 @@ void MainWindow::pollEnableButton()
         dataStr.append(QChar(data[i]));
     }
 
-    qDebug() << "收到使能按钮数据:" << dataStr;
+    qCDebug(lcMainWindow) << "收到使能按钮数据:" << dataStr;
 
     // 解析状态
     // 根据规格书和你的测试，byte[0] 是 '1' 或 '0'
     bool enabled = (data[0] == '1');
 
     // 详细调试
-    qDebug() << "解析使能按钮状态: data[0] = " << data[0]
+    qCDebug(lcMainWindow) << "解析使能按钮状态: data[0] = " << data[0]
              << " (ASCII: " << (int)data[0] << ")"
              << " -> " << (enabled ? "按下" : "松开");
 
@@ -3996,7 +4105,7 @@ void MainWindow::pollEnableButton()
     if (enabled != m_lastEnableButtonState) {
         m_lastEnableButtonState = enabled;
 
-        qDebug() << "=== 使能按钮状态变化 ==="
+        qCDebug(lcMainWindow) << "=== 使能按钮状态变化 ==="
                  << (enabled ? "按下" : "松开");
 
         // 更新状态栏
@@ -4022,16 +4131,16 @@ void MainWindow::pollEnableButton()
 
 void MainWindow::onEnableButtonActivated(int socket)
 {
-    qDebug() << "=== 使能按钮读取触发 ===";
+    qCDebug(lcMainWindow) << "=== 使能按钮读取触发 ===";
 
     char data[8] = {0};
     ssize_t bytesRead = read(socket, data, sizeof(data));
 
-    qDebug() << "读取到" << bytesRead << "字节数据";
+    qCDebug(lcMainWindow) << "读取到" << bytesRead << "字节数据";
 
     if (bytesRead < 0) {
         if (errno == EAGAIN) {
-            qDebug() << "没有数据（非阻塞模式正常返回）";
+            qCDebug(lcMainWindow) << "没有数据（非阻塞模式正常返回）";
             return;
         }
         qWarning() << "读取使能按钮数据失败:" << strerror(errno);
@@ -4043,7 +4152,7 @@ void MainWindow::onEnableButtonActivated(int socket)
     for (int i = 0; i < bytesRead; i++) {
         hexData += QString("0x%1 ").arg((unsigned char)data[i], 2, 16, QChar('0')).toUpper();
     }
-    qDebug() << "原始数据（十六进制）:" << hexData;
+    qCDebug(lcMainWindow) << "原始数据（十六进制）:" << hexData;
 
     // 打印每个字节的二进制值
     QString binaryData;
@@ -4054,19 +4163,19 @@ void MainWindow::onEnableButtonActivated(int socket)
         }
         binaryData += " ";
     }
-    qDebug() << "原始数据（二进制）:" << binaryData;
+    qCDebug(lcMainWindow) << "原始数据（二进制）:" << binaryData;
 
     // 解析使能按钮状态（根据规格书，byte 0表示S1开关）
     bool enabled = (data[0] == 1);
 
-    qDebug() << "解析结果: byte[0] =" << (int)data[0] << "->" << (enabled ? "激活" : "未激活");
+    qCDebug(lcMainWindow) << "解析结果: byte[0] =" << (int)data[0] << "->" << (enabled ? "激活" : "未激活");
 
     // 如果状态发生变化
     if (enabled != m_lastEnableButtonState) {
         m_lastEnableButtonState = enabled;
 
         // 记录状态变化
-        qDebug() << "使能按钮状态变化:" << (enabled ? "激活" : "未激活");
+        qCDebug(lcMainWindow) << "使能按钮状态变化:" << (enabled ? "激活" : "未激活");
 
         // 更新状态栏
         ui->statusBar->showMessage(QString("使能按钮: %1").arg(enabled ? "激活" : "未激活"), 2000);
@@ -4085,7 +4194,7 @@ void MainWindow::onEnableButtonActivated(int socket)
         record.newValue = enabled;
         m_recorder->addRecord(record);
     } else {
-        qDebug() << "状态未变化，忽略";
+        qCDebug(lcMainWindow) << "状态未变化，忽略";
     }
 }
 
@@ -4112,23 +4221,23 @@ void MainWindow::processEnableButton(bool enabled)
         // 原有的点动模式处理逻辑
         if (enabled) {
             // 使能按钮按下（激活）时的处理
-            qDebug() << "外部使能按钮激活，允许运动控制";
+            qCDebug(lcMainWindow) << "外部使能按钮激活，允许运动控制";
 
             // 执行原来的 onEnableButtonPressed 逻辑
             // writeToMainDevice(19, 1);
             // writeToMainDevice(119, 1);
 
-            qDebug() << "使能按钮按下，跳过地址19和119写入";
+            qCDebug(lcMainWindow) << "使能按钮按下，跳过地址19和119写入";
             ui->statusBar->showMessage("使能按钮按下，运动控制已激活", 2000);
         } else {
             // 使能按钮释放（未激活）时的处理
-            qDebug() << "外部使能按钮未激活，禁止运动控制";
+            qCDebug(lcMainWindow) << "外部使能按钮未激活，禁止运动控制";
 
             // 执行原来的 onEnableButtonReleased 逻辑
             // writeToMainDevice(19, 0);
             // writeToMainDevice(119, 0);
 
-            qDebug() << "使能按钮释放，跳过地址19和119写入";
+            qCDebug(lcMainWindow) << "使能按钮释放，跳过地址19和119写入";
             ui->statusBar->showMessage("使能按钮释放，运动控制已禁用", 2000);
         }
     }
@@ -4138,7 +4247,7 @@ void MainWindow::processEnableButton(bool enabled)
 // 修改 MainWindow::performStartupWrites() 函数
 void MainWindow::performStartupWrites()
 {
-    qDebug() << "=== 启动写寄存器功能已关闭，跳过所有开机写入 ===";
+    qCDebug(lcMainWindow) << "=== 启动写寄存器功能已关闭，跳过所有开机写入 ===";
     return;
 }
 
@@ -4161,13 +4270,17 @@ void MainWindow::writeToAGVDevice(int address, int value)
 
     m_agvDisconnectedWarnedAddresses.remove(address);
 
-    qDebug() << "[AGV] 写入地址:" << address << "值:" << value;
+    if (isFeatureEnabled("modbus_agv", "modbus_agv.write_logs")) {
+        qCDebug(lcMainWindow) << "[AGV] 写入地址:" << address << "值:" << value;
+    }
 
     // 转换负数为无符号数（如果需要）
     quint16 writeValue;
     if (value < 0) {
         writeValue = static_cast<quint16>(65536 + value);  // 负数转换为补码
-        qDebug() << "[AGV] 负数转换:" << value << "->" << writeValue;
+        if (isFeatureEnabled("modbus_agv", "modbus_agv.write_logs")) {
+            qCDebug(lcMainWindow) << "[AGV] 负数转换:" << value << "->" << writeValue;
+        }
     } else {
         writeValue = static_cast<quint16>(value);
     }
@@ -4198,8 +4311,10 @@ void MainWindow::writeToMainDevice(int address, int value)
         return;
     }
 
-    qDebug() << "[主设备] 写入地址:" << address << "(&MB" << (address + 1) << ")"
-             << "值:" << value;
+    if (isFeatureEnabled("modbus_main", "modbus_main.write_logs")) {
+        qCDebug(lcMainWindow) << "[主设备] 写入地址:" << address << "(&MB" << (address + 1) << ")"
+                 << "值:" << value;
+    }
 
     MainDeviceModbusApi::writeRegister(m_modbusManager, address, value);
 }
@@ -4209,25 +4324,11 @@ void MainWindow::onControlModeClicked()
     if (m_controlMode == WIRED_MODE) {
         m_controlMode = WIRELESS_MODE;
         m_controlModeBtn->setText("无线控制");
-        
-        // 先发送第一个命令
-        writeToAGVDevice(6,1);
-        
-        // 延时发送第二个命令，避免Modbus指令冲突
-        QTimer::singleShot(100, this, [this]() {
-            if(m_agvOaEnabled)
-            {
-                // 给192.168.1.88设备的0地址写64
-                writeToAGVDevice(0, 192);
-            }
-            else
-            {
-                // 给192.168.1.88设备的0地址写66
-                writeToAGVDevice(0, 194);
-            }
-        });
 
-        qDebug() << "切换到无线控制模式";
+        // 无线控制 -> AGV设备500写1
+        writeToAGVDevice(500, 1);
+
+        qCDebug(lcMainWindow) << "切换到无线控制模式";
         ui->statusBar->showMessage("已切换到无线控制模式", 2000);
 
         // 更新状态栏显示
@@ -4240,9 +4341,12 @@ void MainWindow::onControlModeClicked()
         m_controlMode = WIRED_MODE;
         m_controlModeBtn->setText("有线控制");
 
+        // 有线控制 -> AGV设备500写2
+        writeToAGVDevice(500, 2);
+
         // ... 省略逻辑 ...
         
-        qDebug() << "切换到有线控制模式";
+        qCDebug(lcMainWindow) << "切换到有线控制模式";
         ui->statusBar->showMessage("已切换到有线控制模式", 2000);
 
         // 更新状态栏显示
@@ -4271,7 +4375,7 @@ void MainWindow::onControlModeClicked()
 //     // 给192.168.1.13的119地址写1
 //     writeToMainDevice(119, 1);
 
-//     qDebug() << "使能按钮按下，地址119写入1";
+//     qCDebug(lcMainWindow) << "使能按钮按下，地址119写入1";
 //     ui->statusBar->showMessage("使能按钮按下", 1000);
 // }
 
@@ -4280,7 +4384,7 @@ void MainWindow::onControlModeClicked()
 //     // 给192.168.1.13的119地址写0
 //     writeToMainDevice(119, 0);
 
-//     qDebug() << "使能按钮释放，地址119写入0";
+//     qCDebug(lcMainWindow) << "使能按钮释放，地址119写入0";
 //     ui->statusBar->showMessage("使能按钮释放", 1000);
 // }
 QString MainWindow::getCurrentPageName() const
@@ -4308,7 +4412,7 @@ void MainWindow::setupAGVOAControl()
         connect(m_techBtnAGV_OA, &TechPushButton::clicked,
                 this, &MainWindow::onAGVOABtnClicked);
 
-        qDebug() << "AGV避障开关按钮初始化完成";
+        qCDebug(lcMainWindow) << "AGV避障开关按钮初始化完成";
     } else {
         qWarning() << "未找到techBtn_AGV_OA按钮";
     }
@@ -4323,10 +4427,10 @@ void MainWindow::setupAGVMoveSpeedControl()
 
     m_editAGV_MoveSpeed = findChild<TechSliderEdit*>("SEdit_AGV_MoveSpeed");
     if (m_editAGV_MoveSpeed) {
-        // 设置参数 - 修改值域为 0-834
-        m_editAGV_MoveSpeed->setLabelText("运动速度");
-        m_editAGV_MoveSpeed->setRange(0, 834);  // 修改：0-834
-        m_editAGV_MoveSpeed->setValue(0);       // 修改：初始值设为0
+        // 设置参数 - 值域 0-100 mm/s
+        m_editAGV_MoveSpeed->setLabelText("六自由度平台速度");
+        m_editAGV_MoveSpeed->setRange(0, 100);
+        m_editAGV_MoveSpeed->setValue(0);
         m_editAGV_MoveSpeed->setSuffix("mm/s");
         m_editAGV_MoveSpeed->setPrecision(0);
 
@@ -4334,7 +4438,7 @@ void MainWindow::setupAGVMoveSpeedControl()
         connect(m_editAGV_MoveSpeed, &TechSliderEdit::valueChanged,
                 this, &MainWindow::onAGVMoveSpeedChanged);
 
-        qDebug() << "AGV运动速度控件初始化完成，范围:0-834，初始值:0";  // 修改日志
+        qCDebug(lcMainWindow) << "AGV运动速度控件初始化完成，范围:0-100，初始值:0";
     } else {
         qWarning() << "未找到SEdit_AGV_MoveSpeed控件";
     }
@@ -4351,7 +4455,7 @@ void MainWindow::setupAGVAngleControl()
     m_editAGV_Angle = findChild<TechSliderEdit*>("SEdit_AGV_Angle");
     if (m_editAGV_Angle) {
         // 设置参数
-        m_editAGV_Angle->setLabelText("转向角度");
+        m_editAGV_Angle->setLabelText("底盘当前角度");
         m_editAGV_Angle->setRange(-25, 25);
         m_editAGV_Angle->setValue(0);
         m_editAGV_Angle->setSuffix("°");
@@ -4362,7 +4466,7 @@ void MainWindow::setupAGVAngleControl()
         connect(m_editAGV_Angle, &TechSliderEdit::valueChanged,
                 this, &MainWindow::onAGVAngleChanged);
 
-        qDebug() << "AGV转向角度控件初始化完成，范围:-25-25，初始值:0，精度:整数";
+        qCDebug(lcMainWindow) << "AGV转向角度控件初始化完成，范围:-25-25，初始值:0，精度:整数";
     } else {
         qWarning() << "未找到SEdit_AGV_Angle控件";
     }
@@ -4382,7 +4486,7 @@ void MainWindow::onAGVOABtnClicked()
         // 给0地址写192
         writeToAGVDevice(0, 64);
 
-        qDebug() << "AGV避障开启，地址0写入192";
+        qCDebug(lcMainWindow) << "AGV避障开启，地址0写入192";
         ui->statusBar->showMessage("AGV避障开启", 2000);
     } else {
         // 避障关闭
@@ -4391,7 +4495,7 @@ void MainWindow::onAGVOABtnClicked()
         m_techBtnAGV_OA->setGlowColor(QColor(127, 140, 141, 100));
         // 给0地址写194
         writeToAGVDevice(0, 66);
-        qDebug() << "AGV避障关闭，地址0写入194";
+        qCDebug(lcMainWindow) << "AGV避障关闭，地址0写入194";
         ui->statusBar->showMessage("AGV避障关闭", 2000);
     }
 
@@ -4410,22 +4514,10 @@ void MainWindow::onAGVOABtnClicked()
 // AGV运动速度变化槽函数
 void MainWindow::onAGVMoveSpeedChanged(double value)
 {
-    int intValue = static_cast<int>(value);
-    int modbusValue = 0;
+    const int intValue = qBound(0, static_cast<int>(qRound(value)), 100);
 
-    // 计算Modbus传输值
-    if (intValue == 834) {
-        // 最大值的特殊处理：直接传输50000
-        modbusValue = 50000;
-        qDebug() << "AGV运动速度:834（最大值），地址3写入:50000（最大值）";
-    } else {
-        // 正常值：乘以60
-        modbusValue = intValue * 60;
-        qDebug() << "AGV运动速度:" << intValue << "，乘以60后:" << modbusValue << "，地址3写入:" << modbusValue;
-    }
-
-    // 写入3地址
-    writeToAGVDevice(3, modbusValue);
+    // 按需求直接写入地址3（单位:mm/s）
+    writeToAGVDevice(3, intValue);
 
     // 记录操作
     OperationRecord record;
@@ -4435,19 +4527,19 @@ void MainWindow::onAGVMoveSpeedChanged(double value)
     record.controlType = "TechSliderEdit";
     record.operation = "move_speed_changed";
     record.oldValue = "";
-    record.newValue = QString("%1 mm/s -> Modbus: %2").arg(intValue).arg(modbusValue);
+    record.newValue = QString("%1 mm/s").arg(intValue);
     m_recorder->addRecord(record);
 }
 
 // AGV转向角度变化槽函数
 void MainWindow::onAGVAngleChanged(double value)
 {
-    int intValue = static_cast<int>(value);  // 直接取整，不需要乘以10
+    const int intValue = qBound(-25, static_cast<int>(qRound(value)), 25);
 
     // 写入4地址，负数会自动转换为补码
     writeToAGVDevice(4, intValue);
 
-    qDebug() << "AGV转向角度:" << value << "°，地址4写入:" << intValue;
+    qCDebug(lcMainWindow) << "AGV转向角度:" << value << "°，地址4写入:" << intValue;
 
     // 记录操作
     OperationRecord record;
@@ -4480,12 +4572,12 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
             if (buttonText == "避障开启") {
                 // 避障开启时，给0地址写196
                 writeToAGVDevice(0, 68);
-                qDebug() << "按键○2按下，避障开启，地址0写入196";
+                qCDebug(lcMainWindow) << "按键○2按下，避障开启，地址0写入196";
                 ui->statusBar->showMessage("AGV后退（避障开启）", 2000);
             } else if (buttonText == "避障关闭") {
                 // 避障关闭时，给0地址写198
                 writeToAGVDevice(0, 70);
-                qDebug() << "按键○2按下，避障关闭，地址0写入198";
+                qCDebug(lcMainWindow) << "按键○2按下，避障关闭，地址0写入198";
                 ui->statusBar->showMessage("AGV后退（避障关闭）", 2000);
             }
         } else {
@@ -4494,12 +4586,12 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
                 // 避障开启时，给0地址写192
                 writeToAGVDevice(0, 64);
 
-                qDebug() << "按键○2释放，避障开启，地址0写入192";
+                qCDebug(lcMainWindow) << "按键○2释放，避障开启，地址0写入192";
                 ui->statusBar->showMessage("AGV停止（避障开启）", 2000);
             } else if (buttonText == "避障关闭") {
                 // 避障关闭时，给0地址写194
                 writeToAGVDevice(0, 66);
-                qDebug() << "按键○2释放，避障关闭，地址0写入194";
+                qCDebug(lcMainWindow) << "按键○2释放，避障关闭，地址0写入194";
                 ui->statusBar->showMessage("AGV停止（避障关闭）", 2000);
             }
         }
@@ -4524,7 +4616,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
 void MainWindow::setupSteeringModeControl()
 {
     if (!isFeatureEnabled("motion_control", "motion.steering_mode")) {
-        qDebug() << "转向模式功能已关闭，跳过初始化";
+        qCDebug(lcMainWindow) << "转向模式功能已关闭，跳过初始化";
         return;
     }
 
@@ -4553,7 +4645,7 @@ void MainWindow::setupSteeringModeControl()
         connect(m_steeringModeSelector, &SteeringModeSelector::modeChanged,
                 this, &MainWindow::onSteeringModeChanged);
 
-        qDebug() << "转向模式选择器初始化完成";
+        qCDebug(lcMainWindow) << "转向模式选择器初始化完成";
     } else {
         qWarning() << "未找到转向模式选择器控件";
     }
@@ -4562,13 +4654,13 @@ void MainWindow::setupSteeringModeControl()
 // 新增：转向模式改变槽函数
 void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
 {
-    qDebug() << "转向模式改变为:" << mode << "，Modbus值:" << modbusValue;
+    qCDebug(lcMainWindow) << "转向模式改变为:" << mode << "，Modbus值:" << modbusValue;
 
     // 向192.168.1.88的2地址写入对应值
     writeToAGVDevice(2, modbusValue);
 
     if (!isFeatureEnabled("alarm_system", "alarm.steering_switch")) {
-        qDebug() << "转向模式切换报警功能已关闭，跳过报警窗口逻辑";
+        qCDebug(lcMainWindow) << "转向模式切换报警功能已关闭，跳过报警窗口逻辑";
         m_isSwitchingSteeringMode = false;
         m_targetSteeringWaitBit = -1;
         if (m_isSteeringAlarmActive) {
@@ -4596,7 +4688,7 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
 
     if (newInGroupB) {
         // 切到4 或 5 -> 启动位信号检测
-        qDebug() << "切换至模式4(横向)或5(旋转)，启动位信号检测";
+        qCDebug(lcMainWindow) << "切换至模式4(横向)或5(旋转)，启动位信号检测";
         
         m_isSteeringAlarmActive = true;
         showAlarm("正在更换底盘模式", "#FFFF00", false);
@@ -4612,7 +4704,7 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         QTimer::singleShot(9000, this, [this, mode]() {
             // 如果9秒后仍在切换当前模式且还在等待该模式的位信号
             if (m_isSwitchingSteeringMode && m_lastSteeringMode == mode && m_isSteeringAlarmActive) {
-                qDebug() << "9秒切换超时，强制关闭转向切换报警。当前模式:" << mode;
+                qCDebug(lcMainWindow) << "9秒切换超时，强制关闭转向切换报警。当前模式:" << mode;
                 m_isSwitchingSteeringMode = false;
                 m_targetSteeringWaitBit = -1;
                 m_isSteeringAlarmActive = false;
@@ -4622,7 +4714,7 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
 
     } else if (oldInGroupB) {
         // 从4/5 切到 1/2/3 -> 9秒延时
-        qDebug() << "从模式4/5切换至1/2/3，启动9秒延时";
+        qCDebug(lcMainWindow) << "从模式4/5切换至1/2/3，启动9秒延时";
         
         m_isSteeringAlarmActive = true;
         showAlarm("正在更换底盘模式", "#FFFF00", false);
@@ -4630,17 +4722,17 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         QTimer::singleShot(9000, this, [this]() {
             // 如果在这9秒内又切换回了4或5（正在等待位信号），则不关闭报警
             if (m_isSwitchingSteeringMode) {
-                qDebug() << "9秒延时结束，但当前处于位信号等待模式，不关闭报警";
+                qCDebug(lcMainWindow) << "9秒延时结束，但当前处于位信号等待模式，不关闭报警";
                 return;
             }
-            qDebug() << "9秒延时结束，关闭报警";
+            qCDebug(lcMainWindow) << "9秒延时结束，关闭报警";
             m_isSteeringAlarmActive = false;
             hideAlarm();
         });
 
     } else {
         // 1/2/3 互相切换 -> 不做任何操作，维持原状
-        qDebug() << "转向切换在模式1,2,3之间，不改变当前报警状态";
+        qCDebug(lcMainWindow) << "转向切换在模式1,2,3之间，不改变当前报警状态";
     }
     // ================================================
 
@@ -4795,7 +4887,7 @@ void MainWindow::updateStatusBarTime()
 void MainWindow::enableTcpTransmission(bool enabled)
 {
     if (!isBigFeatureEnabled("tcp_transmission")) {
-        qDebug() << "TCP传输功能已关闭，忽略请求";
+        qCDebug(lcMainWindow) << "TCP传输功能已关闭，忽略请求";
         return;
     }
 
@@ -4808,10 +4900,10 @@ void MainWindow::enableTcpTransmission(bool enabled)
         m_recorder->setTcpServer(WIN7_IP, WIN7_PORT);
 
         if (enabled) {
-            qDebug() << "启用TCP传输，服务器:" << WIN7_IP << ":" << WIN7_PORT;
+            qCDebug(lcMainWindow) << "启用TCP传输，服务器:" << WIN7_IP << ":" << WIN7_PORT;
             ui->statusBar->showMessage("TCP传输已启用，正在连接服务器...", 3000);
         } else {
-            qDebug() << "禁用TCP传输";
+            qCDebug(lcMainWindow) << "禁用TCP传输";
             ui->statusBar->showMessage("TCP传输已禁用", 3000);
         }
     }
@@ -4822,14 +4914,14 @@ void MainWindow::updateTcpServerHost(const QString &hostSuffix)
     if (m_recorder) {
         QString newIp = "192.168.1." + hostSuffix;
         m_recorder->setTcpServer(newIp, WIN7_PORT);
-        qDebug() << "更新TCP服务器IP为:" << newIp;
+        qCDebug(lcMainWindow) << "更新TCP服务器IP为:" << newIp;
     }
 }
 
 void MainWindow::updateSimulatorHost(const QString &hostSuffix)
 {
     QString newIp = "192.168.1." + hostSuffix;
-    qDebug() << "尝试更新模拟器IP为:" << newIp;
+    qCDebug(lcMainWindow) << "尝试更新模拟器IP为:" << newIp;
 
     // 如果当前处于远程模拟器模式，则重新连接以使新 IP 生效
     if (isFeatureEnabled("tcp_transmission", "tcp.remote_simulator")) {
@@ -4840,15 +4932,15 @@ void MainWindow::updateSimulatorHost(const QString &hostSuffix)
                 MainModbusEndpoint{newIp, 5020},
                 m_mainModbusPollIntervalMs,
                 m_mainReconnectIntervalMs);
-            qDebug() << "[MainModbus] 已切换模拟器并重新连接:" << newIp << ":5020";
+            qCDebug(lcMainWindow) << "[MainModbus] 已切换模拟器并重新连接:" << newIp << ":5020";
         }
         if (m_agvModbusManager) {
             m_agvModbusManager->disconnectFromDevice();
             m_agvModbusManager->connectToDevice(newIp, 5021);
-            qDebug() << "[AGVModbus] 已切换模拟器并重新连接:" << newIp << ":5021";
+            qCDebug(lcMainWindow) << "[AGVModbus] 已切换模拟器并重新连接:" << newIp << ":5021";
         }
     } else {
-        qDebug() << "当前未启用远程模拟器模式，仅打印新 IP 会在下次切换模式时生效";
+        qCDebug(lcMainWindow) << "当前未启用远程模拟器模式，仅打印新 IP 会在下次切换模式时生效";
     }
 }
 
@@ -4930,7 +5022,7 @@ void MainWindow::onTcpConnectionStatusChanged(bool connected)
 // 新增：TCP传输完成槽函数
 void MainWindow::onTcpTransmissionComplete()
 {
-    qDebug() << "所有记录已发送到TCP服务器";
+    qCDebug(lcMainWindow) << "所有记录已发送到TCP服务器";
     showNotification("所有记录已发送到服务器");
 }
 
@@ -4959,7 +5051,7 @@ void MainWindow::onTcpTransmissionError(const QString &error)
         m_lastTcpErrorNotificationMs = nowMs;
         showNotification(notificationText);
     } else {
-        qDebug() << "TCP传输错误(已抑制重复):" << error;
+        qCDebug(lcMainWindow) << "TCP传输错误(已抑制重复):" << error;
     }
 }
 //六维力
@@ -5063,7 +5155,7 @@ void MainWindow::setupBigForceLabels()
             );
     }
 
-    qDebug() << "大六维力标签初始化完成，找到" << m_bigForceLabels.size() << "个标签";
+    qCDebug(lcMainWindow) << "大六维力标签初始化完成，找到" << m_bigForceLabels.size() << "个标签";
 }
 void MainWindow::setupSmallForceLabels()
 {
@@ -5164,14 +5256,14 @@ void MainWindow::setupSmallForceLabels()
             );
     }
 
-    qDebug() << "小六维力标签初始化完成，找到" << m_smallForceLabels.size() << "个标签";
+    qCDebug(lcMainWindow) << "小六维力标签初始化完成，找到" << m_smallForceLabels.size() << "个标签";
 }
 
 
 void MainWindow::setupForceReading()
 {
     // 已根据要求删除六维力传感器轮询功能，以减少主 Modbus 队列负载
-    qDebug() << "六维力传感器轮询功能已禁用";
+    qCDebug(lcMainWindow) << "六维力传感器轮询功能已禁用";
     return;
 }
 
@@ -5195,7 +5287,7 @@ void MainWindow::setupBigForceReading()
 void MainWindow::readBigForceRegisters()
 {
     if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
-        qDebug() << "Modbus未连接，无法读取大六维力数据";
+        qCDebug(lcMainWindow) << "Modbus未连接，无法读取大六维力数据";
         return;
     }
 
@@ -5205,7 +5297,7 @@ void MainWindow::readBigForceRegisters()
 void MainWindow::readSmallForceRegisters()
 {
     if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
-        qDebug() << "Modbus未连接，无法读取小六维力数据";
+        qCDebug(lcMainWindow) << "Modbus未连接，无法读取小六维力数据";
         return;
     }
 
@@ -5239,7 +5331,7 @@ void MainWindow::updateBigForceLabel(const QString& labelName, float value)
         static QMap<QString, int> debugCounters;
         int count = debugCounters.value(labelName, 0);
         if (count++ % 10 == 0) {  // 每10次输出一次，避免日志过多
-            qDebug() << "大" << labelName << ": 原始=" << value
+            qCDebug(lcMainWindow) << "大" << labelName << ": 原始=" << value
                      << ", 基准=" << offset
                      << ", 显示=" << displayValue;
             debugCounters[labelName] = count;
@@ -5290,7 +5382,7 @@ void MainWindow::updateSmallForceLabel(const QString& labelName, float value)
         static QMap<QString, int> debugCounters;
         int count = debugCounters.value(labelName, 0);
         if (count++ % 10 == 0) {  // 每10次输出一次，避免日志过多
-            qDebug() << "小" << labelName << ": 原始=" << value
+            qCDebug(lcMainWindow) << "小" << labelName << ": 原始=" << value
                      << ", 基准=" << offset
                      << ", 显示=" << displayValue;
             debugCounters[labelName] = count;
@@ -5346,7 +5438,7 @@ void MainWindow::setupForceDisplayModeButtons()
     });
 
     setForceDisplayMode(m_forceDisplayMode);
-    qDebug() << "大/小六维力模式按钮初始化完成";
+    qCDebug(lcMainWindow) << "大/小六维力模式按钮初始化完成";
 }
 
 void MainWindow::setForceDisplayMode(ForceDisplayMode mode)
@@ -5364,10 +5456,10 @@ void MainWindow::setForceDisplayMode(ForceDisplayMode mode)
     // 发送Modbus指令 (新增)
     if (mode == ForceDisplayBig) {
         writeToMainDevice(404, 0); // 大力模式：写0
-        qDebug() << "切换至大力传感器模式，地址404写入0";
+        qCDebug(lcMainWindow) << "切换至大力传感器模式，地址404写入0";
     } else {
         writeToMainDevice(404, 1); // 小力模式：写1
-        qDebug() << "切换至小力传感器模式，地址404写入1";
+        qCDebug(lcMainWindow) << "切换至小力传感器模式，地址404写入1";
     }
 
     // 先全部设为非激活
@@ -5418,7 +5510,7 @@ void MainWindow::setupForceClearButton()
             "}"
             );
 
-        qDebug() << "去皮按钮初始化完成";
+        qCDebug(lcMainWindow) << "去皮按钮初始化完成";
     } else {
         qWarning() << "未找到btn_ForceClear按钮";
     }
@@ -5426,7 +5518,7 @@ void MainWindow::setupForceClearButton()
 
 void MainWindow::onForceClearPressed()
 {
-    qDebug() << "去皮按钮按下";
+    qCDebug(lcMainWindow) << "去皮按钮按下";
 
     // 获取当前页面名称（用于操作记录）
     QString pageName = getCurrentPageName();
@@ -5435,7 +5527,7 @@ void MainWindow::onForceClearPressed()
     QMap<QString, float> beforeValues;
 
     // 1. 只记录大六维力的当前值作为基准值
-    qDebug() << "=== 记录大六维力基准值 ===";
+    qCDebug(lcMainWindow) << "=== 记录大六维力基准值 ===";
     for (auto it = m_bigForceCurrentValues.begin(); it != m_bigForceCurrentValues.end(); ++it) {
         QString labelName = it.key();
         float currentValue = it.value();
@@ -5443,11 +5535,11 @@ void MainWindow::onForceClearPressed()
         beforeValues[QString("大%1").arg(labelName)] = currentValue;
         m_bigForceOffsets[labelName] = currentValue;
 
-        qDebug() << "大六维力 " << labelName << " 基准值: " << currentValue;
+        qCDebug(lcMainWindow) << "大六维力 " << labelName << " 基准值: " << currentValue;
     }
 
     // 2. 只记录小六维力的当前值作为基准值
-    qDebug() << "=== 记录小六维力基准值 ===";
+    qCDebug(lcMainWindow) << "=== 记录小六维力基准值 ===";
     for (auto it = m_smallForceCurrentValues.begin(); it != m_smallForceCurrentValues.end(); ++it) {
         QString labelName = it.key();
         float currentValue = it.value();
@@ -5455,7 +5547,7 @@ void MainWindow::onForceClearPressed()
         beforeValues[QString("小%1").arg(labelName)] = currentValue;
         m_smallForceOffsets[labelName] = currentValue;
 
-        qDebug() << "小六维力 " << labelName << " 基准值: " << currentValue;
+        qCDebug(lcMainWindow) << "小六维力 " << labelName << " 基准值: " << currentValue;
     }
 
     // 3. 设置去皮标志（注意：不在按钮按下时立即更新显示）
@@ -5493,11 +5585,11 @@ void MainWindow::onForceClearPressed()
     // 6. 显示通知（但不要立即更新标签显示）
     showNotification("已记录当前值为基准值，后续显示将自动减去基准值");
 
-    qDebug() << "去皮操作完成：已记录基准值，去皮标志设为true";
+    qCDebug(lcMainWindow) << "去皮操作完成：已记录基准值，去皮标志设为true";
 }
 void MainWindow::onForceClearReleased()
 {
-    qDebug() << "去皮按钮释放";
+    qCDebug(lcMainWindow) << "去皮按钮释放";
 
     // 给192.168.1.13设备的401地址写0
     writeToMainDevice(401, 0);
@@ -5522,7 +5614,7 @@ void MainWindow::toggleForceControl()
             m_btnForceControl->setPrimaryColor(QColor("#00C8FF"));
             m_btnForceControl->setGlowColor(QColor(0, 200, 255, 180));
             writeToMainDevice(400, 1);
-            qDebug() << "力控模式：开启，地址400写入1";
+            qCDebug(lcMainWindow) << "力控模式：开启，地址400写入1";
             ui->statusBar->showMessage("力控开启模式已启用", 2000);
         } else {
             // 力控关闭
@@ -5530,7 +5622,7 @@ void MainWindow::toggleForceControl()
             m_btnForceControl->setPrimaryColor(QColor("#7F8C8D"));
             m_btnForceControl->setGlowColor(QColor(127, 140, 141, 100));
             writeToMainDevice(400, 0);
-            qDebug() << "力控模式：关闭，地址400写入0";
+            qCDebug(lcMainWindow) << "力控模式：关闭，地址400写入0";
             ui->statusBar->showMessage("力控关闭模式已启用", 2000);
         }
 
@@ -5554,7 +5646,7 @@ void MainWindow::toggleForceControl()
     // 立即检查报警条件（因为力控状态变化可能影响报警显示）
     checkAlarmConditions();
 
-    qDebug() << "力控按钮点击，新状态:" << (m_forcecontrolMode ? "开启" : "关闭");
+    qCDebug(lcMainWindow) << "力控按钮点击，新状态:" << (m_forcecontrolMode ? "开启" : "关闭");
 }
 
 // void MainWindow::on_TBtn_Stepmove_clicked()
@@ -5599,7 +5691,7 @@ void MainWindow::onStepMoveButtonClicked()
         // 给501寄存器写入2
         writeToMainDevice(501, 2);
 
-        qDebug() << "切换到步进模式，地址501写入2";
+        qCDebug(lcMainWindow) << "切换到步进模式，地址501写入2";
         ui->statusBar->showMessage("已切换到步进模式", 2000);
 
         // 更新状态栏显示
@@ -5624,7 +5716,7 @@ void MainWindow::onStepMoveButtonClicked()
         // 给501寄存器写入1
         writeToMainDevice(501, 1);
 
-        qDebug() << "切换到点动模式，地址501写入1";
+        qCDebug(lcMainWindow) << "切换到点动模式，地址501写入1";
         ui->statusBar->showMessage("已切换到点动模式", 2000);
     }
 
@@ -5643,7 +5735,7 @@ void MainWindow::onStepMoveButtonClicked()
 // 步进模式下使能按钮按下
 void MainWindow::onEnableButtonPressedStepMode()
 {
-    qDebug() << "步进模式下使能按钮按下";
+    qCDebug(lcMainWindow) << "步进模式下使能按钮按下";
 
     // 给192.168.1.13设备的19地址写1，10地址写1
     // writeToMainDevice(19, 1);
@@ -5683,7 +5775,7 @@ void MainWindow::onEnableButtonPressedStepMode()
 // 步进模式下使能按钮释放
 void MainWindow::onEnableButtonReleasedStepMode()
 {
-    qDebug() << "步进模式下使能按钮释放";
+    qCDebug(lcMainWindow) << "步进模式下使能按钮释放";
 
     // 给192.168.1.13设备的19地址写0，10地址写0，500-503地址写0
     // writeToMainDevice(19, 0);
@@ -5748,7 +5840,7 @@ void MainWindow::setupStepMoveControl()
             "}"
             );
 
-        qDebug() << "步进/点动模式按钮初始化完成";
+        qCDebug(lcMainWindow) << "步进/点动模式按钮初始化完成";
     } else {
         qWarning() << "未找到TBtn_Stepmove按钮";
     }
@@ -5799,7 +5891,7 @@ void MainWindow::setupStepMoveLineEdits()
                 this, &MainWindow::onJ4MoveStepChanged);
     }
 
-    qDebug() << "步进值输入框初始化完成";
+    qCDebug(lcMainWindow) << "步进值输入框初始化完成";
 }
 
 // J1步进值变化
@@ -5811,7 +5903,7 @@ void MainWindow::onJ1MoveStepChanged(const QString &text)
         if (ok) {
             // 写入500地址
             writeToMainDevice(500, value);
-            qDebug() << "J1步进值:" << value << "，写入地址500";
+            qCDebug(lcMainWindow) << "J1步进值:" << value << "，写入地址500";
         }
     }
 }
@@ -5825,7 +5917,7 @@ void MainWindow::onJ2MoveStepChanged(const QString &text)
         if (ok) {
             // 写入501地址
             writeToMainDevice(501, value);
-            qDebug() << "J2步进值:" << value << "，写入地址501";
+            qCDebug(lcMainWindow) << "J2步进值:" << value << "，写入地址501";
         }
     }
 }
@@ -5839,7 +5931,7 @@ void MainWindow::onJ3MoveStepChanged(const QString &text)
         if (ok) {
             // 写入502地址
             writeToMainDevice(502, value);
-            qDebug() << "J3步进值:" << value << "，写入地址502";
+            qCDebug(lcMainWindow) << "J3步进值:" << value << "，写入地址502";
         }
     }
 }
@@ -5853,7 +5945,7 @@ void MainWindow::onJ4MoveStepChanged(const QString &text)
         if (ok) {
             // 写入503地址
             writeToMainDevice(503, value);
-            qDebug() << "J4步进值:" << value << "，写入地址503";
+            qCDebug(lcMainWindow) << "J4步进值:" << value << "，写入地址503";
         }
     }
 }
@@ -5909,7 +6001,7 @@ void MainWindow::clearStepMoveRegisters()
     if (m_editJ3MoveStep) m_editJ3MoveStep->clear();
     if (m_editJ4MoveStep) m_editJ4MoveStep->clear();
 
-    qDebug() << "已清空步进寄存器(500-503)和输入框内容";
+    qCDebug(lcMainWindow) << "已清空步进寄存器(500-503)和输入框内容";
 }
 
 // 记录步进动作开始
@@ -5985,7 +6077,7 @@ void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue
 // 修改：原有的清除报警按钮函数
 void MainWindow::on_TBtn_RemoveWarning_clicked()
 {
-    qDebug() << "用户点击清除报警按钮";
+    qCDebug(lcMainWindow) << "用户点击清除报警按钮";
 
     // 写入29地址清除报警
     writeToMainDevice(29, 1);
@@ -5996,12 +6088,12 @@ void MainWindow::on_TBtn_RemoveWarning_clicked()
     // 清除所有报警状态
     if (m_emergencyStopAlarm) {
         m_emergencyStopAlarm = false;
-        qDebug() << "用户清除了紧急停止报警";
+        qCDebug(lcMainWindow) << "用户清除了紧急停止报警";
     }
 
     if (m_forceLimitAlarm) {
         m_forceLimitAlarm = false;
-        qDebug() << "用户清除了力控超限报警";
+        qCDebug(lcMainWindow) << "用户清除了力控超限报警";
     }
 
     // 更新报警显示
@@ -6025,11 +6117,11 @@ void MainWindow::on_TBtn_RemoveWarning_clicked()
 void MainWindow::setupAlarmSystem()
 {
     if (!isBigFeatureEnabled("alarm_system")) {
-        qDebug() << "报警系统已关闭，跳过初始化";
+        qCDebug(lcMainWindow) << "报警系统已关闭，跳过初始化";
         return;
     }
 
-    qDebug() << "初始化报警系统...";
+    qCDebug(lcMainWindow) << "初始化报警系统...";
 
     // 初始化报警状态
     m_emergencyStopAlarm = false;
@@ -6045,7 +6137,7 @@ void MainWindow::setupAlarmSystem()
         m_alarmCheckTimer->start(500);  // 每500ms检查一次，更频繁
     }
 
-    qDebug() << "报警系统初始化完成，定时器已启动";
+    qCDebug(lcMainWindow) << "报警系统初始化完成，定时器已启动";
 }
 // 新增：检查报警条件
 void MainWindow::checkAlarmConditions()
@@ -6054,13 +6146,17 @@ void MainWindow::checkAlarmConditions()
         return;
     }
 
+    const bool alarmStatusLogsEnabled = isFeatureEnabled("alarm_system", "alarm.status_logs");
+
     // 调试输出当前报警状态
-    qDebug() << "=== 检查报警条件 ===";
-    qDebug() << "立柱急停标志:" << m_emergencyStopColumnFlag;
-    qDebug() << "底盘急停标志:" << m_emergencyStopChassisFlag;
-    qDebug() << "力控超限标志:" << m_forceLimitFlag;
-    qDebug() << "紧急停止报警:" << m_emergencyStopAlarm;
-    qDebug() << "力控超限报警:" << m_forceLimitAlarm;
+    if (alarmStatusLogsEnabled) {
+        qCDebug(lcMainWindow) << "=== 检查报警条件 ===";
+        qCDebug(lcMainWindow) << "立柱急停标志:" << m_emergencyStopColumnFlag;
+        qCDebug(lcMainWindow) << "底盘急停标志:" << m_emergencyStopChassisFlag;
+        qCDebug(lcMainWindow) << "力控超限标志:" << m_forceLimitFlag;
+        qCDebug(lcMainWindow) << "紧急停止报警:" << m_emergencyStopAlarm;
+        qCDebug(lcMainWindow) << "力控超限报警:" << m_forceLimitAlarm;
+    }
 
     // 1. 检查紧急停止报警（804/805地址）
     bool newEstopState = false;
@@ -6069,9 +6165,9 @@ void MainWindow::checkAlarmConditions()
     }
     if (newEstopState != m_emergencyStopAlarm) {
         if (newEstopState) {
-            qDebug() << "!!! 触发紧急停止报警 !!!";
+            qCDebug(lcMainWindow) << "!!! 触发紧急停止报警 !!!";
         } else {
-            qDebug() << "解除紧急停止报警";
+            qCDebug(lcMainWindow) << "解除紧急停止报警";
         }
         m_emergencyStopAlarm = newEstopState;
     }
@@ -6085,9 +6181,9 @@ void MainWindow::checkAlarmConditions()
 
     if (newForceLimitState != m_forceLimitAlarm) {
         if (m_forceLimitFlag) {
-            qDebug() << "!!! 触发力控超限报警 !!!";
+            qCDebug(lcMainWindow) << "!!! 触发力控超限报警 !!!";
         } else {
-            qDebug() << "解除力控超限报警";
+            qCDebug(lcMainWindow) << "解除力控超限报警";
         }
         m_forceLimitAlarm = newForceLimitState;
     }
@@ -6095,7 +6191,9 @@ void MainWindow::checkAlarmConditions()
     // 3. 统一更新显示 (使用updateAlarmDisplay处理优先级和内容)
     updateAlarmDisplay();
 
-    qDebug() << "=== 报警检查结束 ===";
+    if (alarmStatusLogsEnabled) {
+        qCDebug(lcMainWindow) << "=== 报警检查结束 ===";
+    }
 }
 
 // 新增：显示报警
@@ -6105,11 +6203,11 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
         return;
     }
 
-    qDebug() << "showAlarm被调用，消息:" << message << "颜色:" << color << "可关闭:" << closable;
+    qCDebug(lcMainWindow) << "showAlarm被调用，消息:" << message << "颜色:" << color << "可关闭:" << closable;
 
     // 确保在主线程中执行
     if (QThread::currentThread() != this->thread()) {
-        qDebug() << "showAlarm不在主线程，将使用invokeMethod";
+        qCDebug(lcMainWindow) << "showAlarm不在主线程，将使用invokeMethod";
         QMetaObject::invokeMethod(this, "showAlarm",
                                   Qt::QueuedConnection,
                                   Q_ARG(QString, message),
@@ -6120,7 +6218,7 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
 
     // 如果报警窗口不存在，则创建它
     if (!m_alarmWidget) {
-        qDebug() << "创建新的报警窗口...";
+        qCDebug(lcMainWindow) << "创建新的报警窗口...";
 
         // 创建报警窗口
         m_alarmWidget = new QWidget(nullptr);  // 使用nullptr作为父窗口，使其独立显示
@@ -6149,7 +6247,7 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
         // 设置固定大小
         m_alarmWidget->setFixedSize(350, 120);
 
-        qDebug() << "报警窗口创建完成";
+        qCDebug(lcMainWindow) << "报警窗口创建完成";
     }
     
     // 控制清除按钮的显示/隐藏
@@ -6205,7 +6303,7 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
     m_alarmWidget->raise();
     m_alarmWidget->activateWindow();
 
-    qDebug() << "报警窗口显示在位置: (" << x << "," << y << ")";
+    qCDebug(lcMainWindow) << "报警窗口显示在位置: (" << x << "," << y << ")";
 }
 // 新增：隐藏报警
 void MainWindow::hideAlarm()
@@ -6242,21 +6340,21 @@ void MainWindow::updateAlarmDisplay()
 
 void MainWindow::onTestAlarmButtonClicked()
 {
-    qDebug() << "=== 开始报警系统测试 ===";
+    qCDebug(lcMainWindow) << "=== 开始报警系统测试 ===";
 
     // 测试1：直接调用showAlarm函数，测试窗口是否能显示
-    qDebug() << "测试1：直接调用showAlarm函数...";
+    qCDebug(lcMainWindow) << "测试1：直接调用showAlarm函数...";
     showAlarm("手动测试报警 - 紧急停止", "#ff5555");
 
     // 等待3秒
     QTimer::singleShot(3000, this, [this]() {
-        qDebug() << "测试2：测试力控超限报警...";
+        qCDebug(lcMainWindow) << "测试2：测试力控超限报警...";
         showAlarm("手动测试报警 - 力控超限", "#ff8800");
     });
 
     // 等待6秒，测试报警条件检查
     QTimer::singleShot(6000, this, [this]() {
-        qDebug() << "测试3：通过设置标志位触发报警检查...";
+        qCDebug(lcMainWindow) << "测试3：通过设置标志位触发报警检查...";
 
         // 设置报警标志
         m_emergencyStopColumnFlag = true;
@@ -6264,10 +6362,10 @@ void MainWindow::onTestAlarmButtonClicked()
         m_forceLimitFlag = true;
         m_forcecontrolMode = true;  // 模拟力控开启
 
-        qDebug() << "立柱急停标志:" << m_emergencyStopColumnFlag;
-        qDebug() << "底盘急停标志:" << m_emergencyStopChassisFlag;
-        qDebug() << "力控超限标志:" << m_forceLimitFlag;
-        qDebug() << "力控模式:" << m_forcecontrolMode;
+        qCDebug(lcMainWindow) << "立柱急停标志:" << m_emergencyStopColumnFlag;
+        qCDebug(lcMainWindow) << "底盘急停标志:" << m_emergencyStopChassisFlag;
+        qCDebug(lcMainWindow) << "力控超限标志:" << m_forceLimitFlag;
+        qCDebug(lcMainWindow) << "力控模式:" << m_forcecontrolMode;
 
         // 手动触发报警检查
         checkAlarmConditions();
@@ -6275,7 +6373,7 @@ void MainWindow::onTestAlarmButtonClicked()
 
     // 等待9秒，清除报警
     QTimer::singleShot(9000, this, [this]() {
-        qDebug() << "测试4：清除报警...";
+        qCDebug(lcMainWindow) << "测试4：清除报警...";
 
         // 清除报警标志
         m_emergencyStopColumnFlag = false;
@@ -6285,7 +6383,7 @@ void MainWindow::onTestAlarmButtonClicked()
         // 触发报警检查
         checkAlarmConditions();
 
-        qDebug() << "=== 报警系统测试完成 ===";
+        qCDebug(lcMainWindow) << "=== 报警系统测试完成 ===";
         ui->statusBar->showMessage("报警系统测试完成", 3000);
     });
 }
@@ -6313,7 +6411,7 @@ void MainWindow::on_Btn_test_clicked()
     m_poseProvider->setPitch(angle * 0.5);
     m_poseProvider->setYaw(angle * 1.2);
 
-    qDebug() << "Test Pose Update - Angle:" << angle << "Distance:" << distance;
+    qCDebug(lcMainWindow) << "Test Pose Update - Angle:" << angle << "Distance:" << distance;
 }
 
 // ============ 转向模式切换报警逻辑 ============
@@ -6331,7 +6429,7 @@ void MainWindow::checkSteeringSwitchCompletion(int address, quint16 value)
         
         // 只有当目标位和Bit 10都为1时才算完成
         if (targetBitSet && bit10Set) {
-            qDebug() << "[转向切换] 检测到地址50满足条件: Bit10=1 且 Bit" << m_targetSteeringWaitBit << "=1，切换完成";
+            qCDebug(lcMainWindow) << "[转向切换] 检测到地址50满足条件: Bit10=1 且 Bit" << m_targetSteeringWaitBit << "=1，切换完成";
             m_isSwitchingSteeringMode = false;
             m_targetSteeringWaitBit = -1;
             
@@ -6339,7 +6437,7 @@ void MainWindow::checkSteeringSwitchCompletion(int address, quint16 value)
             m_isSteeringAlarmActive = false;
             hideAlarm();
         } else {
-             // qDebug() << "[SteeringCheck] 等待条件: Bit10 && Bit" << m_targetSteeringWaitBit 
+             // qCDebug(lcMainWindow) << "[SteeringCheck] 等待条件: Bit10 && Bit" << m_targetSteeringWaitBit 
              //          << " 当前: Bit10=" << bit10Set << " Target=" << targetBitSet;
         }
     }

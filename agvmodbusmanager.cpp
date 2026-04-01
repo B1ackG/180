@@ -7,7 +7,7 @@ AGVModbusManager::AGVModbusManager(QObject *parent)
     : QObject(parent)
     , m_socket(nullptr)
     , m_networkThread(nullptr)
-    , m_host("192.168.1.100")
+    , m_host("192.168.1.88")
     , m_port(502)
     , m_autoReconnect(true)
     , m_reconnectInterval(5000)
@@ -95,12 +95,11 @@ void AGVModbusManager::onConnected()
     qDebug() << "AGV Modbus连接成功:" << m_host << ":" << m_port;
 
     // 已禁用开机自动轮询
-    /*
+    // 启动轮询定时器以定期读取关键寄存器
     if (m_pollTimer) {
         m_pollTimer->start(m_pollInterval);
         qDebug() << "轮询定时器已启动，间隔:" << m_pollInterval << "ms";
     }
-    */
 
     // 停止重连定时器
     if (m_autoReconnect && m_reconnectTimer) {
@@ -191,12 +190,31 @@ void AGVModbusManager::pollRegisters()
         return;
     }
 
-    // 读取位变量寄存器（地址50-51）
-    readMultipleRegisters(50, 2);  // 读取2个寄存器：50, 51
+    // 分组轮询，避免一次读取过大导致阻塞，同时保证所有AGV UI所需地址都能被覆盖。
+    // 组0: 50  (触边/避障/心跳位状态)
+    // 组1: 102-105 (电池1、电池2、速度、点动位移)
+    // 组2: 110-113 (故障码1-4)
+    // 组3: 114-117 (故障码5-8)
+    static int pollGroup = 0;
 
-    // 读取包含位变量和字变量的寄存器（地址102）
-    // 注意：地址102既是位变量（故障状态）又是字变量（电池1电量）
-    readMultipleRegisters(102, 16);  // 读取16个寄存器：102-117
+    switch (pollGroup) {
+    case 0:
+        readMultipleRegisters(50, 1);
+        break;
+    case 1:
+        readMultipleRegisters(102, 4);
+        break;
+    case 2:
+        readMultipleRegisters(110, 4);
+        break;
+    case 3:
+        readMultipleRegisters(114, 4);
+        break;
+    default:
+        break;
+    }
+
+    pollGroup = (pollGroup + 1) % 4;
 }
 
 
@@ -248,12 +266,6 @@ void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
         return;
     }
 
-    QByteArray request = createReadRequest(startAddress, count);
-
-    // 记录请求时间
-    quint16 requestId = m_transactionId - 1;  // 注意：createReadRequest中已经增加了m_transactionId
-    m_requestTimestamps[requestId] = QDateTime::currentDateTime();
-
     // 清理过期的请求记录
     QDateTime now = QDateTime::currentDateTime();
     QMutableMapIterator<quint16, QDateTime> it(m_requestTimestamps);
@@ -261,9 +273,23 @@ void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
         it.next();
         if (it.value().msecsTo(now) > REQUEST_TIMEOUT) {
             qDebug() << "清理超时请求，事务ID:" << it.key();
+            m_transactionAddressMap.remove(it.key());
             it.remove();
         }
     }
+
+    // 限制在途请求数量，避免网络异常时无限堆积
+    constexpr int kMaxPendingRequests = 32;
+    if (m_transactionAddressMap.size() >= kMaxPendingRequests) {
+        qWarning() << "AGV在途请求过多，跳过本次轮询发送。pending=" << m_transactionAddressMap.size();
+        return;
+    }
+
+    QByteArray request = createReadRequest(startAddress, count);
+
+    // 记录请求时间
+    quint16 requestId = m_transactionId - 1;  // 注意：createReadRequest中已经增加了m_transactionId
+    m_requestTimestamps[requestId] = QDateTime::currentDateTime();
 
     m_socket->write(request);
 }
@@ -359,12 +385,15 @@ bool AGVModbusManager::processSingleResponseFrame(const QByteArray &frame, quint
 
     // 处理功能码 0x03（读保持寄存器）响应
     if (functionCode == 0x03) {
+        if (!m_transactionAddressMap.contains(transactionId)) {
+            // 请求已超时清理或收到过期/乱序响应，直接忽略该帧，避免错误映射到地址0。
+            m_requestTimestamps.remove(transactionId);
+            qWarning() << "收到无映射事务ID的读响应，已忽略 transactionId=" << transactionId;
+            return true;
+        }
+
         int startAddress = m_transactionAddressMap.take(transactionId);
         m_requestTimestamps.remove(transactionId);
-        if (startAddress < 0) {
-            qWarning() << "未找到事务ID对应起始地址:" << transactionId;
-            return false;
-        }
 
         // 字节数
         quint8 byteCount = static_cast<quint8>(pdu[1]);
@@ -550,6 +579,7 @@ void AGVModbusManager::processWordVariables(int address, quint16 value)
         qDebug() << "发出updateProgressBar信号: progressBar_battery1, " << batteryPercent;
         emit updateProgressBar("progressBar_battery1", batteryPercent);
         emit updateStatusLabel("label_battery1_text", QString("%1%").arg(batteryPercent));
+        emit wordVariableChanged(address, value); // 兜底链路：允许 UI 直接基于寄存器更新
     }
     else if (varName == "battery2") {
         // 电池2电量 (0-100%)
@@ -557,6 +587,7 @@ void AGVModbusManager::processWordVariables(int address, quint16 value)
         qDebug() << "电池2电量:" << batteryPercent << "%";
         emit updateProgressBar("progressBar_battery2", batteryPercent);
         emit updateStatusLabel("label_battery2_text", QString("%1%").arg(batteryPercent));
+        emit wordVariableChanged(address, value); // 兜底链路：允许 UI 直接基于寄存器更新
     }
     else if (varName == "speed") {
         // 行驶速度 (mm/s) - 更新到wordVariableChanged信号，由MainWindow处理
@@ -739,6 +770,12 @@ void AGVModbusManager::updateFaultCodesDisplay()
 // 添加写入函数
 bool AGVModbusManager::writeSingleRegister(int address, quint16 value)
 {
+    // 如果全局禁用了写操作，则直接阻止并返回失败（用于故障排查）
+    if (!m_writesEnabled) {
+        qWarning() << "AGV 写操作已被禁用，忽略写入请求 地址:" << address << "值:" << value;
+        return false;
+    }
+
     if (!isConnected()) {
         if (!m_disconnectedWriteWarnedAddresses.contains(address)) {
             qWarning() << "AGV Modbus未连接，无法写入地址" << address;
