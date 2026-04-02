@@ -19,7 +19,7 @@ AGVModbusManager::AGVModbusManager(QObject *parent)
     // 注册元类型
     qRegisterMetaType<QAbstractSocket::SocketError>("QAbstractSocket::SocketError");
     // 保持socket与当前对象同线程，避免跨线程访问
-    m_socket = new QTcpSocket();
+    m_socket = new QTcpSocket(this);
 
     // 连接信号槽
     connect(m_socket, &QTcpSocket::connected, this, &AGVModbusManager::onConnected);
@@ -191,30 +191,42 @@ void AGVModbusManager::pollRegisters()
     }
 
     // 分组轮询，避免一次读取过大导致阻塞，同时保证所有AGV UI所需地址都能被覆盖。
-    // 组0: 50  (触边/避障/心跳位状态)
-    // 组1: 102-105 (电池1、电池2、速度、点动位移)
-    // 组2: 110-113 (故障码1-4)
-    // 组3: 114-117 (故障码5-8)
+    // 组0: 0    (OA/驻车相关控制位)
+    // 组1: 2    (底盘切换模式值)
+    // 组2: 50-51 (触边/避障/心跳位状态 + 驻车状态位)
+    // 组3: 102-105 (电池1、电池2、速度、点动位移)
+    // 组4: 110-113 (故障码1-4)
+    // 组5: 114-117 (故障码5-8)
+    // 组6: 500  (有线/无线控制模式)
     static int pollGroup = 0;
 
     switch (pollGroup) {
     case 0:
-        readMultipleRegisters(50, 1);
+        readMultipleRegisters(0, 1);
         break;
     case 1:
-        readMultipleRegisters(102, 4);
+        readMultipleRegisters(2, 1);
         break;
     case 2:
-        readMultipleRegisters(110, 4);
+        readMultipleRegisters(50, 2);
         break;
     case 3:
+        readMultipleRegisters(102, 4);
+        break;
+    case 4:
+        readMultipleRegisters(110, 4);
+        break;
+    case 5:
         readMultipleRegisters(114, 4);
+        break;
+    case 6:
+        readMultipleRegisters(500, 1);
         break;
     default:
         break;
     }
 
-    pollGroup = (pollGroup + 1) % 4;
+    pollGroup = (pollGroup + 1) % 7;
 }
 
 
@@ -585,7 +597,6 @@ void AGVModbusManager::processWordVariables(int address, quint16 value)
         // 电池2电量 (0-100%)
         int batteryPercent = qMin(value, static_cast<quint16>(100));
         qDebug() << "电池2电量:" << batteryPercent << "%";
-        emit updateProgressBar("progressBar_battery2", batteryPercent);
         emit updateStatusLabel("label_battery2_text", QString("%1%").arg(batteryPercent));
         emit wordVariableChanged(address, value); // 兜底链路：允许 UI 直接基于寄存器更新
     }
