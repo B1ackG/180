@@ -320,19 +320,6 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="3" colspan="3">
-     <widget class="QLabel" name="label_StatusTip">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>TextLabel</string>
-      </property>
-     </widget>
-    </item>
     <item row="5" column="1" colspan="7">
      <widget class="QStackedWidget" name="StackedWidget">
       <property name="enabled">
@@ -409,8 +396,8 @@
        <widget class="QWidget" name="widget_test3" native="true">
         <property name="geometry">
          <rect>
-          <x>310</x>
-          <y>240</y>
+          <x>300</x>
+          <y>200</y>
           <width>131</width>
           <height>131</height>
          </rect>
@@ -499,7 +486,7 @@
          </size>
         </property>
        </widget>
-      <widget class="TechPushButton" name="techBtn_AGV_驻车">
+       <widget class="TechPushButton" name="techBtn_AGV_Park">
         <property name="geometry">
          <rect>
           <x>30</x>
@@ -572,9 +559,9 @@
         <property name="geometry">
          <rect>
           <x>380</x>
-          <y>340</y>
+          <y>343</y>
           <width>200</width>
-          <height>200</height>
+          <height>220</height>
          </rect>
         </property>
        </widget>
@@ -594,10 +581,10 @@
        <widget class="SteeringModeSelector" name="steeringModeSelector" native="true">
         <property name="geometry">
          <rect>
-          <x>570</x>
-          <y>470</y>
-          <width>640</width>
-          <height>80</height>
+          <x>680</x>
+          <y>390</y>
+          <width>460</width>
+          <height>110</height>
          </rect>
         </property>
        </widget>
@@ -607,7 +594,7 @@
           <x>1000</x>
           <y>0</y>
           <width>171</width>
-          <height>76</height>
+          <height>50</height>
          </rect>
         </property>
         <property name="styleSheet">
@@ -615,22 +602,6 @@
 font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_14">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>电池2电量</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="BatteryWidget" name="progressBar_battery2" native="true"/>
-         </item>
          <item row="0" column="0">
           <widget class="QLabel" name="label_15">
            <property name="sizePolicy">
@@ -640,7 +611,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
             </sizepolicy>
            </property>
            <property name="text">
-            <string>电池1电量</string>
+            <string>电池电量</string>
            </property>
           </widget>
          </item>
@@ -663,7 +634,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <zorder>widget_test2</zorder>
        <zorder>widget_test1</zorder>
        <zorder>TechSliderEdit_Robot_RobotSpeed</zorder>
-      <zorder>techBtn_AGV_驻车</zorder>
+       <zorder>techBtn_AGV_Park</zorder>
        <zorder>SEdit_AGV_Angle</zorder>
        <zorder>SEdit_AGV_MoveSpeed</zorder>
        <zorder>AGV_speedGauge</zorder>
@@ -2032,6 +2003,19 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         </layout>
        </widget>
       </widget>
+     </widget>
+    </item>
+    <item row="3" column="4" colspan="3">
+     <widget class="QLabel" name="label_StatusTip">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
      </widget>
     </item>
    </layout>

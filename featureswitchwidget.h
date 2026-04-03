@@ -19,6 +19,10 @@ class FeatureSwitchWidget : public QWidget
 public:
     explicit FeatureSwitchWidget(QWidget *parent = nullptr);
 
+signals:
+    // 通知外部宿主（通常是 MainWindow）重新加载并应用运行时配置
+    void runtimeSettingsChanged();
+
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 

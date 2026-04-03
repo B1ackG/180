@@ -550,7 +550,9 @@ private:
     ControlMode m_controlMode = WIRED_MODE;
     
     bool m_stepModeEnabled = false;
+    bool m_stepModeUnknown = true;
     bool m_isJointMode = true;
+    bool m_moveModeUnknown = true;
     bool m_forcecontrolMode = false;
 
     // ----- 通信轮询与重连参数（可持久化） -----
@@ -778,6 +780,12 @@ private:
 
     /** @brief 处理第二套 AGV 按键动作 */
     void handleAGVKey2Action(int keyNumber, bool pressed);
+
+    /** @brief 获取当前转向模式文本（用于记录） */
+    QString currentSteeringModeText() const;
+
+    /** @brief 记录AGV外部按键运动日志 */
+    void appendAgvExternalKeyRecord(int keyNumber, bool pressed);
 
     /** @brief 处理矩阵键动作 */
     void handleMatrixKeyAction(int keyNumber, bool pressed);

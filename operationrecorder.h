@@ -20,7 +20,11 @@
 #include <QJsonObject>
 #include <QFile>
 #include <QTextStream>
+#include <QAbstractSocket>
 #include <QTcpSocket>
+#ifndef QT_NO_SSL
+#include <QSslSocket>
+#endif
 #include <QTimer>
 
 #define WIN7_IP "192.168.1.70"
@@ -242,12 +246,18 @@ private:
     bool m_tcpEnabled;
     QString m_tcpServerIp;
     quint16 m_tcpServerPort;
+    bool m_tcpUseTls = true;
+    QStringList m_allowedHosts;
+    QByteArray m_signingKey;
     QTimer *m_reconnectTimer;
     QList<OperationRecord> m_tcpSendQueue;  // 待发送的记录队列
     QString m_lastTcpError;
     qint64 m_lastTcpErrorMs = 0;
 
     // TCP发送相关方法
+    void loadSecuritySettings();
+    bool validateTransportPolicy(QString *reason = nullptr) const;
+    QByteArray buildSignedPayload(const OperationRecord &record) const;
     void sendRecordToServer(const OperationRecord &record);
     void sendQueuedRecords();
     void connectTcpSocket();

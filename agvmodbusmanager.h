@@ -63,7 +63,7 @@
 
     电池1电量 -> 进度条: progressBar_battery1, 标签: label_battery1_text
 
-    电池2电量 -> 进度条: progressBar_battery2, 标签: label_battery2_text
+    电池2电量 -> 标签: label_battery2_text
 
     行驶速度 -> 标签: label_speed
 

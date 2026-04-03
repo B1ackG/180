@@ -7,11 +7,11 @@
 #include <QGroupBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QGridLayout>
 #include <QMessageBox>
 #include <QLineEdit>
 #include <QEvent>
 #include <QSettings>
-#include "mainwindow.h"
 
 FeatureSwitchWidget::FeatureSwitchWidget(QWidget *parent) : QWidget(parent)
 {
@@ -39,7 +39,7 @@ FeatureSwitchWidget::FeatureSwitchWidget(QWidget *parent) : QWidget(parent)
         "QScrollArea { border: none; background-color: transparent; }"
     );
     
-    resize(700, 900);
+    resize(980, 820);
 }
 
 bool FeatureSwitchWidget::eventFilter(QObject *watched, QEvent *event)
@@ -70,7 +70,7 @@ void FeatureSwitchWidget::setupUI()
 
     // 大功能组
     QGroupBox *bigGroup = new QGroupBox("核心功能层 (Big Features)");
-    QVBoxLayout *bigLayout = new QVBoxLayout(bigGroup);
+    QGridLayout *bigLayout = new QGridLayout(bigGroup);
     FeatureSwitchManager *mgr = FeatureSwitchManager::instance();
     
     // 排序后展示，并为 key 提供中文描述（若有）
@@ -90,17 +90,18 @@ void FeatureSwitchWidget::setupUI()
     QStringList bigKeys = mgr->allBigFeatures().values();
     bigKeys.sort();
 
-    for (const QString &key : bigKeys) {
+    for (int i = 0; i < bigKeys.size(); ++i) {
+        const QString key = bigKeys.at(i);
         QString label = desc.contains(key) ? QString("%1 [%2]").arg(desc.value(key)).arg(key) : key;
         QCheckBox *cb = new QCheckBox(label);
-        bigLayout->addWidget(cb);
+        bigLayout->addWidget(cb, i / 2, i % 2);
         m_bigCheckboxes[key] = cb;
     }
     scrollLayout->addWidget(bigGroup);
 
     // 小功能项
     QGroupBox *smallGroup = new QGroupBox("子功能细项 (Small Features)");
-    QVBoxLayout *smallLayout = new QVBoxLayout(smallGroup);
+    QGridLayout *smallLayout = new QGridLayout(smallGroup);
     
     QStringList smallKeys = mgr->allSmallFeatures().values();
     smallKeys.sort();
@@ -140,11 +141,13 @@ void FeatureSwitchWidget::setupUI()
     sdesc["alarm.steering_switch"] = "转向模式切换报警";
     sdesc["alarm.popup"] = "报警弹窗显示";
     sdesc["alarm.status_logs"] = "报警状态周期日志";
+    sdesc["debug.qdebug"] = "全局调试输出(qDebug)";
 
-    for (const QString &key : smallKeys) {
+    for (int i = 0; i < smallKeys.size(); ++i) {
+        const QString key = smallKeys.at(i);
         QString label = sdesc.contains(key) ? QString("%1 [%2]").arg(sdesc.value(key)).arg(key) : key;
         QCheckBox *cb = new QCheckBox(label);
-        smallLayout->addWidget(cb);
+        smallLayout->addWidget(cb, i / 2, i % 2);
         m_smallCheckboxes[key] = cb;
 
         // 互斥处理：本机模拟器和远程模拟器
@@ -252,22 +255,7 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
     QGroupBox *limitGroup = new QGroupBox("参数范围自定义 (Parameter Limits)");
     QVBoxLayout *limitLayout = new QVBoxLayout(limitGroup);
 
-    MainWindow *mw = nullptr;
-    for (QWidget *widget : qApp->topLevelWidgets()) {
-        mw = qobject_cast<MainWindow*>(widget);
-        if (mw) break;
-    }
-
-    if (!mw) {
-        limitLayout->addWidget(new QLabel("无法加载参数配置：MainWindow未找到"));
-        scrollLayout->addWidget(limitGroup);
-        return;
-    }
-
-    // 通过 QProperty 或从 MainWindow 获取配置（这里直接访问成员，需确保可见性或已有接口）
-    // 我们可以依赖 mw->m_sliderLabelConfigs，但在 H 中它是原有的结构。
-    
-    // 直接遍历固定的四个控件名以保持简单，或者从 mW 获取
+    // 使用固定的四个主页控件键，避免与 MainWindow 内部结构直接耦合。
     QStringList targetNames = {"label_Value1", "label_Value2", "label_Value3", "label_Value4"};
     QMap<QString, QString> itemLabels;
     itemLabels["label_Value1"] = "悬臂角度 (Target1)";
@@ -331,50 +319,26 @@ void FeatureSwitchWidget::savePollingState()
     settings.setValue("agv_reconnect_ms", m_editAgvReconnect->text().toInt());
     settings.endGroup();
     settings.sync();
-
-    // 通知 MainWindow 更新
-    MainWindow *mw = qobject_cast<MainWindow*>(parent());
-    // 如果 parent 不是 MainWindow，尝试寻找全程序的 MainWindow 实例
-    if (!mw) {
-        for (QWidget *widget : qApp->topLevelWidgets()) {
-            mw = qobject_cast<MainWindow*>(widget);
-            if (mw) break;
-        }
-    }
-
-    if (mw) {
-        mw->loadPollingRuntimeSettings();
-        mw->applyPollingRuntimeSettings();
-    }
 }
 
 void FeatureSwitchWidget::loadSliderLimitState()
 {
-    // 先获取 MainWindow 中的当前值（包含默认或已加载的值）
-    MainWindow *mw = nullptr;
-    for (QWidget *widget : qApp->topLevelWidgets()) {
-        mw = qobject_cast<MainWindow*>(widget);
-        if (mw) break;
-    }
+    const QMap<QString, QPair<double, double>> defaultRanges = {
+        {"label_Value1", qMakePair(-90.0, 90.0)},
+        {"label_Value2", qMakePair(-850.0, 1150.0)},
+        {"label_Value3", qMakePair(0.0, 1600.0)},
+        {"label_Value4", qMakePair(-180.0, 180.0)}
+    };
 
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("SliderLabelLimits");
     for (auto it = m_limitEdits.begin(); it != m_limitEdits.end(); ++it) {
         QString keyMin = QString("%1_min").arg(it.key());
         QString keyMax = QString("%1_max").arg(it.key());
-        
-        bool okMin, okMax;
-        double minVal = settings.value(keyMin).toDouble(&okMin);
-        double maxVal = settings.value(keyMax).toDouble(&okMax);
-        
-        // 如果 INI 中没有，则尝试从 MW 的 Config Map 中获取
-        if (!okMin || !okMax) {
-            if (mw && mw->m_sliderLabelConfigs.contains(it.key())) {
-                const auto& cfg = mw->m_sliderLabelConfigs[it.key()];
-                if (!okMin) minVal = cfg.minValue;
-                if (!okMax) maxVal = cfg.maxValue;
-            }
-        }
+
+        const auto range = defaultRanges.value(it.key(), qMakePair(0.0, 100.0));
+        const double minVal = settings.value(keyMin, range.first).toDouble();
+        const double maxVal = settings.value(keyMax, range.second).toDouble();
         
         it.value().minEdit->setText(QString::number(minVal));
         it.value().maxEdit->setText(QString::number(maxVal));
@@ -395,18 +359,6 @@ void FeatureSwitchWidget::saveSliderLimitState()
     }
     settings.endGroup();
     settings.sync();
-
-    // 通知 MainWindow 重新加载并应用
-    MainWindow *mw = nullptr;
-    for (QWidget *widget : qApp->topLevelWidgets()) {
-        mw = qobject_cast<MainWindow*>(widget);
-        if (mw) break;
-    }
-
-    if (mw) {
-        mw->loadSliderLabelRuntimeSettings();
-        mw->applySliderLabelRuntimeSettings();
-    }
 }
 
 void FeatureSwitchWidget::onApply()
@@ -424,6 +376,8 @@ void FeatureSwitchWidget::onApply()
     
     // 应用滑块限制配置
     saveSliderLimitState();
+
+    emit runtimeSettingsChanged();
 
     this->hide(); // 立即生效后隐藏界面
 }

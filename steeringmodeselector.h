@@ -16,6 +16,7 @@
 
 #include <QWidget>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QLabel>
 #include "techpushbutton.h"
 
@@ -162,7 +163,7 @@ private:
 
     // 布局
     QVBoxLayout *m_mainLayout;
-    QHBoxLayout *m_buttonLayout;
+    QVBoxLayout *m_buttonLayout;
 
     // 标题
     QLabel *m_titleLabel;

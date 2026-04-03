@@ -5,6 +5,8 @@
 #include <QEasingCurve>
 #include <QDebug>
 
+#include "modebuttonstyler.h"
+
 SpeedModeSelector::SpeedModeSelector(QWidget *parent)
     : QWidget(parent)
     , m_currentMode(MODE_MEDIUM)
@@ -50,30 +52,9 @@ void SpeedModeSelector::initUI()
     m_btnMedium = new TechPushButton("中速模式", this);
     m_btnHigh = new TechPushButton("高速模式", this);
 
-    // 设置按钮属性
-    m_btnLow->setObjectName("btnLowSpeed");
-    m_btnMedium->setObjectName("btnMediumSpeed");
-    m_btnHigh->setObjectName("btnHighSpeed");
-
-    // 设置固定大小
-    m_btnLow->setFixedSize(100, 40);
-    m_btnMedium->setFixedSize(100, 40);
-    m_btnHigh->setFixedSize(100, 40);
-
-    // 启用点击动画
-    m_btnLow->enableClickAnimation(true);
-    m_btnMedium->enableClickAnimation(true);
-    m_btnHigh->enableClickAnimation(true);
-
-    // 启用悬停动画
-    m_btnLow->enableHoverAnimation(true);
-    m_btnMedium->enableHoverAnimation(true);
-    m_btnHigh->enableHoverAnimation(true);
-
-    // 启用文字发光
-    m_btnLow->setTextGlow(true);
-    m_btnMedium->setTextGlow(true);
-    m_btnHigh->setTextGlow(true);
+    ModeButtonStyler::configureInteractiveButton(m_btnLow, QSize(100, 40), "btnLowSpeed");
+    ModeButtonStyler::configureInteractiveButton(m_btnMedium, QSize(100, 40), "btnMediumSpeed");
+    ModeButtonStyler::configureInteractiveButton(m_btnHigh, QSize(100, 40), "btnHighSpeed");
 
     // 添加到布局
     m_buttonLayout->addWidget(m_btnLow);
@@ -137,10 +118,6 @@ void SpeedModeSelector::setButtonStyle(TechPushButton::ButtonStyle style)
 {
     m_buttonStyle = style;
 
-    m_btnLow->setButtonStyle(style);
-    m_btnMedium->setButtonStyle(style);
-    m_btnHigh->setButtonStyle(style);
-
     updateButtonStyles();
 }
 
@@ -185,10 +162,7 @@ void SpeedModeSelector::setInactiveColor(const QColor &color)
 void SpeedModeSelector::setTextColor(const QColor &color)
 {
     m_textColor = color;
-
-    m_btnLow->setTextColor(color);
-    m_btnMedium->setTextColor(color);
-    m_btnHigh->setTextColor(color);
+    ModeButtonStyler::applyTextColor({m_btnLow, m_btnMedium, m_btnHigh}, color);
 
     m_titleLabel->setStyleSheet(QString("color: %1; font-size: 16px; font-weight: bold;")
                                     .arg(color.name()));
@@ -196,75 +170,14 @@ void SpeedModeSelector::setTextColor(const QColor &color)
 
 void SpeedModeSelector::updateButtonStyles()
 {
-    // 根据当前模式设置按钮颜色
-    switch(m_currentMode) {
-    case MODE_LOW:
-        // 低速模式激活
-        m_btnLow->setPrimaryColor(m_activeColor);
-        m_btnLow->setGlowColor(m_activeColor.lighter(150));
-        m_btnLow->setTextColor(Qt::white);
-        m_btnLow->enablePulseEffect(true);
-
-        // 中速和高速非激活
-        m_btnMedium->setPrimaryColor(m_inactiveColor);
-        m_btnMedium->setGlowColor(m_inactiveColor);
-        m_btnMedium->setTextColor(m_textColor);
-        m_btnMedium->enablePulseEffect(false);
-
-        m_btnHigh->setPrimaryColor(m_inactiveColor);
-        m_btnHigh->setGlowColor(m_inactiveColor);
-        m_btnHigh->setTextColor(m_textColor);
-        m_btnHigh->enablePulseEffect(false);
-        break;
-
-    case MODE_MEDIUM:
-        // 中速模式激活
-        m_btnMedium->setPrimaryColor(m_activeColor);
-        m_btnMedium->setGlowColor(m_activeColor.lighter(150));
-        m_btnMedium->setTextColor(Qt::white);
-        m_btnMedium->enablePulseEffect(true);
-
-        // 低速和高速非激活
-        m_btnLow->setPrimaryColor(m_inactiveColor);
-        m_btnLow->setGlowColor(m_inactiveColor);
-        m_btnLow->setTextColor(m_textColor);
-        m_btnLow->enablePulseEffect(false);
-
-        m_btnHigh->setPrimaryColor(m_inactiveColor);
-        m_btnHigh->setGlowColor(m_inactiveColor);
-        m_btnHigh->setTextColor(m_textColor);
-        m_btnHigh->enablePulseEffect(false);
-        break;
-
-    case MODE_HIGH:
-        // 高速模式激活
-        m_btnHigh->setPrimaryColor(m_activeColor);
-        m_btnHigh->setGlowColor(m_activeColor.lighter(150));
-        m_btnHigh->setTextColor(Qt::white);
-        m_btnHigh->enablePulseEffect(true);
-
-        // 低速和中速非激活
-        m_btnLow->setPrimaryColor(m_inactiveColor);
-        m_btnLow->setGlowColor(m_inactiveColor);
-        m_btnLow->setTextColor(m_textColor);
-        m_btnLow->enablePulseEffect(false);
-
-        m_btnMedium->setPrimaryColor(m_inactiveColor);
-        m_btnMedium->setGlowColor(m_inactiveColor);
-        m_btnMedium->setTextColor(m_textColor);
-        m_btnMedium->enablePulseEffect(false);
-        break;
-    }
-
-    // 设置按钮样式
-    m_btnLow->setButtonStyle(m_buttonStyle);
-    m_btnMedium->setButtonStyle(m_buttonStyle);
-    m_btnHigh->setButtonStyle(m_buttonStyle);
-
-    // 更新按钮
-    m_btnLow->update();
-    m_btnMedium->update();
-    m_btnHigh->update();
+    ModeButtonStyler::applyGroupStyle(
+        {m_btnLow, m_btnMedium, m_btnHigh},
+        static_cast<int>(m_currentMode),
+        m_activeColor,
+        m_inactiveColor,
+        m_textColor,
+        m_buttonStyle,
+        true);
 }
 
 void SpeedModeSelector::createAnimation()

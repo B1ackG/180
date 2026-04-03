@@ -1,9 +1,32 @@
 #include "operationrecorder.h"
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QDebug>
-#include <QThread>
 #include <QDateTime>
+#include <QSettings>
+#include <QCryptographicHash>
+#include <QMessageAuthenticationCode>
+#include <QFile>
+#ifndef QT_NO_SSL
+#include <QSslConfiguration>
+#include <QSslCertificate>
+#endif
+
+namespace {
+QStringList parseCsvList(const QString &raw)
+{
+    QStringList result;
+    const QStringList parts = raw.split(',', Qt::SkipEmptyParts);
+    for (const QString &p : parts) {
+        const QString trimmed = p.trimmed();
+        if (!trimmed.isEmpty()) {
+            result.append(trimmed);
+        }
+    }
+    return result;
+}
+}
 
 OperationRecorder::OperationRecorder(QObject *parent)
     : QObject{parent}
@@ -14,7 +37,12 @@ OperationRecorder::OperationRecorder(QObject *parent)
     , m_reconnectTimer(nullptr)
 {
     // 初始化TCP传输
+#ifndef QT_NO_SSL
+    m_tcpSocket = new QSslSocket(this);
+#else
     m_tcpSocket = new QTcpSocket(this);
+#endif
+    loadSecuritySettings();
 
     // 连接TCP信号
     connect(m_tcpSocket, &QTcpSocket::connected, this, &OperationRecorder::onTcpConnected);
@@ -27,6 +55,120 @@ OperationRecorder::OperationRecorder(QObject *parent)
     m_reconnectTimer = new QTimer(this);
     m_reconnectTimer->setInterval(5000); // 5秒重连间隔
     connect(m_reconnectTimer, &QTimer::timeout, this, &OperationRecorder::onReconnectTimeout);
+}
+
+void OperationRecorder::loadSecuritySettings()
+{
+    QSettings settings("config.ini", QSettings::IniFormat);
+    settings.beginGroup("OperationLogTransport");
+
+    const QByteArray tlsEnv = qgetenv("AGV_LOG_TLS");
+    if (!tlsEnv.isEmpty()) {
+        const QByteArray normalized = tlsEnv.trimmed().toLower();
+        m_tcpUseTls = (normalized == "1" || normalized == "true" || normalized == "on");
+    } else {
+        m_tcpUseTls = settings.value("tls_enabled", true).toBool();
+    }
+
+    const QByteArray allowedHostsEnv = qgetenv("AGV_LOG_ALLOWED_HOSTS");
+    if (!allowedHostsEnv.isEmpty()) {
+        m_allowedHosts = parseCsvList(QString::fromUtf8(allowedHostsEnv));
+    } else {
+        m_allowedHosts = parseCsvList(settings.value("allowed_hosts", "127.0.0.1,192.168.1.70").toString());
+    }
+
+    const QByteArray signKeyEnv = qgetenv("AGV_LOG_SIGNING_KEY");
+    if (!signKeyEnv.isEmpty()) {
+        m_signingKey = signKeyEnv;
+    } else {
+        m_signingKey = settings.value("signing_key", "").toByteArray();
+    }
+
+#ifndef QT_NO_SSL
+    if (QSslSocket *sslSocket = qobject_cast<QSslSocket *>(m_tcpSocket)) {
+        QSslConfiguration sslConfig = sslSocket->sslConfiguration();
+        sslConfig.setPeerVerifyMode(QSslSocket::VerifyPeer);
+
+        const QByteArray caEnv = qgetenv("AGV_LOG_TLS_CA_FILE");
+        const QString caPath = caEnv.isEmpty()
+            ? settings.value("tls_ca_file", "").toString()
+            : QString::fromUtf8(caEnv);
+        if (!caPath.trimmed().isEmpty()) {
+            QFile caFile(caPath.trimmed());
+            if (caFile.open(QIODevice::ReadOnly)) {
+                const QList<QSslCertificate> certs = QSslCertificate::fromData(caFile.readAll(), QSsl::Pem);
+                if (!certs.isEmpty()) {
+                    sslConfig.setCaCertificates(certs);
+                }
+            }
+        }
+
+        sslSocket->setSslConfiguration(sslConfig);
+    } else {
+        // 理论上仅在运行时SSL类型不匹配时触发，回退纯TCP保证可用性。
+        m_tcpUseTls = false;
+    }
+#else
+    // 目标Qt未启用SSL时，自动回退纯TCP。
+    m_tcpUseTls = false;
+#endif
+    settings.endGroup();
+}
+
+bool OperationRecorder::validateTransportPolicy(QString *reason) const
+{
+    constexpr int kMinSigningKeyLength = 16;
+
+    if (!m_allowedHosts.isEmpty() && !m_allowedHosts.contains(m_tcpServerIp)) {
+        if (reason) {
+            *reason = QString("目标主机不在白名单中: %1").arg(m_tcpServerIp);
+        }
+        return false;
+    }
+
+    if (!m_tcpUseTls && m_signingKey.isEmpty()) {
+        if (reason) {
+            *reason = QStringLiteral("TLS关闭时必须配置签名密钥(AGV_LOG_SIGNING_KEY)");
+        }
+        return false;
+    }
+
+    if (!m_tcpUseTls && m_signingKey.size() < kMinSigningKeyLength) {
+        if (reason) {
+            *reason = QStringLiteral("签名密钥长度过短，至少需要16字节");
+        }
+        return false;
+    }
+
+    return true;
+}
+
+QByteArray OperationRecorder::buildSignedPayload(const OperationRecord &record) const
+{
+    const QJsonObject payloadObj = record.toJson();
+    const QJsonDocument payloadDoc(payloadObj);
+    const QByteArray payload = payloadDoc.toJson(QJsonDocument::Compact);
+    const qint64 ts = QDateTime::currentMSecsSinceEpoch();
+    const QByteArray nonce = QCryptographicHash::hash(
+        QByteArray::number(ts) + payload,
+        QCryptographicHash::Sha256).toHex().left(16);
+
+    QJsonObject envelope;
+    envelope["payload"] = QString::fromUtf8(payload.toBase64());
+    envelope["ts"] = QString::number(ts);
+    envelope["nonce"] = QString::fromUtf8(nonce);
+    envelope["alg"] = "HMAC-SHA256";
+
+    if (!m_signingKey.isEmpty()) {
+        const QByteArray canonical = payload + '|' + QByteArray::number(ts) + '|' + nonce;
+        const QByteArray sig = QMessageAuthenticationCode::hash(canonical, m_signingKey, QCryptographicHash::Sha256).toHex();
+        envelope["sig"] = QString::fromUtf8(sig);
+    }
+
+    QJsonDocument envelopeDoc(envelope);
+    QByteArray out = envelopeDoc.toJson(QJsonDocument::Compact);
+    out.append("\n");
+    return out;
 }
 
 OperationRecorder::~OperationRecorder()
@@ -168,6 +310,7 @@ int OperationRecorder::pageRecordCount(const QString &pageName) const
 
 void OperationRecorder::enableTcpTransmission(bool enabled)
 {
+    loadSecuritySettings();
     m_tcpEnabled = enabled;
 
     if (enabled) {
@@ -179,6 +322,7 @@ void OperationRecorder::enableTcpTransmission(bool enabled)
 
 void OperationRecorder::setTcpServer(const QString &ip, quint16 port)
 {
+    loadSecuritySettings();
     m_tcpServerIp = ip;
     m_tcpServerPort = port;
 
@@ -223,13 +367,7 @@ void OperationRecorder::sendRecordToServer(const OperationRecord &record)
         return;
     }
 
-    // 将记录转换为JSON格式
-    QJsonObject jsonRecord = record.toJson();
-    QJsonDocument doc(jsonRecord);
-    QByteArray data = doc.toJson(QJsonDocument::Compact);
-
-    // 添加换行符作为分隔符
-    data.append("\n");
+    const QByteArray data = buildSignedPayload(record);
 
     // 发送数据
     qint64 bytesWritten = m_tcpSocket->write(data);
@@ -258,14 +396,11 @@ void OperationRecorder::sendQueuedRecords()
     for (int i = 0; i < sendCount; ++i) {
         OperationRecord record = m_tcpSendQueue.takeFirst();
         sendRecordToServer(record);
-
-        // 短暂延迟，避免发送过快
-        QThread::msleep(10);
     }
 
     // 继续发送剩余记录
     if (!m_tcpSendQueue.isEmpty()) {
-        QTimer::singleShot(100, this, &OperationRecorder::sendQueuedRecords);
+        QTimer::singleShot(30, this, &OperationRecorder::sendQueuedRecords);
     } else {
         emit tcpTransmissionComplete();
     }
@@ -278,7 +413,23 @@ void OperationRecorder::connectTcpSocket()
         return;
     }
 
-    qDebug() << "连接TCP服务器:" << m_tcpServerIp << ":" << m_tcpServerPort;
+    QString policyError;
+    if (!validateTransportPolicy(&policyError)) {
+        qWarning() << "日志传输策略阻止连接:" << policyError;
+        emit tcpTransmissionError(policyError);
+        return;
+    }
+
+    qDebug() << "连接日志服务器:" << m_tcpServerIp << ":" << m_tcpServerPort << "TLS:" << m_tcpUseTls;
+#ifndef QT_NO_SSL
+    if (m_tcpUseTls) {
+        QSslSocket *sslSocket = qobject_cast<QSslSocket*>(m_tcpSocket);
+        if (sslSocket) {
+            sslSocket->connectToHostEncrypted(m_tcpServerIp, m_tcpServerPort);
+            return;
+        }
+    }
+#endif
     m_tcpSocket->connectToHost(m_tcpServerIp, m_tcpServerPort);
 }
 

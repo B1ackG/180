@@ -5,7 +5,6 @@
 #include <QApplication>
 #include <QSplashScreen>
 #include <QPixmap>
-#include <QThread>
 #include <QElapsedTimer>
 #include <QMessageBox>
 #include <QSettings>
@@ -56,6 +55,16 @@ struct SystemCheckItem {
     QString message;
     int timeout; // 超时时间(ms)
 };
+
+static void waitWithUiEvents(int ms)
+{
+    if (ms <= 0) {
+        return;
+    }
+    QEventLoop loop;
+    QTimer::singleShot(ms, &loop, &QEventLoop::quit);
+    loop.exec(QEventLoop::ExcludeUserInputEvents);
+}
 
 // 检查Modbus连接函数
 
@@ -127,12 +136,13 @@ int showConnectionWarningDialog(const QString& details, bool allowSkip = true)
 }
 
 bool performSystemChecks(QSplashScreen* splash, MainWindow* mainWindow) {
+    Q_UNUSED(mainWindow);
     FeatureSwitchManager *featureSwitch = FeatureSwitchManager::instance();
     if (!featureSwitch->isBigFeatureEnabled("startup_checks")) {
         splash->showMessage("系统自检功能已关闭，跳过自检流程",
                             Qt::AlignBottom | Qt::AlignCenter, Qt::yellow);
         qApp->processEvents();
-        QThread::msleep(300);
+        waitWithUiEvents(300);
         return true;
     }
 
@@ -361,7 +371,7 @@ bool performSystemChecks(QSplashScreen* splash, MainWindow* mainWindow) {
         // 确保每个检查项至少显示一段时间
         int elapsed = itemTimer.elapsed();
         if (elapsed < 300) {
-            QThread::msleep(300 - elapsed);
+            waitWithUiEvents(300 - elapsed);
         }
     }
 
@@ -440,6 +450,11 @@ int main(int argc, char *argv[])
         debug = 1;
     }
 
+    // 功能开关优先级高于环境变量/命令行：关闭时统一禁用全局 qDebug 输出。
+    if (!featureSwitch->isSmallFeatureEnabled("debug.qdebug")) {
+        debug = 0;
+    }
+
     // 安装全局消息处理器以便统一过滤 qDebug 输出
     qInstallMessageHandler(globalMessageHandler);
 
@@ -479,7 +494,7 @@ int main(int argc, char *argv[])
     splash.showMessage("正在启动工业控制系统...",
                        Qt::AlignBottom | Qt::AlignCenter, Qt::white);
     a.processEvents();
-    QThread::msleep(500);
+    waitWithUiEvents(500);
 
     // 第二阶段：系统自检
     bool systemReady = true;
@@ -500,7 +515,7 @@ int main(int argc, char *argv[])
         splash.showMessage("系统自检失败！",
                            Qt::AlignBottom | Qt::AlignCenter, QColor(255, 100, 100));
         a.processEvents();
-        QThread::msleep(1500);
+        waitWithUiEvents(1500);
 
         // 询问用户是否继续
         splash.hide();
@@ -519,7 +534,7 @@ int main(int argc, char *argv[])
         splash.showMessage("系统准备就绪",
                            Qt::AlignBottom | Qt::AlignCenter, QColor(100, 255, 100));
         a.processEvents();
-        QThread::msleep(800);
+        waitWithUiEvents(800);
     }
 
     // 显示主窗口

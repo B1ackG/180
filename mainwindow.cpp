@@ -318,12 +318,22 @@ void MainWindow::setupRecordAndPermissionConnections()
         }
 
         if (m_isJointMode) {
-            writeToMainDevice(525, 1);
+            writeToMainDevice(525, 2);
             ui->TBtn_MoveMode->setText("关节模式");
+            QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
+            if (moveModeLabel) {
+                moveModeLabel->setText("关节模式");
+                moveModeLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
+            }
             showNotification("已切换至关节模式");
         } else {
-            writeToMainDevice(525, 2);
+            writeToMainDevice(525, 1);
             ui->TBtn_MoveMode->setText("坐标模式");
+            QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
+            if (moveModeLabel) {
+                moveModeLabel->setText("坐标模式");
+                moveModeLabel->setStyleSheet("color: #ffaa00; font-weight: bold; font-size: 11px;");
+            }
             showNotification("已切换至坐标模式");
         }
     });
@@ -2305,6 +2315,14 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     int currentPage = ui->StackedWidget->currentIndex();
     QString pageName = m_pageNames.value(currentPage, "未知");
 
+    // 外部按钮逻辑统一门禁：仅允许在[点动 + 关节]模式下执行。
+    // 但释放事件仍要继续处理，避免切模后因拦截导致寄存器保持在按下态。
+    if ((m_stepModeEnabled || !m_isJointMode) && pressed) {
+        qCDebug(lcMainWindow) << "外部按键忽略：当前未处于[点动+关节]模式，按键○" << keyNumber
+                 << (pressed ? "按下" : "释放");
+        return;
+    }
+
     // 特殊处理：如果是机械臂页面（索引为0），执行唯一的 500/514 寄存器逻辑并直接返回
     if (currentPage == 0 || pageName == "机械臂" || pageName == "page_Robot") {
         // 将原AGV页面的○1/○2动作迁移为首页上的○9/○10。
@@ -2317,33 +2335,108 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             return;
         }
 
-        // 新增条件：只有当 TBtn_Stepmove 处于“点动模式”且 TBtn_MoveMode 处于“关节模式”时才执行
-        if (!m_stepModeEnabled && m_isJointMode) {
-            if (keyNumber >= 1 && keyNumber <= 8) {
-                int value500 = 0;
-                int value514 = 0;
-                if (pressed) {
-                    // 地址500逻辑：○1,○2->1; ○3,○4->2; ○5,○6->3; ○7,○8->4
-                    value500 = (keyNumber + 1) / 2;
-
-                    // 地址514逻辑：奇数按键写4，偶数按键写2
-                    value514 = (keyNumber % 2 != 0) ? 4 : 2;
-
-                    writeToMainDevice(500, value500);
-                    writeToMainDevice(514, value514);
-                } else {
-                    // 松开时的逻辑：500寄存器不再写0，514寄存器写0
-                    value500 = -1; // 用-1表示不操作
-                    value514 = 0;
-                    writeToMainDevice(514, 0);
-                }
-
-                qCDebug(lcMainWindow) << "page_Robot (Index 0, 点动/关节) 按键 ○" << keyNumber << " " << (pressed ? "按下" : "释放")
-                         << " -> 地址500写入:" << (pressed ? QString::number(value500) : "保持") 
-                         << ", 地址514写入:" << value514;
+        auto recordRobotExternalMotion = [this](int key, bool isPressed) {
+            if (!m_recorder || key < 1 || key > 8) {
+                return;
             }
-        } else {
-            qCDebug(lcMainWindow) << "机械臂页面按键忽略：当前未处于[点动+关节]模式";
+
+            const int axisIndex = (key - 1) / 2;
+            const bool isOddKey = (key % 2) == 1;
+
+            QString componentName;
+            QString labelName;
+            QString unit;
+            QString oddAction;
+            QString evenAction;
+
+            switch (axisIndex) {
+            case 0:
+                componentName = "悬臂角度";
+                labelName = "label_Value1";
+                unit = "°";
+                oddAction = "减小";
+                evenAction = "增大";
+                break;
+            case 1:
+                componentName = "升降高度";
+                labelName = "label_Value2";
+                unit = "mm";
+                oddAction = "下降";
+                evenAction = "上升";
+                break;
+            case 2:
+                componentName = "悬臂长度";
+                labelName = "label_Value3";
+                unit = "mm";
+                oddAction = "缩短";
+                evenAction = "伸长";
+                break;
+            case 3:
+                componentName = "柔顺角度";
+                labelName = "label_Value4";
+                unit = "°";
+                oddAction = "负向旋转";
+                evenAction = "正向旋转";
+                break;
+            default:
+                return;
+            }
+
+            const double currentValue = getSliderLabelValue(labelName);
+            double globalSpeedPercent = getSliderEditValue("TechSliderEdit_Robot_RobotSpeed");
+            if (globalSpeedPercent <= 0.0) {
+                globalSpeedPercent = getSliderEditValue("TechSliderEdit_EOAT_RotationSpeed");
+            }
+
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = "机械臂";
+            record.controlName = QString("外部按键○%1").arg(key);
+            record.controlType = "MatrixKey";
+            record.operation = isPressed ? "external_motion_start" : "external_motion_stop";
+            record.oldValue = "";
+
+            if (isPressed) {
+                record.newValue = QString("%1当前为：%2%3，正在以%4%（机器人全局速度）%5")
+                                      .arg(componentName)
+                                      .arg(currentValue, 0, 'f', 1)
+                                      .arg(unit)
+                                      .arg(globalSpeedPercent, 0, 'f', 0)
+                                      .arg(isOddKey ? oddAction : evenAction);
+            } else {
+                record.newValue = QString("运动停止，当前%1为%2%3")
+                                      .arg(componentName)
+                                      .arg(currentValue, 0, 'f', 1)
+                                      .arg(unit);
+            }
+
+            m_recorder->addRecord(record);
+        };
+
+        if (keyNumber >= 1 && keyNumber <= 8) {
+            int value500 = 0;
+            int value514 = 0;
+            if (pressed) {
+                // 地址500逻辑：○1,○2->1; ○3,○4->2; ○5,○6->3; ○7,○8->4
+                value500 = (keyNumber + 1) / 2;
+
+                // 地址514逻辑：奇数按键写4，偶数按键写2
+                value514 = (keyNumber % 2 != 0) ? 4 : 2;
+
+                writeToMainDevice(500, value500);
+                writeToMainDevice(514, value514);
+            } else {
+                // 松开时的逻辑：500寄存器不再写0，514寄存器写0
+                value500 = -1; // 用-1表示不操作
+                value514 = 0;
+                writeToMainDevice(514, 0);
+            }
+
+            qCDebug(lcMainWindow) << "page_Robot (Index 0, 点动/关节) 按键 ○" << keyNumber << " " << (pressed ? "按下" : "释放")
+                     << " -> 地址500写入:" << (pressed ? QString::number(value500) : "保持") 
+                     << ", 地址514写入:" << value514;
+
+            recordRobotExternalMotion(keyNumber, pressed);
         }
         return; // 机械臂页面不再执行后续逻辑
     }
@@ -2435,6 +2528,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
                              qMakePair(3, pressed),
                          },
                          pressed ? "○9按下(bit3=1)" : "○9释放(bit3=0)");
+    appendAgvExternalKeyRecord(keyNumber, pressed);
 }
 
 int MainWindow::getValueFor124Address(int keyNumber, bool pressed)
@@ -2621,31 +2715,33 @@ void MainWindow::onModbusConnected()
         performStartupWrites();
     }
 
-    if (isFeatureEnabled("modbus_main", "modbus_main.float_reading")) {
-        setupModbusFloatReading();
-    }
-
-    // 开机后主动读取模式寄存器，用于同步按钮文本状态（增强重试次数以提高首次命中率）
-    for (int i = 0; i < 12; ++i) {
-        QTimer::singleShot(i * 300, this, [this]() {
-            if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
-                return;
+    const bool startupFloatReadingEnabled = isFeatureEnabled("modbus_main", "modbus_main.float_reading");
+    if (startupFloatReadingEnabled) {
+        // 延后批量浮点轮询，优先保障开机模式位读取（501/525）先完成，避免启动阶段请求拥塞。
+        QTimer::singleShot(2500, this, [this]() {
+            if (MainDeviceModbusApi::isReady(m_modbusManager)) {
+                setupModbusFloatReading();
             }
-            MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 501, 1);
-            MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 525, 1);
         });
     }
 
+    auto requestStartupModes = [this]() {
+        if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
+            return;
+        }
+        // 一次读取 501~525，减少请求数量并保证两个模式位在同一响应链路。
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 501, 25);
+    };
+
+    // 开机后主动读取模式寄存器，用于同步按钮文本状态（增强重试次数以提高首次命中率）
+    for (int i = 0; i < 12; ++i) {
+        QTimer::singleShot(i * 300, this, requestStartupModes);
+    }
+
     // 二次补读：应对开机早期网络/设备抖动导致的首轮漏读。
-    QTimer::singleShot(4000, this, [this]() {
+    QTimer::singleShot(4000, this, [this, requestStartupModes]() {
         for (int i = 0; i < 4; ++i) {
-            QTimer::singleShot(i * 250, this, [this]() {
-                if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
-                    return;
-                }
-                MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 501, 1);
-                MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 525, 1);
-            });
+            QTimer::singleShot(i * 250, this, requestStartupModes);
         }
     });
 
@@ -2653,13 +2749,8 @@ void MainWindow::onModbusConnected()
     auto *modeStartupRetryTimer = new QTimer(this);
     modeStartupRetryTimer->setInterval(400);
     const qint64 startupBeginMs = QDateTime::currentMSecsSinceEpoch();
-    connect(modeStartupRetryTimer, &QTimer::timeout, this, [this, modeStartupRetryTimer, startupBeginMs]() {
-        if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
-            return;
-        }
-
-        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 501, 1);
-        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 525, 1);
+    connect(modeStartupRetryTimer, &QTimer::timeout, this, [this, modeStartupRetryTimer, startupBeginMs, requestStartupModes]() {
+        requestStartupModes();
 
         const bool has501 = !m_stepModeUnknown;
         const bool has525 = !m_moveModeUnknown;
@@ -2927,30 +3018,60 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             m_stepModeEnabled = true;
             ui->TBtn_Stepmove->setText("步进模式");
             ui->TBtn_Stepmove->setToolTip("当前模式：步进模式");
+            QLabel *runModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarRunModeLabel") : nullptr;
+            if (runModeLabel) {
+                runModeLabel->setText("步进模式");
+                runModeLabel->setStyleSheet("color: #00ff00; font-weight: bold; font-size: 11px;");
+            }
         } else if (value == 1) {
             m_stepModeUnknown = false;
             m_stepModeEnabled = false;
             ui->TBtn_Stepmove->setText("点动模式");
             ui->TBtn_Stepmove->setToolTip("当前模式：点动模式");
+            QLabel *runModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarRunModeLabel") : nullptr;
+            if (runModeLabel) {
+                runModeLabel->setText("点动模式");
+                runModeLabel->setStyleSheet("color: #00ccff; font-weight: bold; font-size: 11px;");
+            }
         } else {
             m_stepModeUnknown = true;
             ui->TBtn_Stepmove->setText("未选择模式");
             ui->TBtn_Stepmove->setToolTip("当前模式：未选择模式");
+            QLabel *runModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarRunModeLabel") : nullptr;
+            if (runModeLabel) {
+                runModeLabel->setText("步进未选择");
+                runModeLabel->setStyleSheet("color: #aaaaaa; font-weight: bold; font-size: 11px;");
+            }
         }
     }
 
     if (address == 525 && ui && ui->TBtn_MoveMode) {
-        if (value == 1) {
+        if (value == 2) {
             m_moveModeUnknown = false;
             m_isJointMode = true;
             ui->TBtn_MoveMode->setText("关节模式");
-        } else if (value == 2) {
+            QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
+            if (moveModeLabel) {
+                moveModeLabel->setText("关节模式");
+                moveModeLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
+            }
+        } else if (value == 1) {
             m_moveModeUnknown = false;
             m_isJointMode = false;
             ui->TBtn_MoveMode->setText("坐标模式");
+            QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
+            if (moveModeLabel) {
+                moveModeLabel->setText("坐标模式");
+                moveModeLabel->setStyleSheet("color: #ffaa00; font-weight: bold; font-size: 11px;");
+            }
         } else {
             m_moveModeUnknown = true;
             ui->TBtn_MoveMode->setText("未选择模式");
+            QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
+            if (moveModeLabel) {
+                moveModeLabel->setText("运动未选择");
+                moveModeLabel->setStyleSheet("color: #aaaaaa; font-weight: bold; font-size: 11px;");
+            }
         }
     }
 
@@ -3622,6 +3743,18 @@ void MainWindow::setupAGVModbus()
                 if (address == 51) {
                     const bool bit3 = (((value >> 3) & 0x01) == 1);
                     const bool bit4 = (((value >> 4) & 0x01) == 1);
+
+                    const bool parkingSwitchWaiting = property("parkingSwitchWaiting").toBool();
+                    const int pendingBit = property("parkingTargetBit").toInt();
+                    const bool pendingTargetReached = (pendingBit >= 0 && pendingBit <= 15)
+                                                          ? ((((value >> pendingBit) & 0x01) == 1))
+                                                          : false;
+
+                    if (parkingSwitchWaiting && !pendingTargetReached) {
+                        // 切换过程中忽略中间态，避免按钮文本在“旧状态/新状态”间来回跳变。
+                        return;
+                    }
+
                     if (bit3 || bit4) {
                         const bool parkingEnabled = bit3;
                         m_agvParkingEnabled = parkingEnabled;
@@ -4381,9 +4514,9 @@ void MainWindow::performStartupWrites()
 
     // 启动清除伺服报警（地址29脉冲写入）
     if (isFeatureEnabled("startup_checks", "startup.clear_servo_alarm")) {
-        writeToMainDevice(29, 1);
+        writeToMainDevice(290, 1);
         QTimer::singleShot(120, this, [this]() {
-            writeToMainDevice(29, 0);
+            writeToMainDevice(290, 0);
         });
         executedAnyAction = true;
         qCDebug(lcMainWindow) << "已执行启动清除伺服报警动作";
@@ -4639,7 +4772,7 @@ void MainWindow::setupAGVMoveSpeedControl()
     m_editAGV_MoveSpeed = findChild<TechSliderEdit*>("SEdit_AGV_MoveSpeed");
     if (m_editAGV_MoveSpeed) {
         // 设置参数 - 值域 0-100 mm/s
-        m_editAGV_MoveSpeed->setLabelText("六自由度平台速度");
+        m_editAGV_MoveSpeed->setLabelText("全向平台速度");
         m_editAGV_MoveSpeed->setRange(0, 100);
         m_editAGV_MoveSpeed->setValue(0);
         m_editAGV_MoveSpeed->setSuffix("mm/s");
@@ -4698,9 +4831,6 @@ void MainWindow::onAGVOABtnClicked()
         writeAGVRegisterBits(0,
                              {
                                  qMakePair(1, false),
-                                 qMakePair(2, false),
-                                 qMakePair(3, false),
-                                 qMakePair(6, true),
                              },
                              "OA开启");
 
@@ -4715,9 +4845,6 @@ void MainWindow::onAGVOABtnClicked()
         writeAGVRegisterBits(0,
                              {
                                  qMakePair(1, true),
-                                 qMakePair(2, false),
-                                 qMakePair(3, false),
-                                 qMakePair(6, true),
                              },
                              "OA关闭");
         qCDebug(lcMainWindow) << "AGV避障关闭，地址0写入194";
@@ -4738,49 +4865,149 @@ void MainWindow::onAGVOABtnClicked()
 
 void MainWindow::onAGVParkBtnClicked()
 {
-    m_agvParkingEnabled = !m_agvParkingEnabled;
+    if (property("parkingSwitchWaiting").toBool()) {
+        ui->statusBar->showMessage("驻车切换进行中，请等待完成", 2000);
+        return;
+    }
 
-    if (m_agvParkingEnabled) {
+    const bool oldParkingEnabled = m_agvParkingEnabled;
+    const bool targetParkingEnabled = !oldParkingEnabled;
+    const int targetWaitBit = targetParkingEnabled ? 3 : 4;
+    const bool writeOk = targetParkingEnabled
+                             ? writeAGVRegisterBits(0,
+                                                    {
+                                                        qMakePair(9, true),
+                                                        qMakePair(10, false),
+                                                    },
+                                                    "驻车开启")
+                             : writeAGVRegisterBits(0,
+                                                    {
+                                                        qMakePair(9, false),
+                                                        qMakePair(10, true),
+                                                    },
+                                                    "驻车关闭");
+
+    if (!writeOk) {
+        m_agvParkingEnabled = oldParkingEnabled;
+        if (m_techBtnAGV_Park) {
+            m_techBtnAGV_Park->setText(oldParkingEnabled ? "驻车开启" : "驻车关闭");
+            m_techBtnAGV_Park->setPrimaryColor(oldParkingEnabled ? QColor("#00C8FF") : QColor("#7F8C8D"));
+            m_techBtnAGV_Park->setGlowColor(oldParkingEnabled ? QColor(0, 200, 255, 180)
+                                                              : QColor(127, 140, 141, 100));
+        }
+
+        ui->statusBar->showMessage("AGV驻车指令发送失败", 3000);
+        OperationRecord failRecord;
+        failRecord.timestamp = QDateTime::currentDateTime();
+        failRecord.pageName = "AGV控制";
+        failRecord.controlName = "techBtn_AGV_Park";
+        failRecord.controlType = "TechPushButton";
+        failRecord.operation = "parking_mode_write_failed";
+        failRecord.oldValue = oldParkingEnabled ? "驻车开启" : "驻车关闭";
+        failRecord.newValue = "指令发送失败，状态保持不变";
+        m_recorder->addRecord(failRecord);
+        return;
+    }
+
+    m_agvParkingEnabled = targetParkingEnabled;
+
+    if (targetParkingEnabled) {
         m_techBtnAGV_Park->setText("驻车开启");
         m_techBtnAGV_Park->setPrimaryColor(QColor("#00C8FF"));
         m_techBtnAGV_Park->setGlowColor(QColor(0, 200, 255, 180));
-
-        // 驻车开启：bit9=1, bit10=0，保留其他位。
-        writeAGVRegisterBits(0,
-                             {
-                                 qMakePair(9, true),
-                                 qMakePair(10, false),
-                             },
-                             "驻车开启");
         ui->statusBar->showMessage("AGV驻车开启", 2000);
-
-
     } else {
         m_techBtnAGV_Park->setText("驻车关闭");
         m_techBtnAGV_Park->setPrimaryColor(QColor("#7F8C8D"));
         m_techBtnAGV_Park->setGlowColor(QColor(127, 140, 141, 100));
-
-        // 驻车关闭：bit9=0, bit10=1，保留其他位。
-        writeAGVRegisterBits(0,
-                             {
-                                 qMakePair(9, false),
-                                 qMakePair(10, true),
-                             },
-                             "驻车关闭");
         ui->statusBar->showMessage("AGV驻车关闭", 2000);
-
-
     }
 
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = "AGV控制";
-    record.controlName = "techBtn_AGV_Park";
-    record.controlType = "TechPushButton";
-    record.operation = "parking_mode_changed";
-    record.oldValue = m_agvParkingEnabled ? "驻车关闭" : "驻车开启";
-    record.newValue = m_agvParkingEnabled ? "驻车开启" : "驻车关闭";
-    m_recorder->addRecord(record);
+    OperationRecord modeRecord;
+    modeRecord.timestamp = QDateTime::currentDateTime();
+    modeRecord.pageName = "AGV控制";
+    modeRecord.controlName = "techBtn_AGV_Park";
+    modeRecord.controlType = "TechPushButton";
+    modeRecord.operation = "parking_mode_changed";
+    modeRecord.oldValue = oldParkingEnabled ? "驻车开启" : "驻车关闭";
+    modeRecord.newValue = targetParkingEnabled ? "驻车模式已开启" : "驻车模式已关闭";
+    m_recorder->addRecord(modeRecord);
+
+    // 与底盘模式切换一致：驻车切换期间显示等待提示，直到51寄存器目标位为1。
+    if (QTimer *oldTimer = findChild<QTimer*>("parkingSwitchWaitTimer")) {
+        oldTimer->stop();
+        oldTimer->deleteLater();
+    }
+
+    setProperty("parkingSwitchWaiting", true);
+    setProperty("parkingTargetBit", targetWaitBit);
+    setProperty("parkingTargetEnabled", targetParkingEnabled);
+
+    m_isSteeringAlarmActive = true;
+    showAlarm("正在切换驻车模式", "#FFFF00", false);
+
+    auto *parkingWaitTimer = new QTimer(this);
+    parkingWaitTimer->setObjectName("parkingSwitchWaitTimer");
+    parkingWaitTimer->setInterval(300);
+    const qint64 parkingSwitchBeginMs = QDateTime::currentMSecsSinceEpoch();
+
+    connect(parkingWaitTimer, &QTimer::timeout, this,
+            [this, parkingWaitTimer, targetWaitBit, targetParkingEnabled, parkingSwitchBeginMs]() {
+                if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
+                    m_agvModbusManager->readMultipleRegisters(51, 1);
+                }
+
+                if (m_agvRegisterShadow.contains(51)) {
+                    const quint16 reg51 = m_agvRegisterShadow.value(51);
+                    const bool targetBitSet = (((reg51 >> targetWaitBit) & 0x01) == 1);
+                    if (targetBitSet) {
+                        parkingWaitTimer->stop();
+                        parkingWaitTimer->deleteLater();
+                        setProperty("parkingSwitchWaiting", false);
+                        setProperty("parkingTargetBit", -1);
+                        m_isSteeringAlarmActive = false;
+                        hideAlarm();
+
+                        OperationRecord okRecord;
+                        okRecord.timestamp = QDateTime::currentDateTime();
+                        okRecord.pageName = "AGV控制";
+                        okRecord.controlName = "techBtn_AGV_Park";
+                        okRecord.controlType = "TechPushButton";
+                        okRecord.operation = "parking_mode_confirmed";
+                        okRecord.oldValue = "";
+                        okRecord.newValue = targetParkingEnabled ? "驻车模式已开启" : "驻车模式已关闭";
+                        m_recorder->addRecord(okRecord);
+                        return;
+                    }
+                }
+
+                if (QDateTime::currentMSecsSinceEpoch() - parkingSwitchBeginMs >= 90000) {
+                    parkingWaitTimer->stop();
+                    parkingWaitTimer->deleteLater();
+                    setProperty("parkingSwitchWaiting", false);
+                    setProperty("parkingTargetBit", -1);
+                    m_isSteeringAlarmActive = false;
+                    hideAlarm();
+
+                    OperationRecord timeoutRecord;
+                    timeoutRecord.timestamp = QDateTime::currentDateTime();
+                    timeoutRecord.pageName = "AGV控制";
+                    timeoutRecord.controlName = "techBtn_AGV_Park";
+                    timeoutRecord.controlType = "TechPushButton";
+                    timeoutRecord.operation = "parking_switch_timeout";
+                    timeoutRecord.oldValue = QString("等待寄存器51 bit%1=1").arg(targetWaitBit);
+                    if (m_agvRegisterShadow.contains(51)) {
+                        timeoutRecord.newValue = QString("90秒超时，读值=%1，期望状态=%2")
+                                                     .arg(m_agvRegisterShadow.value(51))
+                                                     .arg(targetParkingEnabled ? "驻车开启" : "驻车关闭");
+                    } else {
+                        timeoutRecord.newValue = QString("90秒超时，未读到寄存器51，期望状态=%1")
+                                                     .arg(targetParkingEnabled ? "驻车开启" : "驻车关闭");
+                    }
+                    m_recorder->addRecord(timeoutRecord);
+                }
+            });
+    parkingWaitTimer->start();
 }
 
 // AGV运动速度变化槽函数
@@ -4845,6 +5072,51 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
                              qMakePair(2, pressed),
                          },
                          pressed ? "○10按下(bit2=1)" : "○10释放(bit2=0)");
+    appendAgvExternalKeyRecord(keyNumber, pressed);
+}
+
+QString MainWindow::currentSteeringModeText() const
+{
+    if (m_steeringModeSelector) {
+        return m_steeringModeSelector->modeText(m_steeringModeSelector->currentMode());
+    }
+
+    switch (steeringModeFromRegisterValue(m_agvRegisterShadow.value(2, 0))) {
+    case STEER_FRONT_BACK: return "前后轮转向";
+    case STEER_FRONT_ONLY: return "前轮转向";
+    case STEER_PARALLEL: return "平移模式";
+    case STEER_LATERAL: return "横向移动";
+    case STEER_ROTATE: return "原地旋转";
+    default: return "未知模式";
+    }
+}
+
+void MainWindow::appendAgvExternalKeyRecord(int keyNumber, bool pressed)
+{
+    if (!m_recorder) {
+        return;
+    }
+
+    const double speedValue = m_editAGV_MoveSpeed ? m_editAGV_MoveSpeed->value() : getSliderEditValue("SEdit_AGV_MoveSpeed");
+    const double angleValue = m_editAGV_Angle ? m_editAGV_Angle->value() : getSliderEditValue("SEdit_AGV_Angle");
+
+    OperationRecord record;
+    record.timestamp = QDateTime::currentDateTime();
+    record.pageName = "AGV控制";
+    record.controlName = QString("外部按键○%1").arg(keyNumber);
+    record.controlType = "MatrixKey";
+    record.operation = pressed ? "agv_external_motion_start" : "agv_external_motion_end";
+    record.oldValue = "";
+    record.newValue = pressed
+                          ? QString("当前模式为%1，设置速度为%2，设置角度为%3，开始运动")
+                                .arg(currentSteeringModeText())
+                                .arg(speedValue, 0, 'f', 0)
+                                .arg(angleValue, 0, 'f', 0)
+                          : QString("运动完成，当前模式为%1，设置速度为%2，设置角度为%3")
+                                .arg(currentSteeringModeText())
+                                .arg(speedValue, 0, 'f', 0)
+                                .arg(angleValue, 0, 'f', 0);
+    m_recorder->addRecord(record);
 }
 //运动模式选择
 
@@ -4869,6 +5141,13 @@ void MainWindow::setupSteeringModeControl()
     }
 
     if (m_steeringModeSelector) {
+        if (m_steeringModeSelector->height() < 130) {
+            m_steeringModeSelector->setGeometry(m_steeringModeSelector->x(),
+                                                m_steeringModeSelector->y(),
+                                                m_steeringModeSelector->width(),
+                                                130);
+        }
+
         // 设置样式为全息风格
         m_steeringModeSelector->setButtonStyle(TechPushButton::StyleHolographic);
 
@@ -5056,12 +5335,24 @@ void MainWindow::setupTcpTransmissionUI()
         centerLayout->addWidget(roleWidget);
 
         // 系统运行模式 (点动/步进)
-        QLabel *runModeLabel = new QLabel(m_stepModeEnabled ? "步进模式" : "点动模式", centerWidget);
+        const QString startupRunModeText = m_stepModeUnknown ? "步进未选择" : (m_stepModeEnabled ? "步进模式" : "点动模式");
+        const QString startupRunModeColor = m_stepModeUnknown ? "#aaaaaa" : (m_stepModeEnabled ? "#00ff00" : "#00ccff");
+        QLabel *runModeLabel = new QLabel(startupRunModeText, centerWidget);
         runModeLabel->setObjectName("statusBarRunModeLabel");
         runModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
-                                    .arg(m_stepModeEnabled ? "#00ff00" : "#00ccff"));
+                        .arg(startupRunModeColor));
         runModeLabel->setFixedHeight(12);
         centerLayout->addWidget(runModeLabel);
+
+        // 运动模式 (关节/坐标)
+        const QString startupMoveModeText = m_moveModeUnknown ? "运动未选择" : (m_isJointMode ? "关节模式" : "坐标模式");
+        const QString startupMoveModeColor = m_moveModeUnknown ? "#aaaaaa" : (m_isJointMode ? "#55ff55" : "#ffaa00");
+        QLabel *moveModeLabel = new QLabel(startupMoveModeText, centerWidget);
+        moveModeLabel->setObjectName("statusBarMoveModeLabel");
+        moveModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+                         .arg(startupMoveModeColor));
+        moveModeLabel->setFixedHeight(12);
+        centerLayout->addWidget(moveModeLabel);
         
         // 控制模式 (有线/无线)
         QLabel *controlModeLabel = new QLabel(m_controlMode == WIRED_MODE ? "有线控制" : "无线控制", centerWidget);
@@ -6369,7 +6660,7 @@ void MainWindow::on_TBtn_RemoveWarning_clicked()
     qCDebug(lcMainWindow) << "用户点击清除报警按钮";
 
     // 写入29地址清除报警
-    writeToMainDevice(29, 1);
+    writeToMainDevice(290, 1);
     
     // 清除力控超限错误，给403写0（写到192.168.1.13）
     ModbusThreadManager::instance()->writeSingleRegister(403, 0);

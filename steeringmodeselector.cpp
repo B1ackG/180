@@ -34,10 +34,10 @@ void SteeringModeSelector::initUI()
     m_titleLabel->setStyleSheet("color: white; font-size: 16px; font-weight: bold;");
     m_mainLayout->addWidget(m_titleLabel);
 
-    // 按钮布局 - 水平布局
-    m_buttonLayout = new QHBoxLayout();
+    // 按钮布局 - 两排布局（上排123，下排45）
+    m_buttonLayout = new QVBoxLayout();
     m_buttonLayout->setContentsMargins(0, 0, 0, 0);
-    m_buttonLayout->setSpacing(10);
+    m_buttonLayout->setSpacing(8);
 
     // 创建按钮（恢复完整文本）
     m_btnFrontBack = new TechPushButton("前后轮转向", this);
@@ -53,10 +53,9 @@ void SteeringModeSelector::initUI()
     m_btnLateral->setObjectName("btnLateral");
     m_btnRotate->setObjectName("btnRotate");
 
-    // 设置推荐尺寸（标题+5个按钮的水平布局）
-    // 推荐总宽度：5个按钮 × 120px + 4个间距 × 10px + 左右边距 = 600px + 40px = 640px
-    // 推荐高度：标题30px + 按钮40px + 间距 = 约80px
-    // 因此推荐控件尺寸：宽度640px，高度80px
+    // 设置推荐尺寸（标题+两排按钮布局）
+    // 推荐总宽度：3个按钮 × 120px + 2个间距 × 10px + 边距
+    // 推荐高度：标题 + 两排按钮 + 间距
     int btnWidth = 120;  // 按钮宽度（适应较长的中文文本）
     int btnHeight = 40;  // 按钮高度（适合手指触摸）
 
@@ -87,15 +86,28 @@ void SteeringModeSelector::initUI()
     m_btnLateral->setTextGlow(true);
     m_btnRotate->setTextGlow(true);
 
-    // 添加到水平布局
-    m_buttonLayout->addWidget(m_btnFrontBack);
-    m_buttonLayout->addWidget(m_btnFrontOnly);
-    m_buttonLayout->addWidget(m_btnParallel);
-    m_buttonLayout->addWidget(m_btnLateral);
-    m_buttonLayout->addWidget(m_btnRotate);
+    QHBoxLayout *topRow = new QHBoxLayout();
+    topRow->setContentsMargins(0, 0, 0, 0);
+    topRow->setSpacing(10);
+    topRow->addWidget(m_btnFrontBack);
+    topRow->addWidget(m_btnFrontOnly);
+    topRow->addWidget(m_btnParallel);
+
+    QHBoxLayout *bottomRow = new QHBoxLayout();
+    bottomRow->setContentsMargins(0, 0, 0, 0);
+    bottomRow->setSpacing(10);
+    bottomRow->addStretch();
+    bottomRow->addWidget(m_btnLateral);
+    bottomRow->addWidget(m_btnRotate);
+    bottomRow->addStretch();
+
+    m_buttonLayout->addLayout(topRow);
+    m_buttonLayout->addLayout(bottomRow);
 
     // 添加到主布局
     m_mainLayout->addLayout(m_buttonLayout);
+
+    setMinimumSize(420, 130);
 
     // 连接信号槽
     connect(m_btnFrontBack, &TechPushButton::clicked, this, &SteeringModeSelector::onFrontBackClicked);

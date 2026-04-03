@@ -21,7 +21,7 @@ ModbusTCPClient::ModbusTCPClient(QObject *parent)
     , m_maxTimeoutMs(3000) // 默认3秒超时
 {
     // 保持socket与当前对象在同一线程，避免跨线程访问
-    m_socket = new QTcpSocket();
+    m_socket = new QTcpSocket(this);
 
     // 连接信号槽
     connect(m_socket, &QTcpSocket::connected, this, &ModbusTCPClient::onConnected);
@@ -601,6 +601,10 @@ void ModbusTCPClient::parseSingleResponse(const QByteArray &response, quint16 tr
 
         // 检查是否是异常响应
         if (functionCode & 0x80) {
+            if (pdu.size() < 2) {
+                emit errorOccurred(QStringLiteral("Modbus异常响应长度非法"));
+                return;
+            }
             // 异常响应
             quint8 errorCode = static_cast<quint8>(pdu[1]);
             QString errorMsg = QString("Modbus异常响应: 错误码 0x%1").arg(errorCode, 2, 16, QChar('0'));
@@ -613,6 +617,10 @@ void ModbusTCPClient::parseSingleResponse(const QByteArray &response, quint16 tr
         if (functionCode == 0x04 || functionCode == 0x03) {
             if (pdu.size() >= 3) {
                 quint8 byteCount = static_cast<quint8>(pdu[1]);
+                if (pdu.size() < (2 + byteCount)) {
+                    emit errorOccurred(QStringLiteral("Modbus响应数据长度不足"));
+                    return;
+                }
                 qDebug() << "读寄存器响应(" << QString::number(functionCode, 16) 
                          << ") - 字节数:" << byteCount
                          << "寄存器数量:" << byteCount / 2;

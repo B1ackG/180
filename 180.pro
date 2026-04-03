@@ -24,6 +24,7 @@ SOURCES += \
     mainmodbusconnector.cpp \
     mainmodbusstatus.cpp \
     mappingconfig.cpp \
+    modebuttonstyler.cpp \
     matrixkeymonitor.cpp \
     matrixkeythreadmanager.cpp \
     modbustcpclient.cpp \
@@ -53,6 +54,7 @@ HEADERS += \
     mainmodbusconnector.h \
     mainmodbusstatus.h \
     mappingconfig.h \
+    modebuttonstyler.h \
     matrixkeymonitor.h \
     matrixkeythreadmanager.h \
     modbustcpclient.h \

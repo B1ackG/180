@@ -353,9 +353,15 @@ void MainWindow::checkUI()
         qDebug() << "=== 控件" << i + 1 << "===";
         qDebug() << "对象名:" << selector->objectName();
         qDebug() << "类名:" << selector->metaObject()->className();
-        qDebug() << "父对象:" << selector->parent();
-        qDebug() << "父对象类名:" << selector->parent()->metaObject()->className();
-        qDebug() << "父对象名:" << selector->parent()->objectName();
+        QObject *parentObj = selector->parent();
+        qDebug() << "父对象:" << parentObj;
+        if (parentObj) {
+            qDebug() << "父对象类名:" << parentObj->metaObject()->className();
+            qDebug() << "父对象名:" << parentObj->objectName();
+        } else {
+            qDebug() << "父对象类名:" << "<null>";
+            qDebug() << "父对象名:" << "<null>";
+        }
         qDebug() << "位置:" << selector->pos();
         qDebug() << "尺寸:" << selector->size();
         qDebug() << "是否可见:" << selector->isVisible();

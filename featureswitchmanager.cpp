@@ -96,7 +96,10 @@ void FeatureSwitchManager::initializeFeatureSets()
         "alarm.force_limit",
         "alarm.steering_switch",
         "alarm.popup",
-        "alarm.status_logs"
+        "alarm.status_logs",
+
+        // 全局 qDebug 输出开关
+        "debug.qdebug"
     };
 }
 
