@@ -846,7 +846,6 @@ void MainWindow::initSpeedGaugeUI()
             arcGauge->setLabelText(cfg.label);
             arcGauge->setSuffix(cfg.suffix);
             arcGauge->setPrecision(cfg.precision);
-            arcGauge->setForceControlMode(true);
             
             cfg.placeholder->hide();
             arcGauge->show();
@@ -3731,7 +3730,7 @@ void MainWindow::setupAGVModbus()
                 }
 
                 if (address == 0) {
-                    const bool oaEnabled = (((value >> 1) & 0x01) == 0);
+                    const bool oaEnabled = (((value >> 1) & 0x01) == 1);
                     m_agvOaEnabled = oaEnabled;
                     if (m_techBtnAGV_OA) {
                         m_techBtnAGV_OA->setText(oaEnabled ? "避障开启" : "避障关闭");
@@ -4827,10 +4826,10 @@ void MainWindow::onAGVOABtnClicked()
         m_techBtnAGV_OA->setText("避障开启");
         m_techBtnAGV_OA->setPrimaryColor(QColor("#00C8FF"));
         m_techBtnAGV_OA->setGlowColor(QColor(0, 200, 255, 180));
-        // 地址0：保留其他位，仅更新bit1/2/3/6 -> 0,0,0,1
+        // 地址0：保留其他位，仅更新bit1=1（语义反转后：1表示避障开启）
         writeAGVRegisterBits(0,
                              {
-                                 qMakePair(1, false),
+                                 qMakePair(1, true),
                              },
                              "OA开启");
 
@@ -4841,10 +4840,10 @@ void MainWindow::onAGVOABtnClicked()
         m_techBtnAGV_OA->setText("避障关闭");
         m_techBtnAGV_OA->setPrimaryColor(QColor("#7F8C8D"));
         m_techBtnAGV_OA->setGlowColor(QColor(127, 140, 141, 100));
-        // 地址0：保留其他位，仅更新bit1/2/3/6 -> 1,0,0,1
+        // 地址0：保留其他位，仅更新bit1=0（语义反转后：0表示避障关闭）
         writeAGVRegisterBits(0,
                              {
-                                 qMakePair(1, true),
+                                 qMakePair(1, false),
                              },
                              "OA关闭");
         qCDebug(lcMainWindow) << "AGV避障关闭，地址0写入194";

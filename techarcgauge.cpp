@@ -38,19 +38,6 @@ void TechArcGauge::setValue(double value)
     if (qAbs(m_value - value) > 0.0001) {
         m_value = value;
         
-        if (m_forceControlEnabled) {
-            double range = m_maximum - m_minimum;
-            if (range > 0) {
-                double center = (m_maximum + m_minimum) / 2.0;
-                double deviation = qAbs(m_value - center) / (range / 2.0);
-                deviation = qBound(0.0, deviation, 1.0);
-                
-                QColor targetRed(255, 51, 51);
-                m_primaryColor = interpolate(m_originalPrimaryColor, targetRed, deviation);
-                m_glowColor = interpolate(m_originalGlowColor, QColor(255, 51, 51, 120), deviation);
-            }
-        }
-        
         emit valueChanged(m_value);
         requestRepaint();
     }
@@ -117,13 +104,11 @@ void TechArcGauge::setPrecision(int precision)
 
 void TechArcGauge::setForceControlMode(bool enabled)
 {
-    m_forceControlEnabled = enabled;
-    if (!enabled) {
-        m_primaryColor = m_originalPrimaryColor;
-        m_glowColor = m_originalGlowColor;
-    } else {
-        setValue(m_value);
-    }
+    Q_UNUSED(enabled);
+    m_forceControlEnabled = false;
+    m_primaryColor = m_originalPrimaryColor;
+    m_glowColor = m_originalGlowColor;
+    requestRepaint();
 }
 
 void TechArcGauge::updateFromModbus(double value)
