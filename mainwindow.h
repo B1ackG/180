@@ -162,6 +162,8 @@ public:
     void setupConnections();
     /** @brief 应用界面样式 */
     void setupStyles();
+    /** @brief 刷新功能开关组按钮视觉状态 */
+    void updateFunctionSwitchVisuals();
     /** @brief 初始化并管理界面动画 */
     void setupAnimations();
     /** @brief 设置技术按键边框样式 */

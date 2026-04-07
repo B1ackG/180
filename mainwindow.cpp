@@ -261,8 +261,26 @@ void MainWindow::setupNavigationConnections()
         return;
     }
 
+    // 导航按钮互斥：同一时刻仅保留一个页面入口为激活态。
+    const QList<QToolButton*> navButtons = {
+        ui->TBtn_HomePage,
+        ui->TBtn_PermissionPage,
+        ui->TBtn_HistoryRecord
+    };
+    for (QToolButton *btn : navButtons) {
+        if (!btn) {
+            continue;
+        }
+        btn->setCheckable(true);
+        btn->setAutoExclusive(true);
+    }
+    if (ui->TBtn_HomePage) {
+        ui->TBtn_HomePage->setChecked(true);
+    }
+
     connect(ui->TBtn_HomePage, &QPushButton::clicked, [=]() {
         ui->StackedWidget->setCurrentIndex(0);
+        ui->TBtn_HomePage->setChecked(true);
         updateNavButtonStyles(nullptr);
     });
 
@@ -298,9 +316,13 @@ void MainWindow::setupRecordAndPermissionConnections()
     connect(ui->TBtn_HistoryRecord, &QPushButton::clicked, this, [this]() {
         if (m_currentUserRole >= UserRole::Admin) {
             ui->StackedWidget->setCurrentIndex(6);
+            ui->TBtn_HistoryRecord->setChecked(true);
             updateRecordDisplay();
             showNotification("已进入操作记录页面");
         } else {
+            if (ui->TBtn_HomePage) {
+                ui->TBtn_HomePage->setChecked(true);
+            }
             const QString tip = "权限不足：查看历史记录需要管理员权限";
             showNotification(tip);
             updateStatusTip(tip);
@@ -336,10 +358,13 @@ void MainWindow::setupRecordAndPermissionConnections()
             }
             showNotification("已切换至坐标模式");
         }
+
+        updateFunctionSwitchVisuals();
     });
 
     connect(ui->TBtn_PermissionPage, &QPushButton::clicked, [=]() {
         ui->StackedWidget->setCurrentIndex(5);
+        ui->TBtn_PermissionPage->setChecked(true);
     });
 
     connect(m_recorder, &OperationRecorder::recordAdded, this, [this](const OperationRecord &record) {
@@ -456,6 +481,11 @@ void MainWindow::setupStyles()
     applyToolButtonStyles(CommonTBtns);
     applyLineEditStyles(AllLEdits);
 
+    // 顶部分组与按钮基础风格统一由 .ui 样式表维护，便于 Qt Creator 中可视化调整。
+    if (ui) {
+        updateFunctionSwitchVisuals();
+    }
+
     //record
     // 设置蓝色背景
     ui->page_HistoryRecord->setStyleSheet(
@@ -550,6 +580,60 @@ void MainWindow::setupStyles()
         );
 }
 
+void MainWindow::updateFunctionSwitchVisuals()
+{
+    if (!ui) {
+        return;
+    }
+
+    auto applyModeStyle = [](QToolButton *btn, const QString &color, const QString &labelSuffix) {
+        if (!btn) {
+            return;
+        }
+        btn->setStyleSheet(QString(
+            "QToolButton {"
+            "  color: #f4fbff;"
+            "  background: %1;"
+            "  border: 1px solid %2;"
+            "  border-radius: 8px;"
+            "  padding: 3px 8px;"
+            "  min-height: 36px;"
+            "}"
+            "QToolButton:hover {"
+            "  border: 1px solid #d9f4ff;"
+            "}")
+            .arg(color, labelSuffix));
+    };
+
+    const QString unknownBg = "rgba(96, 102, 114, 0.86)";
+    const QString unknownBorder = "#8f99a8";
+
+    // 点动/步进：增强颜色对比，状态一眼可分
+    if (m_stepModeUnknown) {
+        applyModeStyle(ui->TBtn_Stepmove, unknownBg, unknownBorder);
+    } else if (m_stepModeEnabled) {
+        applyModeStyle(ui->TBtn_Stepmove, "rgba(30, 148, 84, 0.90)", "#a9ffd0");
+    } else {
+        applyModeStyle(ui->TBtn_Stepmove, "rgba(0, 112, 212, 0.90)", "#9fd9ff");
+    }
+
+    // 关节/坐标：未选择与步进按钮保持同灰色
+    if (m_moveModeUnknown) {
+        applyModeStyle(ui->TBtn_MoveMode, unknownBg, unknownBorder);
+    } else if (m_isJointMode) {
+        applyModeStyle(ui->TBtn_MoveMode, "rgba(32, 140, 86, 0.88)", "#9dffd3");
+    } else {
+        applyModeStyle(ui->TBtn_MoveMode, "rgba(166, 104, 24, 0.88)", "#ffd29a");
+    }
+
+    // 有线/无线：白/黄差异
+    if (m_controlMode == WIRED_MODE) {
+        applyModeStyle(ui->TBtn_ControlMode, "rgba(100, 110, 126, 0.88)", "#d7e3ef");
+    } else {
+        applyModeStyle(ui->TBtn_ControlMode, "rgba(158, 122, 16, 0.88)", "#ffe28f");
+    }
+}
+
 void MainWindow::applyPushButtonStyles(const QList<QPushButton*> &buttons)
 {
     QString style = TransparentWidgetStyle("QPushButton");
@@ -570,6 +654,13 @@ void MainWindow::applyToolButtonStyles(const QList<QToolButton*> &buttons)
 
     for(QToolButton *btn : buttons) {
         if(btn) {
+            const QString name = btn->objectName();
+            if (name == "TBtn_Stepmove" || name == "TBtn_MoveMode" ||
+                name == "TBtn_ControlMode" || name == "TBtn_RemoveWarning" ||
+                name == "TBtn_HomePage" || name == "TBtn_PermissionPage" ||
+                name == "TBtn_HistoryRecord") {
+                continue;
+            }
             btn->setStyleSheet(style);
         } else {
             qCDebug(lcMainWindow) << "发现空的QToolButton指针";
@@ -3042,6 +3133,8 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                 runModeLabel->setStyleSheet("color: #aaaaaa; font-weight: bold; font-size: 11px;");
             }
         }
+
+        updateFunctionSwitchVisuals();
     }
 
     if (address == 525 && ui && ui->TBtn_MoveMode) {
@@ -3072,6 +3165,8 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                 moveModeLabel->setStyleSheet("color: #aaaaaa; font-weight: bold; font-size: 11px;");
             }
         }
+
+        updateFunctionSwitchVisuals();
     }
 
     const QStringList targetLabels = {
@@ -4719,6 +4814,8 @@ void MainWindow::onControlModeClicked()
         }
     }
 
+    updateFunctionSwitchVisuals();
+
     // 记录操作
     OperationRecord record;
     record.timestamp = QDateTime::currentDateTime();
@@ -6350,6 +6447,8 @@ void MainWindow::onStepMoveButtonClicked()
         qCDebug(lcMainWindow) << "切换到点动模式，地址501写入1";
         ui->statusBar->showMessage("已切换到点动模式", 2000);
     }
+
+    updateFunctionSwitchVisuals();
 
     // 记录操作
     OperationRecord record;
