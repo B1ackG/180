@@ -3727,6 +3727,15 @@ void MainWindow::setupAGVModbus()
                         m_controlMode = WIRED_MODE;
                         m_controlModeBtn->setText("有线控制");
                     }
+
+                    QLabel *controlModeLabel = ui && ui->statusBar
+                                                    ? ui->statusBar->findChild<QLabel*>("statusBarControlModeLabel")
+                                                    : nullptr;
+                    if (controlModeLabel) {
+                        controlModeLabel->setText(m_controlMode == WIRED_MODE ? "有线控制" : "无线控制");
+                        controlModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+                                                            .arg(m_controlMode == WIRED_MODE ? "#ffffff" : "#ffff00"));
+                    }
                 }
 
                 if (address == 0) {
@@ -3736,6 +3745,15 @@ void MainWindow::setupAGVModbus()
                         m_techBtnAGV_OA->setText(oaEnabled ? "避障开启" : "避障关闭");
                         m_techBtnAGV_OA->setPrimaryColor(oaEnabled ? QColor("#00C8FF") : QColor("#7F8C8D"));
                         m_techBtnAGV_OA->setGlowColor(oaEnabled ? QColor(0, 200, 255, 180) : QColor(127, 140, 141, 100));
+                    }
+
+                    QLabel *oaLabel = ui && ui->statusBar
+                                           ? ui->statusBar->findChild<QLabel*>("statusBarOaLabel")
+                                           : nullptr;
+                    if (oaLabel) {
+                        oaLabel->setText(oaEnabled ? "避障开" : "避障关");
+                        oaLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+                                                   .arg(oaEnabled ? "#00C8FF" : "#7F8C8D"));
                     }
                 }
 
@@ -3762,6 +3780,15 @@ void MainWindow::setupAGVModbus()
                             m_techBtnAGV_Park->setPrimaryColor(parkingEnabled ? QColor("#00C8FF") : QColor("#7F8C8D"));
                             m_techBtnAGV_Park->setGlowColor(parkingEnabled ? QColor(0, 200, 255, 180) : QColor(127, 140, 141, 100));
                         }
+
+                        QLabel *parkLabel = ui && ui->statusBar
+                                                 ? ui->statusBar->findChild<QLabel*>("statusBarParkLabel")
+                                                 : nullptr;
+                        if (parkLabel) {
+                            parkLabel->setText(parkingEnabled ? "驻车开" : "驻车关");
+                            parkLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+                                                         .arg(parkingEnabled ? "#00C8FF" : "#7F8C8D"));
+                        }
                     }
                 }
 
@@ -3769,6 +3796,14 @@ void MainWindow::setupAGVModbus()
                     const SteeringMode mode = steeringModeFromRegisterValue(value);
                     const QSignalBlocker blocker(m_steeringModeSelector);
                     m_steeringModeSelector->setCurrentMode(mode);
+
+                    QLabel *steeringLabel = ui && ui->statusBar
+                                                 ? ui->statusBar->findChild<QLabel*>("statusBarSteeringLabel")
+                                                 : nullptr;
+                    if (steeringLabel) {
+                        steeringLabel->setText(QString("转向:%1").arg(m_steeringModeSelector->modeText(mode)));
+                        steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
+                    }
                 }
 
                 if (isFeatureEnabled("modbus_agv", "modbus_agv.read_logs")) {
@@ -4850,6 +4885,13 @@ void MainWindow::onAGVOABtnClicked()
         ui->statusBar->showMessage("AGV避障关闭", 2000);
     }
 
+    QLabel *oaLabel = ui && ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarOaLabel") : nullptr;
+    if (oaLabel) {
+        oaLabel->setText(m_agvOaEnabled ? "避障开" : "避障关");
+        oaLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+                                   .arg(m_agvOaEnabled ? "#00C8FF" : "#7F8C8D"));
+    }
+
     // 记录操作
     OperationRecord record;
     record.timestamp = QDateTime::currentDateTime();
@@ -4920,6 +4962,13 @@ void MainWindow::onAGVParkBtnClicked()
         m_techBtnAGV_Park->setPrimaryColor(QColor("#7F8C8D"));
         m_techBtnAGV_Park->setGlowColor(QColor(127, 140, 141, 100));
         ui->statusBar->showMessage("AGV驻车关闭", 2000);
+    }
+
+    QLabel *parkLabel = ui && ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarParkLabel") : nullptr;
+    if (parkLabel) {
+        parkLabel->setText(targetParkingEnabled ? "驻车开" : "驻车关");
+        parkLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+                                     .arg(targetParkingEnabled ? "#00C8FF" : "#7F8C8D"));
     }
 
     OperationRecord modeRecord;
@@ -5174,6 +5223,12 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
     // 向192.168.1.88的2地址写入对应值
     writeToAGVDevice(2, modbusValue);
 
+    QLabel *steeringLabel = ui && ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarSteeringLabel") : nullptr;
+    if (steeringLabel && m_steeringModeSelector) {
+        steeringLabel->setText(QString("转向:%1").arg(m_steeringModeSelector->modeText(mode)));
+        steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
+    }
+
     if (!isFeatureEnabled("alarm_system", "alarm.steering_switch")) {
         qCDebug(lcMainWindow) << "转向模式切换报警功能已关闭，跳过报警窗口逻辑";
         m_isSwitchingSteeringMode = false;
@@ -5361,9 +5416,25 @@ void MainWindow::setupTcpTransmissionUI()
         controlModeLabel->setFixedHeight(12);
         centerLayout->addWidget(controlModeLabel);
 
-        centerWidget->setLayout(centerLayout);
-        ui->statusBar->addPermanentWidget(centerWidget, 1); // 占据中间大部分空间
-        centerLayout->addWidget(controlModeLabel);
+        QLabel *oaLabel = new QLabel(m_agvOaEnabled ? "避障开" : "避障关", centerWidget);
+        oaLabel->setObjectName("statusBarOaLabel");
+        oaLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+                       .arg(m_agvOaEnabled ? "#00C8FF" : "#7F8C8D"));
+        oaLabel->setFixedHeight(12);
+        centerLayout->addWidget(oaLabel);
+
+        QLabel *parkLabel = new QLabel(m_agvParkingEnabled ? "驻车开" : "驻车关", centerWidget);
+        parkLabel->setObjectName("statusBarParkLabel");
+        parkLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+                         .arg(m_agvParkingEnabled ? "#00C8FF" : "#7F8C8D"));
+        parkLabel->setFixedHeight(12);
+        centerLayout->addWidget(parkLabel);
+
+        QLabel *steeringLabel = new QLabel(QString("转向:%1").arg(currentSteeringModeText()), centerWidget);
+        steeringLabel->setObjectName("statusBarSteeringLabel");
+        steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
+        steeringLabel->setFixedHeight(12);
+        centerLayout->addWidget(steeringLabel);
 
         centerWidget->setLayout(centerLayout);
         ui->statusBar->addPermanentWidget(centerWidget, 1); // 占据中间大部分空间
