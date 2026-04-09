@@ -1,0 +1,24 @@
+<map id="matrixkeythreadmanager.cpp" name="matrixkeythreadmanager.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="282,5,497,31"/>
+<area shape="rect" id="Node000002" href="$matrixkeythreadmanager_8h.html" title="矩阵按键线程管理器声明，负责按键扫描线程的生命周期与事件分发。" alt="" coords="45,79,243,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="351,33,197,77,196,72,349,28"/>
+<area shape="rect" id="Node000005" href="$matrixkeymonitor_8h.html" title="矩阵按键监听器的声明，用于采集并分发矩阵式按键事件。" alt="" coords="314,79,465,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="392,31,392,65,387,65,387,31"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="489,79,564,104"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="413,28,493,70,491,75,410,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="107,152,181,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="147,104,147,138,141,138,141,104"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,152,83,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="129,106,73,146,70,142,126,102"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="351,107,195,151,194,146,349,101"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="205,152,328,177"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="371,106,300,147,297,143,368,102"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="353,152,426,177"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="392,104,392,138,387,138,387,104"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="450,152,553,177"/>
+<area shape="poly" id="edge8_Node000005_Node000008" title=" " alt="" coords="409,102,473,142,470,147,406,106"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="577,152,647,177"/>
+<area shape="poly" id="edge9_Node000005_Node000009" title=" " alt="" coords="426,101,564,145,563,150,424,107"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="671,152,771,177"/>
+<area shape="poly" id="edge10_Node000005_Node000010" title=" " alt="" coords="443,101,658,147,657,152,442,107"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="ModbusThreadManager::registerSlider" name="ModbusThreadManager::registerSlider">
+<area shape="rect" id="Node000001" title="将 TechSliderEdit 与寄存器地址关联" alt="" coords="291,5,465,45"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a2d8866ff8595174f34e112b39799c95c" title="为滑块标签分配 Modbus 地址" alt="" coords="5,5,243,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="277,28,243,28,243,23,277,23"/>
+</map>

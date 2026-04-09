@@ -1,0 +1,5 @@
+<map id="OperationRecorder::sendAllRecordsToServer" name="OperationRecorder::sendAllRecordsToServer">
+<area shape="rect" id="Node000001" title="将所有记录通过 TCP 发送到配置的服务器" alt="" coords="284,5,463,45"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a2a59e096d6085eea5185016e3f65224c" title="发送所有记录（例如通过 TCP）" alt="" coords="5,13,236,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="270,28,236,28,236,23,270,23"/>
+</map>

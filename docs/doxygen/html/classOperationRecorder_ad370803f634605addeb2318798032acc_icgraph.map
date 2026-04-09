@@ -1,0 +1,13 @@
+<map id="OperationRecorder::recordsCleared" name="OperationRecorder::recordsCleared">
+<area shape="rect" id="Node000001" title=" " alt="" coords="769,35,921,75"/>
+<area shape="rect" id="Node000002" href="$classOperationRecorder.html#a5eccce2198b05689ee9ac29b44d7316c" title="清空所有记录" alt="" coords="541,5,693,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="755,46,693,38,694,32,756,41"/>
+<area shape="rect" id="Node000004" href="$classMainWindow.html#a71ba71c45eca80ddfa9423cf971f4142" title="初始化历史记录 UI" alt="" coords="513,70,721,95"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="756,68,721,73,720,67,755,63"/>
+<area shape="rect" id="Node000003" href="$classMainWindow.html#ad8d5a149e4d9eff2b8290705e10b87e5" title="清除记录" alt="" coords="251,13,465,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="527,28,465,28,465,23,527,23"/>
+<area shape="rect" id="Node000005" href="$classMainWindow.html#a0cb4955bff598ad95110e9525a52214d" title="初始化核心页面和基础 UI 模块" alt="" coords="259,63,457,103"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="500,85,458,85,458,80,500,80"/>
+<area shape="rect" id="Node000006" href="$classMainWindow.html#a996c5a2b6f77944776856f08ec30858d" title="构造 MainWindow 并初始化内部状态与 UI" alt="" coords="5,70,203,95"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="245,85,203,85,203,80,245,80"/>
+</map>

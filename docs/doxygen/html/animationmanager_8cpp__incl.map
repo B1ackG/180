@@ -1,0 +1,15 @@
+<map id="animationmanager.cpp" name="animationmanager.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="166,5,338,31"/>
+<area shape="rect" id="Node000002" href="$animationmanager_8h.html" title="动画管理器声明，负责创建与管理界面动画效果的工具类。" alt="" coords="104,79,261,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="242,33,205,71,201,67,239,29"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="285,79,360,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="266,29,304,67,300,71,262,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,80,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="161,106,79,148,76,143,159,102"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="105,152,175,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="178,106,156,142,152,139,173,103"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="199,152,254,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="192,103,215,139,210,142,188,106"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="278,152,383,177"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="208,102,295,144,293,148,205,106"/>
+</map>

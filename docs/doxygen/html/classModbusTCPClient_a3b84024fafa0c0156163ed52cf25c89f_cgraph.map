@@ -1,0 +1,9 @@
+<map id="ModbusTCPClient::readInputRegisters" name="ModbusTCPClient::readInputRegisters">
+<area shape="rect" id="Node000001" title="使用示例:" alt="" coords="5,35,211,75"/>
+<area shape="rect" id="Node000002" href="$classModbusTCPClient.html#a5e8a92c023cdc3ecc431d0dcbe408a6f" title=" " alt="" coords="259,42,492,67"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="211,52,245,52,245,57,211,57"/>
+<area shape="rect" id="Node000003" href="$classModbusTCPClient.html#a112f20f6eb34d2281ce96e7321940953" title=" " alt="" coords="543,5,760,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="492,40,528,36,529,41,492,45"/>
+<area shape="rect" id="Node000004" href="$classModbusTCPClient.html#ac0eb40bf43e015281059b0144a928675" title="查询连接状态" alt="" coords="540,70,763,95"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="492,64,527,67,526,73,492,69"/>
+</map>

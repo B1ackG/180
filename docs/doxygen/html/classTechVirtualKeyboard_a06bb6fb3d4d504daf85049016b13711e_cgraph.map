@@ -1,0 +1,30 @@
+<map id="TechVirtualKeyboard::setupConnections" name="TechVirtualKeyboard::setupConnections">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,165,160,205"/>
+<area shape="rect" id="Node000002" href="$classTechVirtualKeyboard.html#a677a64617e509466240e0e35fcf14226" title=" " alt="" coords="208,261,371,301"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,203,209,247,224,253,222,258,207,252,120,208"/>
+<area shape="rect" id="Node000005" href="$classTechVirtualKeyboard.html#a02b7c58ad3e74a7142d61e175efbbd65" title=" " alt="" coords="212,5,367,45"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="97,163,143,110,173,81,206,55,216,50,218,54,210,60,177,85,147,114,101,167"/>
+<area shape="rect" id="Node000006" href="$classTechVirtualKeyboard.html#a19e765264cdccf5d01276e8e1838be0f" title=" " alt="" coords="212,69,367,109"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="120,163,207,119,222,112,224,117,209,124,122,167"/>
+<area shape="rect" id="Node000007" href="$classTechVirtualKeyboard.html#a196fdddfafa731651c69ebb21c194c28" title=" " alt="" coords="212,133,367,173"/>
+<area shape="poly" id="edge10_Node000001_Node000007" title=" " alt="" coords="160,171,198,165,199,170,161,176"/>
+<area shape="rect" id="Node000008" href="$classTechVirtualKeyboard.html#ab74b0af283c3a077e1c6fd5d68176987" title=" " alt="" coords="212,325,367,365"/>
+<area shape="poly" id="edge13_Node000001_Node000008" title=" " alt="" coords="101,204,147,257,177,286,210,311,218,317,216,321,206,316,173,290,143,260,97,207"/>
+<area shape="rect" id="Node000010" href="$classTechVirtualKeyboard.html#a96794787f9bc1a42e485a7c4ab39f6e3" title=" " alt="" coords="212,197,367,237"/>
+<area shape="poly" id="edge16_Node000001_Node000010" title=" " alt="" coords="161,195,199,201,198,206,160,200"/>
+<area shape="rect" id="Node000003" href="$classTechVirtualKeyboard.html#a7408978b88d0d6fd95838fc32ba3e665" title=" " alt="" coords="419,197,600,237"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="358,259,426,239,428,244,360,264"/>
+<area shape="rect" id="Node000004" href="$classTechVirtualKeyboard.html#adec0f0732c34875b1ece631d5011d732" title=" " alt="" coords="432,133,587,173"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="350,259,369,247,384,232,392,216,401,200,417,183,425,178,428,182,420,187,405,203,397,218,388,235,372,251,353,263"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="357,43,373,55,385,72,393,89,397,121,401,153,408,168,421,184,425,187,421,191,417,187,404,171,396,154,392,122,387,90,381,75,369,59,354,47"/>
+<area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="347,43,372,55,426,88,474,123,470,127,423,93,369,60,345,48"/>
+<area shape="poly" id="edge8_Node000006_Node000003" title=" " alt="" coords="353,107,372,119,388,136,397,152,405,168,420,183,428,188,425,193,417,187,401,171,392,155,384,139,369,123,350,112"/>
+<area shape="poly" id="edge9_Node000006_Node000004" title=" " alt="" coords="360,107,428,127,426,132,358,112"/>
+<area shape="poly" id="edge11_Node000007_Node000003" title=" " alt="" coords="360,171,428,191,426,196,358,176"/>
+<area shape="poly" id="edge12_Node000007_Node000004" title=" " alt="" coords="367,151,418,151,418,156,367,156"/>
+<area shape="poly" id="edge14_Node000008_Node000003" title=" " alt="" coords="345,323,369,311,423,278,470,244,474,248,426,282,372,316,347,328"/>
+<area shape="rect" id="Node000009" href="$classTechVirtualKeyboard.html#a44bc11e6411df3a5b2325a2dcba2e31d" title="输入确认信号" alt="" coords="432,325,587,365"/>
+<area shape="poly" id="edge15_Node000008_Node000009" title=" " alt="" coords="367,343,418,343,418,348,367,348"/>
+<area shape="poly" id="edge17_Node000010_Node000003" title=" " alt="" coords="367,215,405,215,405,220,367,220"/>
+<area shape="poly" id="edge18_Node000010_Node000004" title=" " alt="" coords="358,195,426,175,428,180,360,200"/>
+</map>

@@ -1,0 +1,40 @@
+<map id="TechVirtualKeyboard::TechVirtualKeyboard" name="TechVirtualKeyboard::TechVirtualKeyboard">
+<area shape="rect" id="Node000001" title="功能: 构造虚拟键盘控件，初始化 UI 和样式。 如何使用: 在需要弹出虚拟键盘的界面创建此控件并使用 setTargetLineEdit 绑定目标输入控件。 如何修改: 若需支持更多按键或布局，可在 ..." alt="" coords="5,120,168,160"/>
+<area shape="rect" id="Node000002" href="$classTechVirtualKeyboard.html#a11fe83c6ac7b71aa5ca34b493adfe8e9" title=" " alt="" coords="243,5,398,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,117,159,86,215,55,232,48,234,53,217,60,162,90,116,122"/>
+<area shape="rect" id="Node000003" href="$classAnimationManager.html#a7b55a1f9d04cf1952debcbabd81afb14" title="功能: 获取 AnimationManager 单例，用于统一管理 UI 动画定时更新。 如何使用: 调用 AnimationManager::instance() 并通过 registerWidget..." alt="" coords="216,70,425,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,117,215,105,254,96,255,101,217,111,169,123"/>
+<area shape="rect" id="Node000004" href="$classAnimationManager.html#aac70352febbaeb9158e24a6031cc7cad" title="功能: 将一个 QObject（通常为 QWidget 或其子类）注册到动画管理器，以在定时器触发时更新动画。 如何使用: 在控件创建或需要动画时调用 registerWidget(widget)。 如..." alt="" coords="219,120,423,160"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="168,137,205,137,205,143,168,143"/>
+<area shape="rect" id="Node000005" href="$classTechVirtualKeyboard.html#a06bb6fb3d4d504daf85049016b13711e" title=" " alt="" coords="243,184,398,224"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="161,158,235,178,233,183,160,163"/>
+<area shape="rect" id="Node000015" href="$classTechVirtualKeyboard.html#ad62519a8e2d8903750319d7a398f128d" title=" " alt="" coords="243,248,398,288"/>
+<area shape="poly" id="edge23_Node000001_Node000015" title=" " alt="" coords="112,158,158,196,217,234,232,240,230,245,215,238,155,201,108,162"/>
+<area shape="rect" id="Node000006" href="$classTechVirtualKeyboard.html#a677a64617e509466240e0e35fcf14226" title=" " alt="" coords="473,280,636,320"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="397,222,427,234,451,249,475,266,487,272,485,277,472,270,448,254,424,238,395,227"/>
+<area shape="rect" id="Node000009" href="$classTechVirtualKeyboard.html#a02b7c58ad3e74a7142d61e175efbbd65" title=" " alt="" coords="477,24,632,64"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="397,186,424,170,441,147,447,124,454,99,471,74,477,69,480,74,475,78,459,101,452,125,446,150,427,174,400,190"/>
+<area shape="rect" id="Node000010" href="$classTechVirtualKeyboard.html#a19e765264cdccf5d01276e8e1838be0f" title=" " alt="" coords="477,88,632,128"/>
+<area shape="poly" id="edge11_Node000005_Node000010" title=" " alt="" coords="395,181,424,170,448,154,472,138,485,131,487,136,475,142,451,159,427,174,397,186"/>
+<area shape="rect" id="Node000011" href="$classTechVirtualKeyboard.html#a196fdddfafa731651c69ebb21c194c28" title=" " alt="" coords="477,152,632,192"/>
+<area shape="poly" id="edge14_Node000005_Node000011" title=" " alt="" coords="398,191,463,182,464,187,399,196"/>
+<area shape="rect" id="Node000012" href="$classTechVirtualKeyboard.html#ab74b0af283c3a077e1c6fd5d68176987" title=" " alt="" coords="477,344,632,384"/>
+<area shape="poly" id="edge17_Node000005_Node000012" title=" " alt="" coords="400,218,427,234,446,258,452,283,459,307,475,330,480,334,477,339,471,334,454,309,447,284,441,261,424,238,397,222"/>
+<area shape="rect" id="Node000014" href="$classTechVirtualKeyboard.html#a96794787f9bc1a42e485a7c4ab39f6e3" title=" " alt="" coords="477,216,632,256"/>
+<area shape="poly" id="edge20_Node000005_Node000014" title=" " alt="" coords="399,212,464,221,463,226,398,217"/>
+<area shape="rect" id="Node000007" href="$classTechVirtualKeyboard.html#a7408978b88d0d6fd95838fc32ba3e665" title=" " alt="" coords="684,216,865,256"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="623,277,692,257,693,262,625,282"/>
+<area shape="rect" id="Node000008" href="$classTechVirtualKeyboard.html#adec0f0732c34875b1ece631d5011d732" title=" " alt="" coords="697,152,852,192"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="616,278,634,266,649,250,657,235,666,218,682,202,690,197,693,201,686,206,671,221,662,237,654,253,638,270,618,282"/>
+<area shape="poly" id="edge9_Node000009_Node000007" title=" " alt="" coords="622,62,638,74,651,91,658,108,662,140,667,171,674,187,686,202,690,206,687,210,682,206,669,189,662,173,657,141,653,109,646,94,634,78,619,66"/>
+<area shape="poly" id="edge10_Node000009_Node000008" title=" " alt="" coords="612,62,637,74,692,107,739,141,736,146,689,112,635,78,610,66"/>
+<area shape="poly" id="edge12_Node000010_Node000007" title=" " alt="" coords="618,126,638,138,654,155,662,171,671,187,686,202,693,207,690,211,682,206,666,190,657,173,649,158,634,142,616,130"/>
+<area shape="poly" id="edge13_Node000010_Node000008" title=" " alt="" coords="625,126,693,146,692,151,623,131"/>
+<area shape="poly" id="edge15_Node000011_Node000007" title=" " alt="" coords="625,190,693,210,692,215,623,195"/>
+<area shape="poly" id="edge16_Node000011_Node000008" title=" " alt="" coords="632,169,683,169,683,175,632,175"/>
+<area shape="poly" id="edge18_Node000012_Node000007" title=" " alt="" coords="610,342,635,330,689,296,736,262,739,267,692,301,637,334,612,346"/>
+<area shape="rect" id="Node000013" href="$classTechVirtualKeyboard.html#a44bc11e6411df3a5b2325a2dcba2e31d" title="输入确认信号" alt="" coords="697,344,852,384"/>
+<area shape="poly" id="edge19_Node000012_Node000013" title=" " alt="" coords="632,361,683,361,683,367,632,367"/>
+<area shape="poly" id="edge21_Node000014_Node000007" title=" " alt="" coords="632,233,671,233,671,239,632,239"/>
+<area shape="poly" id="edge22_Node000014_Node000008" title=" " alt="" coords="623,213,692,193,693,198,625,218"/>
+</map>

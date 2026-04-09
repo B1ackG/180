@@ -1,0 +1,7 @@
+<map id="TechVirtualKeyboard::onClearClicked" name="TechVirtualKeyboard::onClearClicked">
+<area shape="rect" id="Node000001" title=" " alt="" coords="419,5,573,45"/>
+<area shape="rect" id="Node000002" href="$classTechVirtualKeyboard.html#a06bb6fb3d4d504daf85049016b13711e" title=" " alt="" coords="216,5,371,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="405,28,371,28,371,23,405,23"/>
+<area shape="rect" id="Node000003" href="$classTechVirtualKeyboard.html#acfa2076326d4c5e326b9eca38ad33294" title="功能: 构造虚拟键盘控件，初始化 UI 和样式。 如何使用: 在需要弹出虚拟键盘的界面创建此控件并使用 setTargetLineEdit 绑定目标输入控件。 如何修改: 若需支持更多按键或布局，可在 ..." alt="" coords="5,5,168,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="202,28,168,28,168,23,202,23"/>
+</map>

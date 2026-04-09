@@ -1,0 +1,14 @@
+<map id="ModbusThreadManager::writeSingleRegister" name="ModbusThreadManager::writeSingleRegister">
+<area shape="rect" id="Node000001" title="写单个寄存器" alt="" coords="5,60,180,100"/>
+<area shape="rect" id="Node000002" href="$classModbusTCPClient.html#ac0eb40bf43e015281059b0144a928675" title="查询连接状态" alt="" coords="492,42,715,67"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,58,172,33,227,13,271,6,315,3,403,8,483,20,549,36,548,41,482,25,402,13,315,9,271,12,229,19,174,38,127,62"/>
+<area shape="rect" id="Node000003" href="$classModbusThreadManager.html#aa97b383bcf9be692b49d307a717bfb10" title=" " alt="" coords="249,28,423,68"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,66,235,59,235,64,181,71"/>
+<area shape="rect" id="Node000004" href="$classModbusThreadManager.html#ab3d6427ff17fc8b77e19386e7e0f3deb" title=" " alt="" coords="241,92,431,132"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="181,89,227,95,227,100,180,94"/>
+<area shape="rect" id="Node000005" href="$classModbusTCPClient.html#ae8c27734581f0583a00b5c953cdfd0c7" title="写单个寄存器" alt="" coords="228,156,444,196"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="133,98,229,142,250,149,248,154,227,146,131,103"/>
+<area shape="poly" id="edge6_Node000005_Node000002" title=" " alt="" coords="411,153,443,142,512,107,570,72,573,77,515,112,445,146,413,158"/>
+<area shape="rect" id="Node000006" href="$classModbusTCPClient.html#a5cbc76fd75dff06fee8dfdff71f8e2dc" title=" " alt="" coords="494,156,713,196"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="444,173,480,173,480,179,444,179"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="MainWindow::setupNavigationConnections" name="MainWindow::setupNavigationConnections">
+<area shape="rect" id="Node000001" title="连接导航与页面切换相关信号" alt="" coords="775,5,995,45"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a95dc085bf70bd0c1ad05bd80f897fd1d" title="建立信号与槽的连接" alt="" coords="497,13,727,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="761,28,727,28,727,23,761,23"/>
+<area shape="rect" id="Node000003" href="$classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c" title="初始化业务子系统（通信、线程、样式、控制）" alt="" coords="251,5,449,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="484,28,449,28,449,23,484,23"/>
+<area shape="rect" id="Node000004" href="$classMainWindow.html#a996c5a2b6f77944776856f08ec30858d" title="构造 MainWindow 并初始化内部状态与 UI" alt="" coords="5,13,203,38"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="237,28,203,28,203,23,237,23"/>
+</map>

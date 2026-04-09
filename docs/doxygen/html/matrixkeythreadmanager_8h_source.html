@@ -1,0 +1,159 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: matrixkeythreadmanager.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('matrixkeythreadmanager_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">matrixkeythreadmanager.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="matrixkeythreadmanager_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef MATRIXKEYTHREADMANAGER_H</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="matrixkeythreadmanager_8h.html#a5189a6f4bbd00c56919b0dcff2bb73ac">   15</a></span><span class="preprocessor">#define MATRIXKEYTHREADMANAGER_H</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &lt;QObject&gt;</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &lt;QThread&gt;</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    <span class="keyword">class </span><a class="code hl_class" href="classMatrixKeyMonitor.html">MatrixKeyMonitor</a>;</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
+<div class="foldopen" id="foldopen00022" data-start="{" data-end="};">
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="classMatrixKeyThreadManager.html">   22</a></span><span class="keyword">class </span><a class="code hl_class" href="classMatrixKeyThreadManager.html">MatrixKeyThreadManager</a> : <span class="keyword">public</span> QObject</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>{</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    Q_OBJECT</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classMatrixKeyThreadManager.html">MatrixKeyThreadManager</a>(QObject *parent = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <a class="code hl_function" href="classMatrixKeyThreadManager.html#a729fb19cfa7ce3f4981b810f169d6e18">~MatrixKeyThreadManager</a>();</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classMatrixKeyThreadManager.html#af856132d8f66bd49b9825017e52f482e">start</a>(<span class="keyword">const</span> QString &amp;device = <span class="stringliteral">&quot;/dev/input/event0&quot;</span>);</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classMatrixKeyThreadManager.html#aab2e3d1b0f182ed8589e21e6cff50d2d">stop</a>();</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classMatrixKeyThreadManager.html#a6d37be0a875ea0ed499e1a4ea4a51c9d">isRunning</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno"><a class="line" href="classMatrixKeyThreadManager.html#a920e4adba44234d392471597f2a24851">   86</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classMatrixKeyThreadManager.html#a920e4adba44234d392471597f2a24851">readMultipleRegisters</a>(<span class="keywordtype">int</span> startAddress, <span class="keywordtype">int</span> count);</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno"><a class="line" href="classMatrixKeyThreadManager.html#a3924407579e14e0d3768cb7fa62ffb8b">   99</a></span>    QThread* <a class="code hl_function" href="classMatrixKeyThreadManager.html#a3924407579e14e0d3768cb7fa62ffb8b">workerThread</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classMatrixKeyThreadManager.html#a2ca34096975428b1077c727ec46e13fe">m_workerThread</a>; }</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span> </div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>signals:</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno"><a class="line" href="classMatrixKeyThreadManager.html#acfdf8c333c814bdf6fe020d93287a6b3">  107</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classMatrixKeyThreadManager.html#acfdf8c333c814bdf6fe020d93287a6b3">keyPressed</a>(<span class="keywordtype">int</span> keyNumber, <span class="keywordtype">bool</span> isPressed);</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span> </div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno"><a class="line" href="classMatrixKeyThreadManager.html#a2ca34096975428b1077c727ec46e13fe">  110</a></span>    QThread *<a class="code hl_variable" href="classMatrixKeyThreadManager.html#a2ca34096975428b1077c727ec46e13fe">m_workerThread</a>;</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno"><a class="line" href="classMatrixKeyThreadManager.html#ad009741fe3f62d484830a0510a560f39">  111</a></span>    <a class="code hl_class" href="classMatrixKeyMonitor.html">MatrixKeyMonitor</a> *<a class="code hl_variable" href="classMatrixKeyThreadManager.html#ad009741fe3f62d484830a0510a560f39">m_monitor</a>;</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>};</div>
+</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span> </div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span><span class="preprocessor">#endif </span><span class="comment">// MATRIXKEYTHREADMANAGER_H</span></div>
+<div class="ttc" id="aclassMatrixKeyMonitor_html"><div class="ttname"><a href="classMatrixKeyMonitor.html">MatrixKeyMonitor</a></div><div class="ttdef"><b>Definition</b> <a href="matrixkeymonitor_8h_source.html#l00024">matrixkeymonitor.h:25</a></div></div>
+<div class="ttc" id="aclassMatrixKeyThreadManager_html"><div class="ttname"><a href="classMatrixKeyThreadManager.html">MatrixKeyThreadManager</a></div><div class="ttdef"><b>Definition</b> <a href="matrixkeythreadmanager_8h_source.html#l00022">matrixkeythreadmanager.h:23</a></div></div>
+<div class="ttc" id="aclassMatrixKeyThreadManager_html_a2ca34096975428b1077c727ec46e13fe"><div class="ttname"><a href="classMatrixKeyThreadManager.html#a2ca34096975428b1077c727ec46e13fe">MatrixKeyThreadManager::m_workerThread</a></div><div class="ttdeci">QThread * m_workerThread</div><div class="ttdef"><b>Definition</b> <a href="matrixkeythreadmanager_8h_source.html#l00110">matrixkeythreadmanager.h:110</a></div></div>
+<div class="ttc" id="aclassMatrixKeyThreadManager_html_a3924407579e14e0d3768cb7fa62ffb8b"><div class="ttname"><a href="classMatrixKeyThreadManager.html#a3924407579e14e0d3768cb7fa62ffb8b">MatrixKeyThreadManager::workerThread</a></div><div class="ttdeci">QThread * workerThread() const</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="matrixkeythreadmanager_8h_source.html#l00099">matrixkeythreadmanager.h:99</a></div></div>
+<div class="ttc" id="aclassMatrixKeyThreadManager_html_a6d37be0a875ea0ed499e1a4ea4a51c9d"><div class="ttname"><a href="classMatrixKeyThreadManager.html#a6d37be0a875ea0ed499e1a4ea4a51c9d">MatrixKeyThreadManager::isRunning</a></div><div class="ttdeci">bool isRunning() const</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="matrixkeythreadmanager_8cpp_source.html#l00101">matrixkeythreadmanager.cpp:101</a></div></div>
+<div class="ttc" id="aclassMatrixKeyThreadManager_html_a729fb19cfa7ce3f4981b810f169d6e18"><div class="ttname"><a href="classMatrixKeyThreadManager.html#a729fb19cfa7ce3f4981b810f169d6e18">MatrixKeyThreadManager::~MatrixKeyThreadManager</a></div><div class="ttdeci">~MatrixKeyThreadManager()</div><div class="ttdoc">析构</div><div class="ttdef"><b>Definition</b> <a href="matrixkeythreadmanager_8cpp_source.html#l00013">matrixkeythreadmanager.cpp:13</a></div></div>
+<div class="ttc" id="aclassMatrixKeyThreadManager_html_a920e4adba44234d392471597f2a24851"><div class="ttname"><a href="classMatrixKeyThreadManager.html#a920e4adba44234d392471597f2a24851">MatrixKeyThreadManager::readMultipleRegisters</a></div><div class="ttdeci">void readMultipleRegisters(int startAddress, int count)</div><div class="ttdoc">批量读取寄存器（占位/辅助方法）</div></div>
+<div class="ttc" id="aclassMatrixKeyThreadManager_html_aab2e3d1b0f182ed8589e21e6cff50d2d"><div class="ttname"><a href="classMatrixKeyThreadManager.html#aab2e3d1b0f182ed8589e21e6cff50d2d">MatrixKeyThreadManager::stop</a></div><div class="ttdeci">void stop()</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="matrixkeythreadmanager_8cpp_source.html#l00065">matrixkeythreadmanager.cpp:65</a></div></div>
+<div class="ttc" id="aclassMatrixKeyThreadManager_html_acfdf8c333c814bdf6fe020d93287a6b3"><div class="ttname"><a href="classMatrixKeyThreadManager.html#acfdf8c333c814bdf6fe020d93287a6b3">MatrixKeyThreadManager::keyPressed</a></div><div class="ttdeci">void keyPressed(int keyNumber, bool isPressed)</div><div class="ttdoc">键按下事件</div></div>
+<div class="ttc" id="aclassMatrixKeyThreadManager_html_ad009741fe3f62d484830a0510a560f39"><div class="ttname"><a href="classMatrixKeyThreadManager.html#ad009741fe3f62d484830a0510a560f39">MatrixKeyThreadManager::m_monitor</a></div><div class="ttdeci">MatrixKeyMonitor * m_monitor</div><div class="ttdef"><b>Definition</b> <a href="matrixkeythreadmanager_8h_source.html#l00111">matrixkeythreadmanager.h:111</a></div></div>
+<div class="ttc" id="aclassMatrixKeyThreadManager_html_af856132d8f66bd49b9825017e52f482e"><div class="ttname"><a href="classMatrixKeyThreadManager.html#af856132d8f66bd49b9825017e52f482e">MatrixKeyThreadManager::start</a></div><div class="ttdeci">bool start(const QString &amp;device=&quot;/dev/input/event0&quot;)</div><div class="ttdoc">启动监控线程</div><div class="ttdef"><b>Definition</b> <a href="matrixkeythreadmanager_8cpp_source.html#l00019">matrixkeythreadmanager.cpp:19</a></div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="matrixkeythreadmanager_8h.html">matrixkeythreadmanager.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

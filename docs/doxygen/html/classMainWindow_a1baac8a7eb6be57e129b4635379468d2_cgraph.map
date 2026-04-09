@@ -1,0 +1,23 @@
+<map id="MainWindow::onAGVModbusError" name="MainWindow::onAGVModbusError">
+<area shape="rect" id="Node000001" title="AGV Modbus 错误" alt="" coords="5,77,244,102"/>
+<area shape="rect" id="Node000002" href="$classOperationRecorder.html#ae5e0a07f7b387272fd297c103b4fe42c" title="添加操作记录" alt="" coords="292,69,444,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="244,87,278,87,278,92,244,92"/>
+<area shape="rect" id="Node000003" href="$classOperationRecorder.html#a99de0d8b91e199e6f1aab3b664df07e1" title=" " alt="" coords="493,37,645,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="444,75,479,69,480,74,445,80"/>
+<area shape="rect" id="Node000004" href="$classOperationRecorder.html#a334ae0662731c03b4a767ee6c47212df" title=" " alt="" coords="492,101,647,141"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="445,99,479,104,478,110,444,104"/>
+<area shape="rect" id="Node000005" href="$classOperationRecorder.html#a76e57ca1319df23bc72f4b7ed395f469" title=" " alt="" coords="712,5,864,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="621,99,645,87,669,71,693,55,708,48,710,53,696,60,672,75,648,92,623,104"/>
+<area shape="rect" id="Node000007" href="$classOperationRecorder.html#a20308fd183b5b0dbe00ce89fcc0b823e" title=" " alt="" coords="712,69,864,109"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="646,107,698,100,699,105,647,113"/>
+<area shape="rect" id="Node000010" href="$classOperationRecorder.html#a507cbb2e0e5b6babc09e31dc8127f101" title=" " alt="" coords="695,133,881,173"/>
+<area shape="poly" id="edge9_Node000004_Node000010" title=" " alt="" coords="647,130,681,135,681,140,646,135"/>
+<area shape="rect" id="Node000011" href="$classOperationRecorder.html#a10162fd420bca1481d62d02b4afcfa30" title="使用示例:" alt="" coords="712,197,864,237"/>
+<area shape="poly" id="edge10_Node000004_Node000011" title=" " alt="" coords="608,139,696,183,713,190,711,195,694,188,605,144"/>
+<area shape="rect" id="Node000006" href="$structOperationRecord.html#aae606bfdd782db1bd3fc32dbf0a814d7" title=" " alt="" coords="929,13,1108,38"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="865,23,915,23,915,28,865,28"/>
+<area shape="rect" id="Node000008" href="$classOperationRecorder.html#a60e73780538b8376d7e68e9cc09fe5a9" title=" " alt="" coords="939,67,1098,107"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="865,86,925,85,925,90,865,91"/>
+<area shape="rect" id="Node000009" href="$classOperationRecorder.html#a37d0a54d4ebddd9ad4c248331f70a0e3" title=" " alt="" coords="931,131,1106,171"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="865,107,930,124,929,130,863,112"/>
+</map>

@@ -1,0 +1,28 @@
+<map id="TechSliderLabel::setupConnections" name="TechSliderLabel::setupConnections">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,159,252,185"/>
+<area shape="rect" id="Node000002" href="$classTechSliderLabel.html#a20e76cbe3e35a76f8f5110d49b3a0e83" title=" " alt="" coords="300,180,484,220"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="248,182,287,186,286,191,248,187"/>
+<area shape="rect" id="Node000004" href="$classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c" title="设置当前值并更新显示" alt="" coords="551,79,737,105"/>
+<area shape="poly" id="edge14_Node000001_Node000004" title=" " alt="" coords="211,157,548,104,549,109,212,162"/>
+<area shape="rect" id="Node000003" href="$classTechSliderLabel.html#aed6e6498a8c93bbab810a4f6c4f3a5e9" title=" " alt="" coords="554,308,734,348"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="419,218,470,256,533,294,550,301,548,306,531,298,467,261,416,222"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="424,177,473,149,531,122,576,106,578,111,533,126,476,154,427,182"/>
+<area shape="rect" id="Node000009" href="$classTechSliderLabel.html#a7c23aa694737f6797998e3652b4c4c62" title=" " alt="" coords="810,273,1022,313"/>
+<area shape="poly" id="edge11_Node000002_Node000009" title=" " alt="" coords="406,219,425,252,453,291,489,329,533,358,576,372,621,378,666,377,712,370,796,346,864,317,866,322,798,351,713,375,667,382,620,383,575,377,531,362,486,333,449,294,420,254,401,221"/>
+<area shape="rect" id="Node000010" href="$classTechSliderLabel.html#a1a227665e06f4b23ce294145d3d93223" title=" " alt="" coords="804,134,1028,159"/>
+<area shape="poly" id="edge12_Node000002_Node000010" title=" " alt="" coords="469,177,532,165,665,152,790,146,790,151,665,157,532,171,470,183"/>
+<area shape="rect" id="Node000011" href="$classTechSliderLabel.html#a5be2d27b9a42b44cd0d0728d16763797" title=" " alt="" coords="553,180,735,220"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="484,197,540,197,540,203,484,203"/>
+<area shape="rect" id="Node000012" href="$classTechSliderLabel.html#ad19109e0a48812466ea0bb4518bdfe25" title=" " alt="" coords="532,244,756,284"/>
+<area shape="poly" id="edge13_Node000002_Node000012" title=" " alt="" coords="472,217,552,238,551,243,471,223"/>
+<area shape="rect" id="Node000005" href="$classTechSliderLabel.html#af0ebb1447f625a86980ae1f48b97835c" title=" " alt="" coords="818,5,1014,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="696,77,819,46,821,51,697,82"/>
+<area shape="rect" id="Node000007" href="$classTechSliderLabel.html#a462ee04c6eb27bdb898d84c0580fa2f1" title=" " alt="" coords="809,69,1023,109"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="738,88,796,88,796,93,738,94"/>
+<area shape="poly" id="edge8_Node000004_Node000009" title=" " alt="" coords="666,103,758,166,881,263,878,267,754,170,663,107"/>
+<area shape="poly" id="edge9_Node000004_Node000010" title=" " alt="" coords="708,102,840,129,838,134,707,107"/>
+<area shape="rect" id="Node000006" href="$classTechSliderLabel.html#a4c98fb21f0ecdc9a82a3e4baede89935" title=" " alt="" coords="1076,5,1293,45"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1014,23,1062,23,1062,28,1014,28"/>
+<area shape="rect" id="Node000008" href="$classTechSliderLabel.html#a14488cb084932cfc503a3d93f86fa115" title=" " alt="" coords="1094,69,1275,109"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="1023,87,1080,87,1080,92,1023,92"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="ModbusTCPClient::pollRegisters" name="ModbusTCPClient::pollRegisters">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,233,60"/>
+<area shape="rect" id="Node000002" href="$classModbusTCPClient.html#ac0eb40bf43e015281059b0144a928675" title="查询连接状态" alt="" coords="833,5,1056,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="234,41,819,20,819,25,234,46"/>
+<area shape="rect" id="Node000003" href="$classModbusTCPClient.html#af981f2837fc0fcd176d9626be6b664f5" title="读取保持寄存器（功能码 0x03）" alt="" coords="281,55,504,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="234,56,268,60,268,65,233,62"/>
+<area shape="rect" id="Node000004" href="$classModbusTCPClient.html#a5e8a92c023cdc3ecc431d0dcbe408a6f" title=" " alt="" coords="552,63,785,88"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="504,73,538,73,538,78,504,78"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="730,60,869,31,870,36,731,65"/>
+<area shape="rect" id="Node000005" href="$classModbusTCPClient.html#a112f20f6eb34d2281ce96e7321940953" title=" " alt="" coords="836,55,1053,95"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="786,73,822,73,822,78,786,78"/>
+</map>

@@ -1,0 +1,25 @@
+<map id="TechSliderLabel::requestRepaint" name="TechSliderLabel::requestRepaint">
+<area shape="rect" id="Node000001" title=" " alt="" coords="836,177,1016,217"/>
+<area shape="rect" id="Node000002" href="$classTechSliderLabel.html#aaff4ac11b8b42fe6d9ff55e9a27c7cbf" title=" " alt="" coords="561,5,772,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="901,168,852,112,821,84,787,60,762,48,764,43,789,55,824,80,856,108,905,165"/>
+<area shape="rect" id="Node000003" href="$classTechSliderLabel.html#a3d5a53285c89d132b26bea200a17c08d" title=" " alt="" coords="550,70,783,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="888,171,841,139,787,110,748,98,749,93,789,106,844,135,891,167"/>
+<area shape="rect" id="Node000004" href="$classTechSliderLabel.html#a20e76cbe3e35a76f8f5110d49b3a0e83" title=" " alt="" coords="575,120,759,160"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="822,177,757,163,758,157,823,172"/>
+<area shape="rect" id="Node000007" href="$classTechSliderLabel.html#a3c47c6124c2d4989431e6a912c125765" title=" " alt="" coords="545,185,788,210"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="822,200,788,200,788,195,822,195"/>
+<area shape="rect" id="Node000008" href="$classTechSliderLabel.html#a31b54e8e26a4fda38e2f2a1c201a952f" title=" " alt="" coords="562,235,771,275"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="823,223,758,237,757,232,822,218"/>
+<area shape="rect" id="Node000011" href="$classTechSliderLabel.html#a98b69db009dcc40777c5402dab282baf" title=" " alt="" coords="561,299,772,339"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="890,228,843,260,789,289,757,301,755,296,787,284,840,255,887,223"/>
+<area shape="rect" id="Node000012" href="$classTechSliderLabel.html#a326219af66ba50a2fe784f9e67ff2bfe" title=" " alt="" coords="549,363,784,389"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="908,231,859,294,827,326,789,353,760,366,758,361,787,348,823,322,855,290,903,227"/>
+<area shape="rect" id="Node000005" href="$classTechSliderLabel.html#aff4a891b36e70b10fbd4f088155dbff4" title=" " alt="" coords="251,127,497,153"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="561,143,497,143,497,137,561,137"/>
+<area shape="rect" id="Node000006" href="$classTechSliderLabel.html#a106e5fb25c568a3f7ab30a56260a8e76" title="构造 TechSliderLabel 控件" alt="" coords="5,120,203,160"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="237,143,203,143,203,137,237,137"/>
+<area shape="rect" id="Node000009" href="$classModbusThreadManager.html#a055958d4fb9af47a9c477f86cbb23c42" title=" " alt="" coords="277,235,471,275"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="548,257,471,257,471,252,548,252"/>
+<area shape="rect" id="Node000010" href="$classModbusThreadManager.html#afe2268ae681e8c8ab9bbd396f516688f" title=" " alt="" coords="13,235,195,275"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="263,257,196,257,196,252,263,252"/>
+</map>

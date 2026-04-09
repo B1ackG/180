@@ -1,0 +1,9 @@
+<map id="SpeedModeSelector" name="SpeedModeSelector">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,197,156,223"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="20,80,99,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="67,118,81,197,76,198,61,119"/>
+<area shape="rect" id="Node000003" href="$classTechPushButton.html" title=" " alt="" coords="123,80,249,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="168,117,93,199,89,195,164,114"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="133,5,239,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="189,45,189,80,183,80,183,45"/>
+</map>

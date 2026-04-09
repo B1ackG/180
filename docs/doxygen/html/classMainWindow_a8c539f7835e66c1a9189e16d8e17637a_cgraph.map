@@ -1,0 +1,17 @@
+<map id="MainWindow::writeAGVRegisterBits" name="MainWindow::writeAGVRegisterBits">
+<area shape="rect" id="Node000001" title="按位更新 AGV 寄存器并写回，自动保留未修改位" alt="" coords="5,81,259,106"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57" title=" " alt="" coords="313,49,539,74"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="249,78,299,72,300,78,249,83"/>
+<area shape="rect" id="Node000006" href="$classAGVModbusManager.html#aec03e5a2f2710570382b6063a1ffe826" title="功能: 写单个寄存器到 AGV 设备。 如何使用: 提供地址和值，调用后观察 writeCompleted 或 errorOccurred 信号以获取结果。 如何修改: 若需事务进行多寄存器写入，请使用..." alt="" coords="307,101,545,141"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="259,103,293,106,292,111,259,108"/>
+<area shape="rect" id="Node000003" href="$classFeatureSwitchManager.html#af4a8c4a54a17fdddbdb9eece6b8da932" title="组合检查：先检查所属大功能，再检查小功能（若提供）" alt="" coords="631,37,802,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="539,57,618,56,618,61,539,62"/>
+<area shape="rect" id="Node000004" href="$classFeatureSwitchManager.html#aa558b5e5c8c59422920a0006cc304f0e" title="检查某个大功能是否可用" alt="" coords="892,5,1063,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="802,44,878,35,879,40,802,50"/>
+<area shape="rect" id="Node000005" href="$classFeatureSwitchManager.html#a34a3f96557e81a21f547065c8ce2608b" title="检查某个小功能是否可用" alt="" coords="888,69,1067,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="802,65,874,74,873,79,802,70"/>
+<area shape="rect" id="Node000007" href="$classAGVModbusManager.html#a3635763c93cd21764900cab25136b890" title=" " alt="" coords="613,101,820,141"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="546,119,600,119,600,124,546,124"/>
+<area shape="rect" id="Node000008" href="$classAGVModbusManager.html#a1e0321a0cc3e28ba495cabbc83b193d4" title="功能: 返回当前网络连接状态。 如何使用: 用于 UI 指示或决定是否发起读写操作。 如何修改: 若支持多设备，应提供设备级别的状态查询接口。" alt="" coords="593,166,840,191"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="529,139,639,161,638,166,528,144"/>
+</map>

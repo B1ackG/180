@@ -1,0 +1,24 @@
+<map id="Ui_MainWindow" name="Ui_MainWindow">
+<area shape="rect" id="Node000001" title=" " alt="" coords="904,266,1031,291"/>
+<area shape="rect" id="Node000002" href="$classTechSliderEdit.html" title=" " alt="" coords="471,193,585,218"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="569,222,635,252,706,266,778,274,904,278,904,284,778,280,705,272,634,257,566,226"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="185,185,263,210"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="277,196,471,201,471,207,277,201"/>
+<area shape="rect" id="Node000006" href="$classTechSpeedGauge.html" title=" " alt="" coords="461,257,595,282"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="277,207,474,254,473,259,276,212"/>
+<area shape="rect" id="Node000007" href="$classSteeringModeSelector.html" title=" " alt="" coords="445,322,611,347"/>
+<area shape="poly" id="edge8_Node000007_Node000003" title=" " alt="" coords="258,215,312,243,367,262,422,280,447,292,502,320,499,324,444,297,420,285,365,267,310,248,256,219"/>
+<area shape="rect" id="Node000008" href="$classBatteryWidget.html" title="电池电量 Widget，可用于 Qt Designer 提升。 推荐放入一个布局管理器中，建议固定大小 60x30 或类似比例。" alt="" coords="470,47,586,73"/>
+<area shape="poly" id="edge11_Node000008_Node000003" title=" " alt="" coords="260,176,310,151,494,70,496,75,312,156,262,181"/>
+<area shape="rect" id="Node000009" href="$classTechSliderLabel.html" title=" " alt="" coords="467,135,589,161"/>
+<area shape="poly" id="edge13_Node000009_Node000003" title=" " alt="" coords="276,185,310,179,466,154,467,159,311,184,277,190"/>
+<area shape="rect" id="Node000004" href="$classTechPushButton.html" title=" " alt="" coords="161,366,287,391"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="300,391,416,407,487,412,564,414,644,410,725,400,804,381,879,354,902,340,923,323,954,290,958,294,927,327,905,344,881,358,805,386,726,405,644,415,564,419,487,417,416,412,299,396"/>
+<area shape="poly" id="edge9_Node000007_Node000004" title=" " alt="" coords="300,369,421,353,468,345,469,350,422,359,301,374"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="5,366,112,391"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="126,376,161,376,161,381,126,381"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="578,284,635,297,704,306,757,308,811,305,880,297,923,289,924,294,880,303,811,310,757,313,703,311,634,303,576,289"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="624,344,683,348,747,347,814,342,879,328,918,311,949,289,952,294,921,315,881,333,815,347,748,353,683,353,624,350"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="579,41,644,26,723,17,765,19,806,25,845,37,882,56,906,78,926,105,941,134,952,165,964,223,968,265,963,266,959,224,946,167,936,136,921,108,902,82,878,61,843,42,804,30,764,24,723,23,645,31,580,46"/>
+<area shape="poly" id="edge12_Node000001_Node000009" title=" " alt="" coords="603,134,677,126,758,120,830,122,859,127,881,135,899,148,915,164,940,200,956,236,965,265,960,267,951,238,935,203,911,167,896,152,879,140,858,132,830,127,758,126,678,131,604,140"/>
+</map>

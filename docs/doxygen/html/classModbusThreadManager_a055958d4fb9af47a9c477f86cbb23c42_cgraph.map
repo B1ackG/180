@@ -1,0 +1,25 @@
+<map id="ModbusThreadManager::onRegisterValueChanged" name="ModbusThreadManager::onRegisterValueChanged">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,69,199,109"/>
+<area shape="rect" id="Node000002" href="$classModbusThreadManager.html#a4977e969e2f04a6e614d95ffc1c82fef" title=" " alt="" coords="264,5,439,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,67,259,46,261,51,181,72"/>
+<area shape="rect" id="Node000003" href="$classTechSliderEdit.html#a64df076420ce48c7d7fe38139c7bc3a9" title="由 Modbus 数据更新控件显示值" alt="" coords="252,69,451,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="199,87,238,87,238,92,199,92"/>
+<area shape="rect" id="Node000007" href="$classTechSliderLabel.html#a31b54e8e26a4fda38e2f2a1c201a952f" title=" " alt="" coords="247,197,456,237"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="143,107,301,189,298,193,141,112"/>
+<area shape="rect" id="Node000004" href="$classTechSliderEdit.html#aa425cc8db65cc17257f75061a8037831" title=" " alt="" coords="519,5,713,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="434,67,519,46,520,51,435,72"/>
+<area shape="rect" id="Node000005" href="$classTechSliderEdit.html#ac30ed3fce4100e4a54dee578d8d79fa2" title=" " alt="" coords="515,69,717,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="451,87,501,87,501,92,451,92"/>
+<area shape="rect" id="Node000006" href="$classTechSliderEdit.html#a1dfbc69ff00d41c39012cb4c39162b1b" title=" " alt="" coords="776,77,984,102"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="718,87,762,87,762,92,718,92"/>
+<area shape="rect" id="Node000008" href="$classTechSliderLabel.html#aed6e6498a8c93bbab810a4f6c4f3a5e9" title=" " alt="" coords="526,133,706,173"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="434,195,519,174,520,179,435,200"/>
+<area shape="rect" id="Node000009" href="$classTechSliderLabel.html#a462ee04c6eb27bdb898d84c0580fa2f1" title=" " alt="" coords="509,197,723,237"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="456,215,496,215,496,220,456,220"/>
+<area shape="rect" id="Node000011" href="$classTechSliderLabel.html#a7c23aa694737f6797998e3652b4c4c62" title=" " alt="" coords="510,261,722,301"/>
+<area shape="poly" id="edge10_Node000007_Node000011" title=" " alt="" coords="435,235,520,256,519,261,434,240"/>
+<area shape="rect" id="Node000012" href="$classTechSliderLabel.html#a1a227665e06f4b23ce294145d3d93223" title=" " alt="" coords="504,326,728,351"/>
+<area shape="poly" id="edge11_Node000007_Node000012" title=" " alt="" coords="380,235,436,274,505,311,531,320,529,325,503,316,433,279,377,240"/>
+<area shape="rect" id="Node000010" href="$classTechSliderLabel.html#a14488cb084932cfc503a3d93f86fa115" title=" " alt="" coords="789,197,971,237"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="723,215,775,215,775,220,723,220"/>
+</map>

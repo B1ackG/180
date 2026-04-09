@@ -1,0 +1,202 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: mainwindow.h 文件参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('mainwindow_8h.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">类</a> &#124;
+<a href="#namespaces">命名空间</a> &#124;
+<a href="#define-members">宏定义</a>  </div>
+  <div class="headertitle"><div class="title">mainwindow.h 文件参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>主窗口的声明，包含主要 UI 控件与界面逻辑的入口类。  
+<a href="#details">更多...</a></p>
+<div class="textblock"><code>#include &lt;QMainWindow&gt;</code><br />
+<code>#include &quot;<a class="el" href="techpushbutton_8h_source.html">techpushbutton.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="techspeedgauge_8h_source.html">techspeedgauge.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="techslideredit_8h_source.html">techslideredit.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="techvirtualkeyboard_8h_source.html">techvirtualkeyboard.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="operationrecorder_8h_source.html">operationrecorder.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="mappingconfig_8h_source.html">mappingconfig.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="matrixkeymonitor_8h_source.html">matrixkeymonitor.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="techspeeddialsimple_8h_source.html">techspeeddialsimple.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="matrixkeythreadmanager_8h_source.html">matrixkeythreadmanager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="modbusthreadmanager_8h_source.html">modbusthreadmanager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="techsliderlabel_8h_source.html">techsliderlabel.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="techarcgauge_8h_source.html">techarcgauge.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="speedmodeselector_8h_source.html">speedmodeselector.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="modbusvariables_8h_source.html">modbusvariables.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="steeringmodeselector_8h_source.html">steeringmodeselector.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="enablebuttonworker_8h_source.html">enablebuttonworker.h</a>&quot;</code><br />
+<code>#include &lt;QPushButton&gt;</code><br />
+<code>#include &lt;QToolButton&gt;</code><br />
+<code>#include &lt;QLineEdit&gt;</code><br />
+<code>#include &lt;QRegularExpression&gt;</code><br />
+<code>#include &lt;QRegularExpressionValidator&gt;</code><br />
+<code>#include &lt;QCheckBox&gt;</code><br />
+<code>#include &lt;QGroupBox&gt;</code><br />
+<code>#include &lt;QProgressBar&gt;</code><br />
+<code>#include &lt;QQuickWidget&gt;</code><br />
+<code>#include &lt;QQuickItem&gt;</code><br />
+<code>#include &lt;QQmlContext&gt;</code><br />
+<code>#include &lt;QSet&gt;</code><br />
+<code>#include &quot;<a class="el" href="poseprovider_8h_source.html">poseprovider.h</a>&quot;</code><br />
+</div><div class="textblock"><div class="dynheader">
+mainwindow.h 的引用(Include)关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mainwindow_8h__incl.svg" width="3844" height="330"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div><div class="textblock"><div class="dynheader">
+此图展示该文件直接或间接的被哪些文件引用了:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="mainwindow_8h__dep__incl.svg" width="467" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+</div>
+<p><a href="mainwindow_8h_source.html">浏览源代码.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+类</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMainWindow.html">MainWindow</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">主窗口类，管理整个应用的 UI、设备通信与业务逻辑。  <a href="classMainWindow.html#details">更多...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structMainWindow_1_1SliderLabelConfig.html">MainWindow::SliderLabelConfig</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+命名空间</h2></td></tr>
+<tr class="memitem:namespaceUi" id="r_namespaceUi"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceUi.html">Ui</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
+宏定义</h2></td></tr>
+<tr class="memitem:a1017d02fcd3da5cdbcd8c1df49e08650" id="r_a1017d02fcd3da5cdbcd8c1df49e08650"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mainwindow_8h.html#a1017d02fcd3da5cdbcd8c1df49e08650">MAINWINDOW_H</a></td></tr>
+<tr class="separator:a1017d02fcd3da5cdbcd8c1df49e08650"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>主窗口的声明，包含主要 UI 控件与界面逻辑的入口类。 </p>
+<p>详细说明: 定义 <code><a class="el" href="classMainWindow.html" title="主窗口类，管理整个应用的 UI、设备通信与业务逻辑。">MainWindow</a></code>（或类似入口窗口）的界面元素、信号与槽，负责应用主要交互流程。</p>
+<p>使用示例: </p><div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="mainwindow_8h.html">mainwindow.h</a>&quot;</span></div>
+<div class="line"><a class="code hl_class" href="classMainWindow.html">MainWindow</a> *w = <span class="keyword">new</span> <a class="code hl_class" href="classMainWindow.html">MainWindow</a>;</div>
+<div class="line">w-&gt;show();</div>
+<div class="ttc" id="aclassMainWindow_html"><div class="ttname"><a href="classMainWindow.html">MainWindow</a></div><div class="ttdoc">主窗口类，管理整个应用的 UI、设备通信与业务逻辑。</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00103">mainwindow.h:104</a></div></div>
+<div class="ttc" id="amainwindow_8h_html"><div class="ttname"><a href="mainwindow_8h.html">mainwindow.h</a></div><div class="ttdoc">主窗口的声明，包含主要 UI 控件与界面逻辑的入口类。</div></div>
+</div><!-- fragment --> 
+<p class="definition">在文件 <a class="el" href="mainwindow_8h_source.html">mainwindow.h</a> 中定义.</p>
+</div><h2 class="groupheader">宏定义说明</h2>
+<a id="a1017d02fcd3da5cdbcd8c1df49e08650" name="a1017d02fcd3da5cdbcd8c1df49e08650"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1017d02fcd3da5cdbcd8c1df49e08650">&#9670;&#160;</a></span>MAINWINDOW_H</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MAINWINDOW_H</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="mainwindow_8h_source.html">mainwindow.h</a> 第 <a class="el" href="mainwindow_8h_source.html#l00015">15</a> 行定义.</p>
+
+</div>
+</div>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="mainwindow_8h.html">mainwindow.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

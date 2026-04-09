@@ -1,0 +1,13 @@
+<map id="OperationRecorder::enableTcpTransmission" name="OperationRecorder::enableTcpTransmission">
+<area shape="rect" id="Node000001" title="启用/禁用 TCP 传输" alt="" coords="5,101,177,141"/>
+<area shape="rect" id="Node000002" href="$classOperationRecorder.html#a20308fd183b5b0dbe00ce89fcc0b823e" title=" " alt="" coords="227,37,379,77"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,99,223,79,224,84,159,104"/>
+<area shape="rect" id="Node000005" href="$classOperationRecorder.html#a58ad39183fa0657421f3534579b67169" title=" " alt="" coords="225,101,381,141"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="178,119,212,119,212,124,178,124"/>
+<area shape="rect" id="Node000006" href="$classOperationRecorder.html#a5b34105cc69529110573a59a3fab7cab" title=" " alt="" coords="225,165,381,205"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="159,139,224,159,223,164,158,144"/>
+<area shape="rect" id="Node000003" href="$classOperationRecorder.html#a60e73780538b8376d7e68e9cc09fe5a9" title=" " alt="" coords="437,5,596,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="379,43,423,37,424,42,380,49"/>
+<area shape="rect" id="Node000004" href="$classOperationRecorder.html#a37d0a54d4ebddd9ad4c248331f70a0e3" title=" " alt="" coords="429,69,604,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="380,66,416,72,416,77,379,71"/>
+</map>

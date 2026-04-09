@@ -1,0 +1,11 @@
+<map id="FeatureSwitchManager::reload" name="FeatureSwitchManager::reload">
+<area shape="rect" id="Node000001" title="从配置文件重新加载开关状态（覆盖内存状态）" alt="" coords="656,37,827,77"/>
+<area shape="rect" id="Node000002" href="$classFeatureSwitchManager.html#a45915a2c60245788c1a72c9dc938abab" title=" " alt="" coords="429,5,608,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="642,46,608,41,609,36,643,40"/>
+<area shape="rect" id="Node000003" href="$classFeatureSwitchWidget.html#a8ff4a6f95121aa85e0b8428362aa23fd" title=" " alt="" coords="439,69,599,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="643,74,599,81,598,75,642,69"/>
+<area shape="rect" id="Node000004" href="$classFeatureSwitchWidget.html#a859090336219fd32f18b5c10019b1016" title=" " alt="" coords="221,69,381,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="425,92,381,92,381,87,425,87"/>
+<area shape="rect" id="Node000005" href="$classFeatureSwitchWidget.html#a5efb15d0351e260b8923889832dbf319" title=" " alt="" coords="5,69,173,109"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="207,92,173,92,173,87,207,87"/>
+</map>

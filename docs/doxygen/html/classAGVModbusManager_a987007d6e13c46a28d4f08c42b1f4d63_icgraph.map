@@ -1,0 +1,25 @@
+<map id="AGVModbusManager::errorOccurred" name="AGVModbusManager::errorOccurred">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1483,107,1737,132"/>
+<area shape="rect" id="Node000002" href="$classEightyAgvApp.html#a9be128bf683fd21c872aeca9a1283472" title="构造 AGV 业务对象。" alt="" coords="1215,5,1427,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1566,104,1434,53,1370,33,1372,28,1436,47,1568,99"/>
+<area shape="rect" id="Node000003" href="$classAGVModbusManager.html#a9927be2cfc4e70ce9ca4baa5428ea2f6" title=" " alt="" coords="320,57,533,83"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="1489,108,1434,103,1181,89,930,80,534,73,534,68,930,75,1181,84,1435,98,1489,103"/>
+<area shape="rect" id="Node000005" href="$classAGVModbusManager.html#afe8402210cd7dd4e73dc8c9b15b13aee" title=" " alt="" coords="603,107,868,132"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="1469,122,868,122,868,117,1469,117"/>
+<area shape="rect" id="Node000007" href="$classAGVModbusManager.html#a3f3addb7fadad500d1049caac52a3594" title=" " alt="" coords="1213,157,1429,197"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="1532,137,1423,159,1422,154,1531,132"/>
+<area shape="rect" id="Node000009" href="$classMainWindow.html#a3e0a36e37aaa3085efc35aebf3f257a5" title="初始化 AGV Modbus 子系统" alt="" coords="1207,224,1435,249"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="1577,141,1513,177,1436,211,1385,226,1383,221,1434,206,1510,172,1575,137"/>
+<area shape="rect" id="Node000004" href="$classAGVModbusManager.html#a588ed9c3dd720d19485e1fcc53ce6cb3" title="功能: 构造 AGVModbusManager，用于管理 AGV 专用的 Modbus 通信与数据处理。 如何使用: 在应用初始化阶段创建该管理对象并连接相应信号以接收更新。 如何修改: 若需要支持多个..." alt="" coords="5,75,251,115"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="306,83,251,88,251,82,306,78"/>
+<area shape="rect" id="Node000006" href="$classAGVModbusManager.html#addbb04b41d5ad09b61ebbaa36af6ff79" title=" " alt="" coords="299,107,555,132"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="589,122,555,122,555,117,589,117"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="285,111,251,108,251,103,285,105"/>
+<area shape="rect" id="Node000008" href="$classAGVModbusManager.html#a532317f919179d0f4679c2b15335fefa" title=" " alt="" coords="916,157,1159,197"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="1199,179,1159,179,1159,174,1199,174"/>
+<area shape="poly" id="edge9_Node000008_Node000005" title=" " alt="" coords="918,157,802,135,803,129,919,151"/>
+<area shape="rect" id="Node000010" href="$classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c" title="初始化业务子系统（通信、线程、样式、控制）" alt="" coords="938,221,1137,261"/>
+<area shape="poly" id="edge11_Node000009_Node000010" title=" " alt="" coords="1193,241,1137,242,1137,237,1193,236"/>
+<area shape="rect" id="Node000011" href="$classMainWindow.html#a996c5a2b6f77944776856f08ec30858d" title="构造 MainWindow 并初始化内部状态与 UI" alt="" coords="637,228,834,253"/>
+<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="925,243,834,243,834,238,925,238"/>
+</map>

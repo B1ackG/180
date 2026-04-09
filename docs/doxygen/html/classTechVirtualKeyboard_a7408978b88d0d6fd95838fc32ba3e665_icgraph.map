@@ -1,0 +1,24 @@
+<map id="TechVirtualKeyboard::applyButtonPressEffect" name="TechVirtualKeyboard::applyButtonPressEffect">
+<area shape="rect" id="Node000001" title=" " alt="" coords="629,165,811,205"/>
+<area shape="rect" id="Node000002" href="$classTechVirtualKeyboard.html#a677a64617e509466240e0e35fcf14226" title=" " alt="" coords="419,5,581,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="690,157,642,108,580,60,558,48,560,43,583,55,645,104,694,153"/>
+<area shape="rect" id="Node000005" href="$classTechVirtualKeyboard.html#a02b7c58ad3e74a7142d61e175efbbd65" title=" " alt="" coords="423,69,577,109"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="663,162,580,124,552,112,554,107,582,119,666,157"/>
+<area shape="rect" id="Node000006" href="$classTechVirtualKeyboard.html#a19e765264cdccf5d01276e8e1838be0f" title=" " alt="" coords="423,133,577,173"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="615,173,577,167,578,162,616,168"/>
+<area shape="rect" id="Node000007" href="$classTechVirtualKeyboard.html#a196fdddfafa731651c69ebb21c194c28" title=" " alt="" coords="423,197,577,237"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="616,203,578,209,577,203,615,198"/>
+<area shape="rect" id="Node000008" href="$classTechVirtualKeyboard.html#ab74b0af283c3a077e1c6fd5d68176987" title=" " alt="" coords="423,261,577,301"/>
+<area shape="poly" id="edge10_Node000001_Node000008" title=" " alt="" coords="666,214,582,252,554,264,552,259,580,247,663,209"/>
+<area shape="rect" id="Node000009" href="$classTechVirtualKeyboard.html#a96794787f9bc1a42e485a7c4ab39f6e3" title=" " alt="" coords="423,325,577,365"/>
+<area shape="poly" id="edge12_Node000001_Node000009" title=" " alt="" coords="694,218,645,267,583,316,560,328,558,323,580,311,642,263,690,214"/>
+<area shape="rect" id="Node000003" href="$classTechVirtualKeyboard.html#a06bb6fb3d4d504daf85049016b13711e" title=" " alt="" coords="216,165,371,205"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="429,54,420,60,387,85,357,114,312,167,308,163,353,110,384,81,417,55,426,50"/>
+<area shape="rect" id="Node000004" href="$classTechVirtualKeyboard.html#acfa2076326d4c5e326b9eca38ad33294" title="功能: 构造虚拟键盘控件，初始化 UI 和样式。 如何使用: 在需要弹出虚拟键盘的界面创建此控件并使用 setTargetLineEdit 绑定目标输入控件。 如何修改: 若需支持更多按键或布局，可在 ..." alt="" coords="5,165,168,205"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="202,188,168,188,168,183,202,183"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="435,117,420,124,333,167,330,163,418,119,433,112"/>
+<area shape="poly" id="edge7_Node000006_Node000003" title=" " alt="" coords="409,170,371,176,371,171,408,165"/>
+<area shape="poly" id="edge9_Node000007_Node000003" title=" " alt="" coords="408,206,371,200,371,195,409,201"/>
+<area shape="poly" id="edge11_Node000008_Node000003" title=" " alt="" coords="433,258,418,252,330,208,333,203,420,247,435,253"/>
+<area shape="poly" id="edge13_Node000009_Node000003" title=" " alt="" coords="426,321,417,316,384,290,353,260,308,207,312,204,357,257,387,286,420,311,429,317"/>
+</map>

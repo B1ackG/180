@@ -1,0 +1,19 @@
+<map id="MainDeviceModbusApi::readHoldingRegisters" name="MainDeviceModbusApi::readHoldingRegisters">
+<area shape="rect" id="Node000001" title="读取保持寄存器。" alt="" coords="5,37,176,77"/>
+<area shape="rect" id="Node000002" href="$classMainDeviceModbusApi.html#af7a3a4d874cad596e8cf9a79cb92a8b7" title="判断管理器是否可用于主设备 Modbus 操作。" alt="" coords="226,5,397,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,42,212,37,213,42,177,48"/>
+<area shape="rect" id="Node000005" href="$classModbusThreadManager.html#aef7b28d686b3368e8483098327aee668" title="读取保持寄存器（功能码 0x03）" alt="" coords="224,69,399,109"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="177,67,211,72,210,77,176,72"/>
+<area shape="rect" id="Node000003" href="$classModbusThreadManager.html#ae3b2ae28795aa8acb39148c4ffaa7f5c" title="查询连接状态" alt="" coords="747,5,921,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="397,23,733,23,733,28,397,28"/>
+<area shape="rect" id="Node000004" href="$classModbusTCPClient.html#ac0eb40bf43e015281059b0144a928675" title="查询连接状态" alt="" coords="999,70,1221,95"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="922,41,1035,65,1034,70,921,46"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="399,86,985,81,985,86,399,91"/>
+<area shape="rect" id="Node000006" href="$classModbusTCPClient.html#af981f2837fc0fcd176d9626be6b664f5" title="读取保持寄存器（功能码 0x03）" alt="" coords="447,120,669,160"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="399,105,447,115,446,120,398,110"/>
+<area shape="rect" id="Node000007" href="$classModbusTCPClient.html#a5e8a92c023cdc3ecc431d0dcbe408a6f" title=" " alt="" coords="717,127,951,153"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="670,137,703,137,703,143,670,143"/>
+<area shape="poly" id="edge9_Node000007_Node000004" title=" " alt="" coords="895,125,1034,96,1036,101,897,130"/>
+<area shape="rect" id="Node000008" href="$classModbusTCPClient.html#a112f20f6eb34d2281ce96e7321940953" title=" " alt="" coords="1001,120,1219,160"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="951,137,987,137,987,143,951,143"/>
+</map>

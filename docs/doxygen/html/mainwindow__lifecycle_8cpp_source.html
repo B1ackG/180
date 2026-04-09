@@ -1,0 +1,674 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: mainwindow_lifecycle.cpp 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('mainwindow__lifecycle_8cpp_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">mainwindow_lifecycle.cpp</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="mainwindow__lifecycle_8cpp.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="mainwindow_8h.html">mainwindow.h</a>&quot;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#include &quot;<a class="code" href="ui__mainwindow_8h.html">ui_mainwindow.h</a>&quot;</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &quot;<a class="code" href="featureswitchmanager_8h.html">featureswitchmanager.h</a>&quot;</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span> </div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;QApplication&gt;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;QStackedWidget&gt;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;QDebug&gt;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;QMovie&gt;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &lt;unistd.h&gt;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
+<div class="foldopen" id="foldopen00011" data-start="{" data-end="}">
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno"><a class="line" href="classMainWindow.html#a996c5a2b6f77944776856f08ec30858d">   11</a></span><a class="code hl_function" href="classMainWindow.html#a996c5a2b6f77944776856f08ec30858d">MainWindow::MainWindow</a>(QWidget *parent)</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>    : QMainWindow(parent)</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    , ui(new <a class="code hl_namespace" href="namespaceUi.html">Ui</a>::<a class="code hl_class" href="classMainWindow.html">MainWindow</a>)</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    , m_poseProvider(new <a class="code hl_class" href="classPoseProvider.html">PoseProvider</a>(this))</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    , m_featureSwitchManager(<a class="code hl_class" href="classFeatureSwitchManager.html">FeatureSwitchManager</a>::instance())</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    , m_enableButtonThread(nullptr)</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    , m_enableButtonWorker(nullptr)</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    , m_enableButtonFd(-1)</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    , m_enableButtonNotifier(nullptr)</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    , m_lastEnableButtonState(false)</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    , m_enablePollTimer(nullptr)</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    , m_alarmWidget(nullptr)</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    , m_alarmLabel(nullptr)</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    , m_alarmCheckTimer(nullptr)</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    , m_emergencyStopAlarm(false)</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    , m_forceLimitAlarm(false)</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    , m_emergencyStopColumnFlag(false)</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    , m_emergencyStopChassisFlag(false)</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    , m_forceLimitFlag(false)</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    , m_modbusManager(nullptr)</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    , m_modbusVariables(new <a class="code hl_class" href="classModbusVariables.html">ModbusVariables</a>(this))</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    , m_modbusPollTimer(new QTimer(this))</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    , m_modbusReadTimer(nullptr)</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    , m_floatRegisters()</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    , m_floatLabels()</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    , m_agvModbusManager(nullptr)</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    , m_agvFaultListWidget(nullptr)</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    , m_agvFaultsLabel(nullptr)</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    , m_forceReadTimer(nullptr)</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    , m_recorder(new <a class="code hl_class" href="classOperationRecorder.html">OperationRecorder</a>(this))</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    , m_mappingConfig(new <a class="code hl_class" href="classMappingConfig.html">MappingConfig</a>(this))</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    , m_tcpTransmissionEnabled(false)</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    , m_currentUserRole(<a class="code hl_enumeration" href="classMainWindow.html#a5276269dcea63707bda5c62a427b1d9e">UserRole</a>::Operator)</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    , m_stepModeEnabled(false)</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    , m_virtualKeyboard(nullptr)</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    , m_keyManager(new <a class="code hl_class" href="classMatrixKeyThreadManager.html">MatrixKeyThreadManager</a>(this))</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    , m_steeringModeSelector(nullptr)</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    , m_speedModeSelector(nullptr)</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    , m_verticalMovie(nullptr)</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    , m_backgroundLoaded(false)</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    , m_dataSimulator(nullptr)</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    , m_threadStatusLabel(nullptr)</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    , m_threadMonitorTimer(nullptr)</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    , m_techButtons()</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    , m_btnForceClear(nullptr)</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>{</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_function" href="classUi__MainWindow.html#acf4a0872c4c77d8f43a2ec66ed849b58">setupUi</a>(<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <a class="code hl_function" href="classMainWindow.html#af4637cecd13ffcf5f76efc37ff3310c7">loadBackgroundImage</a>();</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <a class="code hl_function" href="classMainWindow.html#a9ff6e489f153e656360238d6e22b7b94">setupSliderLabelConfigs</a>();</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <a class="code hl_function" href="classMainWindow.html#ab43695d6739effa6dc8655f1ad687f2e">loadSliderLabelRuntimeSettings</a>(); <span class="comment">// 加载运行时自定义的限制值</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    qDebug() &lt;&lt; <span class="stringliteral">&quot;=== 初始化开始 ===&quot;</span>;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    qDebug() &lt;&lt; <span class="stringliteral">&quot;StackedWidget初始页数:&quot;</span> &lt;&lt; <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#ae85a3b6f1e53ff1ee4bb53f08f6c171d">StackedWidget</a>-&gt;count();</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <a class="code hl_function" href="classMainWindow.html#aef04868cc6535914e6d1efaa8b1c3175">initializePageNames</a>();</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <a class="code hl_function" href="classMainWindow.html#a053dc76209881a2217b90c086f43a11a">loadPollingRuntimeSettings</a>();</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <a class="code hl_function" href="classMainWindow.html#a0cb4955bff598ad95110e9525a52214d">initializeCorePagesAndUi</a>();</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <a class="code hl_function" href="classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c">initializeCoreSubsystems</a>();</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#a3bd508aecfa60eccfae86a10386ee4a2">sixAxisQuickWidget</a>) {</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#a3bd508aecfa60eccfae86a10386ee4a2">sixAxisQuickWidget</a>-&gt;rootContext()-&gt;setContextProperty(<span class="stringliteral">&quot;poseData&quot;</span>, <a class="code hl_variable" href="classMainWindow.html#afc8042e23f630f48935b149f807be326">m_poseProvider</a>);</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#a3bd508aecfa60eccfae86a10386ee4a2">sixAxisQuickWidget</a>-&gt;setSource(QUrl(<span class="stringliteral">&quot;qrc:/PoseDisplay.qml&quot;</span>));</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    }</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#ae85a3b6f1e53ff1ee4bb53f08f6c171d">StackedWidget</a>-&gt;setCurrentIndex(0);</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#a38a3a07d6e2f7f35e63a4856aae21a79">lab_Overall</a>-&gt;setScaledContents(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#a38a3a07d6e2f7f35e63a4856aae21a79">lab_Overall</a>-&gt;setPixmap(QPixmap(<span class="stringliteral">&quot;:/Picture/190overall6.png&quot;</span>));</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span> </div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    qApp-&gt;installEventFilter(<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <a class="code hl_variable" href="classMainWindow.html#aee74ac5c205c4640cd6ca10d8bd2934a">m_isSteeringAlarmActive</a> = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    <a class="code hl_function" href="classMainWindow.html#aa759e6f02ec322418619973a2de954b7">initializeForceAndFloatSubsystem</a>();</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <a class="code hl_function" href="classMainWindow.html#a3ab06273406a80c6ea1c1c0d22c81888">scheduleStartupTasks</a>();</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    <a class="code hl_function" href="classMainWindow.html#a75f95e3cdee981275dffa61afeb5aafd">connectConstructorSignals</a>();</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    qDebug() &lt;&lt; <span class="stringliteral">&quot;=== 初始化完成 ===&quot;</span>;</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>}</div>
+</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
+<div class="foldopen" id="foldopen00089" data-start="{" data-end="}">
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno"><a class="line" href="classMainWindow.html#ae98d00a93bc118200eeef9f9bba1dba7">   89</a></span><a class="code hl_function" href="classMainWindow.html#ae98d00a93bc118200eeef9f9bba1dba7">MainWindow::~MainWindow</a>()</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>{</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    qDebug() &lt;&lt; <span class="stringliteral">&quot;正在清理资源...&quot;</span>;</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#a548a80bba7ce35d54c8a0e56c8095f9d">m_keyManager</a>) {</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;停止键盘管理器...&quot;</span>;</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>        <a class="code hl_variable" href="classMainWindow.html#a548a80bba7ce35d54c8a0e56c8095f9d">m_keyManager</a>-&gt;<a class="code hl_function" href="classMatrixKeyThreadManager.html#aab2e3d1b0f182ed8589e21e6cff50d2d">stop</a>();</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    }</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    qDebug() &lt;&lt; <span class="stringliteral">&quot;停止使能按钮监控线程...&quot;</span>;</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#ae2bf0bd79082cfd69bb0e4b4d4a46b83">m_enableButtonWorker</a>) {</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>        <a class="code hl_variable" href="classMainWindow.html#ae2bf0bd79082cfd69bb0e4b4d4a46b83">m_enableButtonWorker</a>-&gt;<a class="code hl_slot" href="classEnableButtonWorker.html#aef52df8ccdec6fba60f8cb90b5af06ec">stopPolling</a>();</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    }</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#a263f46a0a72b6905b5dec899ff277034">m_enableButtonThread</a>) {</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>        <a class="code hl_variable" href="classMainWindow.html#a263f46a0a72b6905b5dec899ff277034">m_enableButtonThread</a>-&gt;quit();</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>        <a class="code hl_variable" href="classMainWindow.html#a263f46a0a72b6905b5dec899ff277034">m_enableButtonThread</a>-&gt;wait(1000);</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>        <span class="keyword">delete</span> <a class="code hl_variable" href="classMainWindow.html#a263f46a0a72b6905b5dec899ff277034">m_enableButtonThread</a>;</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>        <a class="code hl_variable" href="classMainWindow.html#a263f46a0a72b6905b5dec899ff277034">m_enableButtonThread</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;使能按钮监控线程已停止&quot;</span>;</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    }</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span> </div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#a732812e2c496b9883735316acb01dbce">m_enableButtonNotifier</a>) {</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>        <a class="code hl_variable" href="classMainWindow.html#a732812e2c496b9883735316acb01dbce">m_enableButtonNotifier</a>-&gt;setEnabled(<span class="keyword">false</span>);</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>        <span class="keyword">delete</span> <a class="code hl_variable" href="classMainWindow.html#a732812e2c496b9883735316acb01dbce">m_enableButtonNotifier</a>;</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>        <a class="code hl_variable" href="classMainWindow.html#a732812e2c496b9883735316acb01dbce">m_enableButtonNotifier</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;使能按钮通知器已清理&quot;</span>;</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    }</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span> </div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#aaa8ea48dcfbb297efb5ac14b53b804cf">m_enablePollTimer</a>) {</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>        <a class="code hl_variable" href="classMainWindow.html#aaa8ea48dcfbb297efb5ac14b53b804cf">m_enablePollTimer</a>-&gt;stop();</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>        <span class="keyword">delete</span> <a class="code hl_variable" href="classMainWindow.html#aaa8ea48dcfbb297efb5ac14b53b804cf">m_enablePollTimer</a>;</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>        <a class="code hl_variable" href="classMainWindow.html#aaa8ea48dcfbb297efb5ac14b53b804cf">m_enablePollTimer</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;使能按钮轮询定时器已清理&quot;</span>;</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>    }</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span> </div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#ac4d4416e12eadd22bfbbaf50bb503a76">m_enableButtonFd</a> &gt;= 0) {</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>        ::close(<a class="code hl_variable" href="classMainWindow.html#ac4d4416e12eadd22bfbbaf50bb503a76">m_enableButtonFd</a>);</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>        <a class="code hl_variable" href="classMainWindow.html#ac4d4416e12eadd22bfbbaf50bb503a76">m_enableButtonFd</a> = -1;</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;使能按钮设备已关闭&quot;</span>;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    }</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span> </div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#a59c2c39d0bb3d6d69b54493066ebe227">m_modbusManager</a>) {</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>        <a class="code hl_variable" href="classMainWindow.html#a59c2c39d0bb3d6d69b54493066ebe227">m_modbusManager</a>-&gt;<a class="code hl_function" href="classModbusThreadManager.html#aa52682b46cff69835e2a600fc867f1a8">disconnectFromDevice</a>();</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>    }</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span> </div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#a6107d2be1966308e4d917909ed9108f1">m_modbusReadTimer</a>) {</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>        <a class="code hl_variable" href="classMainWindow.html#a6107d2be1966308e4d917909ed9108f1">m_modbusReadTimer</a>-&gt;stop();</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>        <span class="keyword">delete</span> <a class="code hl_variable" href="classMainWindow.html#a6107d2be1966308e4d917909ed9108f1">m_modbusReadTimer</a>;</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    }</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span> </div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#a5b8bb1dc0d2fbd5514bb45ca5a7b0896">m_agvModbusManager</a>) {</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>        <a class="code hl_variable" href="classMainWindow.html#a5b8bb1dc0d2fbd5514bb45ca5a7b0896">m_agvModbusManager</a>-&gt;<a class="code hl_function" href="classAGVModbusManager.html#aa602a9b4c7c2c731bad14e4435f941e6">disconnectFromDevice</a>();</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>        <span class="keyword">delete</span> <a class="code hl_variable" href="classMainWindow.html#a5b8bb1dc0d2fbd5514bb45ca5a7b0896">m_agvModbusManager</a>;</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>    }</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span> </div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#a40b75d7be2205efc4f5c9d257e414ea1">m_recorder</a>) {</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>        <a class="code hl_variable" href="classMainWindow.html#a40b75d7be2205efc4f5c9d257e414ea1">m_recorder</a>-&gt;<a class="code hl_function" href="classOperationRecorder.html#abe2a45d4d8d93b7f9b9338cd4a8cb7c0">enableTcpTransmission</a>(<span class="keyword">false</span>);</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>    }</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span> </div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#ae7d8cae9161373d0c18c3f5754002085">m_forceReadTimer</a>) {</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>        <a class="code hl_variable" href="classMainWindow.html#ae7d8cae9161373d0c18c3f5754002085">m_forceReadTimer</a>-&gt;stop();</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>        <span class="keyword">delete</span> <a class="code hl_variable" href="classMainWindow.html#ae7d8cae9161373d0c18c3f5754002085">m_forceReadTimer</a>;</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>        <a class="code hl_variable" href="classMainWindow.html#ae7d8cae9161373d0c18c3f5754002085">m_forceReadTimer</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;六维力读取定时器已清理&quot;</span>;</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    }</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span> </div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>    <a class="code hl_variable" href="classMainWindow.html#acb28298be29fb74dfbb5b83166a05e5f">m_bigForceOffsets</a>.clear();</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>    <a class="code hl_variable" href="classMainWindow.html#a89e866758340613afcd5e5e1f0c6c5af">m_smallForceOffsets</a>.clear();</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    <a class="code hl_variable" href="classMainWindow.html#afcf2fd906d140d4ef66db9b3d178f02c">m_bigForceCurrentValues</a>.clear();</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>    <a class="code hl_variable" href="classMainWindow.html#a0c4ea8e519e8c5febea7841d2bc80fb9">m_smallForceCurrentValues</a>.clear();</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    <a class="code hl_variable" href="classMainWindow.html#a824731af1bd71f171c90452055eb2715">m_bigForceLabels</a>.clear();</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    <a class="code hl_variable" href="classMainWindow.html#a60947c4e6c7aaf2e8b7e42b3645448e6">m_smallForceLabels</a>.clear();</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span> </div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#a2996c152048a9355c3281868e4440996">m_alarmCheckTimer</a>) {</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>        <a class="code hl_variable" href="classMainWindow.html#a2996c152048a9355c3281868e4440996">m_alarmCheckTimer</a>-&gt;stop();</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>        <span class="keyword">delete</span> <a class="code hl_variable" href="classMainWindow.html#a2996c152048a9355c3281868e4440996">m_alarmCheckTimer</a>;</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>        <a class="code hl_variable" href="classMainWindow.html#a2996c152048a9355c3281868e4440996">m_alarmCheckTimer</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;报警检测定时器已清理&quot;</span>;</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>    }</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span> </div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#a89d863587f14ee1f136f3d1649251b7e">m_alarmWidget</a>) {</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>        <a class="code hl_variable" href="classMainWindow.html#a89d863587f14ee1f136f3d1649251b7e">m_alarmWidget</a>-&gt;close();</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>        <span class="keyword">delete</span> <a class="code hl_variable" href="classMainWindow.html#a89d863587f14ee1f136f3d1649251b7e">m_alarmWidget</a>;</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>        <a class="code hl_variable" href="classMainWindow.html#a89d863587f14ee1f136f3d1649251b7e">m_alarmWidget</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;报警窗口已清理&quot;</span>;</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>    }</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span> </div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    <span class="keyword">delete</span> <a class="code hl_variable" href="classMainWindow.html#af80ce223bb16c2e098e493863d6ccf65">m_verticalMovie</a>;</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>    <span class="keyword">delete</span> <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>;</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span> </div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>    qDebug() &lt;&lt; <span class="stringliteral">&quot;资源清理完成&quot;</span>;</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>}</div>
+</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span> </div>
+<div class="foldopen" id="foldopen00183" data-start="{" data-end="}">
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno"><a class="line" href="classMainWindow.html#a6f3c99998126dce8380b74868d4bda50">  183</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#a6f3c99998126dce8380b74868d4bda50">MainWindow::startAlarmSystem</a>()</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>{</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    <span class="keywordflow">if</span> (!<a class="code hl_function" href="classMainWindow.html#a8c5c1b8b58df6dba337afa33818f4b7a">isBigFeatureEnabled</a>(<span class="stringliteral">&quot;alarm_system&quot;</span>)) {</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;报警系统功能已关闭，跳过启动&quot;</span>;</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>        <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    }</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span> </div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    <a class="code hl_function" href="classMainWindow.html#a8f09afe7a212a8e5e0d7713090e96362">setupAlarmSystem</a>();</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>}</div>
+</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span> </div>
+<div class="foldopen" id="foldopen00193" data-start="{" data-end="}">
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno"><a class="line" href="classMainWindow.html#aef04868cc6535914e6d1efaa8b1c3175">  193</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#aef04868cc6535914e6d1efaa8b1c3175">MainWindow::initializePageNames</a>()</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>{</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>    <a class="code hl_variable" href="classMainWindow.html#a67f428195907c4fddf247a448b23545d">m_pageNames</a>[0] = <span class="stringliteral">&quot;软件参数&quot;</span>;</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    <a class="code hl_variable" href="classMainWindow.html#a67f428195907c4fddf247a448b23545d">m_pageNames</a>[1] = <span class="stringliteral">&quot;回转升降&quot;</span>;</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    <a class="code hl_variable" href="classMainWindow.html#a67f428195907c4fddf247a448b23545d">m_pageNames</a>[2] = <span class="stringliteral">&quot;伸缩臂&quot;</span>;</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>    <a class="code hl_variable" href="classMainWindow.html#a67f428195907c4fddf247a448b23545d">m_pageNames</a>[3] = <span class="stringliteral">&quot;EOAT控制&quot;</span>;</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>    <a class="code hl_variable" href="classMainWindow.html#a67f428195907c4fddf247a448b23545d">m_pageNames</a>[4] = <span class="stringliteral">&quot;AGV控制&quot;</span>;</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    <a class="code hl_variable" href="classMainWindow.html#a67f428195907c4fddf247a448b23545d">m_pageNames</a>[5] = <span class="stringliteral">&quot;管理员验证&quot;</span>;</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    <a class="code hl_variable" href="classMainWindow.html#a67f428195907c4fddf247a448b23545d">m_pageNames</a>[6] = <span class="stringliteral">&quot;操作记录&quot;</span>;</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>}</div>
+</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span> </div>
+<div class="foldopen" id="foldopen00204" data-start="{" data-end="}">
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno"><a class="line" href="classMainWindow.html#a0cb4955bff598ad95110e9525a52214d">  204</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#a0cb4955bff598ad95110e9525a52214d">MainWindow::initializeCorePagesAndUi</a>()</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>{</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57">isFeatureEnabled</a>(<span class="stringliteral">&quot;permission_system&quot;</span>, <span class="stringliteral">&quot;permission.admin_login&quot;</span>)) {</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>        <a class="code hl_function" href="classMainWindow.html#a41cde9b5a0ca5c37a7f53078d476f65a">setupAdminPasswordPage</a>();</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>    }</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span> </div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a8c5c1b8b58df6dba337afa33818f4b7a">isBigFeatureEnabled</a>(<span class="stringliteral">&quot;operation_records&quot;</span>)) {</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>        <a class="code hl_function" href="classMainWindow.html#a71ba71c45eca80ddfa9423cf971f4142">setupRecordUI</a>();</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    }</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span> </div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    <a class="code hl_function" href="classMainWindow.html#a9388168e83016e31d2668a501450bcac">initUI</a>();</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>    <a class="code hl_function" href="classMainWindow.html#a8c9eb5d95acd4fa167ea683b9a279bad">setupSliderLabelCopies</a>();</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>}</div>
+</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span> </div>
+<div class="foldopen" id="foldopen00218" data-start="{" data-end="}">
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno"><a class="line" href="classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c">  218</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c">MainWindow::initializeCoreSubsystems</a>()</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>{</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a8c5c1b8b58df6dba337afa33818f4b7a">isBigFeatureEnabled</a>(<span class="stringliteral">&quot;modbus_agv&quot;</span>)) {</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>        <a class="code hl_function" href="classMainWindow.html#a3e0a36e37aaa3085efc35aebf3f257a5">setupAGVModbus</a>();</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>        <a class="code hl_function" href="classMainWindow.html#ad8da43e11fe5e0c10c688f2667ab75e5">setupAGVUI</a>();</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>    }</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span> </div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a8c5c1b8b58df6dba337afa33818f4b7a">isBigFeatureEnabled</a>(<span class="stringliteral">&quot;motion_control&quot;</span>)) {</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>        <a class="code hl_function" href="classMainWindow.html#a1808e0153338f4857c6d2737ff28eff1">setupAGVOAControl</a>();</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>        <a class="code hl_function" href="classMainWindow.html#a4f8f498d15b56ddc6c8912ee726c3444">setupAGVMoveSpeedControl</a>();</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>        <a class="code hl_function" href="classMainWindow.html#a7625a1c596346b3592fda2f39cc0b604">setupAGVAngleControl</a>();</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>    }</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span> </div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>    <a class="code hl_function" href="classMainWindow.html#a95dc085bf70bd0c1ad05bd80f897fd1d">setupConnections</a>();</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span> </div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57">isFeatureEnabled</a>(<span class="stringliteral">&quot;input_devices&quot;</span>, <span class="stringliteral">&quot;input.enable_button&quot;</span>)) {</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>        <a class="code hl_function" href="classMainWindow.html#a70960a32b3b52e4b0ed0c5917c5c708d">setupEnableButton</a>();</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>    }</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span> </div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a8c5c1b8b58df6dba337afa33818f4b7a">isBigFeatureEnabled</a>(<span class="stringliteral">&quot;operation_records&quot;</span>)) {</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>        <a class="code hl_function" href="classMainWindow.html#a93822c07c826ce603c023160191eabd0">connectRecordSignals</a>();</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    }</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span> </div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57">isFeatureEnabled</a>(<span class="stringliteral">&quot;ui_navigation&quot;</span>, <span class="stringliteral">&quot;ui.styles&quot;</span>)) {</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>        <a class="code hl_function" href="classMainWindow.html#a05d17b0ee100f0de304eeaad00472869">setupStyles</a>();</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>    }</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span> </div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57">isFeatureEnabled</a>(<span class="stringliteral">&quot;ui_navigation&quot;</span>, <span class="stringliteral">&quot;ui.animations&quot;</span>)) {</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>        <a class="code hl_function" href="classMainWindow.html#a12cfc519b94ac2d673385657ca8c8413">setupAnimations</a>();</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>    }</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span> </div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57">isFeatureEnabled</a>(<span class="stringliteral">&quot;input_devices&quot;</span>, <span class="stringliteral">&quot;input.matrix_key&quot;</span>)) {</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>        <a class="code hl_function" href="classMainWindow.html#a4751b3ffef9f7a098480ecb2cd1b14b9">setupKeyManager</a>();</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    }</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span> </div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a8c5c1b8b58df6dba337afa33818f4b7a">isBigFeatureEnabled</a>(<span class="stringliteral">&quot;modbus_main&quot;</span>)) {</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>        <a class="code hl_function" href="classMainWindow.html#addaf82aa90afe1e30cf3e4eb64aa8781">modbusInit</a>();</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>    }</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span> </div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57">isFeatureEnabled</a>(<span class="stringliteral">&quot;motion_control&quot;</span>, <span class="stringliteral">&quot;motion.step_mode&quot;</span>)) {</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>        <a class="code hl_function" href="classMainWindow.html#af87ad186080a1b28aa0e7629fa0b7d21">setupStepMoveControl</a>();</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>        <a class="code hl_function" href="classMainWindow.html#a334b606063e8cc142dec27c03b6fb661">setupStepMoveLineEdits</a>();</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>    }</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>}</div>
+</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span> </div>
+<div class="foldopen" id="foldopen00263" data-start="{" data-end="}">
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno"><a class="line" href="classMainWindow.html#ac7386b2c6b97d03f122c4cd8715ff7a2">  263</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#ac7386b2c6b97d03f122c4cd8715ff7a2">MainWindow::initializeRegisterCache</a>(</div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    QMap&lt;QPair&lt;int, int&gt;, QPair&lt;quint16, quint16&gt;&gt; &amp;cache,</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    <span class="keyword">const</span> QList&lt;QPair&lt;int, int&gt;&gt; &amp;registerPairs,</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>    <span class="keyword">const</span> QString &amp;cacheName)</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>{</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>    cache.clear();</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;pair : registerPairs) {</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>        cache[pair] = QPair&lt;quint16, quint16&gt;(0, 0);</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;初始化&quot;</span> &lt;&lt; cacheName &lt;&lt; <span class="stringliteral">&quot;寄存器对:&quot;</span> &lt;&lt; pair;</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>    }</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>}</div>
+</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span> </div>
+<div class="foldopen" id="foldopen00275" data-start="{" data-end="}">
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno"><a class="line" href="classMainWindow.html#aa759e6f02ec322418619973a2de954b7">  275</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#aa759e6f02ec322418619973a2de954b7">MainWindow::initializeForceAndFloatSubsystem</a>()</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>{</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>    <a class="code hl_function" href="classMainWindow.html#ac7386b2c6b97d03f122c4cd8715ff7a2">initializeRegisterCache</a>(</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>        <a class="code hl_variable" href="classMainWindow.html#a53df92d049e7884d6684427b1f1bba08">m_floatRegisters</a>,</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>        {</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>            QPair&lt;int, int&gt;(201, 202),</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>            QPair&lt;int, int&gt;(203, 204),</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>            QPair&lt;int, int&gt;(205, 206),</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>            QPair&lt;int, int&gt;(207, 208)</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>        },</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>        <span class="stringliteral">&quot;浮点&quot;</span>);</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>}</div>
+</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span> </div>
+<div class="foldopen" id="foldopen00288" data-start="{" data-end="}">
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno"><a class="line" href="classMainWindow.html#a3ab06273406a80c6ea1c1c0d22c81888">  288</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#a3ab06273406a80c6ea1c1c0d22c81888">MainWindow::scheduleStartupTasks</a>()</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>{</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>    <span class="comment">// 移除 3 秒硬延迟，改为在 onModbusConnected 中按需启动任务</span></div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>    <span class="comment">// 或在特定子系统准备就绪后立即执行</span></div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>    qDebug() &lt;&lt; <span class="stringliteral">&quot;启动延迟任务已调度（将由 Modbus 连接信号驱动）&quot;</span>;</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>}</div>
+</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span> </div>
+<div class="foldopen" id="foldopen00295" data-start="{" data-end="}">
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno"><a class="line" href="classMainWindow.html#a75f95e3cdee981275dffa61afeb5aafd">  295</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#a75f95e3cdee981275dffa61afeb5aafd">MainWindow::connectConstructorSignals</a>()</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>{</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>    connect(<a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#ae85a3b6f1e53ff1ee4bb53f08f6c171d">StackedWidget</a>, &amp;QStackedWidget::currentChanged,</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>            <span class="keyword">this</span>, [<span class="keyword">this</span>](<span class="keywordtype">int</span> index) {</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>                if (index == 6) {</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>                    updateRecordDisplay();</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>                }</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>            });</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span> </div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>    connect(<span class="keyword">this</span>, &amp;<a class="code hl_signal" href="classMainWindow.html#ab1696dc1bbaacdca906158741b4ebf7d">MainWindow::modbusValueChangedForAlarm</a>,</div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>            <span class="keyword">this</span>, &amp;<a class="code hl_function" href="classMainWindow.html#a13c583e4b5141af73591fb9d9382c8d5">MainWindow::checkAlarmConditions</a>, Qt::QueuedConnection);</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span> </div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>    qDebug() &lt;&lt; <span class="stringliteral">&quot;=== 测试报警系统 ===&quot;</span>;</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>    qDebug() &lt;&lt; <span class="stringliteral">&quot;报警检查定时器是否激活:&quot;</span> &lt;&lt; (m_alarmCheckTimer &amp;&amp; m_alarmCheckTimer-&gt;isActive());</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>    qDebug() &lt;&lt; <span class="stringliteral">&quot;报警检查定时器间隔:&quot;</span> &lt;&lt; (m_alarmCheckTimer ? m_alarmCheckTimer-&gt;interval() : 0);</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>}</div>
+</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span> </div>
+<div class="foldopen" id="foldopen00312" data-start="{" data-end="}">
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno"><a class="line" href="classMainWindow.html#a9388168e83016e31d2668a501450bcac">  312</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#a9388168e83016e31d2668a501450bcac">MainWindow::initUI</a>()</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>{</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>    <a class="code hl_function" href="classMainWindow.html#a8bc70626215bfbe408ea664ea91ba758">initializeUI</a>();</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>    <a class="code hl_function" href="classMainWindow.html#a3df3aeeec521f64af190b59a4580879f">initSliderEditUI</a>();</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>    <a class="code hl_function" href="classMainWindow.html#a16f55b50446523d4e48a0f2a0a83ddc2">initSliderLabelUI</a>();</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>    <a class="code hl_function" href="classMainWindow.html#a8750873ddc1ea4868e653fffcf817913">initTechButtons</a>();</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>    <a class="code hl_function" href="classMainWindow.html#a44742de3a45840c662f3bb5cb3821e7c">initSpeedGaugeUI</a>();</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span> </div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57">isFeatureEnabled</a>(<span class="stringliteral">&quot;ui_navigation&quot;</span>, <span class="stringliteral">&quot;ui.virtual_keyboard&quot;</span>)) {</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>        <a class="code hl_function" href="classMainWindow.html#aec618845cc33cef73786bb26e569498f">setupVirtualKeyboard</a>();</div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>    }</div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span> </div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57">isFeatureEnabled</a>(<span class="stringliteral">&quot;motion_control&quot;</span>, <span class="stringliteral">&quot;motion.steering_mode&quot;</span>)) {</div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>        <a class="code hl_function" href="classMainWindow.html#ac20d5a395f792ec6b8ac3ca083af7601">setupSteeringModeControl</a>();</div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>    }</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span> </div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>    <span class="keywordflow">if</span> (<a class="code hl_function" href="classMainWindow.html#a8c5c1b8b58df6dba337afa33818f4b7a">isBigFeatureEnabled</a>(<span class="stringliteral">&quot;tcp_transmission&quot;</span>)) {</div>
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>        <a class="code hl_function" href="classMainWindow.html#ab6dec88af8b482c3987929b4422c5a30">setupTcpTransmissionUI</a>();</div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>    }</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>}</div>
+</div>
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span> </div>
+<div class="foldopen" id="foldopen00333" data-start="{" data-end="}">
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno"><a class="line" href="classMainWindow.html#addaf82aa90afe1e30cf3e4eb64aa8781">  333</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#addaf82aa90afe1e30cf3e4eb64aa8781">MainWindow::modbusInit</a>()</div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>{</div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>    <span class="keywordflow">if</span> (!<a class="code hl_function" href="classMainWindow.html#a8c5c1b8b58df6dba337afa33818f4b7a">isBigFeatureEnabled</a>(<span class="stringliteral">&quot;modbus_main&quot;</span>)) {</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;主控Modbus功能已关闭，跳过初始化&quot;</span>;</div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>        <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>    }</div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span> </div>
+<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>    <a class="code hl_function" href="classMainWindow.html#a853ad5679a500c6ca99c1a21b540f2de">setupModbusManager</a>();</div>
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>    <a class="code hl_function" href="classMainWindow.html#a99b4e2d3531831992f48d616c89641d1">setupModbusVariables</a>();</div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>    <a class="code hl_function" href="classMainWindow.html#acbab849b6f59058cacc4d4052df31981">setupModbusLabels</a>();</div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>}</div>
+</div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span> </div>
+<div class="foldopen" id="foldopen00345" data-start="{" data-end="}">
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno"><a class="line" href="classMainWindow.html#a74c6d76605901e781c126dcd7be08601">  345</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#a74c6d76605901e781c126dcd7be08601">MainWindow::checkUI</a>()</div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>{</div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>    QList&lt;SpeedModeSelector *&gt; selectors = findChildren&lt;SpeedModeSelector *&gt;();</div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>    qDebug() &lt;&lt; <span class="stringliteral">&quot;=== 详细检查所有 SpeedModeSelector 控件 ===&quot;</span>;</div>
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>    qDebug() &lt;&lt; <span class="stringliteral">&quot;总数：&quot;</span> &lt;&lt; selectors.size() &lt;&lt; <span class="stringliteral">&quot;个&quot;</span>;</div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span> </div>
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; selectors.size(); ++i) {</div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>        <a class="code hl_class" href="classSpeedModeSelector.html">SpeedModeSelector</a> *selector = selectors[i];</div>
+<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;=== 控件&quot;</span> &lt;&lt; i + 1 &lt;&lt; <span class="stringliteral">&quot;===&quot;</span>;</div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;对象名:&quot;</span> &lt;&lt; selector-&gt;objectName();</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;类名:&quot;</span> &lt;&lt; selector-&gt;metaObject()-&gt;className();</div>
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>        QObject *parentObj = selector-&gt;parent();</div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;父对象:&quot;</span> &lt;&lt; parentObj;</div>
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>        <span class="keywordflow">if</span> (parentObj) {</div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>            qDebug() &lt;&lt; <span class="stringliteral">&quot;父对象类名:&quot;</span> &lt;&lt; parentObj-&gt;metaObject()-&gt;className();</div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>            qDebug() &lt;&lt; <span class="stringliteral">&quot;父对象名:&quot;</span> &lt;&lt; parentObj-&gt;objectName();</div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>            qDebug() &lt;&lt; <span class="stringliteral">&quot;父对象类名:&quot;</span> &lt;&lt; <span class="stringliteral">&quot;&lt;null&gt;&quot;</span>;</div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>            qDebug() &lt;&lt; <span class="stringliteral">&quot;父对象名:&quot;</span> &lt;&lt; <span class="stringliteral">&quot;&lt;null&gt;&quot;</span>;</div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>        }</div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;位置:&quot;</span> &lt;&lt; selector-&gt;pos();</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;尺寸:&quot;</span> &lt;&lt; selector-&gt;size();</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;是否可见:&quot;</span> &lt;&lt; selector-&gt;isVisible();</div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;是否隐藏:&quot;</span> &lt;&lt; selector-&gt;isHidden();</div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;窗口标志:&quot;</span> &lt;&lt; selector-&gt;windowFlags();</div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;几何位置:&quot;</span> &lt;&lt; selector-&gt;geometry();</div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>        qDebug() &lt;&lt; <span class="stringliteral">&quot;指针地址:&quot;</span> &lt;&lt; selector;</div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span> </div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>        QWidget *parentWidget = selector-&gt;parentWidget();</div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>        <span class="keywordflow">while</span> (parentWidget) {</div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>            qDebug() &lt;&lt; <span class="stringliteral">&quot;  父级:&quot;</span> &lt;&lt; parentWidget-&gt;objectName()</div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>                     &lt;&lt; <span class="stringliteral">&quot;类:&quot;</span> &lt;&lt; parentWidget-&gt;metaObject()-&gt;className()</div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>                     &lt;&lt; <span class="stringliteral">&quot;可见:&quot;</span> &lt;&lt; parentWidget-&gt;isVisible()</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>                     &lt;&lt; <span class="stringliteral">&quot;隐藏:&quot;</span> &lt;&lt; parentWidget-&gt;isHidden();</div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>            parentWidget = parentWidget-&gt;parentWidget();</div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>        }</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>    }</div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>    qDebug() &lt;&lt; <span class="stringliteral">&quot;=== 检查结束 ===&quot;</span>;</div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>}</div>
+</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span> </div>
+<div class="foldopen" id="foldopen00385" data-start="{" data-end="}">
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno"><a class="line" href="classMainWindow.html#a8bc70626215bfbe408ea664ea91ba758">  385</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#a8bc70626215bfbe408ea664ea91ba758">MainWindow::initializeUI</a>()</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>{</div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>    setFixedSize(1280, 800);</div>
+<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>}</div>
+</div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span> </div>
+<div class="foldopen" id="foldopen00390" data-start="{" data-end="}">
+<div class="line"><a id="l00390" name="l00390"></a><span class="lineno"><a class="line" href="classMainWindow.html#a77c6aa5c699d3c3e0f39e11690059903">  390</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#a77c6aa5c699d3c3e0f39e11690059903">MainWindow::updateNavButtonStyles</a>(QPushButton *activeBtn)</div>
+<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>{</div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>    <span class="comment">/* QList&lt;QPushButton *&gt; navButtons = {</span></div>
+<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span><span class="comment">        ui-&gt;Btn_SwitchVerticalSupport,</span></div>
+<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span><span class="comment">        ui-&gt;Btn_SwitchHorizontalSupport,</span></div>
+<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span><span class="comment">        ui-&gt;Btn_SwitchAGV,</span></div>
+<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span><span class="comment">        ui-&gt;Btn_SwitchEOAT</span></div>
+<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span><span class="comment">    }; */</span></div>
+<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span> </div>
+<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>    <span class="keyword">const</span> QString activeStyle = <span class="stringliteral">&quot;QPushButton { border: 2px solid #00FFFF; background-color: transparent; border-radius: 10px; }&quot;</span>;</div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>    <span class="keyword">const</span> QString normalStyle = <span class="stringliteral">&quot;QPushButton { border: none; background-color: transparent; }&quot;</span>;</div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span> </div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>    <span class="comment">/* for (QPushButton *btn : navButtons) {</span></div>
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span><span class="comment">        if (!btn) {</span></div>
+<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span><span class="comment">            continue;</span></div>
+<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span><span class="comment">        }</span></div>
+<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span><span class="comment">        btn-&gt;setStyleSheet(btn == activeBtn ? activeStyle : normalStyle);</span></div>
+<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span><span class="comment">    } */</span></div>
+<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span>    Q_UNUSED(activeBtn);</div>
+<div class="line"><a id="l00409" name="l00409"></a><span class="lineno">  409</span>}</div>
+</div>
+<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span> </div>
+<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span> </div>
+<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span> </div>
+<div class="foldopen" id="foldopen00413" data-start="{" data-end="}">
+<div class="line"><a id="l00413" name="l00413"></a><span class="lineno"><a class="line" href="classMainWindow.html#a7ff3d6d48a7f8e2819c9cc52649bed1d">  413</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classMainWindow.html#a7ff3d6d48a7f8e2819c9cc52649bed1d">MainWindow::updateStatusTip</a>(<span class="keyword">const</span> QString &amp;message)</div>
+<div class="line"><a id="l00414" name="l00414"></a><span class="lineno">  414</span>{</div>
+<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a> &amp;&amp; <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#a023c1361faab18fba6203808ec7cc95a">label_StatusTip</a>) {</div>
+<div class="line"><a id="l00416" name="l00416"></a><span class="lineno">  416</span>        <span class="comment">// 使用 QFontMetrics 计算省略文本，确保不拉伸 UI</span></div>
+<div class="line"><a id="l00417" name="l00417"></a><span class="lineno">  417</span>        QFontMetrics metrics(<a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#a023c1361faab18fba6203808ec7cc95a">label_StatusTip</a>-&gt;font());</div>
+<div class="line"><a id="l00418" name="l00418"></a><span class="lineno">  418</span>        QString elidedText = metrics.elidedText(message, Qt::ElideRight, <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#a023c1361faab18fba6203808ec7cc95a">label_StatusTip</a>-&gt;width());</div>
+<div class="line"><a id="l00419" name="l00419"></a><span class="lineno">  419</span>        <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#a023c1361faab18fba6203808ec7cc95a">label_StatusTip</a>-&gt;setText(elidedText);</div>
+<div class="line"><a id="l00420" name="l00420"></a><span class="lineno">  420</span>        </div>
+<div class="line"><a id="l00421" name="l00421"></a><span class="lineno">  421</span>        <span class="comment">// 设置 ToolTip 方便查看完整内容</span></div>
+<div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span>        <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#a023c1361faab18fba6203808ec7cc95a">label_StatusTip</a>-&gt;setToolTip(message);</div>
+<div class="line"><a id="l00423" name="l00423"></a><span class="lineno">  423</span>        </div>
+<div class="line"><a id="l00424" name="l00424"></a><span class="lineno">  424</span>        <span class="comment">// 瞬间闪烁效果提示更新</span></div>
+<div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span>        <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#a023c1361faab18fba6203808ec7cc95a">label_StatusTip</a>-&gt;setStyleSheet(<span class="stringliteral">&quot;color: #FFFFFF; font-size: 14px; font-weight: bold; background: transparent; padding-bottom: 5px;&quot;</span>);</div>
+<div class="line"><a id="l00426" name="l00426"></a><span class="lineno">  426</span>        QTimer::singleShot(200, [<span class="keyword">this</span>]() {</div>
+<div class="line"><a id="l00427" name="l00427"></a><span class="lineno">  427</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a> &amp;&amp; <a class="code hl_variable" href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">ui</a>-&gt;<a class="code hl_variable" href="classUi__MainWindow.html#a023c1361faab18fba6203808ec7cc95a">label_StatusTip</a>) {</div>
+<div class="line"><a id="l00428" name="l00428"></a><span class="lineno">  428</span>                ui-&gt;label_StatusTip-&gt;setStyleSheet(<span class="stringliteral">&quot;color: #00FFFF; font-size: 14px; font-weight: bold; background: transparent; padding-bottom: 5px;&quot;</span>);</div>
+<div class="line"><a id="l00429" name="l00429"></a><span class="lineno">  429</span>            }</div>
+<div class="line"><a id="l00430" name="l00430"></a><span class="lineno">  430</span>        });</div>
+<div class="line"><a id="l00431" name="l00431"></a><span class="lineno">  431</span>    }</div>
+<div class="line"><a id="l00432" name="l00432"></a><span class="lineno">  432</span>}</div>
+</div>
+<div class="ttc" id="aclassAGVModbusManager_html_aa602a9b4c7c2c731bad14e4435f941e6"><div class="ttname"><a href="classAGVModbusManager.html#aa602a9b4c7c2c731bad14e4435f941e6">AGVModbusManager::disconnectFromDevice</a></div><div class="ttdeci">void disconnectFromDevice()</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00071">agvmodbusmanager.cpp:71</a></div></div>
+<div class="ttc" id="aclassEnableButtonWorker_html_aef52df8ccdec6fba60f8cb90b5af06ec"><div class="ttname"><a href="classEnableButtonWorker.html#aef52df8ccdec6fba60f8cb90b5af06ec">EnableButtonWorker::stopPolling</a></div><div class="ttdeci">void stopPolling()</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="enablebuttonworker_8cpp_source.html#l00038">enablebuttonworker.cpp:38</a></div></div>
+<div class="ttc" id="aclassFeatureSwitchManager_html"><div class="ttname"><a href="classFeatureSwitchManager.html">FeatureSwitchManager</a></div><div class="ttdoc">功能开关管理器</div><div class="ttdef"><b>Definition</b> <a href="featureswitchmanager_8h_source.html#l00040">featureswitchmanager.h:41</a></div></div>
+<div class="ttc" id="aclassMainWindow_html"><div class="ttname"><a href="classMainWindow.html">MainWindow</a></div><div class="ttdoc">主窗口类，管理整个应用的 UI、设备通信与业务逻辑。</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00103">mainwindow.h:104</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a053dc76209881a2217b90c086f43a11a"><div class="ttname"><a href="classMainWindow.html#a053dc76209881a2217b90c086f43a11a">MainWindow::loadPollingRuntimeSettings</a></div><div class="ttdeci">void loadPollingRuntimeSettings()</div><div class="ttdoc">从配置文件加载通信轮询参数</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l00118">mainwindow.cpp:118</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a0571dda89e7bcba308da02c1160fcb57"><div class="ttname"><a href="classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57">MainWindow::isFeatureEnabled</a></div><div class="ttdeci">bool isFeatureEnabled(const QString &amp;bigKey, const QString &amp;smallKey=QString()) const</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l00091">mainwindow.cpp:91</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a05d17b0ee100f0de304eeaad00472869"><div class="ttname"><a href="classMainWindow.html#a05d17b0ee100f0de304eeaad00472869">MainWindow::setupStyles</a></div><div class="ttdeci">void setupStyles()</div><div class="ttdoc">应用界面样式</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l00459">mainwindow.cpp:459</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a0c4ea8e519e8c5febea7841d2bc80fb9"><div class="ttname"><a href="classMainWindow.html#a0c4ea8e519e8c5febea7841d2bc80fb9">MainWindow::m_smallForceCurrentValues</a></div><div class="ttdeci">QMap&lt; QString, float &gt; m_smallForceCurrentValues</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00518">mainwindow.h:518</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a0cb4955bff598ad95110e9525a52214d"><div class="ttname"><a href="classMainWindow.html#a0cb4955bff598ad95110e9525a52214d">MainWindow::initializeCorePagesAndUi</a></div><div class="ttdeci">void initializeCorePagesAndUi()</div><div class="ttdoc">初始化核心页面和基础 UI 模块</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00204">mainwindow_lifecycle.cpp:204</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a12cfc519b94ac2d673385657ca8c8413"><div class="ttname"><a href="classMainWindow.html#a12cfc519b94ac2d673385657ca8c8413">MainWindow::setupAnimations</a></div><div class="ttdeci">void setupAnimations()</div><div class="ttdoc">初始化并管理界面动画</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l00721">mainwindow.cpp:721</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a13c583e4b5141af73591fb9d9382c8d5"><div class="ttname"><a href="classMainWindow.html#a13c583e4b5141af73591fb9d9382c8d5">MainWindow::checkAlarmConditions</a></div><div class="ttdeci">void checkAlarmConditions()</div><div class="ttdoc">检查并处理报警条件</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l06908">mainwindow.cpp:6908</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a16f55b50446523d4e48a0f2a0a83ddc2"><div class="ttname"><a href="classMainWindow.html#a16f55b50446523d4e48a0f2a0a83ddc2">MainWindow::initSliderLabelUI</a></div><div class="ttdeci">void initSliderLabelUI()</div><div class="ttdoc">初始化滑块标签 UI</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l01203">mainwindow.cpp:1203</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a1808e0153338f4857c6d2737ff28eff1"><div class="ttname"><a href="classMainWindow.html#a1808e0153338f4857c6d2737ff28eff1">MainWindow::setupAGVOAControl</a></div><div class="ttdeci">void setupAGVOAControl()</div><div class="ttdoc">初始化 AGV OA 控制</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l04871">mainwindow.cpp:4871</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a263f46a0a72b6905b5dec899ff277034"><div class="ttname"><a href="classMainWindow.html#a263f46a0a72b6905b5dec899ff277034">MainWindow::m_enableButtonThread</a></div><div class="ttdeci">QThread * m_enableButtonThread</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00475">mainwindow.h:475</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a2996c152048a9355c3281868e4440996"><div class="ttname"><a href="classMainWindow.html#a2996c152048a9355c3281868e4440996">MainWindow::m_alarmCheckTimer</a></div><div class="ttdeci">QTimer * m_alarmCheckTimer</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00485">mainwindow.h:485</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a334b606063e8cc142dec27c03b6fb661"><div class="ttname"><a href="classMainWindow.html#a334b606063e8cc142dec27c03b6fb661">MainWindow::setupStepMoveLineEdits</a></div><div class="ttdeci">void setupStepMoveLineEdits()</div><div class="ttdoc">配置步进移动行编辑</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l06615">mainwindow.cpp:6615</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a35466a70ed47252a0191168126a352a5"><div class="ttname"><a href="classMainWindow.html#a35466a70ed47252a0191168126a352a5">MainWindow::ui</a></div><div class="ttdeci">Ui::MainWindow * ui</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00469">mainwindow.h:469</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a3ab06273406a80c6ea1c1c0d22c81888"><div class="ttname"><a href="classMainWindow.html#a3ab06273406a80c6ea1c1c0d22c81888">MainWindow::scheduleStartupTasks</a></div><div class="ttdeci">void scheduleStartupTasks()</div><div class="ttdoc">安排延迟启动任务（开机写寄存器、轮询等）</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00288">mainwindow_lifecycle.cpp:288</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a3df3aeeec521f64af190b59a4580879f"><div class="ttname"><a href="classMainWindow.html#a3df3aeeec521f64af190b59a4580879f">MainWindow::initSliderEditUI</a></div><div class="ttdeci">void initSliderEditUI()</div><div class="ttdoc">初始化滑块编辑 UI</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l01024">mainwindow.cpp:1024</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a3e0a36e37aaa3085efc35aebf3f257a5"><div class="ttname"><a href="classMainWindow.html#a3e0a36e37aaa3085efc35aebf3f257a5">MainWindow::setupAGVModbus</a></div><div class="ttdeci">void setupAGVModbus()</div><div class="ttdoc">初始化 AGV Modbus 子系统</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l03789">mainwindow.cpp:3789</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a40b75d7be2205efc4f5c9d257e414ea1"><div class="ttname"><a href="classMainWindow.html#a40b75d7be2205efc4f5c9d257e414ea1">MainWindow::m_recorder</a></div><div class="ttdeci">OperationRecorder * m_recorder</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00539">mainwindow.h:539</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a41cde9b5a0ca5c37a7f53078d476f65a"><div class="ttname"><a href="classMainWindow.html#a41cde9b5a0ca5c37a7f53078d476f65a">MainWindow::setupAdminPasswordPage</a></div><div class="ttdeci">void setupAdminPasswordPage()</div><div class="ttdoc">配置管理员密码页面</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l01595">mainwindow.cpp:1595</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a44742de3a45840c662f3bb5cb3821e7c"><div class="ttname"><a href="classMainWindow.html#a44742de3a45840c662f3bb5cb3821e7c">MainWindow::initSpeedGaugeUI</a></div><div class="ttdeci">void initSpeedGaugeUI()</div><div class="ttdoc">初始化速度仪表 UI</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l00898">mainwindow.cpp:898</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a4751b3ffef9f7a098480ecb2cd1b14b9"><div class="ttname"><a href="classMainWindow.html#a4751b3ffef9f7a098480ecb2cd1b14b9">MainWindow::setupKeyManager</a></div><div class="ttdeci">void setupKeyManager()</div><div class="ttdoc">初始化按键管理器</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l02691">mainwindow.cpp:2691</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a4f8f498d15b56ddc6c8912ee726c3444"><div class="ttname"><a href="classMainWindow.html#a4f8f498d15b56ddc6c8912ee726c3444">MainWindow::setupAGVMoveSpeedControl</a></div><div class="ttdeci">void setupAGVMoveSpeedControl()</div><div class="ttdoc">初始化 AGV 移动速度控制</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l04913">mainwindow.cpp:4913</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a5276269dcea63707bda5c62a427b1d9e"><div class="ttname"><a href="classMainWindow.html#a5276269dcea63707bda5c62a427b1d9e">MainWindow::UserRole</a></div><div class="ttdeci">UserRole</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00112">mainwindow.h:112</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a53df92d049e7884d6684427b1f1bba08"><div class="ttname"><a href="classMainWindow.html#a53df92d049e7884d6684427b1f1bba08">MainWindow::m_floatRegisters</a></div><div class="ttdeci">QMap&lt; QPair&lt; int, int &gt;, QPair&lt; quint16, quint16 &gt; &gt; m_floatRegisters</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00501">mainwindow.h:501</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a548a80bba7ce35d54c8a0e56c8095f9d"><div class="ttname"><a href="classMainWindow.html#a548a80bba7ce35d54c8a0e56c8095f9d">MainWindow::m_keyManager</a></div><div class="ttdeci">MatrixKeyThreadManager * m_keyManager</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00571">mainwindow.h:571</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a59c2c39d0bb3d6d69b54493066ebe227"><div class="ttname"><a href="classMainWindow.html#a59c2c39d0bb3d6d69b54493066ebe227">MainWindow::m_modbusManager</a></div><div class="ttdeci">ModbusThreadManager * m_modbusManager</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00496">mainwindow.h:496</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a5b8bb1dc0d2fbd5514bb45ca5a7b0896"><div class="ttname"><a href="classMainWindow.html#a5b8bb1dc0d2fbd5514bb45ca5a7b0896">MainWindow::m_agvModbusManager</a></div><div class="ttdeci">AGVModbusManager * m_agvModbusManager</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00505">mainwindow.h:505</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a60947c4e6c7aaf2e8b7e42b3645448e6"><div class="ttname"><a href="classMainWindow.html#a60947c4e6c7aaf2e8b7e42b3645448e6">MainWindow::m_smallForceLabels</a></div><div class="ttdeci">QMap&lt; QString, QLabel * &gt; m_smallForceLabels</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00522">mainwindow.h:522</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a6107d2be1966308e4d917909ed9108f1"><div class="ttname"><a href="classMainWindow.html#a6107d2be1966308e4d917909ed9108f1">MainWindow::m_modbusReadTimer</a></div><div class="ttdeci">QTimer * m_modbusReadTimer</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00500">mainwindow.h:500</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a67f428195907c4fddf247a448b23545d"><div class="ttname"><a href="classMainWindow.html#a67f428195907c4fddf247a448b23545d">MainWindow::m_pageNames</a></div><div class="ttdeci">QMap&lt; int, QString &gt; m_pageNames</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00541">mainwindow.h:541</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a6f3c99998126dce8380b74868d4bda50"><div class="ttname"><a href="classMainWindow.html#a6f3c99998126dce8380b74868d4bda50">MainWindow::startAlarmSystem</a></div><div class="ttdeci">void startAlarmSystem()</div><div class="ttdoc">启动报警子系统</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00183">mainwindow_lifecycle.cpp:183</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a70960a32b3b52e4b0ed0c5917c5c708d"><div class="ttname"><a href="classMainWindow.html#a70960a32b3b52e4b0ed0c5917c5c708d">MainWindow::setupEnableButton</a></div><div class="ttdeci">void setupEnableButton()</div><div class="ttdoc">初始化使能按键线程与逻辑</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l04410">mainwindow.cpp:4410</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a71ba71c45eca80ddfa9423cf971f4142"><div class="ttname"><a href="classMainWindow.html#a71ba71c45eca80ddfa9423cf971f4142">MainWindow::setupRecordUI</a></div><div class="ttdeci">void setupRecordUI()</div><div class="ttdoc">初始化历史记录 UI</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l01428">mainwindow.cpp:1428</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a732812e2c496b9883735316acb01dbce"><div class="ttname"><a href="classMainWindow.html#a732812e2c496b9883735316acb01dbce">MainWindow::m_enableButtonNotifier</a></div><div class="ttdeci">QSocketNotifier * m_enableButtonNotifier</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00478">mainwindow.h:478</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a74c6d76605901e781c126dcd7be08601"><div class="ttname"><a href="classMainWindow.html#a74c6d76605901e781c126dcd7be08601">MainWindow::checkUI</a></div><div class="ttdeci">void checkUI()</div><div class="ttdoc">检查并修正 UI 状态</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00345">mainwindow_lifecycle.cpp:345</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a75f95e3cdee981275dffa61afeb5aafd"><div class="ttname"><a href="classMainWindow.html#a75f95e3cdee981275dffa61afeb5aafd">MainWindow::connectConstructorSignals</a></div><div class="ttdeci">void connectConstructorSignals()</div><div class="ttdoc">连接构造阶段公共信号</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00295">mainwindow_lifecycle.cpp:295</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a7625a1c596346b3592fda2f39cc0b604"><div class="ttname"><a href="classMainWindow.html#a7625a1c596346b3592fda2f39cc0b604">MainWindow::setupAGVAngleControl</a></div><div class="ttdeci">void setupAGVAngleControl()</div><div class="ttdoc">初始化 AGV 角度控制</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l04940">mainwindow.cpp:4940</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a77c6aa5c699d3c3e0f39e11690059903"><div class="ttname"><a href="classMainWindow.html#a77c6aa5c699d3c3e0f39e11690059903">MainWindow::updateNavButtonStyles</a></div><div class="ttdeci">void updateNavButtonStyles(QPushButton *activeBtn=nullptr)</div><div class="ttdoc">更新导航按钮样式，高亮当前激活按钮</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00390">mainwindow_lifecycle.cpp:390</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a7ff3d6d48a7f8e2819c9cc52649bed1d"><div class="ttname"><a href="classMainWindow.html#a7ff3d6d48a7f8e2819c9cc52649bed1d">MainWindow::updateStatusTip</a></div><div class="ttdeci">void updateStatusTip(const QString &amp;message)</div><div class="ttdoc">更新提示内容标签</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00413">mainwindow_lifecycle.cpp:413</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a824731af1bd71f171c90452055eb2715"><div class="ttname"><a href="classMainWindow.html#a824731af1bd71f171c90452055eb2715">MainWindow::m_bigForceLabels</a></div><div class="ttdeci">QMap&lt; QString, QLabel * &gt; m_bigForceLabels</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00521">mainwindow.h:521</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a853ad5679a500c6ca99c1a21b540f2de"><div class="ttname"><a href="classMainWindow.html#a853ad5679a500c6ca99c1a21b540f2de">MainWindow::setupModbusManager</a></div><div class="ttdeci">void setupModbusManager()</div><div class="ttdoc">创建并配置 Modbus 管理器</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l02735">mainwindow.cpp:2735</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a8750873ddc1ea4868e653fffcf817913"><div class="ttname"><a href="classMainWindow.html#a8750873ddc1ea4868e653fffcf817913">MainWindow::initTechButtons</a></div><div class="ttdeci">void initTechButtons()</div><div class="ttdoc">初始化技术按键集合并绑定回调</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l00855">mainwindow.cpp:855</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a89d863587f14ee1f136f3d1649251b7e"><div class="ttname"><a href="classMainWindow.html#a89d863587f14ee1f136f3d1649251b7e">MainWindow::m_alarmWidget</a></div><div class="ttdeci">QWidget * m_alarmWidget</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00483">mainwindow.h:483</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a89e866758340613afcd5e5e1f0c6c5af"><div class="ttname"><a href="classMainWindow.html#a89e866758340613afcd5e5e1f0c6c5af">MainWindow::m_smallForceOffsets</a></div><div class="ttdeci">QMap&lt; QString, float &gt; m_smallForceOffsets</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00516">mainwindow.h:516</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a8bc70626215bfbe408ea664ea91ba758"><div class="ttname"><a href="classMainWindow.html#a8bc70626215bfbe408ea664ea91ba758">MainWindow::initializeUI</a></div><div class="ttdeci">void initializeUI()</div><div class="ttdoc">初始化 UI 布局与控件</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00385">mainwindow_lifecycle.cpp:385</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a8c5c1b8b58df6dba337afa33818f4b7a"><div class="ttname"><a href="classMainWindow.html#a8c5c1b8b58df6dba337afa33818f4b7a">MainWindow::isBigFeatureEnabled</a></div><div class="ttdeci">bool isBigFeatureEnabled(const QString &amp;key) const</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l00075">mainwindow.cpp:75</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a8c9eb5d95acd4fa167ea683b9a279bad"><div class="ttname"><a href="classMainWindow.html#a8c9eb5d95acd4fa167ea683b9a279bad">MainWindow::setupSliderLabelCopies</a></div><div class="ttdeci">void setupSliderLabelCopies()</div><div class="ttdoc">设置滑块标签的复制页配置</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l03678">mainwindow.cpp:3678</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a8f09afe7a212a8e5e0d7713090e96362"><div class="ttname"><a href="classMainWindow.html#a8f09afe7a212a8e5e0d7713090e96362">MainWindow::setupAlarmSystem</a></div><div class="ttdeci">void setupAlarmSystem()</div><div class="ttdoc">配置报警系统</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l06882">mainwindow.cpp:6882</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a93822c07c826ce603c023160191eabd0"><div class="ttname"><a href="classMainWindow.html#a93822c07c826ce603c023160191eabd0">MainWindow::connectRecordSignals</a></div><div class="ttdeci">void connectRecordSignals()</div><div class="ttdoc">连接历史记录信号与槽</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l01301">mainwindow.cpp:1301</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a9388168e83016e31d2668a501450bcac"><div class="ttname"><a href="classMainWindow.html#a9388168e83016e31d2668a501450bcac">MainWindow::initUI</a></div><div class="ttdeci">void initUI()</div><div class="ttdoc">初始化窗口 UI（内部）</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00312">mainwindow_lifecycle.cpp:312</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a95dc085bf70bd0c1ad05bd80f897fd1d"><div class="ttname"><a href="classMainWindow.html#a95dc085bf70bd0c1ad05bd80f897fd1d">MainWindow::setupConnections</a></div><div class="ttdeci">void setupConnections()</div><div class="ttdoc">建立信号与槽的连接</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l00249">mainwindow.cpp:249</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a996c5a2b6f77944776856f08ec30858d"><div class="ttname"><a href="classMainWindow.html#a996c5a2b6f77944776856f08ec30858d">MainWindow::MainWindow</a></div><div class="ttdeci">MainWindow(QWidget *parent=nullptr)</div><div class="ttdoc">构造 MainWindow 并初始化内部状态与 UI</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00011">mainwindow_lifecycle.cpp:11</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a99b4e2d3531831992f48d616c89641d1"><div class="ttname"><a href="classMainWindow.html#a99b4e2d3531831992f48d616c89641d1">MainWindow::setupModbusVariables</a></div><div class="ttdeci">void setupModbusVariables()</div><div class="ttdoc">初始化 Modbus 变量映射</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l02974">mainwindow.cpp:2974</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_a9ff6e489f153e656360238d6e22b7b94"><div class="ttname"><a href="classMainWindow.html#a9ff6e489f153e656360238d6e22b7b94">MainWindow::setupSliderLabelConfigs</a></div><div class="ttdeci">void setupSliderLabelConfigs()</div><div class="ttdoc">配置滑块标签的默认配置</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l03601">mainwindow.cpp:3601</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_aa759e6f02ec322418619973a2de954b7"><div class="ttname"><a href="classMainWindow.html#aa759e6f02ec322418619973a2de954b7">MainWindow::initializeForceAndFloatSubsystem</a></div><div class="ttdeci">void initializeForceAndFloatSubsystem()</div><div class="ttdoc">初始化浮点与六维力寄存器及标签</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00275">mainwindow_lifecycle.cpp:275</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_aaa8ea48dcfbb297efb5ac14b53b804cf"><div class="ttname"><a href="classMainWindow.html#aaa8ea48dcfbb297efb5ac14b53b804cf">MainWindow::m_enablePollTimer</a></div><div class="ttdeci">QTimer * m_enablePollTimer</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00480">mainwindow.h:480</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_ab1696dc1bbaacdca906158741b4ebf7d"><div class="ttname"><a href="classMainWindow.html#ab1696dc1bbaacdca906158741b4ebf7d">MainWindow::modbusValueChangedForAlarm</a></div><div class="ttdeci">void modbusValueChangedForAlarm()</div></div>
+<div class="ttc" id="aclassMainWindow_html_ab43695d6739effa6dc8655f1ad687f2e"><div class="ttname"><a href="classMainWindow.html#ab43695d6739effa6dc8655f1ad687f2e">MainWindow::loadSliderLabelRuntimeSettings</a></div><div class="ttdeci">void loadSliderLabelRuntimeSettings()</div><div class="ttdoc">加载 SliderLabel 的自定义配置</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l00179">mainwindow.cpp:179</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_ab6dec88af8b482c3987929b4422c5a30"><div class="ttname"><a href="classMainWindow.html#ab6dec88af8b482c3987929b4422c5a30">MainWindow::setupTcpTransmissionUI</a></div><div class="ttdeci">void setupTcpTransmissionUI()</div><div class="ttdoc">配置 TCP 传输 UI</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l05465">mainwindow.cpp:5465</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_ac20d5a395f792ec6b8ac3ca083af7601"><div class="ttname"><a href="classMainWindow.html#ac20d5a395f792ec6b8ac3ca083af7601">MainWindow::setupSteeringModeControl</a></div><div class="ttdeci">void setupSteeringModeControl()</div><div class="ttdoc">设置转向模式控制</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l05285">mainwindow.cpp:5285</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_ac4d4416e12eadd22bfbbaf50bb503a76"><div class="ttname"><a href="classMainWindow.html#ac4d4416e12eadd22bfbbaf50bb503a76">MainWindow::m_enableButtonFd</a></div><div class="ttdeci">int m_enableButtonFd</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00477">mainwindow.h:477</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_ac7386b2c6b97d03f122c4cd8715ff7a2"><div class="ttname"><a href="classMainWindow.html#ac7386b2c6b97d03f122c4cd8715ff7a2">MainWindow::initializeRegisterCache</a></div><div class="ttdeci">void initializeRegisterCache(QMap&lt; QPair&lt; int, int &gt;, QPair&lt; quint16, quint16 &gt; &gt; &amp;cache, const QList&lt; QPair&lt; int, int &gt; &gt; &amp;registerPairs, const QString &amp;cacheName)</div><div class="ttdoc">初始化寄存器缓存映射</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00263">mainwindow_lifecycle.cpp:263</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_acb28298be29fb74dfbb5b83166a05e5f"><div class="ttname"><a href="classMainWindow.html#acb28298be29fb74dfbb5b83166a05e5f">MainWindow::m_bigForceOffsets</a></div><div class="ttdeci">QMap&lt; QString, float &gt; m_bigForceOffsets</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00515">mainwindow.h:515</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_acbab849b6f59058cacc4d4052df31981"><div class="ttname"><a href="classMainWindow.html#acbab849b6f59058cacc4d4052df31981">MainWindow::setupModbusLabels</a></div><div class="ttdeci">void setupModbusLabels()</div><div class="ttdoc">创建并绑定 Modbus 标签</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l02985">mainwindow.cpp:2985</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_ad57bfa690bd649e9b5b43552d4f5673c"><div class="ttname"><a href="classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c">MainWindow::initializeCoreSubsystems</a></div><div class="ttdeci">void initializeCoreSubsystems()</div><div class="ttdoc">初始化业务子系统（通信、线程、样式、控制）</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00218">mainwindow_lifecycle.cpp:218</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_ad8da43e11fe5e0c10c688f2667ab75e5"><div class="ttname"><a href="classMainWindow.html#ad8da43e11fe5e0c10c688f2667ab75e5">MainWindow::setupAGVUI</a></div><div class="ttdeci">void setupAGVUI()</div><div class="ttdoc">初始化 AGV 相关 UI</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l03990">mainwindow.cpp:3990</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_addaf82aa90afe1e30cf3e4eb64aa8781"><div class="ttname"><a href="classMainWindow.html#addaf82aa90afe1e30cf3e4eb64aa8781">MainWindow::modbusInit</a></div><div class="ttdeci">void modbusInit()</div><div class="ttdoc">初始化 Modbus 相关配置</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00333">mainwindow_lifecycle.cpp:333</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_ae2bf0bd79082cfd69bb0e4b4d4a46b83"><div class="ttname"><a href="classMainWindow.html#ae2bf0bd79082cfd69bb0e4b4d4a46b83">MainWindow::m_enableButtonWorker</a></div><div class="ttdeci">EnableButtonWorker * m_enableButtonWorker</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00476">mainwindow.h:476</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_ae7d8cae9161373d0c18c3f5754002085"><div class="ttname"><a href="classMainWindow.html#ae7d8cae9161373d0c18c3f5754002085">MainWindow::m_forceReadTimer</a></div><div class="ttdeci">QTimer * m_forceReadTimer</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00535">mainwindow.h:535</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_ae98d00a93bc118200eeef9f9bba1dba7"><div class="ttname"><a href="classMainWindow.html#ae98d00a93bc118200eeef9f9bba1dba7">MainWindow::~MainWindow</a></div><div class="ttdeci">~MainWindow()</div><div class="ttdoc">析构 MainWindow，释放资源并停止后台任务</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00089">mainwindow_lifecycle.cpp:89</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_aec618845cc33cef73786bb26e569498f"><div class="ttname"><a href="classMainWindow.html#aec618845cc33cef73786bb26e569498f">MainWindow::setupVirtualKeyboard</a></div><div class="ttdeci">void setupVirtualKeyboard()</div><div class="ttdoc">初始化虚拟键盘</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l01280">mainwindow.cpp:1280</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_aee74ac5c205c4640cd6ca10d8bd2934a"><div class="ttname"><a href="classMainWindow.html#aee74ac5c205c4640cd6ca10d8bd2934a">MainWindow::m_isSteeringAlarmActive</a></div><div class="ttdeci">bool m_isSteeringAlarmActive</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00491">mainwindow.h:491</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_aef04868cc6535914e6d1efaa8b1c3175"><div class="ttname"><a href="classMainWindow.html#aef04868cc6535914e6d1efaa8b1c3175">MainWindow::initializePageNames</a></div><div class="ttdeci">void initializePageNames()</div><div class="ttdoc">初始化页面索引与名称映射</div><div class="ttdef"><b>Definition</b> <a href="mainwindow__lifecycle_8cpp_source.html#l00193">mainwindow_lifecycle.cpp:193</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_af4637cecd13ffcf5f76efc37ff3310c7"><div class="ttname"><a href="classMainWindow.html#af4637cecd13ffcf5f76efc37ff3310c7">MainWindow::loadBackgroundImage</a></div><div class="ttdeci">void loadBackgroundImage()</div><div class="ttdoc">加载并缓存主窗口背景图片</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l00749">mainwindow.cpp:749</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_af80ce223bb16c2e098e493863d6ccf65"><div class="ttname"><a href="classMainWindow.html#af80ce223bb16c2e098e493863d6ccf65">MainWindow::m_verticalMovie</a></div><div class="ttdeci">QMovie * m_verticalMovie</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00577">mainwindow.h:577</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_af87ad186080a1b28aa0e7629fa0b7d21"><div class="ttname"><a href="classMainWindow.html#af87ad186080a1b28aa0e7629fa0b7d21">MainWindow::setupStepMoveControl</a></div><div class="ttdeci">void setupStepMoveControl()</div><div class="ttdoc">初始化步进移动控制</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8cpp_source.html#l06558">mainwindow.cpp:6558</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_afc8042e23f630f48935b149f807be326"><div class="ttname"><a href="classMainWindow.html#afc8042e23f630f48935b149f807be326">MainWindow::m_poseProvider</a></div><div class="ttdeci">PoseProvider * m_poseProvider</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00470">mainwindow.h:470</a></div></div>
+<div class="ttc" id="aclassMainWindow_html_afcf2fd906d140d4ef66db9b3d178f02c"><div class="ttname"><a href="classMainWindow.html#afcf2fd906d140d4ef66db9b3d178f02c">MainWindow::m_bigForceCurrentValues</a></div><div class="ttdeci">QMap&lt; QString, float &gt; m_bigForceCurrentValues</div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00517">mainwindow.h:517</a></div></div>
+<div class="ttc" id="aclassMappingConfig_html"><div class="ttname"><a href="classMappingConfig.html">MappingConfig</a></div><div class="ttdef"><b>Definition</b> <a href="mappingconfig_8h_source.html#l00021">mappingconfig.h:22</a></div></div>
+<div class="ttc" id="aclassMatrixKeyThreadManager_html"><div class="ttname"><a href="classMatrixKeyThreadManager.html">MatrixKeyThreadManager</a></div><div class="ttdef"><b>Definition</b> <a href="matrixkeythreadmanager_8h_source.html#l00022">matrixkeythreadmanager.h:23</a></div></div>
+<div class="ttc" id="aclassMatrixKeyThreadManager_html_aab2e3d1b0f182ed8589e21e6cff50d2d"><div class="ttname"><a href="classMatrixKeyThreadManager.html#aab2e3d1b0f182ed8589e21e6cff50d2d">MatrixKeyThreadManager::stop</a></div><div class="ttdeci">void stop()</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="matrixkeythreadmanager_8cpp_source.html#l00065">matrixkeythreadmanager.cpp:65</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_aa52682b46cff69835e2a600fc867f1a8"><div class="ttname"><a href="classModbusThreadManager.html#aa52682b46cff69835e2a600fc867f1a8">ModbusThreadManager::disconnectFromDevice</a></div><div class="ttdeci">void disconnectFromDevice()</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00053">modbusthreadmanager.cpp:53</a></div></div>
+<div class="ttc" id="aclassModbusVariables_html"><div class="ttname"><a href="classModbusVariables.html">ModbusVariables</a></div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00043">modbusvariables.h:44</a></div></div>
+<div class="ttc" id="aclassOperationRecorder_html"><div class="ttname"><a href="classOperationRecorder.html">OperationRecorder</a></div><div class="ttdef"><b>Definition</b> <a href="operationrecorder_8h_source.html#l00088">operationrecorder.h:89</a></div></div>
+<div class="ttc" id="aclassOperationRecorder_html_abe2a45d4d8d93b7f9b9338cd4a8cb7c0"><div class="ttname"><a href="classOperationRecorder.html#abe2a45d4d8d93b7f9b9338cd4a8cb7c0">OperationRecorder::enableTcpTransmission</a></div><div class="ttdeci">void enableTcpTransmission(bool enabled)</div><div class="ttdoc">启用/禁用 TCP 传输</div><div class="ttdef"><b>Definition</b> <a href="operationrecorder_8cpp_source.html#l00311">operationrecorder.cpp:311</a></div></div>
+<div class="ttc" id="aclassPoseProvider_html"><div class="ttname"><a href="classPoseProvider.html">PoseProvider</a></div><div class="ttdef"><b>Definition</b> <a href="poseprovider_8h_source.html#l00006">poseprovider.h:7</a></div></div>
+<div class="ttc" id="aclassSpeedModeSelector_html"><div class="ttname"><a href="classSpeedModeSelector.html">SpeedModeSelector</a></div><div class="ttdef"><b>Definition</b> <a href="speedmodeselector_8h_source.html#l00031">speedmodeselector.h:32</a></div></div>
+<div class="ttc" id="aclassUi__MainWindow_html_a023c1361faab18fba6203808ec7cc95a"><div class="ttname"><a href="classUi__MainWindow.html#a023c1361faab18fba6203808ec7cc95a">Ui_MainWindow::label_StatusTip</a></div><div class="ttdeci">QLabel * label_StatusTip</div><div class="ttdef"><b>Definition</b> <a href="ui__mainwindow_8h_source.html#l00045">ui_mainwindow.h:45</a></div></div>
+<div class="ttc" id="aclassUi__MainWindow_html_a38a3a07d6e2f7f35e63a4856aae21a79"><div class="ttname"><a href="classUi__MainWindow.html#a38a3a07d6e2f7f35e63a4856aae21a79">Ui_MainWindow::lab_Overall</a></div><div class="ttdeci">QLabel * lab_Overall</div><div class="ttdef"><b>Definition</b> <a href="ui__mainwindow_8h_source.html#l00065">ui_mainwindow.h:65</a></div></div>
+<div class="ttc" id="aclassUi__MainWindow_html_a3bd508aecfa60eccfae86a10386ee4a2"><div class="ttname"><a href="classUi__MainWindow.html#a3bd508aecfa60eccfae86a10386ee4a2">Ui_MainWindow::sixAxisQuickWidget</a></div><div class="ttdeci">QQuickWidget * sixAxisQuickWidget</div><div class="ttdef"><b>Definition</b> <a href="ui__mainwindow_8h_source.html#l00118">ui_mainwindow.h:118</a></div></div>
+<div class="ttc" id="aclassUi__MainWindow_html_acf4a0872c4c77d8f43a2ec66ed849b58"><div class="ttname"><a href="classUi__MainWindow.html#acf4a0872c4c77d8f43a2ec66ed849b58">Ui_MainWindow::setupUi</a></div><div class="ttdeci">void setupUi(QMainWindow *MainWindow)</div><div class="ttdef"><b>Definition</b> <a href="ui__mainwindow_8h_source.html#l00133">ui_mainwindow.h:133</a></div></div>
+<div class="ttc" id="aclassUi__MainWindow_html_ae85a3b6f1e53ff1ee4bb53f08f6c171d"><div class="ttname"><a href="classUi__MainWindow.html#ae85a3b6f1e53ff1ee4bb53f08f6c171d">Ui_MainWindow::StackedWidget</a></div><div class="ttdeci">QStackedWidget * StackedWidget</div><div class="ttdef"><b>Definition</b> <a href="ui__mainwindow_8h_source.html#l00059">ui_mainwindow.h:59</a></div></div>
+<div class="ttc" id="afeatureswitchmanager_8h_html"><div class="ttname"><a href="featureswitchmanager_8h.html">featureswitchmanager.h</a></div></div>
+<div class="ttc" id="amainwindow_8h_html"><div class="ttname"><a href="mainwindow_8h.html">mainwindow.h</a></div><div class="ttdoc">主窗口的声明，包含主要 UI 控件与界面逻辑的入口类。</div></div>
+<div class="ttc" id="anamespaceUi_html"><div class="ttname"><a href="namespaceUi.html">Ui</a></div><div class="ttdef"><b>Definition</b> <a href="mainwindow_8h_source.html#l00053">mainwindow.h:53</a></div></div>
+<div class="ttc" id="aui__mainwindow_8h_html"><div class="ttname"><a href="ui__mainwindow_8h.html">ui_mainwindow.h</a></div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="mainwindow__lifecycle_8cpp.html">mainwindow_lifecycle.cpp</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,9 @@
+<map id="OperationRecord::toString" name="OperationRecord::toString">
+<area shape="rect" id="Node000001" title=" " alt="" coords="468,38,659,63"/>
+<area shape="rect" id="Node000002" href="$structOperationRecord.html#a3bc71f45f164fa04fed2bd1cd1d8092e" title=" " alt="" coords="214,13,411,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="454,42,411,38,412,33,455,37"/>
+<area shape="rect" id="Node000004" href="$classMainWindow.html#a7e55a9d6860ffad412ced7aa2a6bd46a" title="过滤记录" alt="" coords="205,62,420,87"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="455,64,420,67,420,62,454,58"/>
+<area shape="rect" id="Node000003" href="$classOperationRecorder.html#ae4c2b15d0c80a2f4a20d188b0ad3c7c8" title="使用示例:" alt="" coords="5,5,157,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="200,28,157,28,157,23,200,23"/>
+</map>

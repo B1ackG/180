@@ -1,0 +1,11 @@
+<map id="MainWindow::setupRecordUI" name="MainWindow::setupRecordUI">
+<area shape="rect" id="Node000001" title="初始化历史记录 UI" alt="" coords="5,77,213,102"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a8c5c1b8b58df6dba337afa33818f4b7a" title=" " alt="" coords="261,5,456,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,74,266,46,267,51,161,79"/>
+<area shape="rect" id="Node000004" href="$classOperationRecorder.html#a99de0d8b91e199e6f1aab3b664df07e1" title=" " alt="" coords="283,69,435,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="213,87,269,87,269,92,213,92"/>
+<area shape="rect" id="Node000005" href="$classOperationRecorder.html#ad370803f634605addeb2318798032acc" title=" " alt="" coords="283,133,435,173"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="161,100,270,128,268,133,159,105"/>
+<area shape="rect" id="Node000003" href="$classFeatureSwitchManager.html#aa558b5e5c8c59422920a0006cc304f0e" title="检查某个大功能是否可用" alt="" coords="504,5,675,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="456,23,490,23,490,28,456,28"/>
+</map>

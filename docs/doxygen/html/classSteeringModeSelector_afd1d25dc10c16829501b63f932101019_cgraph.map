@@ -1,0 +1,25 @@
+<map id="SteeringModeSelector::onFrontBackClicked" name="SteeringModeSelector::onFrontBackClicked">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,171,119"/>
+<area shape="rect" id="Node000002" href="$classSteeringModeSelector.html#a294f2b57c847b38efc8994c8e7c75e78" title="设置当前转向模式" alt="" coords="219,79,384,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,97,205,97,205,102,171,102"/>
+<area shape="rect" id="Node000003" href="$classSteeringModeSelector.html#ae9f0e89a0933ac2a50028dcfe9a3bdf2" title=" " alt="" coords="432,15,597,55"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="368,77,434,57,435,62,370,82"/>
+<area shape="rect" id="Node000004" href="$classSteeringModeSelector.html#a6e0af5754f389c38698b36de3473d1bb" title="功能: 返回对应模式在 Modbus 中写入的数值（便于下发到 PLC）。 如何使用: 当模式切换需要写入 PLC 时，调用此函数获取写入值。 如何修改: 若映射关系可配置，请将映射数据外置并在此读取。" alt="" coords="432,79,597,119"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="384,97,418,97,418,102,384,102"/>
+<area shape="rect" id="Node000005" href="$classSteeringModeSelector.html#aaac9c2e4fd9567a08b7bf67ff3436aba" title=" " alt="" coords="432,143,597,183"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="370,117,435,137,434,142,368,122"/>
+<area shape="rect" id="Node000006" href="$classTechPushButton.html#ae97cfaec7f6319ddc26326c23af62870" title="启用/禁用脉冲效果" alt="" coords="649,22,861,62"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="576,141,596,129,610,115,619,101,628,86,644,72,654,66,657,70,647,76,632,90,623,104,614,118,599,133,579,145"/>
+<area shape="rect" id="Node000009" href="$classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1" title="设置按钮风格" alt="" coords="657,86,853,126"/>
+<area shape="poly" id="edge8_Node000005_Node000009" title=" " alt="" coords="597,141,657,127,658,132,599,146"/>
+<area shape="rect" id="Node000010" href="$classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0" title="设置发光颜色" alt="" coords="645,151,865,176"/>
+<area shape="poly" id="edge9_Node000005_Node000010" title=" " alt="" coords="598,161,632,161,632,166,598,166"/>
+<area shape="rect" id="Node000011" href="$classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af" title="设置主色" alt="" coords="653,201,857,241"/>
+<area shape="poly" id="edge10_Node000005_Node000011" title=" " alt="" coords="599,180,658,195,657,200,597,186"/>
+<area shape="rect" id="Node000012" href="$classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013" title="设置文字颜色" alt="" coords="648,265,863,291"/>
+<area shape="poly" id="edge11_Node000005_Node000012" title=" " alt="" coords="541,181,588,217,646,250,670,259,668,264,644,255,585,221,538,186"/>
+<area shape="rect" id="Node000007" href="$classTechPushButton.html#a18b11452ed8913fd1174407fc0aae6ab" title="开始脉冲动画" alt="" coords="913,5,1112,31"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="861,29,899,26,900,31,862,35"/>
+<area shape="rect" id="Node000008" href="$classTechPushButton.html#a1992e0832de45ad00c35a4a269e02fdb" title="停止脉冲动画" alt="" coords="915,55,1111,80"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="862,50,901,54,901,59,861,55"/>
+</map>

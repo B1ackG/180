@@ -1,0 +1,32 @@
+<map id="techarcgauge.cpp" name="techarcgauge.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="456,5,593,31"/>
+<area shape="rect" id="Node000002" href="$techarcgauge_8h.html" title=" " alt="" coords="253,79,375,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="492,33,362,77,360,72,490,28"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="400,79,505,104"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="515,33,476,71,472,67,511,29"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="529,79,665,104"/>
+<area shape="poly" id="edge14_Node000001_Node000014" title=" " alt="" coords="538,29,577,67,573,71,535,33"/>
+<area shape="rect" id="Node000015" title=" " alt="" coords="689,79,763,104"/>
+<area shape="poly" id="edge15_Node000001_Node000015" title=" " alt="" coords="558,28,681,71,680,77,556,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,152,84,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="271,107,98,152,97,147,270,101"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="109,152,175,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="287,106,184,149,182,144,285,102"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="199,152,277,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="304,106,262,144,259,141,300,102"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="364,225,435,251"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="318,104,326,138,342,176,357,197,375,215,372,218,353,200,337,179,321,139,313,105"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="352,152,473,177"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="331,102,387,142,384,146,328,106"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="497,152,568,177"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="350,101,485,145,483,150,348,107"/>
+<area shape="rect" id="Node000009" href="$animationmanager_8h.html" title="动画管理器声明，负责创建与管理界面动画效果的工具类。" alt="" coords="593,152,750,177"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="372,101,601,147,600,152,371,107"/>
+<area shape="poly" id="edge10_Node000009_Node000006" title=" " alt="" coords="628,180,448,227,447,222,627,175"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="545,225,619,251"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="659,179,609,219,606,214,655,175"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="644,225,699,251"/>
+<area shape="poly" id="edge11_Node000009_Node000011" title=" " alt="" coords="674,178,674,212,669,212,669,178"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="723,225,828,251"/>
+<area shape="poly" id="edge12_Node000009_Node000012" title=" " alt="" coords="690,175,748,215,745,219,687,180"/>
+</map>

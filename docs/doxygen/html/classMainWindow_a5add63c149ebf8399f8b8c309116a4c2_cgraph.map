@@ -1,0 +1,29 @@
+<map id="MainWindow::recordHorizontalSupportAction" name="MainWindow::recordHorizontalSupportAction">
+<area shape="rect" id="Node000001" title="记录水平支撑动作" alt="" coords="5,165,227,205"/>
+<area shape="rect" id="Node000002" href="$classOperationRecorder.html#ae5e0a07f7b387272fd297c103b4fe42c" title="添加操作记录" alt="" coords="310,69,462,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,163,274,119,298,111,300,116,276,124,164,168"/>
+<area shape="rect" id="Node000012" href="$classMainWindow.html#ace41215a44a843e5858677728ec3af12" title="获取指定滑动编辑当前值" alt="" coords="288,133,484,173"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="227,170,274,164,274,169,227,175"/>
+<area shape="rect" id="Node000013" href="$classMainWindow.html#ad52c60fd4c3fcf2c1ba80ac234ea3030" title="获取指定滑块标签当前值" alt="" coords="283,197,489,237"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="227,196,270,201,269,206,227,201"/>
+<area shape="rect" id="Node000014" href="$classMainWindow.html#ad9d8c581087891f346c722209577216c" title="显示临时通知（气泡/提示条）" alt="" coords="275,262,497,287"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="162,203,276,247,309,256,307,261,274,252,160,208"/>
+<area shape="rect" id="Node000003" href="$classOperationRecorder.html#a99de0d8b91e199e6f1aab3b664df07e1" title=" " alt="" coords="547,37,699,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="462,76,533,67,533,72,462,82"/>
+<area shape="rect" id="Node000004" href="$classOperationRecorder.html#a334ae0662731c03b4a767ee6c47212df" title=" " alt="" coords="545,101,700,141"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="462,97,532,106,531,112,462,102"/>
+<area shape="rect" id="Node000005" href="$classOperationRecorder.html#a76e57ca1319df23bc72f4b7ed395f469" title=" " alt="" coords="765,5,917,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="674,99,699,87,722,71,747,55,762,48,764,53,749,60,725,75,701,92,676,104"/>
+<area shape="rect" id="Node000007" href="$classOperationRecorder.html#a20308fd183b5b0dbe00ce89fcc0b823e" title=" " alt="" coords="765,69,917,109"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="700,107,751,100,752,105,701,113"/>
+<area shape="rect" id="Node000010" href="$classOperationRecorder.html#a507cbb2e0e5b6babc09e31dc8127f101" title=" " alt="" coords="748,133,935,173"/>
+<area shape="poly" id="edge9_Node000004_Node000010" title=" " alt="" coords="701,130,735,135,734,140,700,135"/>
+<area shape="rect" id="Node000011" href="$classOperationRecorder.html#a10162fd420bca1481d62d02b4afcfa30" title="使用示例:" alt="" coords="765,197,917,237"/>
+<area shape="poly" id="edge10_Node000004_Node000011" title=" " alt="" coords="661,139,749,183,766,190,764,195,747,188,659,144"/>
+<area shape="rect" id="Node000006" href="$structOperationRecord.html#aae606bfdd782db1bd3fc32dbf0a814d7" title=" " alt="" coords="983,13,1161,38"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="918,23,969,23,969,28,918,28"/>
+<area shape="rect" id="Node000008" href="$classOperationRecorder.html#a60e73780538b8376d7e68e9cc09fe5a9" title=" " alt="" coords="993,67,1151,107"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="918,86,979,85,979,90,918,91"/>
+<area shape="rect" id="Node000009" href="$classOperationRecorder.html#a37d0a54d4ebddd9ad4c248331f70a0e3" title=" " alt="" coords="985,131,1159,171"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="918,107,984,124,982,130,917,112"/>
+</map>

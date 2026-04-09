@@ -1,0 +1,253 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: techarcgauge.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('techarcgauge_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">techarcgauge.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="techarcgauge_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef TECHARCGAUGE_H</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define TECHARCGAUGE_H</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;QWidget&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;QColor&gt;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;QPainter&gt;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &lt;QTimer&gt;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &lt;QElapsedTimer&gt;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &lt;QtMath&gt;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="animationmanager_8h.html">animationmanager.h</a>&quot;</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
+<div class="foldopen" id="foldopen00012" data-start="{" data-end="};">
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="classTechArcGauge.html">   12</a></span><span class="keyword">class </span><a class="code hl_class" href="classTechArcGauge.html">TechArcGauge</a> : <span class="keyword">public</span> QWidget</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>{</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    Q_OBJECT</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a89a7c3c7b41cb92285c1a49f5ad42134">   15</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> <a class="code hl_property" href="classTechArcGauge.html#a89a7c3c7b41cb92285c1a49f5ad42134">value</a> READ <a class="code hl_property" href="classTechArcGauge.html#a89a7c3c7b41cb92285c1a49f5ad42134">value</a> WRITE <a class="code hl_slot" href="classTechArcGauge.html#a1a2879196d5ba6758e4777627d5b7fe9">setValue</a> NOTIFY <a class="code hl_signal" href="classTechArcGauge.html#aadaec246643f3154a0a3de600c79c862">valueChanged</a>)</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a650a12c9e5dc6e69e12554d4e76b5293">   16</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> <a class="code hl_property" href="classTechArcGauge.html#a650a12c9e5dc6e69e12554d4e76b5293">minimum</a> READ <a class="code hl_property" href="classTechArcGauge.html#a650a12c9e5dc6e69e12554d4e76b5293">minimum</a> WRITE <a class="code hl_slot" href="classTechArcGauge.html#a36bb8f9c9b0d8c2f2ae721ad66c7082c">setMinimum</a>)</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#aa017e4ab95b18cfd86593063c649c965">   17</a></span>    Q_PROPERTY(<span class="keywordtype">double</span> <a class="code hl_property" href="classTechArcGauge.html#aa017e4ab95b18cfd86593063c649c965">maximum</a> READ <a class="code hl_property" href="classTechArcGauge.html#aa017e4ab95b18cfd86593063c649c965">maximum</a> WRITE <a class="code hl_slot" href="classTechArcGauge.html#a16c389543124892a0d8b3ba18458306f">setMaximum</a>)</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>public:</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    explicit <a class="code hl_class" href="classTechArcGauge.html">TechArcGauge</a>(QWidget *parent = <span class="keywordtype">nullptr</span>);</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    ~<a class="code hl_class" href="classTechArcGauge.html">TechArcGauge</a>();</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a6c4dcc574e0b43a562d2d3ec5768f79b">   23</a></span>    <span class="keywordtype">double</span> <a class="code hl_property" href="classTechArcGauge.html#a89a7c3c7b41cb92285c1a49f5ad42134">value</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechArcGauge.html#a83bb4d132cf67b4401dbceabe3864757">m_value</a>; }</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a1fb5f11c4924483c144db7237497b44a">   24</a></span>    <span class="keywordtype">double</span> <a class="code hl_function" href="classTechArcGauge.html#a1fb5f11c4924483c144db7237497b44a">minimum</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechArcGauge.html#adb16f63693bac94a40a81eef88f230e3">m_minimum</a>; }</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a665a8faa731a1237245adbfff95872b3">   25</a></span>    <span class="keywordtype">double</span> <a class="code hl_function" href="classTechArcGauge.html#a665a8faa731a1237245adbfff95872b3">maximum</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechArcGauge.html#a3378f2bd333f48ff34f22b76ff0153b5">m_maximum</a>; }</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a305c861450dc7f6ac8f334f7eb72f816">   27</a></span>    <span class="keywordtype">double</span> <a class="code hl_function" href="classTechArcGauge.html#a305c861450dc7f6ac8f334f7eb72f816">secondValue</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechArcGauge.html#aee3309ec7b4b3ab6a072f5477a25ee6b">m_secondValue</a>; }</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a10f6bcbc2902ea4afdaf4b563bd808aa">   28</a></span>    <span class="keywordtype">double</span> <a class="code hl_function" href="classTechArcGauge.html#a10f6bcbc2902ea4afdaf4b563bd808aa">secondMaximum</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechArcGauge.html#a7d9e7cb831626a6d23aed555d995017c">m_secondMaximum</a>; }</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechArcGauge.html#a14e95442058219c8243d512ea03b52aa">setRange</a>(<span class="keywordtype">double</span> min, <span class="keywordtype">double</span> max);</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechArcGauge.html#a7fd97eb230a8f2f9dbbbce6913cb1831">setLabelText</a>(<span class="keyword">const</span> QString &amp;text);</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechArcGauge.html#a2a8a7f32afa140bd1dd621a831c90c81">setSuffix</a>(<span class="keyword">const</span> QString &amp;suffix);</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechArcGauge.html#a3de2f0019a4eb5134c5fe20bb92690cd">setSecondSuffix</a>(<span class="keyword">const</span> QString &amp;suffix);</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechArcGauge.html#abec95381694e456d9672abe07badfe4b">setPrecision</a>(<span class="keywordtype">int</span> precision);</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechArcGauge.html#aa9578f85c5e5876451b4c62099a21f03">setForceControlMode</a>(<span class="keywordtype">bool</span> enabled);</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a90df02e12d3017e7d132ef0276085ec8">   36</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechArcGauge.html#a90df02e12d3017e7d132ef0276085ec8">setModbusAddress</a>(<span class="keywordtype">int</span> address) { <a class="code hl_variable" href="classTechArcGauge.html#a366e8a0813593f7074fa975235e58ae7">m_modbusAddress</a> = address; }</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a99b0cca90c1916cc1e33806bd683f306">   37</a></span>    <span class="keywordtype">int</span> <a class="code hl_function" href="classTechArcGauge.html#a99b0cca90c1916cc1e33806bd683f306">modbusAddress</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechArcGauge.html#a366e8a0813593f7074fa975235e58ae7">m_modbusAddress</a>; }</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="keyword">public</span> slots:</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classTechArcGauge.html#a1a2879196d5ba6758e4777627d5b7fe9">setValue</a>(<span class="keywordtype">double</span> <a class="code hl_property" href="classTechArcGauge.html#a89a7c3c7b41cb92285c1a49f5ad42134">value</a>);</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classTechArcGauge.html#ab710d84f9e0604db721e0655cd9d7971">setSecondValue</a>(<span class="keywordtype">double</span> <a class="code hl_property" href="classTechArcGauge.html#a89a7c3c7b41cb92285c1a49f5ad42134">value</a>);</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classTechArcGauge.html#afcaa15ccfe054eb84384defc946aa166">setSecondMaximum</a>(<span class="keywordtype">double</span> max);</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classTechArcGauge.html#a36bb8f9c9b0d8c2f2ae721ad66c7082c">setMinimum</a>(<span class="keywordtype">double</span> min);</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classTechArcGauge.html#a16c389543124892a0d8b3ba18458306f">setMaximum</a>(<span class="keywordtype">double</span> max);</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classTechArcGauge.html#a1bc527922ffdd19e8840a1fe686672e7">updateAnimation</a>();</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classTechArcGauge.html#a076bcadd22c73d3d740152571f60ce42">updateFromModbus</a>(<span class="keywordtype">double</span> <a class="code hl_property" href="classTechArcGauge.html#a89a7c3c7b41cb92285c1a49f5ad42134">value</a>);</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>signals:</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#aadaec246643f3154a0a3de600c79c862">   49</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classTechArcGauge.html#aadaec246643f3154a0a3de600c79c862">valueChanged</a>(<span class="keywordtype">double</span> <a class="code hl_property" href="classTechArcGauge.html#a89a7c3c7b41cb92285c1a49f5ad42134">value</a>);</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a981d9e53252fa9ca33aa472a89ffb4e1">   50</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classTechArcGauge.html#a981d9e53252fa9ca33aa472a89ffb4e1">secondValueChanged</a>(<span class="keywordtype">double</span> <a class="code hl_property" href="classTechArcGauge.html#a89a7c3c7b41cb92285c1a49f5ad42134">value</a>);</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#af08ecd797ba3fab7009d1a2160c8d37d">   51</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classTechArcGauge.html#af08ecd797ba3fab7009d1a2160c8d37d">modbusAddressChanged</a>(<span class="keywordtype">int</span> address);</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><span class="keyword">protected</span>:</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechArcGauge.html#a352deccfe34fb70afc6078bca8fb4d5e">paintEvent</a>(QPaintEvent *event) <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechArcGauge.html#a75933d3fb4b4fff7217f46af43f2189b">resizeEvent</a>(QResizeEvent *event) <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechArcGauge.html#a1909632da5478afcb36db534d575407b">requestRepaint</a>();</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    QColor <a class="code hl_function" href="classTechArcGauge.html#ae9225835dfbe503335869a978404c76e">interpolate</a>(<span class="keyword">const</span> QColor&amp; start, <span class="keyword">const</span> QColor&amp; end, <span class="keywordtype">double</span> t);</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a83bb4d132cf67b4401dbceabe3864757">   61</a></span>    <span class="keywordtype">double</span> <a class="code hl_variable" href="classTechArcGauge.html#a83bb4d132cf67b4401dbceabe3864757">m_value</a>;</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#adb16f63693bac94a40a81eef88f230e3">   62</a></span>    <span class="keywordtype">double</span> <a class="code hl_variable" href="classTechArcGauge.html#adb16f63693bac94a40a81eef88f230e3">m_minimum</a>;</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a3378f2bd333f48ff34f22b76ff0153b5">   63</a></span>    <span class="keywordtype">double</span> <a class="code hl_variable" href="classTechArcGauge.html#a3378f2bd333f48ff34f22b76ff0153b5">m_maximum</a>;</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    </div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#aee3309ec7b4b3ab6a072f5477a25ee6b">   65</a></span>    <span class="keywordtype">double</span> <a class="code hl_variable" href="classTechArcGauge.html#aee3309ec7b4b3ab6a072f5477a25ee6b">m_secondValue</a>;    <span class="comment">// 新增：第二数值（如速度）</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a7d9e7cb831626a6d23aed555d995017c">   66</a></span>    <span class="keywordtype">double</span> <a class="code hl_variable" href="classTechArcGauge.html#a7d9e7cb831626a6d23aed555d995017c">m_secondMaximum</a>;  <span class="comment">// 新增：第二数值最大值</span></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    </div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a1c4d07923f6f763f85563aad4c111736">   68</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="classTechArcGauge.html#a1c4d07923f6f763f85563aad4c111736">m_precision</a>;</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a149bf718eb7969821d02fab1d6685f15">   69</a></span>    QString <a class="code hl_variable" href="classTechArcGauge.html#a149bf718eb7969821d02fab1d6685f15">m_suffix</a>;</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a0d8f16e63bd78324b3dde51fda654a2a">   70</a></span>    QString <a class="code hl_variable" href="classTechArcGauge.html#a0d8f16e63bd78324b3dde51fda654a2a">m_secondSuffix</a>;  <span class="comment">// 新增：第二数值单位</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#abc127d1368e21fcb0b853a5bbb82aa38">   71</a></span>    QString <a class="code hl_variable" href="classTechArcGauge.html#abc127d1368e21fcb0b853a5bbb82aa38">m_labelText</a>;</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a366e8a0813593f7074fa975235e58ae7">   72</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="classTechArcGauge.html#a366e8a0813593f7074fa975235e58ae7">m_modbusAddress</a>;</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="comment">// 颜色配置</span></div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a93c4e15aba9cc6b3f1c07a7351a91016">   75</a></span>    QColor <a class="code hl_variable" href="classTechArcGauge.html#a93c4e15aba9cc6b3f1c07a7351a91016">m_primaryColor</a>;</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a1047c5760b994542a45ea50967ebe71c">   76</a></span>    QColor <a class="code hl_variable" href="classTechArcGauge.html#a1047c5760b994542a45ea50967ebe71c">m_originalPrimaryColor</a>;</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a114ab9e4b19098c58adecb006fd6f246">   77</a></span>    QColor <a class="code hl_variable" href="classTechArcGauge.html#a114ab9e4b19098c58adecb006fd6f246">m_glowColor</a>;</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#ad46b5e3dcb0c61ba584d58c093ac91d6">   78</a></span>    QColor <a class="code hl_variable" href="classTechArcGauge.html#ad46b5e3dcb0c61ba584d58c093ac91d6">m_originalGlowColor</a>;</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <span class="comment">// 动画相关</span></div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a4bd7652e5fc59f9abe262651b22f9d67">   81</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="classTechArcGauge.html#a4bd7652e5fc59f9abe262651b22f9d67">m_forceControlEnabled</a>;</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#ac5b3addbcf1e57fc87979e31a856339c">   82</a></span>    <span class="keywordtype">float</span> <a class="code hl_variable" href="classTechArcGauge.html#ac5b3addbcf1e57fc87979e31a856339c">m_scanLinePhase</a>;</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    </div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    <span class="comment">// 重绘控制</span></div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a1d0bbe1c298d60d5a5746cf5ad3479c8">   85</a></span>    QElapsedTimer <a class="code hl_variable" href="classTechArcGauge.html#a1d0bbe1c298d60d5a5746cf5ad3479c8">m_repaintElapsed</a>;</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a1d2fb13aa7617bb05103a9f765e93ac3">   86</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="classTechArcGauge.html#a1d2fb13aa7617bb05103a9f765e93ac3">m_repaintPending</a>;</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno"><a class="line" href="classTechArcGauge.html#a0dee86e2db91ec9c03b4ba564a05c19c">   87</a></span>    <span class="keyword">const</span> <span class="keywordtype">int</span> <a class="code hl_variable" href="classTechArcGauge.html#a0dee86e2db91ec9c03b4ba564a05c19c">m_minRepaintIntervalMs</a> = 33; <span class="comment">// 约30fps</span></div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>};</div>
+</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span><span class="preprocessor">#endif </span><span class="comment">// TECHARCGAUGE_H</span></div>
+<div class="ttc" id="aanimationmanager_8h_html"><div class="ttname"><a href="animationmanager_8h.html">animationmanager.h</a></div><div class="ttdoc">动画管理器声明，负责创建与管理界面动画效果的工具类。</div></div>
+<div class="ttc" id="aclassTechArcGauge_html"><div class="ttname"><a href="classTechArcGauge.html">TechArcGauge</a></div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00012">techarcgauge.h:13</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a076bcadd22c73d3d740152571f60ce42"><div class="ttname"><a href="classTechArcGauge.html#a076bcadd22c73d3d740152571f60ce42">TechArcGauge::updateFromModbus</a></div><div class="ttdeci">void updateFromModbus(double value)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00114">techarcgauge.cpp:114</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a0d8f16e63bd78324b3dde51fda654a2a"><div class="ttname"><a href="classTechArcGauge.html#a0d8f16e63bd78324b3dde51fda654a2a">TechArcGauge::m_secondSuffix</a></div><div class="ttdeci">QString m_secondSuffix</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00070">techarcgauge.h:70</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a0dee86e2db91ec9c03b4ba564a05c19c"><div class="ttname"><a href="classTechArcGauge.html#a0dee86e2db91ec9c03b4ba564a05c19c">TechArcGauge::m_minRepaintIntervalMs</a></div><div class="ttdeci">const int m_minRepaintIntervalMs</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00087">techarcgauge.h:87</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a1047c5760b994542a45ea50967ebe71c"><div class="ttname"><a href="classTechArcGauge.html#a1047c5760b994542a45ea50967ebe71c">TechArcGauge::m_originalPrimaryColor</a></div><div class="ttdeci">QColor m_originalPrimaryColor</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00076">techarcgauge.h:76</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a10f6bcbc2902ea4afdaf4b563bd808aa"><div class="ttname"><a href="classTechArcGauge.html#a10f6bcbc2902ea4afdaf4b563bd808aa">TechArcGauge::secondMaximum</a></div><div class="ttdeci">double secondMaximum() const</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00028">techarcgauge.h:28</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a114ab9e4b19098c58adecb006fd6f246"><div class="ttname"><a href="classTechArcGauge.html#a114ab9e4b19098c58adecb006fd6f246">TechArcGauge::m_glowColor</a></div><div class="ttdeci">QColor m_glowColor</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00077">techarcgauge.h:77</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a149bf718eb7969821d02fab1d6685f15"><div class="ttname"><a href="classTechArcGauge.html#a149bf718eb7969821d02fab1d6685f15">TechArcGauge::m_suffix</a></div><div class="ttdeci">QString m_suffix</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00069">techarcgauge.h:69</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a14e95442058219c8243d512ea03b52aa"><div class="ttname"><a href="classTechArcGauge.html#a14e95442058219c8243d512ea03b52aa">TechArcGauge::setRange</a></div><div class="ttdeci">void setRange(double min, double max)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00074">techarcgauge.cpp:74</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a16c389543124892a0d8b3ba18458306f"><div class="ttname"><a href="classTechArcGauge.html#a16c389543124892a0d8b3ba18458306f">TechArcGauge::setMaximum</a></div><div class="ttdeci">void setMaximum(double max)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00068">techarcgauge.cpp:68</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a1909632da5478afcb36db534d575407b"><div class="ttname"><a href="classTechArcGauge.html#a1909632da5478afcb36db534d575407b">TechArcGauge::requestRepaint</a></div><div class="ttdeci">void requestRepaint()</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00262">techarcgauge.cpp:262</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a1a2879196d5ba6758e4777627d5b7fe9"><div class="ttname"><a href="classTechArcGauge.html#a1a2879196d5ba6758e4777627d5b7fe9">TechArcGauge::setValue</a></div><div class="ttdeci">void setValue(double value)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00035">techarcgauge.cpp:35</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a1bc527922ffdd19e8840a1fe686672e7"><div class="ttname"><a href="classTechArcGauge.html#a1bc527922ffdd19e8840a1fe686672e7">TechArcGauge::updateAnimation</a></div><div class="ttdeci">void updateAnimation()</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00119">techarcgauge.cpp:119</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a1c4d07923f6f763f85563aad4c111736"><div class="ttname"><a href="classTechArcGauge.html#a1c4d07923f6f763f85563aad4c111736">TechArcGauge::m_precision</a></div><div class="ttdeci">int m_precision</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00068">techarcgauge.h:68</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a1d0bbe1c298d60d5a5746cf5ad3479c8"><div class="ttname"><a href="classTechArcGauge.html#a1d0bbe1c298d60d5a5746cf5ad3479c8">TechArcGauge::m_repaintElapsed</a></div><div class="ttdeci">QElapsedTimer m_repaintElapsed</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00085">techarcgauge.h:85</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a1d2fb13aa7617bb05103a9f765e93ac3"><div class="ttname"><a href="classTechArcGauge.html#a1d2fb13aa7617bb05103a9f765e93ac3">TechArcGauge::m_repaintPending</a></div><div class="ttdeci">bool m_repaintPending</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00086">techarcgauge.h:86</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a1fb5f11c4924483c144db7237497b44a"><div class="ttname"><a href="classTechArcGauge.html#a1fb5f11c4924483c144db7237497b44a">TechArcGauge::minimum</a></div><div class="ttdeci">double minimum() const</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00024">techarcgauge.h:24</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a2a8a7f32afa140bd1dd621a831c90c81"><div class="ttname"><a href="classTechArcGauge.html#a2a8a7f32afa140bd1dd621a831c90c81">TechArcGauge::setSuffix</a></div><div class="ttdeci">void setSuffix(const QString &amp;suffix)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00087">techarcgauge.cpp:87</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a305c861450dc7f6ac8f334f7eb72f816"><div class="ttname"><a href="classTechArcGauge.html#a305c861450dc7f6ac8f334f7eb72f816">TechArcGauge::secondValue</a></div><div class="ttdeci">double secondValue() const</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00027">techarcgauge.h:27</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a3378f2bd333f48ff34f22b76ff0153b5"><div class="ttname"><a href="classTechArcGauge.html#a3378f2bd333f48ff34f22b76ff0153b5">TechArcGauge::m_maximum</a></div><div class="ttdeci">double m_maximum</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00063">techarcgauge.h:63</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a352deccfe34fb70afc6078bca8fb4d5e"><div class="ttname"><a href="classTechArcGauge.html#a352deccfe34fb70afc6078bca8fb4d5e">TechArcGauge::paintEvent</a></div><div class="ttdeci">void paintEvent(QPaintEvent *event) override</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00126">techarcgauge.cpp:126</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a366e8a0813593f7074fa975235e58ae7"><div class="ttname"><a href="classTechArcGauge.html#a366e8a0813593f7074fa975235e58ae7">TechArcGauge::m_modbusAddress</a></div><div class="ttdeci">int m_modbusAddress</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00072">techarcgauge.h:72</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a36bb8f9c9b0d8c2f2ae721ad66c7082c"><div class="ttname"><a href="classTechArcGauge.html#a36bb8f9c9b0d8c2f2ae721ad66c7082c">TechArcGauge::setMinimum</a></div><div class="ttdeci">void setMinimum(double min)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00062">techarcgauge.cpp:62</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a3de2f0019a4eb5134c5fe20bb92690cd"><div class="ttname"><a href="classTechArcGauge.html#a3de2f0019a4eb5134c5fe20bb92690cd">TechArcGauge::setSecondSuffix</a></div><div class="ttdeci">void setSecondSuffix(const QString &amp;suffix)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00093">techarcgauge.cpp:93</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a4bd7652e5fc59f9abe262651b22f9d67"><div class="ttname"><a href="classTechArcGauge.html#a4bd7652e5fc59f9abe262651b22f9d67">TechArcGauge::m_forceControlEnabled</a></div><div class="ttdeci">bool m_forceControlEnabled</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00081">techarcgauge.h:81</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a650a12c9e5dc6e69e12554d4e76b5293"><div class="ttname"><a href="classTechArcGauge.html#a650a12c9e5dc6e69e12554d4e76b5293">TechArcGauge::minimum</a></div><div class="ttdeci">double minimum</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00016">techarcgauge.h:16</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a665a8faa731a1237245adbfff95872b3"><div class="ttname"><a href="classTechArcGauge.html#a665a8faa731a1237245adbfff95872b3">TechArcGauge::maximum</a></div><div class="ttdeci">double maximum() const</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00025">techarcgauge.h:25</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a75933d3fb4b4fff7217f46af43f2189b"><div class="ttname"><a href="classTechArcGauge.html#a75933d3fb4b4fff7217f46af43f2189b">TechArcGauge::resizeEvent</a></div><div class="ttdeci">void resizeEvent(QResizeEvent *event) override</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00257">techarcgauge.cpp:257</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a7d9e7cb831626a6d23aed555d995017c"><div class="ttname"><a href="classTechArcGauge.html#a7d9e7cb831626a6d23aed555d995017c">TechArcGauge::m_secondMaximum</a></div><div class="ttdeci">double m_secondMaximum</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00066">techarcgauge.h:66</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a7fd97eb230a8f2f9dbbbce6913cb1831"><div class="ttname"><a href="classTechArcGauge.html#a7fd97eb230a8f2f9dbbbce6913cb1831">TechArcGauge::setLabelText</a></div><div class="ttdeci">void setLabelText(const QString &amp;text)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00081">techarcgauge.cpp:81</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a83bb4d132cf67b4401dbceabe3864757"><div class="ttname"><a href="classTechArcGauge.html#a83bb4d132cf67b4401dbceabe3864757">TechArcGauge::m_value</a></div><div class="ttdeci">double m_value</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00061">techarcgauge.h:61</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a89a7c3c7b41cb92285c1a49f5ad42134"><div class="ttname"><a href="classTechArcGauge.html#a89a7c3c7b41cb92285c1a49f5ad42134">TechArcGauge::value</a></div><div class="ttdeci">double value</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00015">techarcgauge.h:15</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a90df02e12d3017e7d132ef0276085ec8"><div class="ttname"><a href="classTechArcGauge.html#a90df02e12d3017e7d132ef0276085ec8">TechArcGauge::setModbusAddress</a></div><div class="ttdeci">void setModbusAddress(int address)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00036">techarcgauge.h:36</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a93c4e15aba9cc6b3f1c07a7351a91016"><div class="ttname"><a href="classTechArcGauge.html#a93c4e15aba9cc6b3f1c07a7351a91016">TechArcGauge::m_primaryColor</a></div><div class="ttdeci">QColor m_primaryColor</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00075">techarcgauge.h:75</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a981d9e53252fa9ca33aa472a89ffb4e1"><div class="ttname"><a href="classTechArcGauge.html#a981d9e53252fa9ca33aa472a89ffb4e1">TechArcGauge::secondValueChanged</a></div><div class="ttdeci">void secondValueChanged(double value)</div></div>
+<div class="ttc" id="aclassTechArcGauge_html_a99b0cca90c1916cc1e33806bd683f306"><div class="ttname"><a href="classTechArcGauge.html#a99b0cca90c1916cc1e33806bd683f306">TechArcGauge::modbusAddress</a></div><div class="ttdeci">int modbusAddress() const</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00037">techarcgauge.h:37</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_aa017e4ab95b18cfd86593063c649c965"><div class="ttname"><a href="classTechArcGauge.html#aa017e4ab95b18cfd86593063c649c965">TechArcGauge::maximum</a></div><div class="ttdeci">double maximum</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00017">techarcgauge.h:17</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_aa9578f85c5e5876451b4c62099a21f03"><div class="ttname"><a href="classTechArcGauge.html#aa9578f85c5e5876451b4c62099a21f03">TechArcGauge::setForceControlMode</a></div><div class="ttdeci">void setForceControlMode(bool enabled)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00105">techarcgauge.cpp:105</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_aadaec246643f3154a0a3de600c79c862"><div class="ttname"><a href="classTechArcGauge.html#aadaec246643f3154a0a3de600c79c862">TechArcGauge::valueChanged</a></div><div class="ttdeci">void valueChanged(double value)</div></div>
+<div class="ttc" id="aclassTechArcGauge_html_ab710d84f9e0604db721e0655cd9d7971"><div class="ttname"><a href="classTechArcGauge.html#ab710d84f9e0604db721e0655cd9d7971">TechArcGauge::setSecondValue</a></div><div class="ttdeci">void setSecondValue(double value)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00046">techarcgauge.cpp:46</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_abc127d1368e21fcb0b853a5bbb82aa38"><div class="ttname"><a href="classTechArcGauge.html#abc127d1368e21fcb0b853a5bbb82aa38">TechArcGauge::m_labelText</a></div><div class="ttdeci">QString m_labelText</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00071">techarcgauge.h:71</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_abec95381694e456d9672abe07badfe4b"><div class="ttname"><a href="classTechArcGauge.html#abec95381694e456d9672abe07badfe4b">TechArcGauge::setPrecision</a></div><div class="ttdeci">void setPrecision(int precision)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00099">techarcgauge.cpp:99</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_ac5b3addbcf1e57fc87979e31a856339c"><div class="ttname"><a href="classTechArcGauge.html#ac5b3addbcf1e57fc87979e31a856339c">TechArcGauge::m_scanLinePhase</a></div><div class="ttdeci">float m_scanLinePhase</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00082">techarcgauge.h:82</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_ad46b5e3dcb0c61ba584d58c093ac91d6"><div class="ttname"><a href="classTechArcGauge.html#ad46b5e3dcb0c61ba584d58c093ac91d6">TechArcGauge::m_originalGlowColor</a></div><div class="ttdeci">QColor m_originalGlowColor</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00078">techarcgauge.h:78</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_adb16f63693bac94a40a81eef88f230e3"><div class="ttname"><a href="classTechArcGauge.html#adb16f63693bac94a40a81eef88f230e3">TechArcGauge::m_minimum</a></div><div class="ttdeci">double m_minimum</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00062">techarcgauge.h:62</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_ae9225835dfbe503335869a978404c76e"><div class="ttname"><a href="classTechArcGauge.html#ae9225835dfbe503335869a978404c76e">TechArcGauge::interpolate</a></div><div class="ttdeci">QColor interpolate(const QColor &amp;start, const QColor &amp;end, double t)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00275">techarcgauge.cpp:275</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_aee3309ec7b4b3ab6a072f5477a25ee6b"><div class="ttname"><a href="classTechArcGauge.html#aee3309ec7b4b3ab6a072f5477a25ee6b">TechArcGauge::m_secondValue</a></div><div class="ttdeci">double m_secondValue</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8h_source.html#l00065">techarcgauge.h:65</a></div></div>
+<div class="ttc" id="aclassTechArcGauge_html_af08ecd797ba3fab7009d1a2160c8d37d"><div class="ttname"><a href="classTechArcGauge.html#af08ecd797ba3fab7009d1a2160c8d37d">TechArcGauge::modbusAddressChanged</a></div><div class="ttdeci">void modbusAddressChanged(int address)</div></div>
+<div class="ttc" id="aclassTechArcGauge_html_afcaa15ccfe054eb84384defc946aa166"><div class="ttname"><a href="classTechArcGauge.html#afcaa15ccfe054eb84384defc946aa166">TechArcGauge::setSecondMaximum</a></div><div class="ttdeci">void setSecondMaximum(double max)</div><div class="ttdef"><b>Definition</b> <a href="techarcgauge_8cpp_source.html#l00056">techarcgauge.cpp:56</a></div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="techarcgauge_8h.html">techarcgauge.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

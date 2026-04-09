@@ -1,0 +1,10 @@
+<map id="MainWindow::loadSliderLabelRuntimeSettings" name="MainWindow::loadSliderLabelRuntimeSettings">
+<area shape="rect" id="Node000001" title="加载 SliderLabel 的自定义配置" alt="" coords="828,5,1041,45"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a996c5a2b6f77944776856f08ec30858d" title="构造 MainWindow 并初始化内部状态与 UI" alt="" coords="5,14,203,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="814,26,555,24,251,25,203,26,203,21,251,20,555,19,814,21"/>
+<area shape="rect" id="Node000003" href="$classMainWindow.html#a41cde9b5a0ca5c37a7f53078d476f65a" title="配置管理员密码页面" alt="" coords="497,38,780,63"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="815,38,781,41,780,36,814,33"/>
+<area shape="rect" id="Node000004" href="$classMainWindow.html#a0cb4955bff598ad95110e9525a52214d" title="初始化核心页面和基础 UI 模块" alt="" coords="251,35,449,75"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="484,55,450,56,449,51,484,50"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="237,44,202,41,203,35,237,39"/>
+</map>

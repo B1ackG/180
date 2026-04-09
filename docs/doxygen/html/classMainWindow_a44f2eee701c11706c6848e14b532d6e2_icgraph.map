@@ -1,0 +1,5 @@
+<map id="MainWindow::onForceClearPressed" name="MainWindow::onForceClearPressed">
+<area shape="rect" id="Node000001" title="力清除按钮按下" alt="" coords="272,5,471,45"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a0185d3e9bcbd70d266a39a1cacf5de62" title="设置清除力值按钮" alt="" coords="5,5,224,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="258,28,224,28,224,23,258,23"/>
+</map>

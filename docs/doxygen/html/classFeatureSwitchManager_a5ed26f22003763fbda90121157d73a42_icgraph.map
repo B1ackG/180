@@ -1,0 +1,26 @@
+<map id="FeatureSwitchManager::instance" name="FeatureSwitchManager::instance">
+<area shape="rect" id="Node000001" title="获取单例实例" alt="" coords="856,164,1027,204"/>
+<area shape="rect" id="Node000002" href="$classFeatureSwitchWidget.html#a7c4537d4cadd149f5e0b5c2fb080e21a" title=" " alt="" coords="643,5,803,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="910,156,864,111,807,66,773,48,775,43,809,62,867,107,914,152"/>
+<area shape="rect" id="Node000004" href="$classFeatureSwitchWidget.html#a8ff4a6f95121aa85e0b8428362aa23fd" title=" " alt="" coords="429,56,589,96"/>
+<area shape="poly" id="edge11_Node000001_Node000004" title=" " alt="" coords="896,159,854,136,807,117,752,103,695,92,590,81,590,76,695,87,753,97,809,112,856,132,899,155"/>
+<area shape="rect" id="Node000005" href="$classFeatureSwitchWidget.html#a859090336219fd32f18b5c10019b1016" title=" " alt="" coords="221,113,381,153"/>
+<area shape="poly" id="edge15_Node000001_Node000005" title=" " alt="" coords="842,172,808,168,576,149,381,139,382,134,576,144,808,163,843,167"/>
+<area shape="rect" id="Node000006" href="$main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="482,171,537,197"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="842,187,537,187,537,181,842,181"/>
+<area shape="rect" id="Node000007" href="$classFeatureSwitchWidget.html#a84c23636e2ceb40e36e67dc481a184fc" title=" " alt="" coords="643,272,803,312"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="898,214,809,262,782,274,779,269,807,258,896,209"/>
+<area shape="rect" id="Node000008" href="$classFeatureSwitchWidget.html#ab63967accbc0ea912c2d2870c2140a06" title=" " alt="" coords="429,272,589,312"/>
+<area shape="poly" id="edge12_Node000001_Node000008" title=" " alt="" coords="923,217,903,246,877,276,846,305,809,326,777,337,744,343,677,342,613,330,560,315,562,310,614,325,677,336,743,337,776,332,807,322,842,300,873,273,899,242,919,214"/>
+<area shape="rect" id="Node000009" href="$main_8cpp.html#a72bf06f7c3b4827acd2c7df2b203ab46" title=" " alt="" coords="637,222,808,247"/>
+<area shape="poly" id="edge13_Node000001_Node000009" title=" " alt="" coords="843,210,779,225,778,219,842,204"/>
+<area shape="rect" id="Node000003" href="$classFeatureSwitchWidget.html#a5efb15d0351e260b8923889832dbf319" title=" " alt="" coords="5,56,173,96"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="629,33,430,47,174,70,173,65,429,41,629,28"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="630,50,590,60,589,54,629,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="424,102,375,116,374,111,423,97"/>
+<area shape="poly" id="edge5_Node000005_Node000003" title=" " alt="" coords="213,112,163,99,165,93,214,107"/>
+<area shape="poly" id="edge10_Node000007_Node000005" title=" " alt="" coords="629,271,516,240,428,210,375,184,330,156,333,151,378,179,430,206,517,234,631,266"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="629,295,589,295,589,289,629,289"/>
+<area shape="poly" id="edge9_Node000008_Node000005" title=" " alt="" coords="448,268,428,255,366,204,318,155,322,152,369,200,431,251,450,263"/>
+<area shape="poly" id="edge14_Node000009_Node000006" title=" " alt="" coords="654,221,536,193,537,188,656,216"/>
+</map>

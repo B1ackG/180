@@ -1,0 +1,19 @@
+<map id="TechSliderEdit::setSuffix" name="TechSliderEdit::setSuffix">
+<area shape="rect" id="Node000001" title="设置数值后缀（单位文本）" alt="" coords="1005,70,1184,95"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a3df3aeeec521f64af190b59a4580879f" title="初始化滑块编辑 UI" alt="" coords="745,13,956,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1026,69,905,41,906,35,1027,64"/>
+<area shape="rect" id="Node000006" href="$classMainWindow.html#a7625a1c596346b3592fda2f39cc0b604" title="初始化 AGV 角度控制" alt="" coords="744,63,957,103"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="992,85,958,85,958,80,992,80"/>
+<area shape="rect" id="Node000008" href="$classMainWindow.html#a4f8f498d15b56ddc6c8912ee726c3444" title="初始化 AGV 移动速度控制" alt="" coords="744,127,957,167"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="1033,102,928,129,927,124,1031,96"/>
+<area shape="rect" id="Node000003" href="$classMainWindow.html#a9388168e83016e31d2668a501450bcac" title="初始化窗口 UI（内部）" alt="" coords="523,13,671,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="732,28,671,28,671,23,732,23"/>
+<area shape="rect" id="Node000004" href="$classMainWindow.html#a0cb4955bff598ad95110e9525a52214d" title="初始化核心页面和基础 UI 模块" alt="" coords="251,5,449,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="509,28,450,28,450,23,509,23"/>
+<area shape="rect" id="Node000005" href="$classMainWindow.html#a996c5a2b6f77944776856f08ec30858d" title="构造 MainWindow 并初始化内部状态与 UI" alt="" coords="5,42,203,67"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="237,41,203,46,202,40,237,36"/>
+<area shape="rect" id="Node000007" href="$classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c" title="初始化业务子系统（通信、线程、样式、控制）" alt="" coords="497,63,696,103"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="730,85,696,85,696,80,730,80"/>
+<area shape="poly" id="edge7_Node000007_Node000005" title=" " alt="" coords="483,79,203,63,203,58,483,74"/>
+<area shape="poly" id="edge9_Node000008_Node000007" title=" " alt="" coords="757,126,676,105,677,100,758,121"/>
+</map>

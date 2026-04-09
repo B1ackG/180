@@ -1,0 +1,318 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: modbustcpclient.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('modbustcpclient_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">modbustcpclient.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="modbustcpclient_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// file name: modbustcpclient.h</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#ifndef MODBUSTCPCLIENT_H</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="modbustcpclient_8h.html#a7f5d6a88131061fe1a306e7a34b23225">   16</a></span><span class="preprocessor">#define MODBUSTCPCLIENT_H</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &lt;QObject&gt;</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &lt;QTcpSocket&gt;</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;QThread&gt;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &lt;QMutex&gt;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &lt;QTimer&gt;</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &lt;QDateTime&gt;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
+<div class="foldopen" id="foldopen00025" data-start="{" data-end="};">
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html">   25</a></span><span class="keyword">class </span><a class="code hl_class" href="classModbusTCPClient.html">ModbusTCPClient</a> : <span class="keyword">public</span> QObject</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>{</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    Q_OBJECT</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00030" data-start="{" data-end="};">
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="structModbusTCPClient_1_1ModbusRegister.html">   30</a></span>    <span class="keyword">struct </span><a class="code hl_struct" href="structModbusTCPClient_1_1ModbusRegister.html">ModbusRegister</a> {</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="structModbusTCPClient_1_1ModbusRegister.html#a213c9fd546a43435e8b4502eb33b35b4">   31</a></span>        <span class="keywordtype">int</span> <a class="code hl_variable" href="structModbusTCPClient_1_1ModbusRegister.html#a213c9fd546a43435e8b4502eb33b35b4">address</a>;        <span class="comment">// 寄存器地址</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="structModbusTCPClient_1_1ModbusRegister.html#a109b181bdcc85d3af78a8e63407c983a">   32</a></span>        <a class="code hl_variable" href="structModbusTCPClient_1_1ModbusRegister.html#a213c9fd546a43435e8b4502eb33b35b4">quint16</a> <a class="code hl_variable" href="structModbusTCPClient_1_1ModbusRegister.html#a109b181bdcc85d3af78a8e63407c983a">value</a>;      <span class="comment">// 寄存器值</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="structModbusTCPClient_1_1ModbusRegister.html#a8d306b96174995ad50f5f4c54a72a22a">   33</a></span>        <a class="code hl_variable" href="structModbusTCPClient_1_1ModbusRegister.html#a213c9fd546a43435e8b4502eb33b35b4">QString</a> <a class="code hl_variable" href="structModbusTCPClient_1_1ModbusRegister.html#a8d306b96174995ad50f5f4c54a72a22a">name</a>;       <span class="comment">// 寄存器名称（可选）</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    };</div>
+</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classModbusTCPClient.html">ModbusTCPClient</a>(QObject *parent = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <a class="code hl_function" href="classModbusTCPClient.html#aa17d4de049778525b9c4fd60cd4e362e">~ModbusTCPClient</a>();</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <span class="comment">// 连接管理</span></div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusTCPClient.html#ac6853316af6a3adcb526900580e6421d">connectToServer</a>(<span class="keyword">const</span> QString &amp;host, quint16 port, <span class="keywordtype">int</span> slaveId = 1);</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusTCPClient.html#a1e9aa9dd06d699514bcc684a6905f325">disconnectFromServer</a>();</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusTCPClient.html#ac0eb40bf43e015281059b0144a928675">isConnected</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span> </div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    <span class="comment">// 寄存器操作 - 修改这里</span></div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusTCPClient.html#af981f2837fc0fcd176d9626be6b664f5">readHoldingRegisters</a>(<span class="keywordtype">int</span> startAddress, <span class="keywordtype">int</span> count);  <span class="comment">// 功能码 0x03</span></div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusTCPClient.html#a3b84024fafa0c0156163ed52cf25c89f">readInputRegisters</a>(<span class="keywordtype">int</span> startAddress, <span class="keywordtype">int</span> count);    <span class="comment">// 功能码 0x04</span></div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span> </div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusTCPClient.html#ae8c27734581f0583a00b5c953cdfd0c7">writeSingleRegister</a>(<span class="keywordtype">int</span> address, quint16 value);</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span> </div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusTCPClient.html#af0f90c0188fb243809c1cf2a78420562">writeMultipleRegisters</a>(<span class="keywordtype">int</span> startAddress, <span class="keyword">const</span> QVector&lt;quint16&gt; &amp;values);</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span> </div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>    <span class="comment">// 批量管理</span></div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusTCPClient.html#a94ec7d684a3591be2ea29230f28c2521">addRegisterToPoll</a>(<span class="keywordtype">int</span> address, <span class="keyword">const</span> QString &amp;name = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span> </div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusTCPClient.html#aa509e481c5bbb00956d05d6e1e4ecd8f">removeRegisterFromPoll</a>(<span class="keywordtype">int</span> address);</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span> </div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusTCPClient.html#a9f90ccea3ec3dbdf1fcf8845c1987a7c">clearPollList</a>();</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span> </div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    <span class="comment">// 配置</span></div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusTCPClient.html#a75663a3df5adab252182d11e05e3fbdb">setPollInterval</a>(<span class="keywordtype">int</span> ms);</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span> </div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusTCPClient.html#a90ca9cb72ad7e275b3f2cdf5d8e0b128">setAutoReconnect</a>(<span class="keywordtype">bool</span> enable, <span class="keywordtype">int</span> interval = 5000);</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span> </div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusTCPClient.html#a95922b802e49245a95ad6d42d3b1e32b">parseSingleResponse</a>(<span class="keyword">const</span> QByteArray &amp;response, quint16 transactionId);</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span> </div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>signals:</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#ad65ae2096069811904b0bf9a908c0a9d">  233</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classModbusTCPClient.html#ad65ae2096069811904b0bf9a908c0a9d">connected</a>();</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#af94bb2faf802494a4a489c5d39680dcd">  234</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classModbusTCPClient.html#af94bb2faf802494a4a489c5d39680dcd">disconnected</a>();</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a8a1a07115e820bf2ceccb3beee914a4a">  235</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classModbusTCPClient.html#a8a1a07115e820bf2ceccb3beee914a4a">errorOccurred</a>(<span class="keyword">const</span> QString &amp;error);</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#ad7492554eda57d0648d85accad33912c">  236</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classModbusTCPClient.html#ad7492554eda57d0648d85accad33912c">registerValueChanged</a>(<span class="keywordtype">int</span> address, quint16 value);</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a895a58d4a8fdb1cc7bdc96048648e1f5">  237</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classModbusTCPClient.html#a895a58d4a8fdb1cc7bdc96048648e1f5">registerValueChangedNamed</a>(<span class="keyword">const</span> QString &amp;name, quint16 value);</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a48b3f8ba44654addeb22a60075171a6f">  238</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classModbusTCPClient.html#a48b3f8ba44654addeb22a60075171a6f">dataReceived</a>(<span class="keyword">const</span> QByteArray &amp;data);</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span> </div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span><span class="keyword">public</span> slots:</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classModbusTCPClient.html#a8ab5bd396e86a9d86151b5f4f6ac583f">startPolling</a>();</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span> </div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classModbusTCPClient.html#a8cc5ab2f415b710568104eccd8e56a04">stopPolling</a>();</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span> </div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span><span class="keyword">private</span> slots:</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classModbusTCPClient.html#a81d0ae457cbf5cf91c686729cc539dde">onConnected</a>();</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classModbusTCPClient.html#a2f9f0407f3380b5047ef0da047dc57c0">onDisconnected</a>();</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classModbusTCPClient.html#a0dcf694e1e6185cb35c9b627cc0a902f">onError</a>(QAbstractSocket::SocketError error);</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classModbusTCPClient.html#a11962b8ae8ec1a196ba7f0b974930f33">onReadyRead</a>();</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classModbusTCPClient.html#af369857edf88d9d67d90c35b3e5fd598">pollRegisters</a>();</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classModbusTCPClient.html#a2ee264ce2714c22a487e093012787206">tryReconnect</a>();</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span> </div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>    <span class="comment">// Modbus TCP协议处理</span></div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>    QByteArray <a class="code hl_function" href="classModbusTCPClient.html#a112f20f6eb34d2281ce96e7321940953">createReadRequest</a>(<span class="keywordtype">int</span> startAddress, <span class="keywordtype">int</span> count, quint8 functionCode = 0x04);  <span class="comment">// 修改这里</span></div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>    QByteArray <a class="code hl_function" href="classModbusTCPClient.html#a5cbc76fd75dff06fee8dfdff71f8e2dc">createWriteSingleRequest</a>(<span class="keywordtype">int</span> address, quint16 value);</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>    QByteArray <a class="code hl_function" href="classModbusTCPClient.html#a9096b3c8a0a935e9f7e5e3c6ca5113cc">createWriteMultipleRequest</a>(<span class="keywordtype">int</span> startAddress, <span class="keyword">const</span> QVector&lt;quint16&gt; &amp;values);</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span> </div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>    <span class="comment">// 新增私有函数</span></div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusTCPClient.html#a5e8a92c023cdc3ecc431d0dcbe408a6f">readRegisters</a>(<span class="keywordtype">int</span> startAddress, <span class="keywordtype">int</span> count, quint8 functionCode);</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusTCPClient.html#ac927fc7285ee529b8aba6a13fae762ee">parseResponse</a>(<span class="keyword">const</span> QByteArray &amp;data);</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>    </div>
+<div class="foldopen" id="foldopen00284" data-start="{" data-end="};">
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno"><a class="line" href="structModbusTCPClient_1_1TransactionInfo.html">  284</a></span>    <span class="keyword">struct </span><a class="code hl_struct" href="structModbusTCPClient_1_1TransactionInfo.html">TransactionInfo</a> {</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno"><a class="line" href="structModbusTCPClient_1_1TransactionInfo.html#ad661bb9b9d200c07adff9eee6637fbda">  285</a></span>        <span class="keywordtype">int</span> <a class="code hl_variable" href="structModbusTCPClient_1_1TransactionInfo.html#ad661bb9b9d200c07adff9eee6637fbda">address</a>;</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno"><a class="line" href="structModbusTCPClient_1_1TransactionInfo.html#a415406c72fd1835753d237c4b627679f">  286</a></span>        <a class="code hl_variable" href="structModbusTCPClient_1_1TransactionInfo.html#ad661bb9b9d200c07adff9eee6637fbda">qint64</a> <a class="code hl_variable" href="structModbusTCPClient_1_1TransactionInfo.html#a415406c72fd1835753d237c4b627679f">timestamp</a>; <span class="comment">// 发送时的时间戳 (ms)</span></div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>    };</div>
+</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span> </div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#adf5355b881604fec142fb009826458f6">  289</a></span>    QMap&lt;quint16, TransactionInfo&gt; <a class="code hl_variable" href="classModbusTCPClient.html#adf5355b881604fec142fb009826458f6">m_transactionAddressMap</a>;  <span class="comment">// 事务ID -&gt; 事务信息映射</span></div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a1f3a168a598a0f6ef880c7ed4d5140cd">  290</a></span>    QByteArray <a class="code hl_variable" href="classModbusTCPClient.html#a1f3a168a598a0f6ef880c7ed4d5140cd">m_responseBuffer</a>;</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a82dfec22f9d7ef189b32a9702b798c03">  291</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="classModbusTCPClient.html#a82dfec22f9d7ef189b32a9702b798c03">m_maxTimeoutMs</a>; <span class="comment">// 事务超时时间 (ms)</span></div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span> </div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a11fa5453e88227ce9eec2143f90a89cb">  293</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusTCPClient.html#a11fa5453e88227ce9eec2143f90a89cb">parseReadResponse</a>(<span class="keyword">const</span> QByteArray &amp;data, <span class="keywordtype">int</span> startAddress, QVector&lt;quint16&gt; &amp;values);</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#ac5bdaeb4e0aee52ccfcf81397d5a97d9">  294</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusTCPClient.html#ac5bdaeb4e0aee52ccfcf81397d5a97d9">parseWriteResponse</a>(<span class="keyword">const</span> QByteArray &amp;data, <span class="keywordtype">int</span> expectedAddress);</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span> </div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>    <span class="comment">// 线程安全操作</span></div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusTCPClient.html#ae8d3ff8c40bcd4bc7c2c324d040155fd">updateRegisterValue</a>(<span class="keywordtype">int</span> address, quint16 value);</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span> </div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#ad629248fe740d3b6d6342b7f85ca109b">  300</a></span>    QTcpSocket *<a class="code hl_variable" href="classModbusTCPClient.html#ad629248fe740d3b6d6342b7f85ca109b">m_socket</a>;</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a58dbae153554d7a44c6f29060ebb7533">  301</a></span>    QThread *<a class="code hl_variable" href="classModbusTCPClient.html#a58dbae153554d7a44c6f29060ebb7533">m_networkThread</a>;</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a88a72ec6b638ce48f03591b61d6bc179">  302</a></span>    QMutex <a class="code hl_variable" href="classModbusTCPClient.html#a88a72ec6b638ce48f03591b61d6bc179">m_mutex</a>;</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span> </div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a487e39b5912b166f4a4c6b439be1b8e8">  304</a></span>    QString <a class="code hl_variable" href="classModbusTCPClient.html#a487e39b5912b166f4a4c6b439be1b8e8">m_host</a>;</div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a0409efc533dd3056a6e2a908f18243d0">  305</a></span>    quint16 <a class="code hl_variable" href="classModbusTCPClient.html#a0409efc533dd3056a6e2a908f18243d0">m_port</a>;</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#aa9c8e410fd2423192581d3a62a3f9534">  306</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="classModbusTCPClient.html#aa9c8e410fd2423192581d3a62a3f9534">m_slaveId</a>;</div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span> </div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a4457dde36e7c5ab50b67b973128bdcfa">  308</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="classModbusTCPClient.html#a4457dde36e7c5ab50b67b973128bdcfa">m_autoReconnect</a>;</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#ae6d4949d7f6b52641d7a48908f2cc684">  309</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="classModbusTCPClient.html#ae6d4949d7f6b52641d7a48908f2cc684">m_reconnectInterval</a>;</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#aff04aea1ded3492b1dd6073249b4d0b8">  310</a></span>    QTimer *<a class="code hl_variable" href="classModbusTCPClient.html#aff04aea1ded3492b1dd6073249b4d0b8">m_reconnectTimer</a>;</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span> </div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a2b50ad8c3a8cb241cba4e64095173469">  312</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="classModbusTCPClient.html#a2b50ad8c3a8cb241cba4e64095173469">m_polling</a>;</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a599cc0c306b92591525a75b066f43423">  313</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="classModbusTCPClient.html#a599cc0c306b92591525a75b066f43423">m_pollInterval</a>;</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#ad929c2eeced53b20c551d9b6c03a6cd5">  314</a></span>    QTimer *<a class="code hl_variable" href="classModbusTCPClient.html#ad929c2eeced53b20c551d9b6c03a6cd5">m_pollTimer</a>;</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span> </div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a79fc4b4c0dcc391f6a629d735f284c23">  316</a></span>    QMap&lt;int, ModbusRegister&gt; <a class="code hl_variable" href="classModbusTCPClient.html#a79fc4b4c0dcc391f6a629d735f284c23">m_registers</a>;</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#ab7a78b37cd8b0d4b714499a465a8adce">  317</a></span>    QMap&lt;int, QString&gt; <a class="code hl_variable" href="classModbusTCPClient.html#ab7a78b37cd8b0d4b714499a465a8adce">m_registerNames</a>;</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a55517c536d32f33c656e834f998ace84">  318</a></span>    QList&lt;int&gt; <a class="code hl_variable" href="classModbusTCPClient.html#a55517c536d32f33c656e834f998ace84">m_pollList</a>;</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span> </div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a6a74bcc383b07f45ff43a1ef32c7bc85">  320</a></span>    quint16 <a class="code hl_variable" href="classModbusTCPClient.html#a6a74bcc383b07f45ff43a1ef32c7bc85">m_transactionId</a>;</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a1a604c13237b33aab4ca5dd87d355531">  321</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="classModbusTCPClient.html#a1a604c13237b33aab4ca5dd87d355531">m_connectedState</a> = <span class="keyword">false</span>; <span class="comment">// 追踪连接状态</span></div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#aaec1e2792368495a14219c80bbc2b0c3">  322</a></span>    QString <a class="code hl_variable" href="classModbusTCPClient.html#aaec1e2792368495a14219c80bbc2b0c3">m_lastSocketError</a>;</div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#a6b85a4602e6b9582be754467ff4dd60c">  323</a></span>    qint64 <a class="code hl_variable" href="classModbusTCPClient.html#a6b85a4602e6b9582be754467ff4dd60c">m_lastSocketErrorMs</a> = 0;</div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno"><a class="line" href="classModbusTCPClient.html#af4aba7e4cf34e40865b3d336108dbdb6">  324</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="classModbusTCPClient.html#af4aba7e4cf34e40865b3d336108dbdb6">m_transactionMapMismatchLogged</a> = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>};</div>
+</div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span> </div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span><span class="preprocessor">#endif </span><span class="comment">// MODBUSTCPCLIENT_H</span></div>
+<div class="ttc" id="aclassModbusTCPClient_html"><div class="ttname"><a href="classModbusTCPClient.html">ModbusTCPClient</a></div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00025">modbustcpclient.h:26</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a0409efc533dd3056a6e2a908f18243d0"><div class="ttname"><a href="classModbusTCPClient.html#a0409efc533dd3056a6e2a908f18243d0">ModbusTCPClient::m_port</a></div><div class="ttdeci">quint16 m_port</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00305">modbustcpclient.h:305</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a0dcf694e1e6185cb35c9b627cc0a902f"><div class="ttname"><a href="classModbusTCPClient.html#a0dcf694e1e6185cb35c9b627cc0a902f">ModbusTCPClient::onError</a></div><div class="ttdeci">void onError(QAbstractSocket::SocketError error)</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00126">modbustcpclient.cpp:126</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a112f20f6eb34d2281ce96e7321940953"><div class="ttname"><a href="classModbusTCPClient.html#a112f20f6eb34d2281ce96e7321940953">ModbusTCPClient::createReadRequest</a></div><div class="ttdeci">QByteArray createReadRequest(int startAddress, int count, quint8 functionCode=0x04)</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00272">modbustcpclient.cpp:272</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a11962b8ae8ec1a196ba7f0b974930f33"><div class="ttname"><a href="classModbusTCPClient.html#a11962b8ae8ec1a196ba7f0b974930f33">ModbusTCPClient::onReadyRead</a></div><div class="ttdeci">void onReadyRead()</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00417">modbustcpclient.cpp:417</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a11fa5453e88227ce9eec2143f90a89cb"><div class="ttname"><a href="classModbusTCPClient.html#a11fa5453e88227ce9eec2143f90a89cb">ModbusTCPClient::parseReadResponse</a></div><div class="ttdeci">bool parseReadResponse(const QByteArray &amp;data, int startAddress, QVector&lt; quint16 &gt; &amp;values)</div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a1a604c13237b33aab4ca5dd87d355531"><div class="ttname"><a href="classModbusTCPClient.html#a1a604c13237b33aab4ca5dd87d355531">ModbusTCPClient::m_connectedState</a></div><div class="ttdeci">bool m_connectedState</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00321">modbustcpclient.h:321</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a1e9aa9dd06d699514bcc684a6905f325"><div class="ttname"><a href="classModbusTCPClient.html#a1e9aa9dd06d699514bcc684a6905f325">ModbusTCPClient::disconnectFromServer</a></div><div class="ttdeci">void disconnectFromServer()</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00072">modbustcpclient.cpp:72</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a1f3a168a598a0f6ef880c7ed4d5140cd"><div class="ttname"><a href="classModbusTCPClient.html#a1f3a168a598a0f6ef880c7ed4d5140cd">ModbusTCPClient::m_responseBuffer</a></div><div class="ttdeci">QByteArray m_responseBuffer</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00290">modbustcpclient.h:290</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a2b50ad8c3a8cb241cba4e64095173469"><div class="ttname"><a href="classModbusTCPClient.html#a2b50ad8c3a8cb241cba4e64095173469">ModbusTCPClient::m_polling</a></div><div class="ttdeci">bool m_polling</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00312">modbustcpclient.h:312</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a2ee264ce2714c22a487e093012787206"><div class="ttname"><a href="classModbusTCPClient.html#a2ee264ce2714c22a487e093012787206">ModbusTCPClient::tryReconnect</a></div><div class="ttdeci">void tryReconnect()</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00157">modbustcpclient.cpp:157</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a2f9f0407f3380b5047ef0da047dc57c0"><div class="ttname"><a href="classModbusTCPClient.html#a2f9f0407f3380b5047ef0da047dc57c0">ModbusTCPClient::onDisconnected</a></div><div class="ttdeci">void onDisconnected()</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00112">modbustcpclient.cpp:112</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a3b84024fafa0c0156163ed52cf25c89f"><div class="ttname"><a href="classModbusTCPClient.html#a3b84024fafa0c0156163ed52cf25c89f">ModbusTCPClient::readInputRegisters</a></div><div class="ttdeci">bool readInputRegisters(int startAddress, int count)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00180">modbustcpclient.cpp:180</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a4457dde36e7c5ab50b67b973128bdcfa"><div class="ttname"><a href="classModbusTCPClient.html#a4457dde36e7c5ab50b67b973128bdcfa">ModbusTCPClient::m_autoReconnect</a></div><div class="ttdeci">bool m_autoReconnect</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00308">modbustcpclient.h:308</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a487e39b5912b166f4a4c6b439be1b8e8"><div class="ttname"><a href="classModbusTCPClient.html#a487e39b5912b166f4a4c6b439be1b8e8">ModbusTCPClient::m_host</a></div><div class="ttdeci">QString m_host</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00304">modbustcpclient.h:304</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a48b3f8ba44654addeb22a60075171a6f"><div class="ttname"><a href="classModbusTCPClient.html#a48b3f8ba44654addeb22a60075171a6f">ModbusTCPClient::dataReceived</a></div><div class="ttdeci">void dataReceived(const QByteArray &amp;data)</div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a55517c536d32f33c656e834f998ace84"><div class="ttname"><a href="classModbusTCPClient.html#a55517c536d32f33c656e834f998ace84">ModbusTCPClient::m_pollList</a></div><div class="ttdeci">QList&lt; int &gt; m_pollList</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00318">modbustcpclient.h:318</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a58dbae153554d7a44c6f29060ebb7533"><div class="ttname"><a href="classModbusTCPClient.html#a58dbae153554d7a44c6f29060ebb7533">ModbusTCPClient::m_networkThread</a></div><div class="ttdeci">QThread * m_networkThread</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00301">modbustcpclient.h:301</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a599cc0c306b92591525a75b066f43423"><div class="ttname"><a href="classModbusTCPClient.html#a599cc0c306b92591525a75b066f43423">ModbusTCPClient::m_pollInterval</a></div><div class="ttdeci">int m_pollInterval</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00313">modbustcpclient.h:313</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a5cbc76fd75dff06fee8dfdff71f8e2dc"><div class="ttname"><a href="classModbusTCPClient.html#a5cbc76fd75dff06fee8dfdff71f8e2dc">ModbusTCPClient::createWriteSingleRequest</a></div><div class="ttdeci">QByteArray createWriteSingleRequest(int address, quint16 value)</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00331">modbustcpclient.cpp:331</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a5e8a92c023cdc3ecc431d0dcbe408a6f"><div class="ttname"><a href="classModbusTCPClient.html#a5e8a92c023cdc3ecc431d0dcbe408a6f">ModbusTCPClient::readRegisters</a></div><div class="ttdeci">bool readRegisters(int startAddress, int count, quint8 functionCode)</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00185">modbustcpclient.cpp:185</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a6a74bcc383b07f45ff43a1ef32c7bc85"><div class="ttname"><a href="classModbusTCPClient.html#a6a74bcc383b07f45ff43a1ef32c7bc85">ModbusTCPClient::m_transactionId</a></div><div class="ttdeci">quint16 m_transactionId</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00320">modbustcpclient.h:320</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a6b85a4602e6b9582be754467ff4dd60c"><div class="ttname"><a href="classModbusTCPClient.html#a6b85a4602e6b9582be754467ff4dd60c">ModbusTCPClient::m_lastSocketErrorMs</a></div><div class="ttdeci">qint64 m_lastSocketErrorMs</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00323">modbustcpclient.h:323</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a75663a3df5adab252182d11e05e3fbdb"><div class="ttname"><a href="classModbusTCPClient.html#a75663a3df5adab252182d11e05e3fbdb">ModbusTCPClient::setPollInterval</a></div><div class="ttdeci">void setPollInterval(int ms)</div><div class="ttdoc">设置轮询间隔（毫秒）</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00694">modbustcpclient.cpp:694</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a79fc4b4c0dcc391f6a629d735f284c23"><div class="ttname"><a href="classModbusTCPClient.html#a79fc4b4c0dcc391f6a629d735f284c23">ModbusTCPClient::m_registers</a></div><div class="ttdeci">QMap&lt; int, ModbusRegister &gt; m_registers</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00316">modbustcpclient.h:316</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a81d0ae457cbf5cf91c686729cc539dde"><div class="ttname"><a href="classModbusTCPClient.html#a81d0ae457cbf5cf91c686729cc539dde">ModbusTCPClient::onConnected</a></div><div class="ttdeci">void onConnected()</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00095">modbustcpclient.cpp:95</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a82dfec22f9d7ef189b32a9702b798c03"><div class="ttname"><a href="classModbusTCPClient.html#a82dfec22f9d7ef189b32a9702b798c03">ModbusTCPClient::m_maxTimeoutMs</a></div><div class="ttdeci">int m_maxTimeoutMs</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00291">modbustcpclient.h:291</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a88a72ec6b638ce48f03591b61d6bc179"><div class="ttname"><a href="classModbusTCPClient.html#a88a72ec6b638ce48f03591b61d6bc179">ModbusTCPClient::m_mutex</a></div><div class="ttdeci">QMutex m_mutex</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00302">modbustcpclient.h:302</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a895a58d4a8fdb1cc7bdc96048648e1f5"><div class="ttname"><a href="classModbusTCPClient.html#a895a58d4a8fdb1cc7bdc96048648e1f5">ModbusTCPClient::registerValueChangedNamed</a></div><div class="ttdeci">void registerValueChangedNamed(const QString &amp;name, quint16 value)</div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a8a1a07115e820bf2ceccb3beee914a4a"><div class="ttname"><a href="classModbusTCPClient.html#a8a1a07115e820bf2ceccb3beee914a4a">ModbusTCPClient::errorOccurred</a></div><div class="ttdeci">void errorOccurred(const QString &amp;error)</div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a8ab5bd396e86a9d86151b5f4f6ac583f"><div class="ttname"><a href="classModbusTCPClient.html#a8ab5bd396e86a9d86151b5f4f6ac583f">ModbusTCPClient::startPolling</a></div><div class="ttdeci">void startPolling()</div><div class="ttdoc">开始轮询已注册的寄存器列表</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00702">modbustcpclient.cpp:702</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a8cc5ab2f415b710568104eccd8e56a04"><div class="ttname"><a href="classModbusTCPClient.html#a8cc5ab2f415b710568104eccd8e56a04">ModbusTCPClient::stopPolling</a></div><div class="ttdeci">void stopPolling()</div><div class="ttdoc">停止轮询操作</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00710">modbustcpclient.cpp:710</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a9096b3c8a0a935e9f7e5e3c6ca5113cc"><div class="ttname"><a href="classModbusTCPClient.html#a9096b3c8a0a935e9f7e5e3c6ca5113cc">ModbusTCPClient::createWriteMultipleRequest</a></div><div class="ttdeci">QByteArray createWriteMultipleRequest(int startAddress, const QVector&lt; quint16 &gt; &amp;values)</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00368">modbustcpclient.cpp:368</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a90ca9cb72ad7e275b3f2cdf5d8e0b128"><div class="ttname"><a href="classModbusTCPClient.html#a90ca9cb72ad7e275b3f2cdf5d8e0b128">ModbusTCPClient::setAutoReconnect</a></div><div class="ttdeci">void setAutoReconnect(bool enable, int interval=5000)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00165">modbustcpclient.cpp:165</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a94ec7d684a3591be2ea29230f28c2521"><div class="ttname"><a href="classModbusTCPClient.html#a94ec7d684a3591be2ea29230f28c2521">ModbusTCPClient::addRegisterToPoll</a></div><div class="ttdeci">void addRegisterToPoll(int address, const QString &amp;name=&quot;&quot;)</div><div class="ttdoc">将寄存器加入轮询列表</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00667">modbustcpclient.cpp:667</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a95922b802e49245a95ad6d42d3b1e32b"><div class="ttname"><a href="classModbusTCPClient.html#a95922b802e49245a95ad6d42d3b1e32b">ModbusTCPClient::parseSingleResponse</a></div><div class="ttdeci">void parseSingleResponse(const QByteArray &amp;response, quint16 transactionId)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00589">modbustcpclient.cpp:589</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_a9f90ccea3ec3dbdf1fcf8845c1987a7c"><div class="ttname"><a href="classModbusTCPClient.html#a9f90ccea3ec3dbdf1fcf8845c1987a7c">ModbusTCPClient::clearPollList</a></div><div class="ttdeci">void clearPollList()</div><div class="ttdoc">清空所有轮询寄存器</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00687">modbustcpclient.cpp:687</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_aa17d4de049778525b9c4fd60cd4e362e"><div class="ttname"><a href="classModbusTCPClient.html#aa17d4de049778525b9c4fd60cd4e362e">ModbusTCPClient::~ModbusTCPClient</a></div><div class="ttdeci">~ModbusTCPClient()</div><div class="ttdoc">析构 ModbusTCPClient</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00044">modbustcpclient.cpp:44</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_aa509e481c5bbb00956d05d6e1e4ecd8f"><div class="ttname"><a href="classModbusTCPClient.html#aa509e481c5bbb00956d05d6e1e4ecd8f">ModbusTCPClient::removeRegisterFromPoll</a></div><div class="ttdeci">void removeRegisterFromPoll(int address)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00680">modbustcpclient.cpp:680</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_aa9c8e410fd2423192581d3a62a3f9534"><div class="ttname"><a href="classModbusTCPClient.html#aa9c8e410fd2423192581d3a62a3f9534">ModbusTCPClient::m_slaveId</a></div><div class="ttdeci">int m_slaveId</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00306">modbustcpclient.h:306</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_aaec1e2792368495a14219c80bbc2b0c3"><div class="ttname"><a href="classModbusTCPClient.html#aaec1e2792368495a14219c80bbc2b0c3">ModbusTCPClient::m_lastSocketError</a></div><div class="ttdeci">QString m_lastSocketError</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00322">modbustcpclient.h:322</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_ab7a78b37cd8b0d4b714499a465a8adce"><div class="ttname"><a href="classModbusTCPClient.html#ab7a78b37cd8b0d4b714499a465a8adce">ModbusTCPClient::m_registerNames</a></div><div class="ttdeci">QMap&lt; int, QString &gt; m_registerNames</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00317">modbustcpclient.h:317</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_ac0eb40bf43e015281059b0144a928675"><div class="ttname"><a href="classModbusTCPClient.html#ac0eb40bf43e015281059b0144a928675">ModbusTCPClient::isConnected</a></div><div class="ttdeci">bool isConnected() const</div><div class="ttdoc">查询连接状态</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00089">modbustcpclient.cpp:89</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_ac5bdaeb4e0aee52ccfcf81397d5a97d9"><div class="ttname"><a href="classModbusTCPClient.html#ac5bdaeb4e0aee52ccfcf81397d5a97d9">ModbusTCPClient::parseWriteResponse</a></div><div class="ttdeci">bool parseWriteResponse(const QByteArray &amp;data, int expectedAddress)</div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_ac6853316af6a3adcb526900580e6421d"><div class="ttname"><a href="classModbusTCPClient.html#ac6853316af6a3adcb526900580e6421d">ModbusTCPClient::connectToServer</a></div><div class="ttdeci">bool connectToServer(const QString &amp;host, quint16 port, int slaveId=1)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00055">modbustcpclient.cpp:55</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_ac927fc7285ee529b8aba6a13fae762ee"><div class="ttname"><a href="classModbusTCPClient.html#ac927fc7285ee529b8aba6a13fae762ee">ModbusTCPClient::parseResponse</a></div><div class="ttdeci">bool parseResponse(const QByteArray &amp;data)</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00477">modbustcpclient.cpp:477</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_ad629248fe740d3b6d6342b7f85ca109b"><div class="ttname"><a href="classModbusTCPClient.html#ad629248fe740d3b6d6342b7f85ca109b">ModbusTCPClient::m_socket</a></div><div class="ttdeci">QTcpSocket * m_socket</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00300">modbustcpclient.h:300</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_ad65ae2096069811904b0bf9a908c0a9d"><div class="ttname"><a href="classModbusTCPClient.html#ad65ae2096069811904b0bf9a908c0a9d">ModbusTCPClient::connected</a></div><div class="ttdeci">void connected()</div><div class="ttdoc">使用示例（测试/调试）:</div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_ad7492554eda57d0648d85accad33912c"><div class="ttname"><a href="classModbusTCPClient.html#ad7492554eda57d0648d85accad33912c">ModbusTCPClient::registerValueChanged</a></div><div class="ttdeci">void registerValueChanged(int address, quint16 value)</div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_ad929c2eeced53b20c551d9b6c03a6cd5"><div class="ttname"><a href="classModbusTCPClient.html#ad929c2eeced53b20c551d9b6c03a6cd5">ModbusTCPClient::m_pollTimer</a></div><div class="ttdeci">QTimer * m_pollTimer</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00314">modbustcpclient.h:314</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_adf5355b881604fec142fb009826458f6"><div class="ttname"><a href="classModbusTCPClient.html#adf5355b881604fec142fb009826458f6">ModbusTCPClient::m_transactionAddressMap</a></div><div class="ttdeci">QMap&lt; quint16, TransactionInfo &gt; m_transactionAddressMap</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00289">modbustcpclient.h:289</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_ae6d4949d7f6b52641d7a48908f2cc684"><div class="ttname"><a href="classModbusTCPClient.html#ae6d4949d7f6b52641d7a48908f2cc684">ModbusTCPClient::m_reconnectInterval</a></div><div class="ttdeci">int m_reconnectInterval</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00309">modbustcpclient.h:309</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_ae8c27734581f0583a00b5c953cdfd0c7"><div class="ttname"><a href="classModbusTCPClient.html#ae8c27734581f0583a00b5c953cdfd0c7">ModbusTCPClient::writeSingleRegister</a></div><div class="ttdeci">bool writeSingleRegister(int address, quint16 value)</div><div class="ttdoc">写单个寄存器</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00233">modbustcpclient.cpp:233</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_ae8d3ff8c40bcd4bc7c2c324d040155fd"><div class="ttname"><a href="classModbusTCPClient.html#ae8d3ff8c40bcd4bc7c2c324d040155fd">ModbusTCPClient::updateRegisterValue</a></div><div class="ttdeci">void updateRegisterValue(int address, quint16 value)</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00758">modbustcpclient.cpp:758</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_af0f90c0188fb243809c1cf2a78420562"><div class="ttname"><a href="classModbusTCPClient.html#af0f90c0188fb243809c1cf2a78420562">ModbusTCPClient::writeMultipleRegisters</a></div><div class="ttdeci">bool writeMultipleRegisters(int startAddress, const QVector&lt; quint16 &gt; &amp;values)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00259">modbustcpclient.cpp:259</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_af369857edf88d9d67d90c35b3e5fd598"><div class="ttname"><a href="classModbusTCPClient.html#af369857edf88d9d67d90c35b3e5fd598">ModbusTCPClient::pollRegisters</a></div><div class="ttdeci">void pollRegisters()</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00716">modbustcpclient.cpp:716</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_af4aba7e4cf34e40865b3d336108dbdb6"><div class="ttname"><a href="classModbusTCPClient.html#af4aba7e4cf34e40865b3d336108dbdb6">ModbusTCPClient::m_transactionMapMismatchLogged</a></div><div class="ttdeci">bool m_transactionMapMismatchLogged</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00324">modbustcpclient.h:324</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_af94bb2faf802494a4a489c5d39680dcd"><div class="ttname"><a href="classModbusTCPClient.html#af94bb2faf802494a4a489c5d39680dcd">ModbusTCPClient::disconnected</a></div><div class="ttdeci">void disconnected()</div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_af981f2837fc0fcd176d9626be6b664f5"><div class="ttname"><a href="classModbusTCPClient.html#af981f2837fc0fcd176d9626be6b664f5">ModbusTCPClient::readHoldingRegisters</a></div><div class="ttdeci">bool readHoldingRegisters(int startAddress, int count)</div><div class="ttdoc">读取保持寄存器（功能码 0x03）</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8cpp_source.html#l00175">modbustcpclient.cpp:175</a></div></div>
+<div class="ttc" id="aclassModbusTCPClient_html_aff04aea1ded3492b1dd6073249b4d0b8"><div class="ttname"><a href="classModbusTCPClient.html#aff04aea1ded3492b1dd6073249b4d0b8">ModbusTCPClient::m_reconnectTimer</a></div><div class="ttdeci">QTimer * m_reconnectTimer</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00310">modbustcpclient.h:310</a></div></div>
+<div class="ttc" id="astructModbusTCPClient_1_1ModbusRegister_html"><div class="ttname"><a href="structModbusTCPClient_1_1ModbusRegister.html">ModbusTCPClient::ModbusRegister</a></div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00030">modbustcpclient.h:30</a></div></div>
+<div class="ttc" id="astructModbusTCPClient_1_1ModbusRegister_html_a109b181bdcc85d3af78a8e63407c983a"><div class="ttname"><a href="structModbusTCPClient_1_1ModbusRegister.html#a109b181bdcc85d3af78a8e63407c983a">ModbusTCPClient::ModbusRegister::value</a></div><div class="ttdeci">quint16 value</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00032">modbustcpclient.h:32</a></div></div>
+<div class="ttc" id="astructModbusTCPClient_1_1ModbusRegister_html_a213c9fd546a43435e8b4502eb33b35b4"><div class="ttname"><a href="structModbusTCPClient_1_1ModbusRegister.html#a213c9fd546a43435e8b4502eb33b35b4">ModbusTCPClient::ModbusRegister::address</a></div><div class="ttdeci">int address</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00031">modbustcpclient.h:31</a></div></div>
+<div class="ttc" id="astructModbusTCPClient_1_1ModbusRegister_html_a8d306b96174995ad50f5f4c54a72a22a"><div class="ttname"><a href="structModbusTCPClient_1_1ModbusRegister.html#a8d306b96174995ad50f5f4c54a72a22a">ModbusTCPClient::ModbusRegister::name</a></div><div class="ttdeci">QString name</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00033">modbustcpclient.h:33</a></div></div>
+<div class="ttc" id="astructModbusTCPClient_1_1TransactionInfo_html"><div class="ttname"><a href="structModbusTCPClient_1_1TransactionInfo.html">ModbusTCPClient::TransactionInfo</a></div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00284">modbustcpclient.h:284</a></div></div>
+<div class="ttc" id="astructModbusTCPClient_1_1TransactionInfo_html_a415406c72fd1835753d237c4b627679f"><div class="ttname"><a href="structModbusTCPClient_1_1TransactionInfo.html#a415406c72fd1835753d237c4b627679f">ModbusTCPClient::TransactionInfo::timestamp</a></div><div class="ttdeci">qint64 timestamp</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00286">modbustcpclient.h:286</a></div></div>
+<div class="ttc" id="astructModbusTCPClient_1_1TransactionInfo_html_ad661bb9b9d200c07adff9eee6637fbda"><div class="ttname"><a href="structModbusTCPClient_1_1TransactionInfo.html#ad661bb9b9d200c07adff9eee6637fbda">ModbusTCPClient::TransactionInfo::address</a></div><div class="ttdeci">int address</div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00285">modbustcpclient.h:285</a></div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="modbustcpclient_8h.html">modbustcpclient.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

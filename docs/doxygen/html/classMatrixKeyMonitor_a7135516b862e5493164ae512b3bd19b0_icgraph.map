@@ -1,0 +1,15 @@
+<map id="MatrixKeyMonitor::rawKeyEvent" name="MatrixKeyMonitor::rawKeyEvent">
+<area shape="rect" id="Node000001" title="原始按键事件" alt="" coords="1563,5,1757,45"/>
+<area shape="rect" id="Node000002" href="$classMatrixKeyMonitor.html#abd0fee3c5b83f826962e6cd9983a3bb1" title=" " alt="" coords="1309,5,1515,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1549,28,1515,28,1515,23,1549,23"/>
+<area shape="rect" id="Node000003" href="$classMatrixKeyMonitor.html#abaa5be4f1c016228257cc2171985f26f" title="开始监控输入事件" alt="" coords="1015,13,1261,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1296,28,1262,28,1262,23,1296,23"/>
+<area shape="rect" id="Node000004" href="$classMatrixKeyThreadManager.html#af856132d8f66bd49b9825017e52f482e" title="启动监控线程" alt="" coords="776,5,967,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1001,28,967,28,967,23,1001,23"/>
+<area shape="rect" id="Node000005" href="$classMainWindow.html#a4751b3ffef9f7a098480ecb2cd1b14b9" title="初始化按键管理器" alt="" coords="497,13,728,38"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="762,28,728,28,728,23,762,23"/>
+<area shape="rect" id="Node000006" href="$classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c" title="初始化业务子系统（通信、线程、样式、控制）" alt="" coords="251,5,449,45"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="484,28,449,28,449,23,484,23"/>
+<area shape="rect" id="Node000007" href="$classMainWindow.html#a996c5a2b6f77944776856f08ec30858d" title="构造 MainWindow 并初始化内部状态与 UI" alt="" coords="5,13,203,38"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="237,28,203,28,203,23,237,23"/>
+</map>

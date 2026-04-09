@@ -1,0 +1,27 @@
+<map id="MainWindow::onModbusDisconnected" name="MainWindow::onModbusDisconnected">
+<area shape="rect" id="Node000001" title="Modbus 已断开" alt="" coords="5,109,273,134"/>
+<area shape="rect" id="Node000002" href="$classMainModbusStatus.html#a7ef38d77f1f8dabacbbedfb36998563c" title="将状态写入操作记录器。" alt="" coords="322,69,525,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="252,106,308,100,309,105,253,111"/>
+<area shape="rect" id="Node000013" href="$classMainModbusStatus.html#ab8a3b62ba01f98cc779bedeb4ac7b8a3" title="将状态应用到状态栏 UI。" alt="" coords="321,133,525,173"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="253,131,308,138,307,143,252,137"/>
+<area shape="rect" id="Node000003" href="$classOperationRecorder.html#ae5e0a07f7b387272fd297c103b4fe42c" title="添加操作记录" alt="" coords="573,69,725,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="525,87,559,87,559,92,525,92"/>
+<area shape="rect" id="Node000004" href="$classOperationRecorder.html#a99de0d8b91e199e6f1aab3b664df07e1" title=" " alt="" coords="775,37,927,77"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="725,75,760,69,761,74,726,80"/>
+<area shape="rect" id="Node000005" href="$classOperationRecorder.html#a334ae0662731c03b4a767ee6c47212df" title=" " alt="" coords="773,101,928,141"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="726,99,760,104,759,110,725,104"/>
+<area shape="rect" id="Node000006" href="$classOperationRecorder.html#a76e57ca1319df23bc72f4b7ed395f469" title=" " alt="" coords="993,5,1145,45"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="902,99,927,87,950,71,975,55,990,48,992,53,977,60,953,75,929,92,904,104"/>
+<area shape="rect" id="Node000008" href="$classOperationRecorder.html#a20308fd183b5b0dbe00ce89fcc0b823e" title=" " alt="" coords="993,69,1145,109"/>
+<area shape="poly" id="edge7_Node000005_Node000008" title=" " alt="" coords="928,107,979,100,980,105,929,113"/>
+<area shape="rect" id="Node000011" href="$classOperationRecorder.html#a507cbb2e0e5b6babc09e31dc8127f101" title=" " alt="" coords="976,133,1163,173"/>
+<area shape="poly" id="edge10_Node000005_Node000011" title=" " alt="" coords="929,130,963,135,962,140,928,135"/>
+<area shape="rect" id="Node000012" href="$classOperationRecorder.html#a10162fd420bca1481d62d02b4afcfa30" title="使用示例:" alt="" coords="993,197,1145,237"/>
+<area shape="poly" id="edge11_Node000005_Node000012" title=" " alt="" coords="889,139,977,183,994,190,992,195,975,188,887,144"/>
+<area shape="rect" id="Node000007" href="$structOperationRecord.html#aae606bfdd782db1bd3fc32dbf0a814d7" title=" " alt="" coords="1211,13,1389,38"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1146,23,1197,23,1197,28,1146,28"/>
+<area shape="rect" id="Node000009" href="$classOperationRecorder.html#a60e73780538b8376d7e68e9cc09fe5a9" title=" " alt="" coords="1221,67,1379,107"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="1146,86,1207,85,1207,90,1146,91"/>
+<area shape="rect" id="Node000010" href="$classOperationRecorder.html#a37d0a54d4ebddd9ad4c248331f70a0e3" title=" " alt="" coords="1213,131,1387,171"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="1146,107,1212,124,1210,130,1145,112"/>
+</map>

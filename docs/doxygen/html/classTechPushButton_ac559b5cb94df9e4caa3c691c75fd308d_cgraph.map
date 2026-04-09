@@ -1,0 +1,13 @@
+<map id="TechPushButton::TechPushButton" name="TechPushButton::TechPushButton">
+<area shape="rect" id="Node000001" title="构造 TechPushButton" alt="" coords="5,85,199,125"/>
+<area shape="rect" id="Node000002" href="$classTechPushButton.html#a96ae434ff1070bccf73c4a3684c931a3" title=" " alt="" coords="247,92,401,117"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,102,233,102,233,107,199,107"/>
+<area shape="rect" id="Node000003" href="$classAnimationManager.html#a7b55a1f9d04cf1952debcbabd81afb14" title="功能: 获取 AnimationManager 单例，用于统一管理 UI 动画定时更新。 如何使用: 调用 AnimationManager::instance() 并通过 registerWidget..." alt="" coords="466,5,675,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="346,89,392,65,448,41,481,31,483,36,450,46,394,70,348,94"/>
+<area shape="rect" id="Node000004" href="$classAnimationManager.html#aac70352febbaeb9158e24a6031cc7cad" title="功能: 将一个 QObject（通常为 QWidget 或其子类）注册到动画管理器，以在定时器触发时更新动画。 如何使用: 在控件创建或需要动画时调用 registerWidget(widget)。 如..." alt="" coords="469,55,673,95"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="401,93,455,86,455,92,402,98"/>
+<area shape="rect" id="Node000005" href="$classTechPushButton.html#ae2f19aae0dc3c2c0f37d2cc544a3d6d5" title=" " alt="" coords="449,120,692,145"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="402,111,445,116,445,121,401,116"/>
+<area shape="rect" id="Node000006" href="$classTechPushButton.html#afd51d0d10c204c72591d6027c22cb61f" title=" " alt="" coords="457,170,684,210"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="354,115,450,154,479,163,477,169,448,159,352,120"/>
+</map>

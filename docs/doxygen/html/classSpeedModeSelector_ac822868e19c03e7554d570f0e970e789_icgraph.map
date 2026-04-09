@@ -1,0 +1,5 @@
+<map id="SpeedModeSelector::setButtonStyle" name="SpeedModeSelector::setButtonStyle">
+<area shape="rect" id="Node000001" title="功能: 设置内部按钮的样式类型。 如何使用: 在创建后或运行时调用以改变视觉风格。 如何修改: 若新增样式，扩展 TechPushButton::ButtonStyle 并在 updateButtonS..." alt="" coords="264,5,423,45"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a59519183787bb203926fc63ae0ea6688" title="初始化速度模式选择器" alt="" coords="5,5,216,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="250,28,216,28,216,23,250,23"/>
+</map>

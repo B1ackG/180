@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: techspeeddialsimple.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('techspeeddialsimple_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">techspeeddialsimple.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="techspeeddialsimple_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef TECHSPEEDDIALSIMPLE_H</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="techspeeddialsimple_8h.html#a2feb2b4d307b2d3cdc9e1c37e97a2305">   15</a></span><span class="preprocessor">#define TECHSPEEDDIALSIMPLE_H</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &lt;QWidget&gt;</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &lt;QDial&gt;</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;QPainter&gt;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &lt;QtMath&gt;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="foldopen" id="foldopen00023" data-start="{" data-end="};">
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html">   23</a></span><span class="keyword">class </span><a class="code hl_class" href="classTechSpeedDialSimple.html">TechSpeedDialSimple</a> : <span class="keyword">public</span> QDial</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>{</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    Q_OBJECT</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a56a3049c6c0358f6bad2c02a3a731a02">   26</a></span>    Q_PROPERTY(QColor <a class="code hl_property" href="classTechSpeedDialSimple.html#a56a3049c6c0358f6bad2c02a3a731a02">themeColor</a> READ <a class="code hl_property" href="classTechSpeedDialSimple.html#a56a3049c6c0358f6bad2c02a3a731a02">themeColor</a> WRITE <a class="code hl_function" href="classTechSpeedDialSimple.html#aea81c9c60cc45973541680f4f429120b">setThemeColor</a>)</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a92c9dbb5efa6e04f571ac3329b12f7ad">   27</a></span>    Q_PROPERTY(<span class="keywordtype">bool</span> <a class="code hl_property" href="classTechSpeedDialSimple.html#a92c9dbb5efa6e04f571ac3329b12f7ad">useWhiteTheme</a> READ <a class="code hl_property" href="classTechSpeedDialSimple.html#a92c9dbb5efa6e04f571ac3329b12f7ad">useWhiteTheme</a> WRITE <a class="code hl_function" href="classTechSpeedDialSimple.html#a4335ff9d206f2d77043aa62504a89e42">setUseWhiteTheme</a>)</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>public:</div>
+<div class="foldopen" id="foldopen00030" data-start="{" data-end="};">
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#aec430f3bae9f7f36f449628a266255aa">   30</a></span>    enum <a class="code hl_enumeration" href="classTechSpeedDialSimple.html#aec430f3bae9f7f36f449628a266255aa">SpeedLevel</a> {</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#aec430f3bae9f7f36f449628a266255aaa853167fe2d4293962f6fe6f17a69e28f">   31</a></span>        <a class="code hl_enumvalue" href="classTechSpeedDialSimple.html#aec430f3bae9f7f36f449628a266255aaa853167fe2d4293962f6fe6f17a69e28f">LowSpeed</a> = 0,</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#aec430f3bae9f7f36f449628a266255aaa2907442b18bbb642fae3ca9cecc94266">   32</a></span>        <a class="code hl_enumvalue" href="classTechSpeedDialSimple.html#aec430f3bae9f7f36f449628a266255aaa2907442b18bbb642fae3ca9cecc94266">MediumSpeed</a> = 33,</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>        <a class="code hl_enumvalue" href="classTechSpeedDialSimple.html#aec430f3bae9f7f36f449628a266255aaac255cefe77e41b2147e9bc1e1237b7a1">HighSpeed</a> = 66</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#aec430f3bae9f7f36f449628a266255aaac255cefe77e41b2147e9bc1e1237b7a1">   34</a></span>    };</div>
+</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a99c77bf7e4eff880f0bc9db02b00ead7">   44</a></span>    <span class="keyword">explicit</span> <a class="code hl_function" href="classTechSpeedDialSimple.html#a99c77bf7e4eff880f0bc9db02b00ead7">TechSpeedDialSimple</a>(QWidget *parent = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="comment">// 主题设置</span></div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a47ca7e4c4a8d0cd5a83244a936fb5ecd">   60</a></span>    QColor <a class="code hl_function" href="classTechSpeedDialSimple.html#a47ca7e4c4a8d0cd5a83244a936fb5ecd">themeColor</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechSpeedDialSimple.html#a6f5cc9a85426db54b9d087e46a8ce97b">m_themeColor</a>; }</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#aea81c9c60cc45973541680f4f429120b">   66</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechSpeedDialSimple.html#aea81c9c60cc45973541680f4f429120b">setThemeColor</a>(<span class="keyword">const</span> QColor &amp;color);</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#aaaa93c0c5b0ebe75447292402133fccc">   79</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classTechSpeedDialSimple.html#aaaa93c0c5b0ebe75447292402133fccc">useWhiteTheme</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechSpeedDialSimple.html#a9c3e83442b394ee3e2362ec7283c16bf">m_useWhiteTheme</a>; }</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a4335ff9d206f2d77043aa62504a89e42">   85</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechSpeedDialSimple.html#a4335ff9d206f2d77043aa62504a89e42">setUseWhiteTheme</a>(<span class="keywordtype">bool</span> useWhite);</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    <span class="comment">// 设置速度级别（简化接口）</span></div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a34216719f8d7d89e7fd7bc5df69497f6">   96</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechSpeedDialSimple.html#a34216719f8d7d89e7fd7bc5df69497f6">setSpeedLevel</a>(<span class="keywordtype">int</span> level); <span class="comment">// 0,1,2</span></div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a943d55ff928f7f9c58cb6d977d0454a4">  109</a></span>    <span class="keywordtype">int</span> <a class="code hl_function" href="classTechSpeedDialSimple.html#a943d55ff928f7f9c58cb6d977d0454a4">currentSpeedLevel</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span> </div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span><span class="keyword">protected</span>:</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a6ac56c8bacb68d2bfddb4db8244df923">  112</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechSpeedDialSimple.html#a6ac56c8bacb68d2bfddb4db8244df923">paintEvent</a>(QPaintEvent *event) <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#af8631d1b882cd9272ec816f713919762">  113</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechSpeedDialSimple.html#af8631d1b882cd9272ec816f713919762">mousePressEvent</a>(QMouseEvent *event) <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#afc1ac481eb02395af14a496c13811bf4">  114</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechSpeedDialSimple.html#afc1ac481eb02395af14a496c13811bf4">mouseMoveEvent</a>(QMouseEvent *event) <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span> </div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a3fcde7171a1c5ee4d45b77e1c76c8066">  117</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechSpeedDialSimple.html#a3fcde7171a1c5ee4d45b77e1c76c8066">drawTechDial</a>(QPainter &amp;painter);</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a71801117190c07a086fbeb54f0703d0c">  118</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechSpeedDialSimple.html#a71801117190c07a086fbeb54f0703d0c">drawSpeedMarks</a>(QPainter &amp;painter);</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a6a369fce7ae09e56bd6e8aadc33a5b2e">  119</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechSpeedDialSimple.html#a6a369fce7ae09e56bd6e8aadc33a5b2e">drawIndicator</a>(QPainter &amp;painter);</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a5526f3638ee2b89192f5f9ca7a81108e">  120</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classTechSpeedDialSimple.html#a5526f3638ee2b89192f5f9ca7a81108e">drawTechLabels</a>(QPainter &amp;painter);</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span> </div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a6f5cc9a85426db54b9d087e46a8ce97b">  122</a></span>    QColor <a class="code hl_variable" href="classTechSpeedDialSimple.html#a6f5cc9a85426db54b9d087e46a8ce97b">m_themeColor</a>;</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a9c3e83442b394ee3e2362ec7283c16bf">  123</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="classTechSpeedDialSimple.html#a9c3e83442b394ee3e2362ec7283c16bf">m_useWhiteTheme</a>;</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#abf86e983f381438ea1d462189f307080">  124</a></span>    QColor <a class="code hl_variable" href="classTechSpeedDialSimple.html#abf86e983f381438ea1d462189f307080">m_bgColor</a>;</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#a805c2ab6585cfccde0d4e923cb0ea446">  125</a></span>    QColor <a class="code hl_variable" href="classTechSpeedDialSimple.html#a805c2ab6585cfccde0d4e923cb0ea446">m_textColor</a>;</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno"><a class="line" href="classTechSpeedDialSimple.html#aec2c61b197c21edd9e20db037bc9e34c">  127</a></span>    QRect <a class="code hl_variable" href="classTechSpeedDialSimple.html#aec2c61b197c21edd9e20db037bc9e34c">m_dialRect</a>;</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>};</div>
+</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span><span class="preprocessor">#endif </span><span class="comment">// TECHSPEEDDIALSIMPLE_H</span></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html"><div class="ttname"><a href="classTechSpeedDialSimple.html">TechSpeedDialSimple</a></div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00023">techspeeddialsimple.h:24</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a34216719f8d7d89e7fd7bc5df69497f6"><div class="ttname"><a href="classTechSpeedDialSimple.html#a34216719f8d7d89e7fd7bc5df69497f6">TechSpeedDialSimple::setSpeedLevel</a></div><div class="ttdeci">void setSpeedLevel(int level)</div><div class="ttdoc">设置速度级别（Low/Medium/High）</div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a3fcde7171a1c5ee4d45b77e1c76c8066"><div class="ttname"><a href="classTechSpeedDialSimple.html#a3fcde7171a1c5ee4d45b77e1c76c8066">TechSpeedDialSimple::drawTechDial</a></div><div class="ttdeci">void drawTechDial(QPainter &amp;painter)</div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a4335ff9d206f2d77043aa62504a89e42"><div class="ttname"><a href="classTechSpeedDialSimple.html#a4335ff9d206f2d77043aa62504a89e42">TechSpeedDialSimple::setUseWhiteTheme</a></div><div class="ttdeci">void setUseWhiteTheme(bool useWhite)</div><div class="ttdoc">设置是否使用白色主题</div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a47ca7e4c4a8d0cd5a83244a936fb5ecd"><div class="ttname"><a href="classTechSpeedDialSimple.html#a47ca7e4c4a8d0cd5a83244a936fb5ecd">TechSpeedDialSimple::themeColor</a></div><div class="ttdeci">QColor themeColor() const</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00060">techspeeddialsimple.h:60</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a5526f3638ee2b89192f5f9ca7a81108e"><div class="ttname"><a href="classTechSpeedDialSimple.html#a5526f3638ee2b89192f5f9ca7a81108e">TechSpeedDialSimple::drawTechLabels</a></div><div class="ttdeci">void drawTechLabels(QPainter &amp;painter)</div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a56a3049c6c0358f6bad2c02a3a731a02"><div class="ttname"><a href="classTechSpeedDialSimple.html#a56a3049c6c0358f6bad2c02a3a731a02">TechSpeedDialSimple::themeColor</a></div><div class="ttdeci">QColor themeColor</div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00026">techspeeddialsimple.h:26</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a6a369fce7ae09e56bd6e8aadc33a5b2e"><div class="ttname"><a href="classTechSpeedDialSimple.html#a6a369fce7ae09e56bd6e8aadc33a5b2e">TechSpeedDialSimple::drawIndicator</a></div><div class="ttdeci">void drawIndicator(QPainter &amp;painter)</div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a6ac56c8bacb68d2bfddb4db8244df923"><div class="ttname"><a href="classTechSpeedDialSimple.html#a6ac56c8bacb68d2bfddb4db8244df923">TechSpeedDialSimple::paintEvent</a></div><div class="ttdeci">void paintEvent(QPaintEvent *event) override</div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a6f5cc9a85426db54b9d087e46a8ce97b"><div class="ttname"><a href="classTechSpeedDialSimple.html#a6f5cc9a85426db54b9d087e46a8ce97b">TechSpeedDialSimple::m_themeColor</a></div><div class="ttdeci">QColor m_themeColor</div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00122">techspeeddialsimple.h:122</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a71801117190c07a086fbeb54f0703d0c"><div class="ttname"><a href="classTechSpeedDialSimple.html#a71801117190c07a086fbeb54f0703d0c">TechSpeedDialSimple::drawSpeedMarks</a></div><div class="ttdeci">void drawSpeedMarks(QPainter &amp;painter)</div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a805c2ab6585cfccde0d4e923cb0ea446"><div class="ttname"><a href="classTechSpeedDialSimple.html#a805c2ab6585cfccde0d4e923cb0ea446">TechSpeedDialSimple::m_textColor</a></div><div class="ttdeci">QColor m_textColor</div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00125">techspeeddialsimple.h:125</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a92c9dbb5efa6e04f571ac3329b12f7ad"><div class="ttname"><a href="classTechSpeedDialSimple.html#a92c9dbb5efa6e04f571ac3329b12f7ad">TechSpeedDialSimple::useWhiteTheme</a></div><div class="ttdeci">bool useWhiteTheme</div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00027">techspeeddialsimple.h:27</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a943d55ff928f7f9c58cb6d977d0454a4"><div class="ttname"><a href="classTechSpeedDialSimple.html#a943d55ff928f7f9c58cb6d977d0454a4">TechSpeedDialSimple::currentSpeedLevel</a></div><div class="ttdeci">int currentSpeedLevel() const</div><div class="ttdoc">使用示例:</div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a99c77bf7e4eff880f0bc9db02b00ead7"><div class="ttname"><a href="classTechSpeedDialSimple.html#a99c77bf7e4eff880f0bc9db02b00ead7">TechSpeedDialSimple::TechSpeedDialSimple</a></div><div class="ttdeci">TechSpeedDialSimple(QWidget *parent=nullptr)</div><div class="ttdoc">构造 TechSpeedDialSimple</div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_a9c3e83442b394ee3e2362ec7283c16bf"><div class="ttname"><a href="classTechSpeedDialSimple.html#a9c3e83442b394ee3e2362ec7283c16bf">TechSpeedDialSimple::m_useWhiteTheme</a></div><div class="ttdeci">bool m_useWhiteTheme</div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00123">techspeeddialsimple.h:123</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_aaaa93c0c5b0ebe75447292402133fccc"><div class="ttname"><a href="classTechSpeedDialSimple.html#aaaa93c0c5b0ebe75447292402133fccc">TechSpeedDialSimple::useWhiteTheme</a></div><div class="ttdeci">bool useWhiteTheme() const</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00079">techspeeddialsimple.h:79</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_abf86e983f381438ea1d462189f307080"><div class="ttname"><a href="classTechSpeedDialSimple.html#abf86e983f381438ea1d462189f307080">TechSpeedDialSimple::m_bgColor</a></div><div class="ttdeci">QColor m_bgColor</div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00124">techspeeddialsimple.h:124</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_aea81c9c60cc45973541680f4f429120b"><div class="ttname"><a href="classTechSpeedDialSimple.html#aea81c9c60cc45973541680f4f429120b">TechSpeedDialSimple::setThemeColor</a></div><div class="ttdeci">void setThemeColor(const QColor &amp;color)</div><div class="ttdoc">设置主题颜色</div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_aec2c61b197c21edd9e20db037bc9e34c"><div class="ttname"><a href="classTechSpeedDialSimple.html#aec2c61b197c21edd9e20db037bc9e34c">TechSpeedDialSimple::m_dialRect</a></div><div class="ttdeci">QRect m_dialRect</div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00127">techspeeddialsimple.h:127</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_aec430f3bae9f7f36f449628a266255aa"><div class="ttname"><a href="classTechSpeedDialSimple.html#aec430f3bae9f7f36f449628a266255aa">TechSpeedDialSimple::SpeedLevel</a></div><div class="ttdeci">SpeedLevel</div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00030">techspeeddialsimple.h:30</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_aec430f3bae9f7f36f449628a266255aaa2907442b18bbb642fae3ca9cecc94266"><div class="ttname"><a href="classTechSpeedDialSimple.html#aec430f3bae9f7f36f449628a266255aaa2907442b18bbb642fae3ca9cecc94266">TechSpeedDialSimple::MediumSpeed</a></div><div class="ttdeci">@ MediumSpeed</div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00032">techspeeddialsimple.h:32</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_aec430f3bae9f7f36f449628a266255aaa853167fe2d4293962f6fe6f17a69e28f"><div class="ttname"><a href="classTechSpeedDialSimple.html#aec430f3bae9f7f36f449628a266255aaa853167fe2d4293962f6fe6f17a69e28f">TechSpeedDialSimple::LowSpeed</a></div><div class="ttdeci">@ LowSpeed</div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00031">techspeeddialsimple.h:31</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_aec430f3bae9f7f36f449628a266255aaac255cefe77e41b2147e9bc1e1237b7a1"><div class="ttname"><a href="classTechSpeedDialSimple.html#aec430f3bae9f7f36f449628a266255aaac255cefe77e41b2147e9bc1e1237b7a1">TechSpeedDialSimple::HighSpeed</a></div><div class="ttdeci">@ HighSpeed</div><div class="ttdef"><b>Definition</b> <a href="techspeeddialsimple_8h_source.html#l00034">techspeeddialsimple.h:33</a></div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_af8631d1b882cd9272ec816f713919762"><div class="ttname"><a href="classTechSpeedDialSimple.html#af8631d1b882cd9272ec816f713919762">TechSpeedDialSimple::mousePressEvent</a></div><div class="ttdeci">void mousePressEvent(QMouseEvent *event) override</div></div>
+<div class="ttc" id="aclassTechSpeedDialSimple_html_afc1ac481eb02395af14a496c13811bf4"><div class="ttname"><a href="classTechSpeedDialSimple.html#afc1ac481eb02395af14a496c13811bf4">TechSpeedDialSimple::mouseMoveEvent</a></div><div class="ttdeci">void mouseMoveEvent(QMouseEvent *event) override</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="techspeeddialsimple_8h.html">techspeeddialsimple.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

@@ -91,3 +91,8 @@ MOC_DIR = build/moc
 OBJECTS_DIR = build/obj
 RCC_DIR = build/rcc
 # ---------------------------------------------
+
+# Doxygen docs target: run `make docs` to generate API docs.
+docs.target = docs
+docs.commands = mkdir -p docs/doxygen && doxygen Doxyfile
+QMAKE_EXTRA_TARGETS += docs

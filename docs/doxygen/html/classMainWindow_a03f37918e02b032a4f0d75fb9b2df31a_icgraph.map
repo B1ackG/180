@@ -1,0 +1,13 @@
+<map id="MainWindow::setupModbusFloatReading" name="MainWindow::setupModbusFloatReading">
+<area shape="rect" id="Node000001" title="配置浮点寄存器读取" alt="" coords="1335,5,1568,45"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a6de38b22cae925674fd5ceb43c30c6f1" title="Modbus 已连接" alt="" coords="1037,13,1287,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1321,28,1287,28,1287,23,1321,23"/>
+<area shape="rect" id="Node000003" href="$classMainWindow.html#a853ad5679a500c6ca99c1a21b540f2de" title="创建并配置 Modbus 管理器" alt="" coords="732,13,989,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1024,28,989,28,989,23,1024,23"/>
+<area shape="rect" id="Node000004" href="$classMainWindow.html#addaf82aa90afe1e30cf3e4eb64aa8781" title="初始化 Modbus 相关配置" alt="" coords="497,13,684,38"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="718,28,684,28,684,23,718,23"/>
+<area shape="rect" id="Node000005" href="$classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c" title="初始化业务子系统（通信、线程、样式、控制）" alt="" coords="251,5,449,45"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="484,28,449,28,449,23,484,23"/>
+<area shape="rect" id="Node000006" href="$classMainWindow.html#a996c5a2b6f77944776856f08ec30858d" title="构造 MainWindow 并初始化内部状态与 UI" alt="" coords="5,13,203,38"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="237,28,203,28,203,23,237,23"/>
+</map>

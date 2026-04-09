@@ -1,0 +1,22 @@
+<map id="modbustcpclient.h" name="modbustcpclient.h">
+<area shape="rect" id="Node000001" title="基于 TCP 的 Modbus 客户端声明，用于与 Modbus TCP 设备进行通信。" alt="" coords="177,5,319,31"/>
+<area shape="rect" id="Node000002" href="$modbustcpclient_8cpp.html" title=" " alt="" coords="72,79,229,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,41,168,81,165,76,220,37"/>
+<area shape="rect" id="Node000003" href="$modbusthreadmanager_8h.html" title="Modbus 线程管理器的声明，封装 Modbus 通信线程的启动与调度逻辑。" alt="" coords="254,79,439,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="276,36,332,76,329,81,273,41"/>
+<area shape="rect" id="Node000004" href="$main_8cpp.html" title=" " alt="" coords="152,225,235,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="241,107,99,129,44,141,16,154,9,169,12,183,24,195,45,205,98,220,152,230,151,235,97,226,43,210,21,199,7,185,3,169,13,150,42,136,98,124,240,102"/>
+<area shape="rect" id="Node000005" href="$maindevicemodbusapi_8cpp.html" title=" " alt="" coords="27,152,224,177"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="299,111,162,154,160,149,297,106"/>
+<area shape="rect" id="Node000006" href="$mainmodbusconnector_8cpp.html" title=" " alt="" coords="248,152,445,177"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="349,118,349,152,344,152,344,118"/>
+<area shape="rect" id="Node000007" href="$mainwindow_8h.html" title="主窗口的声明，包含主要 UI 控件与界面逻辑的入口类。" alt="" coords="470,152,586,177"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="389,106,499,149,497,154,387,111"/>
+<area shape="rect" id="Node000010" href="$modbusthreadmanager_8cpp.html" title=" " alt="" coords="611,152,811,177"/>
+<area shape="poly" id="edge10_Node000003_Node000010" title=" " alt="" coords="419,104,652,149,651,155,418,109"/>
+<area shape="poly" id="edge7_Node000007_Node000004" title=" " alt="" coords="461,183,235,231,234,225,460,178"/>
+<area shape="rect" id="Node000008" href="$mainwindow_8cpp.html" title=" " alt="" coords="369,225,500,251"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="504,188,451,227,448,223,501,183"/>
+<area shape="rect" id="Node000009" href="$mainwindow__lifecycle_8cpp.html" title=" " alt="" coords="524,225,719,251"/>
+<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="555,183,608,223,604,227,552,188"/>
+</map>

@@ -1,0 +1,31 @@
+<map id="类继承关系图" name="类继承关系图">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,327,80,352"/>
+<area shape="rect" id="Node000001" href="$classAGVModbusManager.html" title=" " alt="" coords="144,5,303,31"/>
+<area shape="poly" id="edge3_Node000000_Node000001" title=" " alt="" coords="41,313,43,256,54,183,65,144,80,107,100,71,126,40,142,29,145,33,130,44,105,74,85,109,70,146,60,184,48,257,46,313"/>
+<area shape="rect" id="Node000002" href="$classAnimationManager.html" title=" " alt="" coords="150,55,297,80"/>
+<area shape="poly" id="edge4_Node000000_Node000002" title=" " alt="" coords="42,312,48,264,61,204,86,143,104,114,126,89,148,75,151,80,130,93,108,117,91,145,66,206,53,265,48,313"/>
+<area shape="rect" id="Node000003" href="$classEightyAgvApp.html" title="80 系列 AGV 业务聚合入口。" alt="" coords="167,104,280,129"/>
+<area shape="poly" id="edge5_Node000000_Node000003" title=" " alt="" coords="45,313,53,274,68,227,92,179,108,158,126,139,145,127,165,120,167,125,147,132,130,143,112,161,96,182,73,229,58,275,50,314"/>
+<area shape="rect" id="Node000004" href="$classEnableButtonWorker.html" title=" " alt="" coords="146,153,301,179"/>
+<area shape="poly" id="edge6_Node000000_Node000004" title=" " alt="" coords="49,312,76,250,98,216,126,188,146,177,149,181,130,192,102,220,81,252,54,315"/>
+<area shape="rect" id="Node000005" href="$classFeatureSwitchManager.html" title="功能开关管理器" alt="" coords="138,203,309,228"/>
+<area shape="poly" id="edge7_Node000000_Node000005" title=" " alt="" coords="56,313,85,274,105,254,127,237,151,226,153,230,129,242,108,258,89,277,60,316"/>
+<area shape="rect" id="Node000006" href="$classMappingConfig.html" title=" " alt="" coords="164,252,283,277"/>
+<area shape="poly" id="edge8_Node000000_Node000006" title=" " alt="" coords="72,316,127,286,163,274,165,279,129,291,75,321"/>
+<area shape="rect" id="Node000007" href="$classMatrixKeyMonitor.html" title=" " alt="" coords="154,301,293,327"/>
+<area shape="poly" id="edge9_Node000000_Node000007" title=" " alt="" coords="93,330,154,321,154,326,94,335"/>
+<area shape="rect" id="Node000008" href="$classMatrixKeyThreadManager.html" title=" " alt="" coords="128,351,319,376"/>
+<area shape="poly" id="edge10_Node000000_Node000008" title=" " alt="" coords="94,343,128,348,127,353,93,349"/>
+<area shape="rect" id="Node000009" href="$classModbusTCPClient.html" title=" " alt="" coords="156,400,291,425"/>
+<area shape="poly" id="edge11_Node000000_Node000009" title=" " alt="" coords="76,357,129,385,166,397,165,402,127,390,73,362"/>
+<area shape="rect" id="Node000010" href="$classModbusThreadManager.html" title=" " alt="" coords="136,449,311,475"/>
+<area shape="poly" id="edge12_Node000000_Node000010" title=" " alt="" coords="61,362,90,400,109,419,129,434,156,447,154,452,127,439,105,423,86,404,57,366"/>
+<area shape="rect" id="Node000011" href="$classModbusVariables.html" title=" " alt="" coords="157,499,290,524"/>
+<area shape="poly" id="edge13_Node000000_Node000011" title=" " alt="" coords="54,364,81,425,103,457,130,484,158,499,155,503,126,488,99,460,77,428,49,366"/>
+<area shape="rect" id="Node000012" href="$classOperationRecorder.html" title=" " alt="" coords="151,548,295,573"/>
+<area shape="poly" id="edge14_Node000000_Node000012" title=" " alt="" coords="50,365,59,403,74,448,97,494,130,533,153,547,150,552,126,537,92,497,69,450,54,404,45,366"/>
+<area shape="rect" id="Node000013" href="$classPoseProvider.html" title=" " alt="" coords="170,597,277,623"/>
+<area shape="poly" id="edge15_Node000000_Node000013" title=" " alt="" coords="48,365,53,412,67,471,91,531,109,559,130,583,149,595,171,603,169,608,146,600,126,587,104,562,86,534,62,473,48,413,43,366"/>
+<area shape="rect" id="Node000014" href="$classTechSliderManager.html" title=" " alt="" coords="151,647,296,672"/>
+<area shape="poly" id="edge16_Node000000_Node000014" title=" " alt="" coords="46,366,49,421,60,493,71,531,85,568,105,602,130,632,152,646,149,651,126,636,101,605,81,570,66,532,55,494,44,422,41,366"/>
+</map>

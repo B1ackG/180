@@ -1,0 +1,5 @@
+<map id="EightyAgvApp::onWordVariableChanged" name="EightyAgvApp::onWordVariableChanged">
+<area shape="rect" id="Node000001" title="处理寄存器值变化。" alt="" coords="5,5,228,45"/>
+<area shape="rect" id="Node000002" href="$classEightyAgvApp.html#a5e158deb34b22d623d7e3ae937c8cd12" title="电池电量更新信号。" alt="" coords="276,13,499,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,23,262,23,262,28,228,28"/>
+</map>

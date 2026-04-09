@@ -1,0 +1,53 @@
+<map id="TechSliderEdit::TechSliderEdit" name="TechSliderEdit::TechSliderEdit">
+<area shape="rect" id="Node000001" title="构造 TechSliderEdit 控件" alt="" coords="5,215,217,241"/>
+<area shape="rect" id="Node000002" href="$classTechSliderEdit.html#a9e149fac720b1c697ef11d21cecd6b4c" title=" " alt="" coords="291,12,477,52"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,213,173,141,215,98,264,62,277,55,279,60,267,66,219,102,177,145,123,217"/>
+<area shape="rect" id="Node000005" href="$classAnimationManager.html#a7b55a1f9d04cf1952debcbabd81afb14" title="功能: 获取 AnimationManager 单例，用于统一管理 UI 动画定时更新。 如何使用: 调用 AnimationManager::instance() 并通过 registerWidget..." alt="" coords="279,126,489,151"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="138,213,195,187,265,161,299,152,301,157,266,167,197,192,140,218"/>
+<area shape="rect" id="Node000006" href="$classAnimationManager.html#aac70352febbaeb9158e24a6031cc7cad" title="功能: 将一个 QObject（通常为 QWidget 或其子类）注册到动画管理器，以在定时器触发时更新动画。 如何使用: 在控件创建或需要动画时调用 registerWidget(widget)。 如..." alt="" coords="282,176,486,216"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="217,213,268,207,269,212,218,218"/>
+<area shape="rect" id="Node000007" href="$classTechSliderEdit.html#a5c0936476798ba2a43e65787a835a02a" title="应用内置“科技蓝”主题样式" alt="" coords="285,240,483,280"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="218,238,271,244,271,249,217,243"/>
+<area shape="rect" id="Node000008" href="$classTechSliderEdit.html#a605c2b2596c5ea34105eb11470bc1f41" title=" " alt="" coords="265,394,503,419"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="131,239,267,334,350,385,347,389,264,338,128,243"/>
+<area shape="rect" id="Node000011" href="$classTechSliderEdit.html#a96a5c7481f43a7417a24c2fa8d89440f" title="使用示例:" alt="" coords="827,319,1004,345"/>
+<area shape="poly" id="edge28_Node000001_Node000011" title=" " alt="" coords="137,238,195,265,266,289,339,304,413,315,562,329,700,334,813,333,813,339,700,339,562,334,413,321,338,309,265,295,193,270,135,243"/>
+<area shape="rect" id="Node000021" href="$classTechSliderEdit.html#a0895f88e10bd548f53643dbf5ed88465" title=" " alt="" coords="299,77,469,102"/>
+<area shape="poly" id="edge26_Node000001_Node000021" title=" " alt="" coords="124,213,181,163,221,135,264,111,284,103,286,108,266,116,224,139,185,167,127,217"/>
+<area shape="rect" id="Node000022" href="$classTechSliderEdit.html#a9ffbc1bde3e65af7ac9788b90ccab1ca" title=" " alt="" coords="287,444,481,484"/>
+<area shape="poly" id="edge29_Node000001_Node000022" title=" " alt="" coords="121,240,140,277,172,329,215,384,240,408,267,430,277,436,274,440,264,434,236,412,211,387,167,332,136,280,116,242"/>
+<area shape="rect" id="Node000003" href="$classTechSliderEdit.html#a1fc253b9142c824a9a76ad5fccf87166" title=" " alt="" coords="555,5,753,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="477,27,541,25,541,31,477,32"/>
+<area shape="rect" id="Node000004" href="$classTechSliderEdit.html#af6195fe4eaa68d639b92a9fc76eb5047" title=" " alt="" coords="551,69,757,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="478,49,546,64,545,69,477,54"/>
+<area shape="rect" id="Node000009" href="$classTechSliderEdit.html#a57a44d7b0f67e653251e06693126c9d0" title=" " alt="" coords="559,419,749,459"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="492,417,546,423,545,429,491,422"/>
+<area shape="rect" id="Node000017" href="$classTechSliderEdit.html#ac7cbc69c9aee6a3f4e580f5fa5c387ac" title=" " alt="" coords="559,547,749,587"/>
+<area shape="poly" id="edge16_Node000008_Node000017" title=" " alt="" coords="483,417,504,430,517,442,524,456,530,482,535,508,542,521,552,533,558,537,555,541,549,537,537,524,530,510,525,483,519,458,512,446,501,434,480,422"/>
+<area shape="rect" id="Node000018" href="$classTechSliderEdit.html#a523451e60070cadaff4b4c214fa712a6" title=" " alt="" coords="565,355,743,395"/>
+<area shape="poly" id="edge17_Node000008_Node000018" title=" " alt="" coords="491,391,551,384,551,389,492,397"/>
+<area shape="rect" id="Node000019" href="$classTechSliderEdit.html#ad2f8193d4f07c0554214f2ebfa6cc23c" title=" " alt="" coords="567,483,741,523"/>
+<area shape="poly" id="edge21_Node000008_Node000019" title=" " alt="" coords="469,417,504,430,519,439,529,449,538,459,552,468,566,475,563,480,549,473,535,463,525,453,516,443,501,434,467,422"/>
+<area shape="rect" id="Node000010" href="$classTechSliderEdit.html#a32ecfc038bb5c18450669f9d2cc00e35" title=" " alt="" coords="805,369,1025,394"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="745,416,843,394,844,400,746,421"/>
+<area shape="poly" id="edge10_Node000009_Node000011" title=" " alt="" coords="732,416,756,404,770,393,779,380,788,367,804,355,821,347,823,352,807,360,792,371,783,383,774,396,759,409,735,421"/>
+<area shape="rect" id="Node000016" href="$classTechSliderEdit.html#a41c87c502a70388b259db3848903b4ce" title=" " alt="" coords="808,419,1023,459"/>
+<area shape="poly" id="edge15_Node000009_Node000016" title=" " alt="" coords="749,436,794,436,794,441,749,441"/>
+<area shape="rect" id="Node000012" href="$classTechSliderEdit.html#aa425cc8db65cc17257f75061a8037831" title=" " alt="" coords="1084,508,1277,548"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="1006,342,1027,355,1040,369,1048,383,1054,410,1059,438,1065,452,1075,466,1095,484,1118,499,1115,504,1092,489,1071,470,1060,455,1054,439,1049,411,1043,384,1036,372,1024,359,1003,347"/>
+<area shape="rect" id="Node000013" href="$classTechSliderEdit.html#ac30ed3fce4100e4a54dee578d8d79fa2" title=" " alt="" coords="1079,312,1282,352"/>
+<area shape="poly" id="edge12_Node000011_Node000013" title=" " alt="" coords="1004,329,1066,329,1066,335,1004,335"/>
+<area shape="rect" id="Node000015" href="$classTechSliderEdit.html#a70dffee73b2b671ed12428e8cb83fe91" title=" " alt="" coords="1073,430,1288,455"/>
+<area shape="poly" id="edge14_Node000011_Node000015" title=" " alt="" coords="985,342,1026,355,1094,387,1150,420,1147,425,1091,392,1024,360,983,347"/>
+<area shape="rect" id="Node000014" href="$classTechSliderEdit.html#a1dfbc69ff00d41c39012cb4c39162b1b" title=" " alt="" coords="1336,319,1544,345"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="1282,329,1323,329,1323,335,1282,335"/>
+<area shape="poly" id="edge18_Node000018_Node000010" title=" " alt="" coords="744,374,792,376,791,381,744,380"/>
+<area shape="poly" id="edge19_Node000018_Node000011" title=" " alt="" coords="743,357,823,344,824,350,744,363"/>
+<area shape="poly" id="edge20_Node000018_Node000016" title=" " alt="" coords="737,392,821,413,819,418,736,397"/>
+<area shape="poly" id="edge23_Node000019_Node000012" title=" " alt="" coords="735,520,759,532,774,546,783,560,791,573,807,583,848,596,891,602,934,601,978,596,1059,576,1126,551,1127,556,1061,581,979,601,935,607,890,607,846,601,804,588,788,576,778,563,770,550,756,537,733,525"/>
+<area shape="poly" id="edge24_Node000019_Node000015" title=" " alt="" coords="741,495,875,484,1025,468,1103,455,1104,460,1026,473,876,490,742,500"/>
+<area shape="poly" id="edge25_Node000019_Node000016" title=" " alt="" coords="736,480,819,459,821,465,737,485"/>
+<area shape="rect" id="Node000020" href="$classTechSliderEdit.html#a0c6dbc1552bb56c305c0eeeb6bab0858" title=" " alt="" coords="830,533,1001,573"/>
+<area shape="poly" id="edge22_Node000019_Node000020" title=" " alt="" coords="742,517,817,532,816,537,741,522"/>
+<area shape="poly" id="edge27_Node000021_Node000004" title=" " alt="" coords="470,87,537,87,537,92,470,92"/>
+</map>

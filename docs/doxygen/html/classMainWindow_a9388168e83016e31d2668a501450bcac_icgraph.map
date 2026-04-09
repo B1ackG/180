@@ -1,0 +1,7 @@
+<map id="MainWindow::initUI" name="MainWindow::initUI">
+<area shape="rect" id="Node000001" title="初始化窗口 UI（内部）" alt="" coords="497,13,645,38"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a0cb4955bff598ad95110e9525a52214d" title="初始化核心页面和基础 UI 模块" alt="" coords="251,5,449,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="484,28,450,28,450,23,484,23"/>
+<area shape="rect" id="Node000003" href="$classMainWindow.html#a996c5a2b6f77944776856f08ec30858d" title="构造 MainWindow 并初始化内部状态与 UI" alt="" coords="5,13,203,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="237,28,203,28,203,23,237,23"/>
+</map>

@@ -1,0 +1,119 @@
+<map id="MainWindow::setupSteeringModeControl" name="MainWindow::setupSteeringModeControl">
+<area shape="rect" id="Node000001" title="设置转向模式控制" alt="" coords="5,913,208,953"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57" title=" " alt="" coords="1405,100,1631,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,913,116,835,135,715,168,568,191,490,218,411,250,334,287,260,330,192,379,132,435,81,497,43,532,28,568,18,605,11,645,9,939,9,1058,6,1151,3,1243,8,1358,32,1429,59,1487,91,1484,95,1426,64,1357,37,1242,14,1151,8,1058,11,939,14,645,14,606,17,569,23,533,33,500,47,438,86,383,136,334,195,291,263,254,336,223,413,196,491,173,569,141,716,121,836,112,913"/>
+<area shape="rect" id="Node000006" href="$classSteeringModeSelector.html#ae9f0e89a0933ac2a50028dcfe9a3bdf2" title=" " alt="" coords="855,862,1021,902"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="187,911,256,898,416,884,577,877,842,877,842,882,577,883,417,889,256,904,188,916"/>
+<area shape="rect" id="Node000007" href="$classMainWindow.html#a94d428ca5fe0f37ad40109bd9981d125" title="转向模式变更回调" alt="" coords="256,513,475,553"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="119,911,341,564,346,567,123,914"/>
+<area shape="rect" id="Node000052" href="$classSteeringModeSelector.html#a83ba49f86df85c7a42426368517d5e60" title="设置激活（选中）颜色" alt="" coords="283,977,448,1017"/>
+<area shape="poly" id="edge59_Node000001_Node000052" title=" " alt="" coords="189,951,272,971,270,976,188,956"/>
+<area shape="rect" id="Node000053" href="$classSteeringModeSelector.html#a5faedbfed8e1c1bd33d7cc484a275cc5" title="功能: 设置内部按钮样式。 如何使用: 在创建后或运行时调用以改变视觉样式。 如何修改: 若增加新样式，扩展 TechPushButton::ButtonStyle 并在样式更新中处理。" alt="" coords="564,1034,729,1074"/>
+<area shape="poly" id="edge61_Node000001_Node000053" title=" " alt="" coords="132,951,187,991,221,1011,257,1027,332,1045,409,1056,484,1059,550,1059,550,1064,484,1065,409,1061,331,1051,255,1032,218,1016,184,996,129,955"/>
+<area shape="rect" id="Node000054" href="$classSteeringModeSelector.html#a275258715805f1d432aa39ebc6dfc80c" title="设置未激活颜色" alt="" coords="283,913,448,953"/>
+<area shape="poly" id="edge64_Node000001_Node000054" title=" " alt="" coords="208,930,269,930,269,936,208,936"/>
+<area shape="rect" id="Node000055" href="$classSteeringModeSelector.html#a50d7cc43f08348546443dcdadbf87a30" title="设置文本颜色" alt="" coords="283,1092,448,1132"/>
+<area shape="poly" id="edge66_Node000001_Node000055" title=" " alt="" coords="127,952,181,1010,218,1042,257,1071,283,1084,281,1089,255,1075,214,1047,178,1014,123,955"/>
+<area shape="rect" id="Node000003" href="$classFeatureSwitchManager.html#af4a8c4a54a17fdddbdb9eece6b8da932" title="组合检查：先检查所属大功能，再检查小功能（若提供）" alt="" coords="1687,93,1857,133"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1631,110,1673,110,1673,116,1631,116"/>
+<area shape="rect" id="Node000004" href="$classFeatureSwitchManager.html#aa558b5e5c8c59422920a0006cc304f0e" title="检查某个大功能是否可用" alt="" coords="1917,125,2088,165"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1858,122,1904,129,1903,134,1857,128"/>
+<area shape="rect" id="Node000005" href="$classFeatureSwitchManager.html#a34a3f96557e81a21f547065c8ce2608b" title="检查某个小功能是否可用" alt="" coords="1913,61,2092,101"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="1857,99,1899,93,1900,98,1858,104"/>
+<area shape="poly" id="edge19_Node000007_Node000002" title=" " alt="" coords="367,512,379,446,405,354,425,304,451,256,483,211,521,172,576,132,636,100,699,74,764,55,832,41,900,33,968,29,1036,28,1167,37,1286,54,1387,75,1463,94,1461,99,1386,80,1285,59,1167,42,1036,34,969,34,900,38,832,46,766,60,701,79,638,105,579,137,524,177,487,215,456,259,430,307,410,356,384,447,372,513"/>
+<area shape="rect" id="Node000008" href="$classOperationRecorder.html#ae5e0a07f7b387272fd297c103b4fe42c" title="添加操作记录" alt="" coords="1155,405,1307,445"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="474,517,1141,434,1142,439,475,522"/>
+<area shape="rect" id="Node000018" href="$classMainWindow.html#a754eb9d3e69acefaa499c13cae68529e" title="隐藏报警显示" alt="" coords="1428,731,1608,756"/>
+<area shape="poly" id="edge17_Node000007_Node000018" title=" " alt="" coords="381,552,403,585,436,626,476,665,524,696,557,709,597,720,697,736,815,747,944,752,1203,753,1414,746,1414,752,1203,758,944,758,814,752,696,741,596,725,555,714,521,701,473,669,432,629,399,589,376,555"/>
+<area shape="rect" id="Node000019" href="$classAGVModbusManager.html#a1e0321a0cc3e28ba495cabbc83b193d4" title="功能: 返回当前网络连接状态。 如何使用: 用于 UI 指示或决定是否发起读写操作。 如何修改: 若支持多设备，应提供设备级别的状态查询接口。" alt="" coords="1108,234,1355,259"/>
+<area shape="poly" id="edge18_Node000007_Node000019" title=" " alt="" coords="385,511,443,461,481,436,522,416,562,403,601,394,671,389,736,394,797,404,857,412,918,412,950,407,984,399,1019,385,1056,366,1072,351,1080,334,1088,315,1104,296,1135,276,1168,262,1170,266,1137,281,1107,300,1092,318,1085,336,1077,354,1059,370,1021,390,985,404,951,413,918,417,856,417,796,409,735,400,671,394,602,399,564,408,524,421,483,441,446,466,388,515"/>
+<area shape="rect" id="Node000020" href="$classSteeringModeSelector.html#a54ef17787394152a826937f0c020174d" title="功能: 根据模式枚举返回可显示的文本描述。 如何使用: 在 UI 上显示模式名称或提示文案时调用。 如何修改: 若需多语言支持，可集成翻译系统。" alt="" coords="564,430,729,470"/>
+<area shape="poly" id="edge20_Node000007_Node000020" title=" " alt="" coords="433,511,564,472,565,477,435,516"/>
+<area shape="rect" id="Node000021" href="$classAGVModbusManager.html#a96e7d4dc7b4b16c805e3c332cb1a7abe" title="功能: 读取一段寄存器并触发相应的处理与信号。 如何使用: 提供起始地址与数量以批量获取数据。 如何修改: 对大数量读取请分片或增加并发控制以兼容设备限制。" alt="" coords="523,316,771,356"/>
+<area shape="poly" id="edge21_Node000007_Node000021" title=" " alt="" coords="379,511,436,443,476,405,521,372,548,359,551,363,524,377,480,409,440,447,383,515"/>
+<area shape="rect" id="Node000023" href="$classSteeringModeSelector.html#a294f2b57c847b38efc8994c8e7c75e78" title="设置当前转向模式" alt="" coords="564,798,729,838"/>
+<area shape="poly" id="edge24_Node000007_Node000023" title=" " alt="" coords="376,552,396,599,427,660,470,723,496,752,524,778,552,794,549,799,521,782,492,756,466,726,422,662,391,601,371,554"/>
+<area shape="rect" id="Node000033" href="$classMainWindow.html#a275f82041a17d27f784e0ad00a85ee20" title="显示报警信息" alt="" coords="553,546,740,571"/>
+<area shape="poly" id="edge35_Node000007_Node000033" title=" " alt="" coords="475,540,540,546,539,551,475,546"/>
+<area shape="rect" id="Node000037" href="$classMainWindow.html#ad9d8c581087891f346c722209577216c" title="显示临时通知（气泡/提示条）" alt="" coords="1120,698,1343,723"/>
+<area shape="poly" id="edge51_Node000007_Node000037" title=" " alt="" coords="392,551,449,594,485,615,524,632,599,655,677,674,834,698,982,709,1106,712,1106,717,982,715,833,703,676,679,597,660,522,637,483,620,446,598,389,556"/>
+<area shape="rect" id="Node000038" href="$classMainWindow.html#a1fbf4a418449528c12752e848adf03fd" title="刷新报警显示" alt="" coords="1108,648,1355,674"/>
+<area shape="poly" id="edge52_Node000007_Node000038" title=" " alt="" coords="425,551,523,580,670,612,819,632,961,645,1094,653,1094,659,960,651,818,637,669,617,522,585,423,556"/>
+<area shape="rect" id="Node000049" href="$classMainWindow.html#aeb33203e3563d9db0e67d493e1a127a2" title="向 AGV 写寄存器" alt="" coords="530,187,763,212"/>
+<area shape="poly" id="edge53_Node000007_Node000049" title=" " alt="" coords="376,511,433,418,475,359,521,302,569,256,615,218,618,223,572,260,525,306,479,362,438,420,380,514"/>
+<area shape="rect" id="Node000009" href="$classOperationRecorder.html#a99de0d8b91e199e6f1aab3b664df07e1" title=" " alt="" coords="1442,437,1594,477"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="1308,431,1429,445,1428,450,1307,436"/>
+<area shape="rect" id="Node000010" href="$classOperationRecorder.html#a334ae0662731c03b4a767ee6c47212df" title=" " alt="" coords="1441,373,1595,413"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="1307,414,1427,401,1427,406,1308,419"/>
+<area shape="rect" id="Node000011" href="$classOperationRecorder.html#a76e57ca1319df23bc72f4b7ed395f469" title=" " alt="" coords="1696,341,1848,381"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="1595,381,1682,370,1683,375,1596,386"/>
+<area shape="rect" id="Node000013" href="$classOperationRecorder.html#a20308fd183b5b0dbe00ce89fcc0b823e" title=" " alt="" coords="1696,405,1848,445"/>
+<area shape="poly" id="edge12_Node000010_Node000013" title=" " alt="" coords="1596,400,1683,411,1682,417,1595,405"/>
+<area shape="rect" id="Node000016" href="$classOperationRecorder.html#a507cbb2e0e5b6babc09e31dc8127f101" title=" " alt="" coords="1679,469,1865,509"/>
+<area shape="poly" id="edge15_Node000010_Node000016" title=" " alt="" coords="1596,409,1632,423,1656,439,1680,455,1694,461,1692,466,1677,459,1653,443,1629,428,1594,414"/>
+<area shape="rect" id="Node000017" href="$classOperationRecorder.html#a10162fd420bca1481d62d02b4afcfa30" title="使用示例:" alt="" coords="1696,277,1848,317"/>
+<area shape="poly" id="edge16_Node000010_Node000017" title=" " alt="" coords="1567,371,1678,327,1698,319,1700,324,1680,332,1569,376"/>
+<area shape="rect" id="Node000012" href="$structOperationRecord.html#aae606bfdd782db1bd3fc32dbf0a814d7" title=" " alt="" coords="1913,348,2092,374"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="1849,358,1899,358,1899,364,1849,364"/>
+<area shape="rect" id="Node000014" href="$classOperationRecorder.html#a60e73780538b8376d7e68e9cc09fe5a9" title=" " alt="" coords="1923,465,2082,505"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="1849,442,1912,459,1911,464,1848,448"/>
+<area shape="rect" id="Node000015" href="$classOperationRecorder.html#a37d0a54d4ebddd9ad4c248331f70a0e3" title=" " alt="" coords="1915,401,2090,441"/>
+<area shape="poly" id="edge14_Node000013_Node000015" title=" " alt="" coords="1849,421,1902,420,1902,426,1849,426"/>
+<area shape="poly" id="edge23_Node000021_Node000019" title=" " alt="" coords="750,313,818,301,1115,258,1116,264,819,306,751,318"/>
+<area shape="rect" id="Node000022" href="$classAGVModbusManager.html#ae27c44191aeb772c2f3cc29d2a45b9d6" title=" " alt="" coords="835,316,1041,356"/>
+<area shape="poly" id="edge22_Node000021_Node000022" title=" " alt="" coords="771,333,821,333,821,338,771,338"/>
+<area shape="poly" id="edge25_Node000023_Node000006" title=" " alt="" coords="730,834,843,859,842,864,729,839"/>
+<area shape="rect" id="Node000024" href="$classSteeringModeSelector.html#a6e0af5754f389c38698b36de3473d1bb" title="功能: 返回对应模式在 Modbus 中写入的数值（便于下发到 PLC）。 如何使用: 当模式切换需要写入 PLC 时，调用此函数获取写入值。 如何修改: 若映射关系可配置，请将映射数据外置并在此读取。" alt="" coords="855,798,1021,838"/>
+<area shape="poly" id="edge26_Node000023_Node000024" title=" " alt="" coords="730,816,842,816,842,821,730,821"/>
+<area shape="rect" id="Node000025" href="$classSteeringModeSelector.html#aaac9c2e4fd9567a08b7bf67ff3436aba" title=" " alt="" coords="855,977,1021,1017"/>
+<area shape="poly" id="edge27_Node000023_Node000025" title=" " alt="" coords="682,836,894,968,891,972,679,841"/>
+<area shape="rect" id="Node000026" href="$classTechPushButton.html#ae97cfaec7f6319ddc26326c23af62870" title="启用/禁用脉冲效果" alt="" coords="1125,920,1337,960"/>
+<area shape="poly" id="edge28_Node000025_Node000026" title=" " alt="" coords="1020,978,1115,960,1116,965,1021,984"/>
+<area shape="rect" id="Node000029" href="$classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1" title="设置按钮风格" alt="" coords="1133,1034,1329,1074"/>
+<area shape="poly" id="edge31_Node000025_Node000029" title=" " alt="" coords="1021,1011,1120,1030,1119,1035,1020,1016"/>
+<area shape="rect" id="Node000030" href="$classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0" title="设置发光颜色" alt="" coords="1121,984,1341,1010"/>
+<area shape="poly" id="edge32_Node000025_Node000030" title=" " alt="" coords="1021,994,1108,994,1108,1000,1021,1000"/>
+<area shape="rect" id="Node000031" href="$classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af" title="设置主色" alt="" coords="1129,856,1333,896"/>
+<area shape="poly" id="edge33_Node000025_Node000031" title=" " alt="" coords="970,975,1031,940,1104,905,1127,897,1129,902,1106,910,1033,944,973,979"/>
+<area shape="rect" id="Node000032" href="$classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013" title="设置文字颜色" alt="" coords="1124,1099,1339,1124"/>
+<area shape="poly" id="edge34_Node000025_Node000032" title=" " alt="" coords="972,1015,1033,1051,1106,1084,1137,1093,1135,1098,1104,1089,1030,1055,969,1020"/>
+<area shape="rect" id="Node000027" href="$classTechPushButton.html#a18b11452ed8913fd1174407fc0aae6ab" title="开始脉冲动画" alt="" coords="1419,952,1617,978"/>
+<area shape="poly" id="edge29_Node000026_Node000027" title=" " alt="" coords="1338,947,1405,952,1404,958,1337,952"/>
+<area shape="rect" id="Node000028" href="$classTechPushButton.html#a1992e0832de45ad00c35a4a269e02fdb" title="停止脉冲动画" alt="" coords="1420,903,1616,928"/>
+<area shape="poly" id="edge30_Node000026_Node000028" title=" " alt="" coords="1337,928,1406,923,1406,928,1338,934"/>
+<area shape="poly" id="edge36_Node000033_Node000002" title=" " alt="" coords="700,543,894,489,991,455,1029,437,1056,420,1072,401,1079,381,1086,361,1104,340,1137,319,1169,307,1199,301,1228,299,1288,294,1320,285,1356,268,1400,237,1439,201,1497,135,1501,139,1443,205,1403,242,1359,273,1322,290,1289,299,1228,305,1200,307,1170,312,1140,324,1107,344,1091,363,1084,383,1076,404,1059,424,1031,442,993,460,895,494,702,548"/>
+<area shape="rect" id="Node000034" href="$classMainWindow.html#a9b3a9425314a630034b116008ddc9bd6" title="移除警告按钮点击" alt="" coords="844,532,1032,572"/>
+<area shape="poly" id="edge37_Node000033_Node000034" title=" " alt="" coords="740,554,830,552,831,557,740,559"/>
+<area shape="poly" id="edge38_Node000034_Node000008" title=" " alt="" coords="1020,529,1056,511,1070,497,1079,483,1088,469,1104,455,1141,438,1143,443,1107,459,1092,472,1083,486,1074,501,1059,515,1022,534"/>
+<area shape="rect" id="Node000035" href="$classMainWindow.html#a6bda015952ec491814b1bd785868f387" title="获取当前页面名称" alt="" coords="1105,470,1357,495"/>
+<area shape="poly" id="edge39_Node000034_Node000035" title=" " alt="" coords="1011,529,1105,505,1150,495,1151,500,1106,510,1012,534"/>
+<area shape="rect" id="Node000036" href="$classModbusThreadManager.html#a3d6b84fa0918dcfe29e6962041d44e53" title="获取 ModbusThreadManager 单例实例" alt="" coords="1144,520,1319,560"/>
+<area shape="poly" id="edge40_Node000034_Node000036" title=" " alt="" coords="1032,545,1130,541,1130,547,1032,551"/>
+<area shape="poly" id="edge41_Node000034_Node000037" title=" " alt="" coords="960,570,1021,627,1062,657,1106,683,1128,691,1127,696,1104,688,1059,662,1018,631,956,574"/>
+<area shape="poly" id="edge42_Node000034_Node000038" title=" " alt="" coords="1018,569,1059,588,1074,600,1083,612,1092,623,1107,633,1126,642,1123,647,1104,638,1089,627,1079,615,1070,604,1056,593,1016,574"/>
+<area shape="rect" id="Node000039" href="$classModbusThreadManager.html#aa2cdb1ec7221c90b6959c018a7caa5c4" title="写单个寄存器" alt="" coords="1144,584,1319,624"/>
+<area shape="poly" id="edge45_Node000034_Node000039" title=" " alt="" coords="1033,566,1131,583,1130,589,1032,571"/>
+<area shape="rect" id="Node000045" href="$classMainWindow.html#a41a5e7d92b4ce45c8decb5c38cbe780c" title="向主控设备写入寄存器" alt="" coords="1113,355,1350,380"/>
+<area shape="poly" id="edge49_Node000034_Node000045" title=" " alt="" coords="1028,529,1056,511,1067,497,1074,482,1078,452,1083,421,1090,406,1104,391,1112,385,1115,389,1107,395,1095,409,1088,423,1083,453,1079,484,1072,500,1059,515,1031,534"/>
+<area shape="poly" id="edge43_Node000038_Node000018" title=" " alt="" coords="1310,671,1358,683,1420,702,1475,723,1473,728,1418,707,1357,688,1309,677"/>
+<area shape="poly" id="edge44_Node000038_Node000033" title=" " alt="" coords="1157,651,733,576,734,571,1158,646"/>
+<area shape="rect" id="Node000040" href="$classModbusTCPClient.html#ac0eb40bf43e015281059b0144a928675" title="查询连接状态" alt="" coords="1407,534,1629,559"/>
+<area shape="poly" id="edge46_Node000039_Node000040" title=" " alt="" coords="1319,584,1440,559,1441,565,1320,589"/>
+<area shape="rect" id="Node000041" href="$classModbusThreadManager.html#aa97b383bcf9be692b49d307a717bfb10" title=" " alt="" coords="1431,584,1605,624"/>
+<area shape="poly" id="edge47_Node000039_Node000041" title=" " alt="" coords="1319,601,1417,601,1417,606,1319,606"/>
+<area shape="rect" id="Node000042" href="$classModbusThreadManager.html#ab3d6427ff17fc8b77e19386e7e0f3deb" title=" " alt="" coords="1423,648,1613,688"/>
+<area shape="poly" id="edge48_Node000039_Node000042" title=" " alt="" coords="1320,621,1415,642,1414,647,1318,626"/>
+<area shape="poly" id="edge50_Node000045_Node000002" title=" " alt="" coords="1315,353,1356,334,1383,313,1407,288,1449,234,1482,181,1503,138,1508,140,1486,183,1454,237,1411,292,1386,317,1359,338,1317,357"/>
+<area shape="poly" id="edge55_Node000049_Node000002" title=" " alt="" coords="674,185,739,159,818,136,971,114,1126,103,1270,101,1391,103,1391,109,1270,106,1126,109,972,119,819,141,740,164,676,190"/>
+<area shape="poly" id="edge54_Node000049_Node000019" title=" " alt="" coords="764,206,1094,233,1094,238,763,212"/>
+<area shape="rect" id="Node000050" href="$classAGVModbusManager.html#aec03e5a2f2710570382b6063a1ffe826" title="功能: 写单个寄存器到 AGV 设备。 如何使用: 提供地址和值，调用后观察 writeCompleted 或 errorOccurred 信号以获取结果。 如何修改: 若需事务进行多寄存器写入，请使用..." alt="" coords="819,150,1057,190"/>
+<area shape="poly" id="edge56_Node000049_Node000050" title=" " alt="" coords="763,185,805,181,805,187,764,191"/>
+<area shape="poly" id="edge58_Node000050_Node000019" title=" " alt="" coords="1017,188,1169,228,1167,233,1015,193"/>
+<area shape="rect" id="Node000051" href="$classAGVModbusManager.html#a3635763c93cd21764900cab25136b890" title=" " alt="" coords="1128,150,1335,190"/>
+<area shape="poly" id="edge57_Node000050_Node000051" title=" " alt="" coords="1058,168,1114,168,1114,173,1058,173"/>
+<area shape="poly" id="edge60_Node000052_Node000025" title=" " alt="" coords="448,994,842,994,842,1000,448,1000"/>
+<area shape="poly" id="edge63_Node000053_Node000025" title=" " alt="" coords="729,1036,842,1013,843,1019,730,1041"/>
+<area shape="poly" id="edge62_Node000053_Node000029" title=" " alt="" coords="730,1052,1119,1052,1119,1057,730,1057"/>
+<area shape="poly" id="edge65_Node000054_Node000025" title=" " alt="" coords="449,940,771,976,842,984,841,989,770,981,448,945"/>
+<area shape="poly" id="edge67_Node000055_Node000032" title=" " alt="" coords="448,1109,1110,1109,1110,1114,448,1114"/>
+</map>

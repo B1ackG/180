@@ -1,0 +1,9 @@
+<map id="featureswitchmanager.h" name="featureswitchmanager.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="41,5,221,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,80,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,33,69,72,66,68,115,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="104,79,157,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="133,31,133,65,128,65,128,31"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="182,79,253,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="146,29,194,68,191,72,143,33"/>
+</map>

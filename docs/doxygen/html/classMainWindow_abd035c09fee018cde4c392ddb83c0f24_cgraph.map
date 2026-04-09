@@ -1,0 +1,11 @@
+<map id="MainWindow::setupSmallForceLabels" name="MainWindow::setupSmallForceLabels">
+<area shape="rect" id="Node000001" title="创建并绑定小力值显示标签" alt="" coords="5,37,227,77"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57" title=" " alt="" coords="275,45,500,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,55,261,55,261,60,227,60"/>
+<area shape="rect" id="Node000003" href="$classFeatureSwitchManager.html#af4a8c4a54a17fdddbdb9eece6b8da932" title="组合检查：先检查所属大功能，再检查小功能（若提供）" alt="" coords="548,37,719,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="500,55,534,55,534,60,500,60"/>
+<area shape="rect" id="Node000004" href="$classFeatureSwitchManager.html#aa558b5e5c8c59422920a0006cc304f0e" title="检查某个大功能是否可用" alt="" coords="771,5,941,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="719,42,757,37,757,42,719,48"/>
+<area shape="rect" id="Node000005" href="$classFeatureSwitchManager.html#a34a3f96557e81a21f547065c8ce2608b" title="检查某个小功能是否可用" alt="" coords="767,69,945,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="719,67,754,72,753,77,719,72"/>
+</map>

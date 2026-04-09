@@ -1,0 +1,33 @@
+<map id="TechSliderEdit::setupConnections" name="TechSliderEdit::setupConnections">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,141,243,167"/>
+<area shape="rect" id="Node000002" href="$classTechSliderEdit.html#a57a44d7b0f67e653251e06693126c9d0" title=" " alt="" coords="291,38,480,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,139,290,87,311,80,312,85,292,93,158,144"/>
+<area shape="rect" id="Node000010" href="$classTechSliderEdit.html#ac7cbc69c9aee6a3f4e580f5fa5c387ac" title=" " alt="" coords="291,230,480,270"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="158,164,292,215,312,223,311,228,290,221,157,169"/>
+<area shape="rect" id="Node000011" href="$classTechSliderEdit.html#a523451e60070cadaff4b4c214fa712a6" title=" " alt="" coords="296,102,475,142"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="228,139,282,132,283,137,228,144"/>
+<area shape="rect" id="Node000012" href="$classTechSliderEdit.html#ad2f8193d4f07c0554214f2ebfa6cc23c" title=" " alt="" coords="298,166,473,206"/>
+<area shape="poly" id="edge14_Node000001_Node000012" title=" " alt="" coords="228,164,285,171,284,176,228,169"/>
+<area shape="rect" id="Node000003" href="$classTechSliderEdit.html#a32ecfc038bb5c18450669f9d2cc00e35" title=" " alt="" coords="528,5,748,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="480,40,543,30,544,35,481,46"/>
+<area shape="rect" id="Node000004" href="$classTechSliderEdit.html#a96a5c7481f43a7417a24c2fa8d89440f" title="使用示例:" alt="" coords="549,55,727,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="480,59,535,61,535,66,480,64"/>
+<area shape="rect" id="Node000009" href="$classTechSliderEdit.html#a41c87c502a70388b259db3848903b4ce" title=" " alt="" coords="531,105,745,145"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="462,75,549,98,547,104,461,81"/>
+<area shape="rect" id="Node000005" href="$classTechSliderEdit.html#aa425cc8db65cc17257f75061a8037831" title=" " alt="" coords="807,122,1000,162"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="698,77,749,90,831,115,830,120,747,95,697,83"/>
+<area shape="rect" id="Node000006" href="$classTechSliderEdit.html#ac30ed3fce4100e4a54dee578d8d79fa2" title=" " alt="" coords="802,47,1005,87"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="727,65,788,65,788,70,727,70"/>
+<area shape="rect" id="Node000008" href="$classTechSliderEdit.html#a70dffee73b2b671ed12428e8cb83fe91" title=" " alt="" coords="796,208,1011,233"/>
+<area shape="poly" id="edge7_Node000004_Node000008" title=" " alt="" coords="726,78,750,91,768,111,775,131,782,152,798,172,820,188,846,201,843,205,818,193,794,176,778,154,770,133,763,113,746,95,724,82"/>
+<area shape="rect" id="Node000007" href="$classTechSliderEdit.html#a1dfbc69ff00d41c39012cb4c39162b1b" title=" " alt="" coords="1059,55,1267,80"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="1005,65,1045,65,1045,70,1005,70"/>
+<area shape="poly" id="edge11_Node000011_Node000003" title=" " alt="" coords="455,100,479,88,493,76,502,64,511,51,527,40,541,33,543,38,529,44,515,55,506,67,497,80,481,92,458,104"/>
+<area shape="poly" id="edge12_Node000011_Node000004" title=" " alt="" coords="474,100,565,80,566,85,475,105"/>
+<area shape="poly" id="edge13_Node000011_Node000009" title=" " alt="" coords="475,120,517,121,517,126,475,126"/>
+<area shape="poly" id="edge16_Node000012_Node000005" title=" " alt="" coords="473,177,748,154,792,150,793,155,748,159,473,182"/>
+<area shape="poly" id="edge17_Node000012_Node000008" title=" " alt="" coords="473,193,528,198,783,213,782,218,528,203,473,198"/>
+<area shape="poly" id="edge18_Node000012_Node000009" title=" " alt="" coords="468,163,541,145,542,151,469,169"/>
+<area shape="rect" id="Node000013" href="$classTechSliderEdit.html#a0c6dbc1552bb56c305c0eeeb6bab0858" title=" " alt="" coords="553,270,723,310"/>
+<area shape="poly" id="edge15_Node000012_Node000013" title=" " alt="" coords="454,204,481,216,506,232,529,249,560,263,557,267,527,254,503,237,479,220,452,209"/>
+</map>

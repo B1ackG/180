@@ -51,6 +51,7 @@ private:
     QLineEdit *m_editMainReconnect;
     QLineEdit *m_editAgvPoll;
     QLineEdit *m_editAgvReconnect;
+    QCheckBox *m_cbUiStateSync;
 
     // SliderLabel 限制输入框: key -> [minEdit, maxEdit]
     struct LimitEdits {

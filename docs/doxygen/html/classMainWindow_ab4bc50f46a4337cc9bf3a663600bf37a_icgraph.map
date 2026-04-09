@@ -1,0 +1,20 @@
+<map id="MainWindow::updateFunctionSwitchVisuals" name="MainWindow::updateFunctionSwitchVisuals">
+<area shape="rect" id="Node000001" title="刷新功能开关组按钮视觉状态" alt="" coords="1323,101,1536,141"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a454f76c75e34e4bbca84028e918fbb7f" title="控制模式按钮点击" alt="" coords="1050,5,1262,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1371,98,1274,60,1236,48,1237,43,1276,55,1373,93"/>
+<area shape="rect" id="Node000003" href="$classMainWindow.html#a98a901aeb61b8ddcf35943404fbbf1c1" title="Modbus 寄存器值变化回调" alt="" coords="1039,69,1273,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="1309,110,1273,106,1274,100,1310,105"/>
+<area shape="rect" id="Node000008" href="$classMainWindow.html#a5658e9e7d531abea34b958d0d84797e9" title="步进移动按钮点击" alt="" coords="1037,133,1275,173"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="1310,138,1275,142,1275,137,1309,133"/>
+<area shape="rect" id="Node000009" href="$classMainWindow.html#a05d17b0ee100f0de304eeaad00472869" title="应用界面样式" alt="" coords="766,163,955,189"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="1381,150,1331,171,1275,188,1188,199,1101,202,1018,198,947,191,947,186,1018,193,1101,196,1188,194,1274,183,1329,166,1378,145"/>
+<area shape="rect" id="Node000004" href="$classMainWindow.html#a853ad5679a500c6ca99c1a21b540f2de" title="创建并配置 Modbus 管理器" alt="" coords="732,82,989,107"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="1025,94,990,95,989,90,1025,89"/>
+<area shape="rect" id="Node000005" href="$classMainWindow.html#addaf82aa90afe1e30cf3e4eb64aa8781" title="初始化 Modbus 相关配置" alt="" coords="497,86,684,111"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="718,99,684,100,684,95,718,94"/>
+<area shape="rect" id="Node000006" href="$classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c" title="初始化业务子系统（通信、线程、样式、控制）" alt="" coords="251,113,449,153"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="489,116,450,122,449,116,488,111"/>
+<area shape="rect" id="Node000007" href="$classMainWindow.html#a996c5a2b6f77944776856f08ec30858d" title="构造 MainWindow 并初始化内部状态与 UI" alt="" coords="5,121,203,146"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="237,136,203,136,203,131,237,131"/>
+<area shape="poly" id="edge9_Node000009_Node000006" title=" " alt="" coords="752,170,450,144,450,139,752,164"/>
+</map>

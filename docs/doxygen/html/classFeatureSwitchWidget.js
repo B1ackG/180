@@ -1,0 +1,28 @@
+var classFeatureSwitchWidget =
+[
+    [ "LimitEdits", "structFeatureSwitchWidget_1_1LimitEdits.html", "structFeatureSwitchWidget_1_1LimitEdits" ],
+    [ "FeatureSwitchWidget", "classFeatureSwitchWidget.html#a5efb15d0351e260b8923889832dbf319", null ],
+    [ "eventFilter", "classFeatureSwitchWidget.html#a7d18002eed7ec1de963a041be7d9553a", null ],
+    [ "loadCurrentState", "classFeatureSwitchWidget.html#a7c4537d4cadd149f5e0b5c2fb080e21a", null ],
+    [ "loadPollingState", "classFeatureSwitchWidget.html#a7e85d035fc5d32dbd609bd8baf31bd5c", null ],
+    [ "loadSliderLimitState", "classFeatureSwitchWidget.html#aae7e2c6532f87036e877fc5a9aca188c", null ],
+    [ "onApply", "classFeatureSwitchWidget.html#a84c23636e2ceb40e36e67dc481a184fc", null ],
+    [ "onReload", "classFeatureSwitchWidget.html#a8ff4a6f95121aa85e0b8428362aa23fd", null ],
+    [ "onSave", "classFeatureSwitchWidget.html#ab63967accbc0ea912c2d2870c2140a06", null ],
+    [ "onToggleAll", "classFeatureSwitchWidget.html#abdbefa7261c1333c462fb9d675577fca", null ],
+    [ "runtimeSettingsChanged", "classFeatureSwitchWidget.html#a9d417b9c0e80c8f3e1ec80401fc358e9", null ],
+    [ "savePollingState", "classFeatureSwitchWidget.html#a704a49c2842c06b15041740837900102", null ],
+    [ "saveSliderLimitState", "classFeatureSwitchWidget.html#a6eb603279d65fd4d5bbe83c8b1011fda", null ],
+    [ "setupPollingUI", "classFeatureSwitchWidget.html#a68c43deec0c15cdbb8e5b7735362f2a0", null ],
+    [ "setupSliderLimitUI", "classFeatureSwitchWidget.html#abfbd845ee589f5079ae076c011752efa", null ],
+    [ "setupUI", "classFeatureSwitchWidget.html#a859090336219fd32f18b5c10019b1016", null ],
+    [ "m_bigCheckboxes", "classFeatureSwitchWidget.html#a24ce1685c4843accbb39f4e36e3bd163", null ],
+    [ "m_editAgvPoll", "classFeatureSwitchWidget.html#adec00d6e9c5d38ebf86879a3ec7c99e3", null ],
+    [ "m_editAgvReconnect", "classFeatureSwitchWidget.html#a17a5b0c6828f7ddb5a27297b6385b4f1", null ],
+    [ "m_editMainModbusPoll", "classFeatureSwitchWidget.html#a20bff1a7ef8973f5e4dc59beb03ddb07", null ],
+    [ "m_editMainReconnect", "classFeatureSwitchWidget.html#ad1dac3002eb3f8212f3f9c20a66be752", null ],
+    [ "m_editMainUiPoll", "classFeatureSwitchWidget.html#a2f07cc00bb74d801ba286a3c11def7a6", null ],
+    [ "m_limitEdits", "classFeatureSwitchWidget.html#aa5fb0d32e583c984cd3925148d62f50b", null ],
+    [ "m_smallCheckboxes", "classFeatureSwitchWidget.html#a97efa56e27eef984ebe11495bcf4697c", null ],
+    [ "m_virtualKeyboard", "classFeatureSwitchWidget.html#acb8c5a0cbcaa8f329bcd594d0246b90c", null ]
+];

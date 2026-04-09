@@ -1,0 +1,13 @@
+<map id="OperationRecorder::setTcpServer" name="OperationRecorder::setTcpServer">
+<area shape="rect" id="Node000001" title="设置远端 TCP 服务器地址与端口" alt="" coords="5,101,157,141"/>
+<area shape="rect" id="Node000002" href="$classOperationRecorder.html#a20308fd183b5b0dbe00ce89fcc0b823e" title=" " alt="" coords="207,37,359,77"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,99,206,79,207,84,146,104"/>
+<area shape="rect" id="Node000005" href="$classOperationRecorder.html#a58ad39183fa0657421f3534579b67169" title=" " alt="" coords="205,101,361,141"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="157,119,191,119,191,124,157,124"/>
+<area shape="rect" id="Node000006" href="$classOperationRecorder.html#a5b34105cc69529110573a59a3fab7cab" title=" " alt="" coords="205,165,361,205"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="146,139,207,159,206,164,144,144"/>
+<area shape="rect" id="Node000003" href="$classOperationRecorder.html#a60e73780538b8376d7e68e9cc09fe5a9" title=" " alt="" coords="417,5,576,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="359,43,403,37,404,42,360,49"/>
+<area shape="rect" id="Node000004" href="$classOperationRecorder.html#a37d0a54d4ebddd9ad4c248331f70a0e3" title=" " alt="" coords="409,69,584,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="360,66,396,72,396,77,359,71"/>
+</map>

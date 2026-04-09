@@ -1,0 +1,27 @@
+<map id="OperationRecorder::onTcpConnected" name="OperationRecorder::onTcpConnected">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,101,157,141"/>
+<area shape="rect" id="Node000002" href="$classOperationRecorder.html#a1055f39fb74a337cf36c8c0af727cb83" title=" " alt="" coords="235,69,389,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,108,220,99,221,105,158,113"/>
+<area shape="rect" id="Node000012" href="$classOperationRecorder.html#a7eb3289693fee3ffcd10c42dcb95d520" title=" " alt="" coords="205,133,419,173"/>
+<area shape="poly" id="edge13_Node000001_Node000012" title=" " alt="" coords="158,129,192,134,191,139,158,135"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="269,70,267,60,273,50,289,45,312,43,339,46,353,53,351,58,337,51,312,48,290,50,277,55,272,61,274,68"/>
+<area shape="rect" id="Node000003" href="$classOperationRecorder.html#a10162fd420bca1481d62d02b4afcfa30" title="使用示例:" alt="" coords="723,5,875,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="389,69,466,55,593,39,709,29,709,34,594,44,467,60,390,74"/>
+<area shape="rect" id="Node000004" href="$classOperationRecorder.html#a334ae0662731c03b4a767ee6c47212df" title=" " alt="" coords="485,69,639,109"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="390,87,471,87,471,92,390,92"/>
+<area shape="rect" id="Node000011" href="$classOperationRecorder.html#a30db764f45364aa86b0cba0bc3a8c465" title=" " alt="" coords="467,133,657,173"/>
+<area shape="poly" id="edge12_Node000002_Node000011" title=" " alt="" coords="390,106,470,127,469,132,389,112"/>
+<area shape="poly" id="edge11_Node000004_Node000003" title=" " alt="" coords="636,67,711,46,712,51,637,72"/>
+<area shape="rect" id="Node000005" href="$classOperationRecorder.html#a76e57ca1319df23bc72f4b7ed395f469" title=" " alt="" coords="723,69,875,109"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="640,87,709,87,709,92,640,92"/>
+<area shape="rect" id="Node000007" href="$classOperationRecorder.html#a20308fd183b5b0dbe00ce89fcc0b823e" title=" " alt="" coords="723,133,875,173"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="637,107,712,127,711,132,636,112"/>
+<area shape="rect" id="Node000010" href="$classOperationRecorder.html#a507cbb2e0e5b6babc09e31dc8127f101" title=" " alt="" coords="705,197,892,237"/>
+<area shape="poly" id="edge10_Node000004_Node000010" title=" " alt="" coords="638,107,659,119,675,136,684,152,692,168,707,183,715,189,712,193,704,187,688,171,679,155,671,139,656,123,636,112"/>
+<area shape="rect" id="Node000006" href="$structOperationRecord.html#aae606bfdd782db1bd3fc32dbf0a814d7" title=" " alt="" coords="940,77,1119,102"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="875,87,926,87,926,92,875,92"/>
+<area shape="rect" id="Node000008" href="$classOperationRecorder.html#a60e73780538b8376d7e68e9cc09fe5a9" title=" " alt="" coords="950,129,1109,169"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="875,149,936,148,936,154,875,155"/>
+<area shape="rect" id="Node000009" href="$classOperationRecorder.html#a37d0a54d4ebddd9ad4c248331f70a0e3" title=" " alt="" coords="942,193,1117,233"/>
+<area shape="poly" id="edge9_Node000007_Node000009" title=" " alt="" coords="876,171,939,187,937,192,875,176"/>
+</map>

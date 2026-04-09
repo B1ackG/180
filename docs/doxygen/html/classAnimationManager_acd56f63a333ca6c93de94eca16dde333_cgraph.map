@@ -1,0 +1,5 @@
+<map id="AnimationManager::AnimationManager" name="AnimationManager::AnimationManager">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,227,45"/>
+<area shape="rect" id="Node000002" href="$classAnimationManager.html#a1fd88ac86a2c4fccb0e12f0264bfce4e" title="功能: 设置动画刷新帧率（FPS），影响定时器间隔。 如何使用: 在初始化或运行时调整以优化平滑度与性能。 如何修改: 可改为支持每控件单独帧率或按场景动态调整。" alt="" coords="275,13,540,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,23,261,23,261,28,227,28"/>
+</map>

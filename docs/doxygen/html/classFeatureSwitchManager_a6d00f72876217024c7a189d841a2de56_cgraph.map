@@ -1,0 +1,5 @@
+<map id="FeatureSwitchManager::reload" name="FeatureSwitchManager::reload">
+<area shape="rect" id="Node000001" title="从配置文件重新加载开关状态（覆盖内存状态）" alt="" coords="5,5,176,45"/>
+<area shape="rect" id="Node000002" href="$classFeatureSwitchManager.html#a0350a21917b1359bb743699acab5dd49" title="返回当前用于持久化的配置文件路径" alt="" coords="224,5,395,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,23,210,23,210,28,176,28"/>
+</map>

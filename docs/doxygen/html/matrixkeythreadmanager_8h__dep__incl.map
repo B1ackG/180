@@ -1,0 +1,13 @@
+<map id="matrixkeythreadmanager.h" name="matrixkeythreadmanager.h">
+<area shape="rect" id="Node000001" title="矩阵按键线程管理器声明，负责按键扫描线程的生命周期与事件分发。" alt="" coords="173,5,371,31"/>
+<area shape="rect" id="Node000002" href="$mainwindow_8h.html" title="主窗口的声明，包含主要 UI 控件与界面逻辑的入口类。" alt="" coords="119,79,235,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="247,41,194,81,191,76,244,37"/>
+<area shape="rect" id="Node000006" href="$matrixkeythreadmanager_8cpp.html" title=" " alt="" coords="259,79,474,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="300,37,353,76,350,81,297,41"/>
+<area shape="rect" id="Node000003" href="$main_8cpp.html" title=" " alt="" coords="5,152,88,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="145,113,69,154,67,149,143,108"/>
+<area shape="rect" id="Node000004" href="$mainwindow_8cpp.html" title=" " alt="" coords="112,152,243,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="180,118,180,152,175,152,175,118"/>
+<area shape="rect" id="Node000005" href="$mainwindow__lifecycle_8cpp.html" title=" " alt="" coords="267,152,461,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="221,106,334,149,333,154,219,111"/>
+</map>

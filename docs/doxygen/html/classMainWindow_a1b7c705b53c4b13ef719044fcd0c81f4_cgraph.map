@@ -1,0 +1,24 @@
+<map id="MainWindow::enableTcpTransmission" name="MainWindow::enableTcpTransmission">
+<area shape="rect" id="Node000001" title="启用或禁用 TCP 传输" alt="" coords="5,173,268,198"/>
+<area shape="rect" id="Node000002" href="$classOperationRecorder.html#abe2a45d4d8d93b7f9b9338cd4a8cb7c0" title="启用/禁用 TCP 传输" alt="" coords="327,165,499,205"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="268,183,314,183,314,188,268,188"/>
+<area shape="rect" id="Node000008" href="$classMainWindow.html#a8c5c1b8b58df6dba337afa33818f4b7a" title=" " alt="" coords="316,229,511,269"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="193,196,313,224,312,229,192,201"/>
+<area shape="rect" id="Node000010" href="$classOperationRecorder.html#abf45d116c8ab17f758d7db9e457e4a2e" title="设置远端 TCP 服务器地址与端口" alt="" coords="337,101,489,141"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="192,170,323,139,325,144,193,175"/>
+<area shape="rect" id="Node000003" href="$classOperationRecorder.html#a20308fd183b5b0dbe00ce89fcc0b823e" title=" " alt="" coords="568,37,720,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="489,163,509,151,524,136,532,120,541,104,557,87,565,82,568,86,560,91,545,107,537,123,528,139,512,155,492,167"/>
+<area shape="rect" id="Node000006" href="$classOperationRecorder.html#a58ad39183fa0657421f3534579b67169" title=" " alt="" coords="566,101,722,141"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="485,163,558,142,559,148,487,168"/>
+<area shape="rect" id="Node000007" href="$classOperationRecorder.html#a5b34105cc69529110573a59a3fab7cab" title=" " alt="" coords="566,165,722,205"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="500,183,552,183,552,188,500,188"/>
+<area shape="rect" id="Node000004" href="$classOperationRecorder.html#a60e73780538b8376d7e68e9cc09fe5a9" title=" " alt="" coords="785,5,944,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="720,44,771,36,772,41,721,49"/>
+<area shape="rect" id="Node000005" href="$classOperationRecorder.html#a37d0a54d4ebddd9ad4c248331f70a0e3" title=" " alt="" coords="777,69,952,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="721,66,764,72,764,77,720,71"/>
+<area shape="rect" id="Node000009" href="$classFeatureSwitchManager.html#aa558b5e5c8c59422920a0006cc304f0e" title="检查某个大功能是否可用" alt="" coords="559,229,729,269"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="511,247,545,247,545,252,511,252"/>
+<area shape="poly" id="edge10_Node000010_Node000003" title=" " alt="" coords="485,99,558,78,559,84,487,104"/>
+<area shape="poly" id="edge11_Node000010_Node000006" title=" " alt="" coords="490,119,552,119,552,124,490,124"/>
+<area shape="poly" id="edge12_Node000010_Node000007" title=" " alt="" coords="487,139,559,159,558,164,485,144"/>
+</map>

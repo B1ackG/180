@@ -1,0 +1,40 @@
+<map id="MainWindow::updateSimulatorHost" name="MainWindow::updateSimulatorHost">
+<area shape="rect" id="Node000001" title="更新模拟器IP主机号（192.168.1.XXX）" alt="" coords="5,258,256,283"/>
+<area shape="rect" id="Node000002" href="$classMainModbusConnector.html#a480216169d71602293e4720c905a4a4f" title="连接指定端点并应用默认轮询/重连配置。" alt="" coords="337,123,507,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,256,216,215,303,172,324,164,326,169,305,177,219,220,153,260"/>
+<area shape="rect" id="Node000011" href="$classAGVModbusManager.html#aeb885c05d449b8cb10abc16e78acc72b" title="使用示例:" alt="" coords="313,187,531,227"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="189,255,317,227,318,232,190,261"/>
+<area shape="rect" id="Node000012" href="$classAGVModbusManager.html#aa602a9b4c7c2c731bad14e4435f941e6" title="使用示例:" alt="" coords="304,251,540,291"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="256,268,291,268,291,273,256,273"/>
+<area shape="rect" id="Node000013" href="$classModbusThreadManager.html#aa52682b46cff69835e2a600fc867f1a8" title="使用示例:" alt="" coords="333,315,511,355"/>
+<area shape="poly" id="edge12_Node000001_Node000013" title=" " alt="" coords="190,281,319,309,318,315,189,286"/>
+<area shape="rect" id="Node000016" href="$classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57" title=" " alt="" coords="309,379,535,405"/>
+<area shape="poly" id="edge16_Node000001_Node000016" title=" " alt="" coords="152,281,218,322,261,345,305,364,334,373,332,379,303,369,258,350,215,327,149,286"/>
+<area shape="rect" id="Node000003" href="$classModbusThreadManager.html#ad92a60c68a016c06a95c6e2aafa2930f" title="连接到 Modbus 设备" alt="" coords="607,59,782,99"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="507,120,595,99,596,104,508,125"/>
+<area shape="rect" id="Node000007" href="$classModbusThreadManager.html#ac786b96191c397b53a5b2a16c07359af" title="启用/禁用自动重连" alt="" coords="607,123,782,163"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="508,140,594,140,594,145,508,145"/>
+<area shape="rect" id="Node000009" href="$classModbusThreadManager.html#ae4a62ee20be1ea76666450536ac70815" title="设置轮询间隔（毫秒）" alt="" coords="607,187,782,227"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="508,160,596,181,595,186,507,165"/>
+<area shape="rect" id="Node000004" href="$classModbusTCPClient.html#ac6853316af6a3adcb526900580e6421d" title="使用示例:" alt="" coords="861,5,1055,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="782,58,846,45,847,50,783,64"/>
+<area shape="rect" id="Node000005" href="$classModbusTCPClient.html#a8ab5bd396e86a9d86151b5f4f6ac583f" title="开始轮询已注册的寄存器列表" alt="" coords="849,70,1067,95"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="782,77,836,78,836,83,782,83"/>
+<area shape="rect" id="Node000006" href="$classModbusTCPClient.html#ac0eb40bf43e015281059b0144a928675" title="查询连接状态" alt="" coords="1115,70,1337,95"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1067,80,1101,80,1101,85,1067,85"/>
+<area shape="rect" id="Node000008" href="$classModbusTCPClient.html#a90ca9cb72ad7e275b3f2cdf5d8e0b128" title="使用示例:" alt="" coords="861,123,1055,163"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="782,140,848,140,848,145,782,145"/>
+<area shape="rect" id="Node000010" href="$classModbusTCPClient.html#a75663a3df5adab252182d11e05e3fbdb" title="设置轮询间隔（毫秒）" alt="" coords="865,187,1051,227"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="782,204,851,204,851,209,782,209"/>
+<area shape="rect" id="Node000014" href="$classModbusTCPClient.html#a1e9aa9dd06d699514bcc684a6905f325" title="使用示例:" alt="" coords="588,257,801,297"/>
+<area shape="poly" id="edge13_Node000013_Node000014" title=" " alt="" coords="511,313,585,298,586,303,512,319"/>
+<area shape="rect" id="Node000015" href="$classModbusTCPClient.html#a8cc5ab2f415b710568104eccd8e56a04" title="停止轮询操作" alt="" coords="851,279,1065,305"/>
+<area shape="poly" id="edge15_Node000013_Node000015" title=" " alt="" coords="511,327,801,307,837,303,837,309,802,312,512,333"/>
+<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="802,281,837,283,837,288,801,286"/>
+<area shape="rect" id="Node000017" href="$classFeatureSwitchManager.html#af4a8c4a54a17fdddbdb9eece6b8da932" title="组合检查：先检查所属大功能，再检查小功能（若提供）" alt="" coords="609,372,780,412"/>
+<area shape="poly" id="edge17_Node000016_Node000017" title=" " alt="" coords="535,389,596,389,596,395,535,395"/>
+<area shape="rect" id="Node000018" href="$classFeatureSwitchManager.html#aa558b5e5c8c59422920a0006cc304f0e" title="检查某个大功能是否可用" alt="" coords="873,357,1043,397"/>
+<area shape="poly" id="edge18_Node000017_Node000018" title=" " alt="" coords="780,385,859,380,859,385,780,390"/>
+<area shape="rect" id="Node000019" href="$classFeatureSwitchManager.html#a34a3f96557e81a21f547065c8ce2608b" title="检查某个小功能是否可用" alt="" coords="869,421,1047,461"/>
+<area shape="poly" id="edge19_Node000017_Node000019" title=" " alt="" coords="781,405,856,420,855,425,780,411"/>
+</map>

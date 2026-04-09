@@ -1,0 +1,848 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: techsliderlabel.cpp 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('techsliderlabel_8cpp_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">techsliderlabel.cpp</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="techsliderlabel_8cpp.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="techsliderlabel_8h.html">techsliderlabel.h</a>&quot;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;QDebug&gt;</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;QLabel&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
+<div class="foldopen" id="foldopen00006" data-start="{" data-end="}">
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a106e5fb25c568a3f7ab30a56260a8e76">    6</a></span><a class="code hl_function" href="classTechSliderLabel.html#a106e5fb25c568a3f7ab30a56260a8e76">TechSliderLabel::TechSliderLabel</a>(QWidget *parent)</div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span>    : QWidget(parent)</div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span>    , m_value(50.0)</div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span>    , m_oldValue(50.0)</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>    , m_minimum(0.0)</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>    , m_maximum(100.0)</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>    , m_singleStep(1.0)</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    , m_precision(0)</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    , m_suffix(<span class="stringliteral">&quot;&quot;</span>)</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>    , m_modbusAddress(-1)</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    , m_primaryColor(QColor(0, 200, 255))</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    , m_secondaryColor(QColor(0, 200, 255))</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    , m_glowColor(QColor(0, 255, 255, 180))</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    , m_glowEnabled(true)</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    , m_scanLineEnabled(false)</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    , m_pulseEnabled(false)</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    , m_scanLinePos(0)</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    , m_scanLineWidth(60)</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    , m_pulseAlpha(0.3)</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    , m_pulseDirection(true)</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    , m_repaintPending(false)</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    , m_minRepaintIntervalMs(100)</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    , m_forceControlEnabled(false)</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    , m_conversionFactor(1)</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>{</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <a class="code hl_function" href="classTechSliderLabel.html#a874212f0bdd29ef3b7e6fd51a1b9af50">setupUI</a>();</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <a class="code hl_function" href="classTechSliderLabel.html#aff4a891b36e70b10fbd4f088155dbff4">setupConnections</a>();</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="comment">// 保存初始颜色，用于力控模式切换</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a651f8341d461d927a0acfa0f635a7abd">m_originalPrimaryColor</a> = <a class="code hl_variable" href="classTechSliderLabel.html#aff3eb821ae66b87664b92298ac7462e0">m_primaryColor</a>;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a26b83a33b108f934d4296a52b5a2ab8c">m_originalSecondaryColor</a> = <a class="code hl_variable" href="classTechSliderLabel.html#a144a0e2ec866e135ffa8f98680c8ed6c">m_secondaryColor</a>;</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <a class="code hl_variable" href="classTechSliderLabel.html#af098e794169e9c0b9ef34b48383cb5f3">m_originalGlowColor</a> = <a class="code hl_variable" href="classTechSliderLabel.html#a391db8f381c606dd28f3c277bbcff9b2">m_glowColor</a>;</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <a class="code hl_function" href="classTechSliderLabel.html#af0ebb1447f625a86980ae1f48b97835c">applyTechStyle</a>();</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="comment">// 设置默认值</span></div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <a class="code hl_slot" href="classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c">setValue</a>(50.0);</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <a class="code hl_function" href="classAnimationManager.html#a7b55a1f9d04cf1952debcbabd81afb14">AnimationManager::instance</a>()-&gt;<a class="code hl_function" href="classAnimationManager.html#aac70352febbaeb9158e24a6031cc7cad">registerWidget</a>(<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <a class="code hl_function" href="classTechSliderLabel.html#a3f30d7b64372953e259913253c97e1db">setTechBlueStyle</a>();</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>}</div>
+</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
+<div class="foldopen" id="foldopen00048" data-start="{" data-end="}">
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a874212f0bdd29ef3b7e6fd51a1b9af50">   48</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a874212f0bdd29ef3b7e6fd51a1b9af50">TechSliderLabel::setupUI</a>()</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>{</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <span class="comment">// 创建控件</span></div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ad6e07ab13c38f22e9fa011b8130e428b">m_label</a> = <span class="keyword">new</span> QLabel(<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ad52df8064c14254c53ef53fa452537d5">m_valueLabel</a> = <span class="keyword">new</span> QLabel(<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a> = <span class="keyword">new</span> QSlider(Qt::Horizontal, <span class="keyword">this</span>);</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <a class="code hl_variable" href="classTechSliderLabel.html#aa2b663cc3c1184173e92402f4e3dfe8b">m_minLabel</a> = <span class="keyword">new</span> QLabel(<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ae18567bdc79263f75823be58f4c07f24">m_maxLabel</a> = <span class="keyword">new</span> QLabel(<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="comment">// 设置滑块属性</span></div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;setMinimum(0);</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;setMaximum(1000);</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;setAttribute(Qt::WA_TransparentForMouseEvents, <span class="keyword">true</span>); <span class="comment">// 禁用鼠标事件，使其不可拖动</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="comment">// 创建主垂直布局</span></div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a4cd42a7fe07e925043c7a6aa526e8cc2">m_mainLayout</a> = <span class="keyword">new</span> QVBoxLayout(<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a4cd42a7fe07e925043c7a6aa526e8cc2">m_mainLayout</a>-&gt;setContentsMargins(0, 0, 0, 0);</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a4cd42a7fe07e925043c7a6aa526e8cc2">m_mainLayout</a>-&gt;setSpacing(10);</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <span class="comment">// 创建第一行布局（标签 + 值标签）</span></div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a5967ac6ac9b43e0439dc5a5f68124479">m_firstRowLayout</a> = <span class="keyword">new</span> QHBoxLayout();</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a5967ac6ac9b43e0439dc5a5f68124479">m_firstRowLayout</a>-&gt;setContentsMargins(0, 0, 0, 0);</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a5967ac6ac9b43e0439dc5a5f68124479">m_firstRowLayout</a>-&gt;setSpacing(10);</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <span class="comment">// 添加标签和值标签到第一行</span></div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ad6e07ab13c38f22e9fa011b8130e428b">m_label</a>-&gt;setText(<span class="stringliteral">&quot;参数:&quot;</span>);</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ad6e07ab13c38f22e9fa011b8130e428b">m_label</a>-&gt;setAlignment(Qt::AlignRight | Qt::AlignVCenter);</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ad6e07ab13c38f22e9fa011b8130e428b">m_label</a>-&gt;setFixedWidth(120);</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ad52df8064c14254c53ef53fa452537d5">m_valueLabel</a>-&gt;setFixedWidth(120);</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ad52df8064c14254c53ef53fa452537d5">m_valueLabel</a>-&gt;setAlignment(Qt::AlignCenter);</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a5967ac6ac9b43e0439dc5a5f68124479">m_firstRowLayout</a>-&gt;addWidget(<a class="code hl_variable" href="classTechSliderLabel.html#ad6e07ab13c38f22e9fa011b8130e428b">m_label</a>);</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a5967ac6ac9b43e0439dc5a5f68124479">m_firstRowLayout</a>-&gt;addWidget(<a class="code hl_variable" href="classTechSliderLabel.html#ad52df8064c14254c53ef53fa452537d5">m_valueLabel</a>);</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <span class="comment">// 添加占位符使值标签与Slider对齐</span></div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    QSpacerItem *spacer = <span class="keyword">new</span> QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Minimum);</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a5967ac6ac9b43e0439dc5a5f68124479">m_firstRowLayout</a>-&gt;addItem(spacer);</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a4cd42a7fe07e925043c7a6aa526e8cc2">m_mainLayout</a>-&gt;addLayout(<a class="code hl_variable" href="classTechSliderLabel.html#a5967ac6ac9b43e0439dc5a5f68124479">m_firstRowLayout</a>);</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    <span class="comment">// 创建第二行布局（最小值标签 + Slider + 最大值标签）</span></div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a87092180697a6c78c80c8788e3f25e85">m_secondRowLayout</a> = <span class="keyword">new</span> QHBoxLayout();</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a87092180697a6c78c80c8788e3f25e85">m_secondRowLayout</a>-&gt;setContentsMargins(80, 0, 0, 0);</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a87092180697a6c78c80c8788e3f25e85">m_secondRowLayout</a>-&gt;setSpacing(10);</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="comment">// 创建滑块容器和布局</span></div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a4ed77eb53a70132af1a04882db282553">m_sliderContainer</a> = <span class="keyword">new</span> QWidget(<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ae29f6c11bad5b8a1481200a4cd89c09b">m_sliderLayout</a> = <span class="keyword">new</span> QHBoxLayout(<a class="code hl_variable" href="classTechSliderLabel.html#a4ed77eb53a70132af1a04882db282553">m_sliderContainer</a>);</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ae29f6c11bad5b8a1481200a4cd89c09b">m_sliderLayout</a>-&gt;setContentsMargins(0, 0, 0, 0);</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ae29f6c11bad5b8a1481200a4cd89c09b">m_sliderLayout</a>-&gt;setSpacing(8);</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    <span class="comment">// 设置标签宽度和文本对齐</span></div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    <a class="code hl_variable" href="classTechSliderLabel.html#aa2b663cc3c1184173e92402f4e3dfe8b">m_minLabel</a>-&gt;setFixedWidth(80);</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ae18567bdc79263f75823be58f4c07f24">m_maxLabel</a>-&gt;setFixedWidth(80);</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    <a class="code hl_variable" href="classTechSliderLabel.html#aa2b663cc3c1184173e92402f4e3dfe8b">m_minLabel</a>-&gt;setAlignment(Qt::AlignLeft | Qt::AlignVCenter);</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ae18567bdc79263f75823be58f4c07f24">m_maxLabel</a>-&gt;setAlignment(Qt::AlignRight | Qt::AlignVCenter);</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <span class="comment">// 添加最小值标签</span></div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ae29f6c11bad5b8a1481200a4cd89c09b">m_sliderLayout</a>-&gt;addWidget(<a class="code hl_variable" href="classTechSliderLabel.html#aa2b663cc3c1184173e92402f4e3dfe8b">m_minLabel</a>);</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span> </div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    <span class="comment">// 添加滑块</span></div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ae29f6c11bad5b8a1481200a4cd89c09b">m_sliderLayout</a>-&gt;addWidget(<a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>);</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    <span class="comment">// 添加最大值标签</span></div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ae29f6c11bad5b8a1481200a4cd89c09b">m_sliderLayout</a>-&gt;addWidget(<a class="code hl_variable" href="classTechSliderLabel.html#ae18567bdc79263f75823be58f4c07f24">m_maxLabel</a>);</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    <span class="comment">// 将滑块容器添加到第二行布局</span></div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a87092180697a6c78c80c8788e3f25e85">m_secondRowLayout</a>-&gt;addWidget(<a class="code hl_variable" href="classTechSliderLabel.html#a4ed77eb53a70132af1a04882db282553">m_sliderContainer</a>);</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a4cd42a7fe07e925043c7a6aa526e8cc2">m_mainLayout</a>-&gt;addLayout(<a class="code hl_variable" href="classTechSliderLabel.html#a87092180697a6c78c80c8788e3f25e85">m_secondRowLayout</a>);</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    <span class="comment">// 更新最小最大值标签</span></div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    <a class="code hl_function" href="classTechSliderLabel.html#a4c98fb21f0ecdc9a82a3e4baede89935">updateRangeLabels</a>();</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>}</div>
+</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span> </div>
+<div class="foldopen" id="foldopen00123" data-start="{" data-end="}">
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#aff4a891b36e70b10fbd4f088155dbff4">  123</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#aff4a891b36e70b10fbd4f088155dbff4">TechSliderLabel::setupConnections</a>()</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>{</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    <span class="comment">// 先设置初始值</span></div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>    <a class="code hl_slot" href="classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c">setValue</a>(<a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a>);</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>    <span class="comment">// Slider值变化</span></div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    connect(<a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>, &amp;QSlider::valueChanged,</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>            <span class="keyword">this</span>, &amp;<a class="code hl_slot" href="classTechSliderLabel.html#a20e76cbe3e35a76f8f5110d49b3a0e83">TechSliderLabel::onSliderValueChanged</a>);</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>}</div>
+</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span> </div>
+<div class="foldopen" id="foldopen00132" data-start="{" data-end="}">
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a4c98fb21f0ecdc9a82a3e4baede89935">  132</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a4c98fb21f0ecdc9a82a3e4baede89935">TechSliderLabel::updateRangeLabels</a>()</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>{</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    <span class="comment">// 格式化数值显示</span></div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    QString minText = QString::number(<a class="code hl_variable" href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">m_minimum</a>, <span class="charliteral">&#39;f&#39;</span>, <a class="code hl_variable" href="classTechSliderLabel.html#a6de30f5feda3a7c97fd30da112e25564">m_precision</a>);</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    QString maxText = QString::number(<a class="code hl_variable" href="classTechSliderLabel.html#ac457382a82600c402ef77946b669bf30">m_maximum</a>, <span class="charliteral">&#39;f&#39;</span>, <a class="code hl_variable" href="classTechSliderLabel.html#a6de30f5feda3a7c97fd30da112e25564">m_precision</a>);</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    <span class="comment">// 如果有后缀，添加后缀</span></div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classTechSliderLabel.html#a9ced694dc0471d5b42ecaf32a0a6b431">m_suffix</a>.isEmpty()) {</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>        minText += <span class="stringliteral">&quot; &quot;</span> + <a class="code hl_variable" href="classTechSliderLabel.html#a9ced694dc0471d5b42ecaf32a0a6b431">m_suffix</a>;</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>        maxText += <span class="stringliteral">&quot; &quot;</span> + <a class="code hl_variable" href="classTechSliderLabel.html#a9ced694dc0471d5b42ecaf32a0a6b431">m_suffix</a>;</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>    }</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span> </div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>    <a class="code hl_variable" href="classTechSliderLabel.html#aa2b663cc3c1184173e92402f4e3dfe8b">m_minLabel</a>-&gt;setText(minText);</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ae18567bdc79263f75823be58f4c07f24">m_maxLabel</a>-&gt;setText(maxText);</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>}</div>
+</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span> </div>
+<div class="foldopen" id="foldopen00148" data-start="{" data-end="}">
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a137cc9f9cfc6955943135d841fe1bcfb">  148</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a137cc9f9cfc6955943135d841fe1bcfb">TechSliderLabel::paintEvent</a>(QPaintEvent *event)</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>{</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    QPainter painter(<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>    painter.setRenderHint(QPainter::Antialiasing);</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>    QWidget::paintEvent(event);</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>}</div>
+</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span> </div>
+<div class="foldopen" id="foldopen00155" data-start="{" data-end="}">
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a94f4a4536b724b6921a83ac1ad756fa5">  155</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a94f4a4536b724b6921a83ac1ad756fa5">TechSliderLabel::resizeEvent</a>(QResizeEvent *event)</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>{</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>    QWidget::resizeEvent(event);</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a21615e2103f1149deee8db4e2c1a3f30">m_scanLineEnabled</a>) {</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>        <a class="code hl_variable" href="classTechSliderLabel.html#a9b7150569a3b11ab524bd3f662d39dbe">m_scanLineWidth</a> = width() / 4;</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    }</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>}</div>
+</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span> </div>
+<div class="foldopen" id="foldopen00163" data-start="{" data-end="}">
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a5be2d27b9a42b44cd0d0728d16763797">  163</a></span><span class="keywordtype">double</span> <a class="code hl_function" href="classTechSliderLabel.html#a5be2d27b9a42b44cd0d0728d16763797">TechSliderLabel::sliderToValue</a>(<span class="keywordtype">int</span> sliderVal)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span><span class="keyword"></span>{</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>    <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">m_minimum</a> + (sliderVal * (<a class="code hl_variable" href="classTechSliderLabel.html#ac457382a82600c402ef77946b669bf30">m_maximum</a> - <a class="code hl_variable" href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">m_minimum</a>)) / (<a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;maximum() - <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;minimum());</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>}</div>
+</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span> </div>
+<div class="foldopen" id="foldopen00168" data-start="{" data-end="}">
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a14488cb084932cfc503a3d93f86fa115">  168</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="classTechSliderLabel.html#a14488cb084932cfc503a3d93f86fa115">TechSliderLabel::valueToSlider</a>(<span class="keywordtype">double</span> value)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span><span class="keyword"></span>{</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>    <span class="keywordflow">return</span> ((<a class="code hl_property" href="classTechSliderLabel.html#a27a457e778e20506a1e913ad91c7c168">value</a> - <a class="code hl_variable" href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">m_minimum</a>) * (<a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;maximum() - <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;minimum())) / (<a class="code hl_variable" href="classTechSliderLabel.html#ac457382a82600c402ef77946b669bf30">m_maximum</a> - <a class="code hl_variable" href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">m_minimum</a>);</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>}</div>
+</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span> </div>
+<div class="foldopen" id="foldopen00173" data-start="{" data-end="}">
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a20e76cbe3e35a76f8f5110d49b3a0e83">  173</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classTechSliderLabel.html#a20e76cbe3e35a76f8f5110d49b3a0e83">TechSliderLabel::onSliderValueChanged</a>(<span class="keywordtype">int</span> sliderValue)</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>{</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>    <span class="keywordtype">double</span> newValue = <a class="code hl_function" href="classTechSliderLabel.html#a5be2d27b9a42b44cd0d0728d16763797">sliderToValue</a>(sliderValue);</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>    <a class="code hl_slot" href="classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c">setValue</a>(newValue);</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span> </div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>    <span class="comment">// 四舍五入到指定精度</span></div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a6de30f5feda3a7c97fd30da112e25564">m_precision</a> &gt; 0) {</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>        newValue = qRound(newValue * <a class="code hl_variable" href="classTechSliderLabel.html#ad9650bee24eaa319d1ef2d35d68ad90c">m_conversionFactor</a>) / (double)<a class="code hl_variable" href="classTechSliderLabel.html#ad9650bee24eaa319d1ef2d35d68ad90c">m_conversionFactor</a>;</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    }</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span> </div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    <span class="keywordflow">if</span> (qAbs(newValue - <a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a>) &gt; 0.0001) {</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>        <a class="code hl_variable" href="classTechSliderLabel.html#af0313c2f0dd2e6ae0e1c006d88a7150f">m_oldValue</a> = <a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a>;</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>        <a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a> = newValue;</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>        <a class="code hl_function" href="classTechSliderLabel.html#a7c23aa694737f6797998e3652b4c4c62">updateValueLabelFromValue</a>();</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>        emit <a class="code hl_signal" href="classTechSliderLabel.html#a1a227665e06f4b23ce294145d3d93223">valueChanged</a>(<a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a>);</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>        emit <a class="code hl_signal" href="classTechSliderLabel.html#ad19109e0a48812466ea0bb4518bdfe25">valueChangedWithRecord</a>(<a class="code hl_variable" href="classTechSliderLabel.html#af0313c2f0dd2e6ae0e1c006d88a7150f">m_oldValue</a>, <a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a>);</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    }</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span> </div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    <span class="comment">// 触发重绘</span></div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>    <a class="code hl_function" href="classTechSliderLabel.html#aed6e6498a8c93bbab810a4f6c4f3a5e9">requestRepaint</a>();</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>}</div>
+</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span> </div>
+<div class="foldopen" id="foldopen00195" data-start="{" data-end="}">
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a462ee04c6eb27bdb898d84c0580fa2f1">  195</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a462ee04c6eb27bdb898d84c0580fa2f1">TechSliderLabel::updateSliderFromValue</a>()</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>{</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    <span class="keywordtype">int</span> sliderPos = <a class="code hl_function" href="classTechSliderLabel.html#a14488cb084932cfc503a3d93f86fa115">valueToSlider</a>(<a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a>);</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;blockSignals(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;setValue(sliderPos);</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;blockSignals(<span class="keyword">false</span>);</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>}</div>
+</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span> </div>
+<div class="foldopen" id="foldopen00203" data-start="{" data-end="}">
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a7c23aa694737f6797998e3652b4c4c62">  203</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a7c23aa694737f6797998e3652b4c4c62">TechSliderLabel::updateValueLabelFromValue</a>()</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>{</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>    QString text = QString::number(<a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a>, <span class="charliteral">&#39;f&#39;</span>, <a class="code hl_variable" href="classTechSliderLabel.html#a6de30f5feda3a7c97fd30da112e25564">m_precision</a>);</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>    <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classTechSliderLabel.html#a9ced694dc0471d5b42ecaf32a0a6b431">m_suffix</a>.isEmpty()) {</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>        text += <span class="stringliteral">&quot; &quot;</span> + <a class="code hl_variable" href="classTechSliderLabel.html#a9ced694dc0471d5b42ecaf32a0a6b431">m_suffix</a>;</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>    }</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span> </div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ad52df8064c14254c53ef53fa452537d5">m_valueLabel</a>-&gt;setText(text);</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>}</div>
+</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span> </div>
+<div class="foldopen" id="foldopen00213" data-start="{" data-end="}">
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a326219af66ba50a2fe784f9e67ff2bfe">  213</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classTechSliderLabel.html#a326219af66ba50a2fe784f9e67ff2bfe">TechSliderLabel::updateScanLine</a>()</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>{</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a21615e2103f1149deee8db4e2c1a3f30">m_scanLineEnabled</a>) {</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>        <a class="code hl_variable" href="classTechSliderLabel.html#a5276c5ae2190f3f95c08339c4669ff40">m_scanLinePos</a> += 3;</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a5276c5ae2190f3f95c08339c4669ff40">m_scanLinePos</a> &gt; width()) {</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>            <a class="code hl_variable" href="classTechSliderLabel.html#a5276c5ae2190f3f95c08339c4669ff40">m_scanLinePos</a> = -<a class="code hl_variable" href="classTechSliderLabel.html#a9b7150569a3b11ab524bd3f662d39dbe">m_scanLineWidth</a>;</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>        }</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>        <a class="code hl_function" href="classTechSliderLabel.html#aed6e6498a8c93bbab810a4f6c4f3a5e9">requestRepaint</a>();</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>    }</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>}</div>
+</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span> </div>
+<div class="foldopen" id="foldopen00224" data-start="{" data-end="}">
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a98b69db009dcc40777c5402dab282baf">  224</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classTechSliderLabel.html#a98b69db009dcc40777c5402dab282baf">TechSliderLabel::updatePulseEffect</a>()</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>{</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a23c83e1e9e83b75370c009ca898e789e">m_pulseEnabled</a>) {</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a10d07ff09d52cb1219e891a55fcc32eb">m_pulseDirection</a>) {</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>            <a class="code hl_variable" href="classTechSliderLabel.html#a02209ae4f5b571605241206a38a840d0">m_pulseAlpha</a> += 0.05;</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a02209ae4f5b571605241206a38a840d0">m_pulseAlpha</a> &gt;= 1.0) {</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>                <a class="code hl_variable" href="classTechSliderLabel.html#a02209ae4f5b571605241206a38a840d0">m_pulseAlpha</a> = 1.0;</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>                <a class="code hl_variable" href="classTechSliderLabel.html#a10d07ff09d52cb1219e891a55fcc32eb">m_pulseDirection</a> = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>            }</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>            <a class="code hl_variable" href="classTechSliderLabel.html#a02209ae4f5b571605241206a38a840d0">m_pulseAlpha</a> -= 0.05;</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a02209ae4f5b571605241206a38a840d0">m_pulseAlpha</a> &lt;= 0.3) {</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>                <a class="code hl_variable" href="classTechSliderLabel.html#a02209ae4f5b571605241206a38a840d0">m_pulseAlpha</a> = 0.3;</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>                <a class="code hl_variable" href="classTechSliderLabel.html#a10d07ff09d52cb1219e891a55fcc32eb">m_pulseDirection</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>            }</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>        }</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>        <a class="code hl_function" href="classTechSliderLabel.html#aed6e6498a8c93bbab810a4f6c4f3a5e9">requestRepaint</a>();</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>    }</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>}</div>
+</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span> </div>
+<div class="foldopen" id="foldopen00244" data-start="{" data-end="}">
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a75032c7318fc84fcbaea0b9d3cdb0bc2">  244</a></span><span class="keywordtype">double</span> <a class="code hl_property" href="classTechSliderLabel.html#a27a457e778e20506a1e913ad91c7c168">TechSliderLabel::value</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span><span class="keyword"></span>{</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>    <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a>;</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>}</div>
+</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span> </div>
+<div class="foldopen" id="foldopen00249" data-start="{" data-end="}">
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a8d88606e5ab8b5cfab2cd21e6c1e605c">  249</a></span><span class="keywordtype">double</span> <a class="code hl_property" href="classTechSliderLabel.html#a55e2b58de7d9d235a9d796f442f4818e">TechSliderLabel::minimum</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span><span class="keyword"></span>{</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">m_minimum</a>;</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>}</div>
+</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span> </div>
+<div class="foldopen" id="foldopen00254" data-start="{" data-end="}">
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#afd2bb2acd06de18b159d5ab7d843f95b">  254</a></span><span class="keywordtype">double</span> <a class="code hl_property" href="classTechSliderLabel.html#aaebaf2f47deb7e3e02e2ab716b8938a7">TechSliderLabel::maximum</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span><span class="keyword"></span>{</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechSliderLabel.html#ac457382a82600c402ef77946b669bf30">m_maximum</a>;</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>}</div>
+</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span> </div>
+<div class="foldopen" id="foldopen00259" data-start="{" data-end="}">
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#aa28eb430e38ad1c47c6370f8c36083a0">  259</a></span><span class="keywordtype">int</span> <a class="code hl_property" href="classTechSliderLabel.html#a828f613163e68d3fe982c8f1b08dbd10">TechSliderLabel::precision</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span><span class="keyword"></span>{</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>    <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechSliderLabel.html#a6de30f5feda3a7c97fd30da112e25564">m_precision</a>;</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>}</div>
+</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span> </div>
+<div class="foldopen" id="foldopen00264" data-start="{" data-end="}">
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c">  264</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c">TechSliderLabel::setValue</a>(<span class="keywordtype">double</span> value)</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>{</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>    <span class="keywordflow">if</span> (<a class="code hl_property" href="classTechSliderLabel.html#a27a457e778e20506a1e913ad91c7c168">value</a> &lt; <a class="code hl_variable" href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">m_minimum</a>) <a class="code hl_property" href="classTechSliderLabel.html#a27a457e778e20506a1e913ad91c7c168">value</a> = <a class="code hl_variable" href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">m_minimum</a>;</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    <span class="keywordflow">if</span> (<a class="code hl_property" href="classTechSliderLabel.html#a27a457e778e20506a1e913ad91c7c168">value</a> &gt; <a class="code hl_variable" href="classTechSliderLabel.html#ac457382a82600c402ef77946b669bf30">m_maximum</a>) <a class="code hl_property" href="classTechSliderLabel.html#a27a457e778e20506a1e913ad91c7c168">value</a> = <a class="code hl_variable" href="classTechSliderLabel.html#ac457382a82600c402ef77946b669bf30">m_maximum</a>;</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span> </div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>    <span class="keywordflow">if</span> (qAbs(<a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a> - <a class="code hl_property" href="classTechSliderLabel.html#a27a457e778e20506a1e913ad91c7c168">value</a>) &gt; 0.0001) {</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>        <a class="code hl_variable" href="classTechSliderLabel.html#af0313c2f0dd2e6ae0e1c006d88a7150f">m_oldValue</a> = <a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a>;</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>        <a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a> = <a class="code hl_property" href="classTechSliderLabel.html#a27a457e778e20506a1e913ad91c7c168">value</a>;</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>        <a class="code hl_function" href="classTechSliderLabel.html#a462ee04c6eb27bdb898d84c0580fa2f1">updateSliderFromValue</a>();</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>        </div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>        <span class="comment">// 如果开启了力控模式，根据数值更新颜色</span></div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a5077735698bc022037f5312872e31e6e">m_forceControlEnabled</a>) {</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>            <span class="keywordtype">double</span> range = <a class="code hl_variable" href="classTechSliderLabel.html#ac457382a82600c402ef77946b669bf30">m_maximum</a> - <a class="code hl_variable" href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">m_minimum</a>;</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>            <span class="keywordflow">if</span> (range &gt; 0) {</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>                <span class="comment">// 计算离极值的程度 (0-1), 0表示在中间, 1表示在最大或最小值</span></div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>                <span class="keywordtype">double</span> center = (<a class="code hl_variable" href="classTechSliderLabel.html#ac457382a82600c402ef77946b669bf30">m_maximum</a> + <a class="code hl_variable" href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">m_minimum</a>) / 2.0;</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>                <span class="keywordtype">double</span> deviation = qAbs(<a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a> - center) / (range / 2.0);</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>                </div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>                <span class="comment">// 限制在0-1范围</span></div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>                deviation = qBound(0.0, deviation, 1.0);</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>                </div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>                <span class="comment">// 插值颜色: 原色 -&gt; 红色 (#FF3333)</span></div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>                QColor targetRed(255, 51, 51);</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>                </div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>                <span class="keyword">auto</span> interpolate = [](<span class="keyword">const</span> QColor&amp; start, <span class="keyword">const</span> QColor&amp; end, <span class="keywordtype">double</span> t) {</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>                    <span class="keywordflow">return</span> QColor(</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>                        start.red() + (end.red() - start.red()) * t,</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>                        start.green() + (end.green() - start.green()) * t,</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>                        start.blue() + (end.blue() - start.blue()) * t,</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>                        start.alpha() + (end.alpha() - start.alpha()) * t</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>                    );</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>                };</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>                </div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>                <a class="code hl_variable" href="classTechSliderLabel.html#aff3eb821ae66b87664b92298ac7462e0">m_primaryColor</a> = interpolate(<a class="code hl_variable" href="classTechSliderLabel.html#a651f8341d461d927a0acfa0f635a7abd">m_originalPrimaryColor</a>, targetRed, deviation);</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>                <a class="code hl_variable" href="classTechSliderLabel.html#a144a0e2ec866e135ffa8f98680c8ed6c">m_secondaryColor</a> = interpolate(<a class="code hl_variable" href="classTechSliderLabel.html#a26b83a33b108f934d4296a52b5a2ab8c">m_originalSecondaryColor</a>, targetRed, deviation);</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>                <a class="code hl_variable" href="classTechSliderLabel.html#a391db8f381c606dd28f3c277bbcff9b2">m_glowColor</a> = interpolate(<a class="code hl_variable" href="classTechSliderLabel.html#af098e794169e9c0b9ef34b48383cb5f3">m_originalGlowColor</a>, QColor(255, 51, 51, 180), deviation);</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>                </div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>                <a class="code hl_function" href="classTechSliderLabel.html#af0ebb1447f625a86980ae1f48b97835c">applyTechStyle</a>();</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>            }</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>        }</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>        </div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>        <a class="code hl_function" href="classTechSliderLabel.html#a7c23aa694737f6797998e3652b4c4c62">updateValueLabelFromValue</a>();</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>        emit <a class="code hl_signal" href="classTechSliderLabel.html#a1a227665e06f4b23ce294145d3d93223">valueChanged</a>(<a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a>);</div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>    }</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>}</div>
+</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span> </div>
+<div class="foldopen" id="foldopen00310" data-start="{" data-end="}">
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a5db9db9a7ec40b77927586131b2aed11">  310</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classTechSliderLabel.html#a5db9db9a7ec40b77927586131b2aed11">TechSliderLabel::setMinimum</a>(<span class="keywordtype">double</span> min)</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>{</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">m_minimum</a> = min;</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a> &lt; min) <a class="code hl_slot" href="classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c">setValue</a>(min);</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>    <a class="code hl_function" href="classTechSliderLabel.html#a4c98fb21f0ecdc9a82a3e4baede89935">updateRangeLabels</a>();</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>}</div>
+</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span> </div>
+<div class="foldopen" id="foldopen00317" data-start="{" data-end="}">
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a6aea5baeaefe4f43a9b0e8366d81b663">  317</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classTechSliderLabel.html#a6aea5baeaefe4f43a9b0e8366d81b663">TechSliderLabel::setMaximum</a>(<span class="keywordtype">double</span> max)</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>{</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ac457382a82600c402ef77946b669bf30">m_maximum</a> = max;</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a> &gt; max) <a class="code hl_slot" href="classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c">setValue</a>(max);</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>    <a class="code hl_function" href="classTechSliderLabel.html#a4c98fb21f0ecdc9a82a3e4baede89935">updateRangeLabels</a>();</div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>}</div>
+</div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span> </div>
+<div class="foldopen" id="foldopen00324" data-start="{" data-end="}">
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a2600814871dd5b4858f7d895ef65b23c">  324</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classTechSliderLabel.html#a2600814871dd5b4858f7d895ef65b23c">TechSliderLabel::setPrecision</a>(<span class="keywordtype">int</span> precision)</div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>{</div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a6de30f5feda3a7c97fd30da112e25564">m_precision</a> = qMax(0, <a class="code hl_property" href="classTechSliderLabel.html#a828f613163e68d3fe982c8f1b08dbd10">precision</a>);</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ad9650bee24eaa319d1ef2d35d68ad90c">m_conversionFactor</a> = qPow(10, <a class="code hl_variable" href="classTechSliderLabel.html#a6de30f5feda3a7c97fd30da112e25564">m_precision</a>);</div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>    <a class="code hl_function" href="classTechSliderLabel.html#a7c23aa694737f6797998e3652b4c4c62">updateValueLabelFromValue</a>();</div>
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>    <a class="code hl_function" href="classTechSliderLabel.html#a4c98fb21f0ecdc9a82a3e4baede89935">updateRangeLabels</a>();</div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>}</div>
+</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span> </div>
+<div class="foldopen" id="foldopen00332" data-start="{" data-end="}">
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#ae2d6b74fd9e54932a8889ff477a6bba8">  332</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#ae2d6b74fd9e54932a8889ff477a6bba8">TechSliderLabel::setRange</a>(<span class="keywordtype">double</span> min, <span class="keywordtype">double</span> max)</div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>{</div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">m_minimum</a> = min;</div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ac457382a82600c402ef77946b669bf30">m_maximum</a> = max;</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a> &lt; min) <a class="code hl_slot" href="classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c">setValue</a>(min);</div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a> &gt; max) <a class="code hl_slot" href="classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c">setValue</a>(max);</div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>    <a class="code hl_function" href="classTechSliderLabel.html#a4c98fb21f0ecdc9a82a3e4baede89935">updateRangeLabels</a>();</div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>}</div>
+</div>
+<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span> </div>
+<div class="foldopen" id="foldopen00341" data-start="{" data-end="}">
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a3545825ef0117abe8c6883b9cc5a63b9">  341</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a3545825ef0117abe8c6883b9cc5a63b9">TechSliderLabel::setSingleStep</a>(<span class="keywordtype">double</span> step)</div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>{</div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>    <a class="code hl_variable" href="classTechSliderLabel.html#abad4dbaf3e589a830f7ccf95a563a3e0">m_singleStep</a> = step;</div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>    <span class="keywordtype">int</span> sliderStep = step * (<a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;maximum() - <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;minimum()) / (<a class="code hl_variable" href="classTechSliderLabel.html#ac457382a82600c402ef77946b669bf30">m_maximum</a> - <a class="code hl_variable" href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">m_minimum</a>);</div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;setSingleStep(qMax(1, sliderStep));</div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;setPageStep(sliderStep * 5);</div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>}</div>
+</div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span> </div>
+<div class="foldopen" id="foldopen00349" data-start="{" data-end="}">
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a99c04e18c22bdbbcdbfcfd242656a85a">  349</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a99c04e18c22bdbbcdbfcfd242656a85a">TechSliderLabel::setSuffix</a>(<span class="keyword">const</span> QString &amp;suffix)</div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>{</div>
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a9ced694dc0471d5b42ecaf32a0a6b431">m_suffix</a> = suffix;</div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>    <a class="code hl_function" href="classTechSliderLabel.html#a7c23aa694737f6797998e3652b4c4c62">updateValueLabelFromValue</a>();</div>
+<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>    <a class="code hl_function" href="classTechSliderLabel.html#a4c98fb21f0ecdc9a82a3e4baede89935">updateRangeLabels</a>();</div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>}</div>
+</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span> </div>
+<div class="foldopen" id="foldopen00356" data-start="{" data-end="}">
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#afec0ab8a335fa1a7c3fe28ac0341f224">  356</a></span>QString <a class="code hl_property" href="classTechSliderLabel.html#a182bb1cdb77ec6bd0379b3bd3fa3fe12">TechSliderLabel::labelText</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span><span class="keyword"></span>{</div>
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>    <span class="keywordflow">return</span> <a class="code hl_variable" href="classTechSliderLabel.html#ad6e07ab13c38f22e9fa011b8130e428b">m_label</a> ? <a class="code hl_variable" href="classTechSliderLabel.html#ad6e07ab13c38f22e9fa011b8130e428b">m_label</a>-&gt;text() : QString();</div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>}</div>
+</div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span> </div>
+<div class="foldopen" id="foldopen00361" data-start="{" data-end="}">
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a66efa0956feece0f04bc26a6fb2c4c53">  361</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a66efa0956feece0f04bc26a6fb2c4c53">TechSliderLabel::setLabelText</a>(<span class="keyword">const</span> QString &amp;text)</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>{</div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#ad6e07ab13c38f22e9fa011b8130e428b">m_label</a>) {</div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>        <a class="code hl_variable" href="classTechSliderLabel.html#ad6e07ab13c38f22e9fa011b8130e428b">m_label</a>-&gt;setText(text);</div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>    }</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>}</div>
+</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span> </div>
+<div class="foldopen" id="foldopen00368" data-start="{" data-end="}">
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a82262f4d206dc247dde93b976786f058">  368</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a82262f4d206dc247dde93b976786f058">TechSliderLabel::setLabelWidth</a>(<span class="keywordtype">int</span> width)</div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>{</div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#ad6e07ab13c38f22e9fa011b8130e428b">m_label</a>) {</div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span>        <a class="code hl_variable" href="classTechSliderLabel.html#ad6e07ab13c38f22e9fa011b8130e428b">m_label</a>-&gt;setFixedWidth(width);</div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>    }</div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>}</div>
+</div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span> </div>
+<div class="foldopen" id="foldopen00375" data-start="{" data-end="}">
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#acbd3293a9179ac145812493883f78e8c">  375</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#acbd3293a9179ac145812493883f78e8c">TechSliderLabel::setRangeLabelsWidth</a>(<span class="keywordtype">int</span> width)</div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>{</div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#aa2b663cc3c1184173e92402f4e3dfe8b">m_minLabel</a> &amp;&amp; <a class="code hl_variable" href="classTechSliderLabel.html#ae18567bdc79263f75823be58f4c07f24">m_maxLabel</a>) {</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>        <a class="code hl_variable" href="classTechSliderLabel.html#aa2b663cc3c1184173e92402f4e3dfe8b">m_minLabel</a>-&gt;setFixedWidth(width);</div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>        <a class="code hl_variable" href="classTechSliderLabel.html#ae18567bdc79263f75823be58f4c07f24">m_maxLabel</a>-&gt;setFixedWidth(width);</div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>    }</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>}</div>
+</div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span> </div>
+<div class="foldopen" id="foldopen00383" data-start="{" data-end="}">
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#aff4cf65c76598e4ba31c3574a4109f89">  383</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#aff4cf65c76598e4ba31c3574a4109f89">TechSliderLabel::setRangeLabelsVisible</a>(<span class="keywordtype">bool</span> visible)</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>{</div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#aa2b663cc3c1184173e92402f4e3dfe8b">m_minLabel</a> &amp;&amp; <a class="code hl_variable" href="classTechSliderLabel.html#ae18567bdc79263f75823be58f4c07f24">m_maxLabel</a>) {</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>        <a class="code hl_variable" href="classTechSliderLabel.html#aa2b663cc3c1184173e92402f4e3dfe8b">m_minLabel</a>-&gt;setVisible(visible);</div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>        <a class="code hl_variable" href="classTechSliderLabel.html#ae18567bdc79263f75823be58f4c07f24">m_maxLabel</a>-&gt;setVisible(visible);</div>
+<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>    }</div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>}</div>
+</div>
+<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span> </div>
+<div class="foldopen" id="foldopen00391" data-start="{" data-end="}">
+<div class="line"><a id="l00391" name="l00391"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a4f95aaaf43bf112f85d6f35b842e5788">  391</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a4f95aaaf43bf112f85d6f35b842e5788">TechSliderLabel::setPrimaryColor</a>(<span class="keyword">const</span> QColor &amp;color)</div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>{</div>
+<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span>    <a class="code hl_variable" href="classTechSliderLabel.html#aff3eb821ae66b87664b92298ac7462e0">m_primaryColor</a> = color;</div>
+<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>    <a class="code hl_function" href="classTechSliderLabel.html#af0ebb1447f625a86980ae1f48b97835c">applyTechStyle</a>();</div>
+<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span>}</div>
+</div>
+<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span> </div>
+<div class="foldopen" id="foldopen00397" data-start="{" data-end="}">
+<div class="line"><a id="l00397" name="l00397"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a0674bddcd82c2c7f3ef00d188a94532c">  397</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a0674bddcd82c2c7f3ef00d188a94532c">TechSliderLabel::setSecondaryColor</a>(<span class="keyword">const</span> QColor &amp;color)</div>
+<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span>{</div>
+<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a144a0e2ec866e135ffa8f98680c8ed6c">m_secondaryColor</a> = color;</div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>    <a class="code hl_function" href="classTechSliderLabel.html#af0ebb1447f625a86980ae1f48b97835c">applyTechStyle</a>();</div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>}</div>
+</div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span> </div>
+<div class="foldopen" id="foldopen00403" data-start="{" data-end="}">
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#adb65ffc9ea4492201db628a6ed5ae7c9">  403</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#adb65ffc9ea4492201db628a6ed5ae7c9">TechSliderLabel::setGlowColor</a>(<span class="keyword">const</span> QColor &amp;color)</div>
+<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>{</div>
+<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a391db8f381c606dd28f3c277bbcff9b2">m_glowColor</a> = color;</div>
+<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span>    <a class="code hl_function" href="classTechSliderLabel.html#af0ebb1447f625a86980ae1f48b97835c">applyTechStyle</a>();</div>
+<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span>}</div>
+</div>
+<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span> </div>
+<div class="foldopen" id="foldopen00409" data-start="{" data-end="}">
+<div class="line"><a id="l00409" name="l00409"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#adb1d9d5283369dc0f09cb17004670985">  409</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#adb1d9d5283369dc0f09cb17004670985">TechSliderLabel::setGlowIntensity</a>(<span class="keywordtype">int</span> intensity)</div>
+<div class="line"><a id="l00410" name="l00410"></a><span class="lineno">  410</span>{</div>
+<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">m_shadowEffect</a>) {</div>
+<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span>        <a class="code hl_variable" href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">m_shadowEffect</a>-&gt;setBlurRadius(qBound(5, intensity, 50));</div>
+<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span>    }</div>
+<div class="line"><a id="l00414" name="l00414"></a><span class="lineno">  414</span>}</div>
+</div>
+<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span> </div>
+<div class="foldopen" id="foldopen00416" data-start="{" data-end="}">
+<div class="line"><a id="l00416" name="l00416"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#afbebce1c4527a4b11638c4c789f70848">  416</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#afbebce1c4527a4b11638c4c789f70848">TechSliderLabel::enableGlowEffect</a>(<span class="keywordtype">bool</span> enable)</div>
+<div class="line"><a id="l00417" name="l00417"></a><span class="lineno">  417</span>{</div>
+<div class="line"><a id="l00418" name="l00418"></a><span class="lineno">  418</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a4a876f38a516a9dde25333e8825b94ff">m_glowEnabled</a> = enable;</div>
+<div class="line"><a id="l00419" name="l00419"></a><span class="lineno">  419</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">m_shadowEffect</a>) {</div>
+<div class="line"><a id="l00420" name="l00420"></a><span class="lineno">  420</span>        <a class="code hl_variable" href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">m_shadowEffect</a>-&gt;setEnabled(enable);</div>
+<div class="line"><a id="l00421" name="l00421"></a><span class="lineno">  421</span>    }</div>
+<div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span>    <span class="keywordflow">if</span> (!enable &amp;&amp; <a class="code hl_variable" href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">m_shadowEffect</a>) {</div>
+<div class="line"><a id="l00423" name="l00423"></a><span class="lineno">  423</span>        this-&gt;setGraphicsEffect(<span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00424" name="l00424"></a><span class="lineno">  424</span>        <span class="keyword">delete</span> <a class="code hl_variable" href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">m_shadowEffect</a>;</div>
+<div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span>        <a class="code hl_variable" href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">m_shadowEffect</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00426" name="l00426"></a><span class="lineno">  426</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (enable &amp;&amp; !<a class="code hl_variable" href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">m_shadowEffect</a>) {</div>
+<div class="line"><a id="l00427" name="l00427"></a><span class="lineno">  427</span>        <a class="code hl_variable" href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">m_shadowEffect</a> = <span class="keyword">new</span> QGraphicsDropShadowEffect(<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00428" name="l00428"></a><span class="lineno">  428</span>        <a class="code hl_variable" href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">m_shadowEffect</a>-&gt;setBlurRadius(15);</div>
+<div class="line"><a id="l00429" name="l00429"></a><span class="lineno">  429</span>        <a class="code hl_variable" href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">m_shadowEffect</a>-&gt;setColor(<a class="code hl_variable" href="classTechSliderLabel.html#a391db8f381c606dd28f3c277bbcff9b2">m_glowColor</a>);</div>
+<div class="line"><a id="l00430" name="l00430"></a><span class="lineno">  430</span>        <a class="code hl_variable" href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">m_shadowEffect</a>-&gt;setOffset(0, 0);</div>
+<div class="line"><a id="l00431" name="l00431"></a><span class="lineno">  431</span>        this-&gt;setGraphicsEffect(<a class="code hl_variable" href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">m_shadowEffect</a>);</div>
+<div class="line"><a id="l00432" name="l00432"></a><span class="lineno">  432</span>    }</div>
+<div class="line"><a id="l00433" name="l00433"></a><span class="lineno">  433</span>}</div>
+</div>
+<div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span> </div>
+<div class="foldopen" id="foldopen00435" data-start="{" data-end="}">
+<div class="line"><a id="l00435" name="l00435"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a3d5a53285c89d132b26bea200a17c08d">  435</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a3d5a53285c89d132b26bea200a17c08d">TechSliderLabel::enableScanLine</a>(<span class="keywordtype">bool</span> enable)</div>
+<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span>{</div>
+<div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a21615e2103f1149deee8db4e2c1a3f30">m_scanLineEnabled</a> = enable;</div>
+<div class="line"><a id="l00438" name="l00438"></a><span class="lineno">  438</span>    <a class="code hl_function" href="classTechSliderLabel.html#aed6e6498a8c93bbab810a4f6c4f3a5e9">requestRepaint</a>();</div>
+<div class="line"><a id="l00439" name="l00439"></a><span class="lineno">  439</span>}</div>
+</div>
+<div class="line"><a id="l00440" name="l00440"></a><span class="lineno">  440</span> </div>
+<div class="foldopen" id="foldopen00441" data-start="{" data-end="}">
+<div class="line"><a id="l00441" name="l00441"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#aaff4ac11b8b42fe6d9ff55e9a27c7cbf">  441</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#aaff4ac11b8b42fe6d9ff55e9a27c7cbf">TechSliderLabel::enablePulseEffect</a>(<span class="keywordtype">bool</span> enable)</div>
+<div class="line"><a id="l00442" name="l00442"></a><span class="lineno">  442</span>{</div>
+<div class="line"><a id="l00443" name="l00443"></a><span class="lineno">  443</span>    <a class="code hl_variable" href="classTechSliderLabel.html#a23c83e1e9e83b75370c009ca898e789e">m_pulseEnabled</a> = enable;</div>
+<div class="line"><a id="l00444" name="l00444"></a><span class="lineno">  444</span>    <a class="code hl_function" href="classTechSliderLabel.html#aed6e6498a8c93bbab810a4f6c4f3a5e9">requestRepaint</a>();</div>
+<div class="line"><a id="l00445" name="l00445"></a><span class="lineno">  445</span>}</div>
+</div>
+<div class="line"><a id="l00446" name="l00446"></a><span class="lineno">  446</span> </div>
+<div class="foldopen" id="foldopen00447" data-start="{" data-end="}">
+<div class="line"><a id="l00447" name="l00447"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a3f30d7b64372953e259913253c97e1db">  447</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a3f30d7b64372953e259913253c97e1db">TechSliderLabel::setTechBlueStyle</a>()</div>
+<div class="line"><a id="l00448" name="l00448"></a><span class="lineno">  448</span>{</div>
+<div class="line"><a id="l00449" name="l00449"></a><span class="lineno">  449</span>    <span class="comment">// 设置科技蓝样式</span></div>
+<div class="line"><a id="l00450" name="l00450"></a><span class="lineno">  450</span>    <a class="code hl_function" href="classTechSliderLabel.html#a4f95aaaf43bf112f85d6f35b842e5788">setPrimaryColor</a>(QColor(0, 200, 255));</div>
+<div class="line"><a id="l00451" name="l00451"></a><span class="lineno">  451</span>    <a class="code hl_function" href="classTechSliderLabel.html#a0674bddcd82c2c7f3ef00d188a94532c">setSecondaryColor</a>(QColor(0, 200, 255));</div>
+<div class="line"><a id="l00452" name="l00452"></a><span class="lineno">  452</span>    <a class="code hl_function" href="classTechSliderLabel.html#adb65ffc9ea4492201db628a6ed5ae7c9">setGlowColor</a>(QColor(0, 255, 255, 180));</div>
+<div class="line"><a id="l00453" name="l00453"></a><span class="lineno">  453</span>}</div>
+</div>
+<div class="line"><a id="l00454" name="l00454"></a><span class="lineno">  454</span> </div>
+<div class="foldopen" id="foldopen00455" data-start="{" data-end="}">
+<div class="line"><a id="l00455" name="l00455"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a3c47c6124c2d4989431e6a912c125765">  455</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classTechSliderLabel.html#a3c47c6124c2d4989431e6a912c125765">TechSliderLabel::updateAnimation</a>()</div>
+<div class="line"><a id="l00456" name="l00456"></a><span class="lineno">  456</span>{</div>
+<div class="line"><a id="l00457" name="l00457"></a><span class="lineno">  457</span>    <span class="keywordtype">bool</span> needUpdate = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00458" name="l00458"></a><span class="lineno">  458</span> </div>
+<div class="line"><a id="l00459" name="l00459"></a><span class="lineno">  459</span>    <span class="comment">// 更新扫描线效果</span></div>
+<div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a21615e2103f1149deee8db4e2c1a3f30">m_scanLineEnabled</a>) {</div>
+<div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span>        <a class="code hl_variable" href="classTechSliderLabel.html#a5276c5ae2190f3f95c08339c4669ff40">m_scanLinePos</a> += 3;</div>
+<div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a5276c5ae2190f3f95c08339c4669ff40">m_scanLinePos</a> &gt; width()) {</div>
+<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span>            <a class="code hl_variable" href="classTechSliderLabel.html#a5276c5ae2190f3f95c08339c4669ff40">m_scanLinePos</a> = -<a class="code hl_variable" href="classTechSliderLabel.html#a9b7150569a3b11ab524bd3f662d39dbe">m_scanLineWidth</a>;</div>
+<div class="line"><a id="l00464" name="l00464"></a><span class="lineno">  464</span>        }</div>
+<div class="line"><a id="l00465" name="l00465"></a><span class="lineno">  465</span>        needUpdate = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00466" name="l00466"></a><span class="lineno">  466</span>    }</div>
+<div class="line"><a id="l00467" name="l00467"></a><span class="lineno">  467</span> </div>
+<div class="line"><a id="l00468" name="l00468"></a><span class="lineno">  468</span>    <span class="comment">// 更新脉冲效果</span></div>
+<div class="line"><a id="l00469" name="l00469"></a><span class="lineno">  469</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a23c83e1e9e83b75370c009ca898e789e">m_pulseEnabled</a>) {</div>
+<div class="line"><a id="l00470" name="l00470"></a><span class="lineno">  470</span>        <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a10d07ff09d52cb1219e891a55fcc32eb">m_pulseDirection</a>) {</div>
+<div class="line"><a id="l00471" name="l00471"></a><span class="lineno">  471</span>            <a class="code hl_variable" href="classTechSliderLabel.html#a02209ae4f5b571605241206a38a840d0">m_pulseAlpha</a> += 0.05;</div>
+<div class="line"><a id="l00472" name="l00472"></a><span class="lineno">  472</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a02209ae4f5b571605241206a38a840d0">m_pulseAlpha</a> &gt;= 1.0) {</div>
+<div class="line"><a id="l00473" name="l00473"></a><span class="lineno">  473</span>                <a class="code hl_variable" href="classTechSliderLabel.html#a02209ae4f5b571605241206a38a840d0">m_pulseAlpha</a> = 1.0;</div>
+<div class="line"><a id="l00474" name="l00474"></a><span class="lineno">  474</span>                <a class="code hl_variable" href="classTechSliderLabel.html#a10d07ff09d52cb1219e891a55fcc32eb">m_pulseDirection</a> = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00475" name="l00475"></a><span class="lineno">  475</span>            }</div>
+<div class="line"><a id="l00476" name="l00476"></a><span class="lineno">  476</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00477" name="l00477"></a><span class="lineno">  477</span>            <a class="code hl_variable" href="classTechSliderLabel.html#a02209ae4f5b571605241206a38a840d0">m_pulseAlpha</a> -= 0.05;</div>
+<div class="line"><a id="l00478" name="l00478"></a><span class="lineno">  478</span>            <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a02209ae4f5b571605241206a38a840d0">m_pulseAlpha</a> &lt;= 0.3) {</div>
+<div class="line"><a id="l00479" name="l00479"></a><span class="lineno">  479</span>                <a class="code hl_variable" href="classTechSliderLabel.html#a02209ae4f5b571605241206a38a840d0">m_pulseAlpha</a> = 0.3;</div>
+<div class="line"><a id="l00480" name="l00480"></a><span class="lineno">  480</span>                <a class="code hl_variable" href="classTechSliderLabel.html#a10d07ff09d52cb1219e891a55fcc32eb">m_pulseDirection</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00481" name="l00481"></a><span class="lineno">  481</span>            }</div>
+<div class="line"><a id="l00482" name="l00482"></a><span class="lineno">  482</span>        }</div>
+<div class="line"><a id="l00483" name="l00483"></a><span class="lineno">  483</span>        needUpdate = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00484" name="l00484"></a><span class="lineno">  484</span>    }</div>
+<div class="line"><a id="l00485" name="l00485"></a><span class="lineno">  485</span> </div>
+<div class="line"><a id="l00486" name="l00486"></a><span class="lineno">  486</span>    <span class="keywordflow">if</span> (needUpdate) {</div>
+<div class="line"><a id="l00487" name="l00487"></a><span class="lineno">  487</span>        <a class="code hl_function" href="classTechSliderLabel.html#aed6e6498a8c93bbab810a4f6c4f3a5e9">requestRepaint</a>();</div>
+<div class="line"><a id="l00488" name="l00488"></a><span class="lineno">  488</span>    }</div>
+<div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span>}</div>
+</div>
+<div class="line"><a id="l00490" name="l00490"></a><span class="lineno">  490</span> </div>
+<div class="foldopen" id="foldopen00491" data-start="{" data-end="}">
+<div class="line"><a id="l00491" name="l00491"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a6fd400c3475635b65ea416a326440c58">  491</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a6fd400c3475635b65ea416a326440c58">TechSliderLabel::setModbusAddress</a>(<span class="keywordtype">int</span> address)</div>
+<div class="line"><a id="l00492" name="l00492"></a><span class="lineno">  492</span>{</div>
+<div class="line"><a id="l00493" name="l00493"></a><span class="lineno">  493</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#aa8a64980e79495053b61c4e27b03997c">m_modbusAddress</a> != address) {</div>
+<div class="line"><a id="l00494" name="l00494"></a><span class="lineno">  494</span>        <a class="code hl_variable" href="classTechSliderLabel.html#aa8a64980e79495053b61c4e27b03997c">m_modbusAddress</a> = address;</div>
+<div class="line"><a id="l00495" name="l00495"></a><span class="lineno">  495</span>        emit <a class="code hl_signal" href="classTechSliderLabel.html#a77ab98e12a7e5c3d46d7134584880814">modbusAddressChanged</a>(address);</div>
+<div class="line"><a id="l00496" name="l00496"></a><span class="lineno">  496</span>    }</div>
+<div class="line"><a id="l00497" name="l00497"></a><span class="lineno">  497</span>}</div>
+</div>
+<div class="line"><a id="l00498" name="l00498"></a><span class="lineno">  498</span> </div>
+<div class="foldopen" id="foldopen00499" data-start="{" data-end="}">
+<div class="line"><a id="l00499" name="l00499"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#ae1ec5a7453bc90d036404e8f8be00a6a">  499</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#ae1ec5a7453bc90d036404e8f8be00a6a">TechSliderLabel::setForceControlMode</a>(<span class="keywordtype">bool</span> enabled)</div>
+<div class="line"><a id="l00500" name="l00500"></a><span class="lineno">  500</span>{</div>
+<div class="line"><a id="l00501" name="l00501"></a><span class="lineno">  501</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#a5077735698bc022037f5312872e31e6e">m_forceControlEnabled</a> != enabled) {</div>
+<div class="line"><a id="l00502" name="l00502"></a><span class="lineno">  502</span>        <a class="code hl_variable" href="classTechSliderLabel.html#a5077735698bc022037f5312872e31e6e">m_forceControlEnabled</a> = enabled;</div>
+<div class="line"><a id="l00503" name="l00503"></a><span class="lineno">  503</span>        <span class="keywordflow">if</span> (!enabled) {</div>
+<div class="line"><a id="l00504" name="l00504"></a><span class="lineno">  504</span>            <span class="comment">// 恢复原色</span></div>
+<div class="line"><a id="l00505" name="l00505"></a><span class="lineno">  505</span>            <a class="code hl_variable" href="classTechSliderLabel.html#aff3eb821ae66b87664b92298ac7462e0">m_primaryColor</a> = <a class="code hl_variable" href="classTechSliderLabel.html#a651f8341d461d927a0acfa0f635a7abd">m_originalPrimaryColor</a>;</div>
+<div class="line"><a id="l00506" name="l00506"></a><span class="lineno">  506</span>            <a class="code hl_variable" href="classTechSliderLabel.html#a144a0e2ec866e135ffa8f98680c8ed6c">m_secondaryColor</a> = <a class="code hl_variable" href="classTechSliderLabel.html#a26b83a33b108f934d4296a52b5a2ab8c">m_originalSecondaryColor</a>;</div>
+<div class="line"><a id="l00507" name="l00507"></a><span class="lineno">  507</span>            <a class="code hl_variable" href="classTechSliderLabel.html#a391db8f381c606dd28f3c277bbcff9b2">m_glowColor</a> = <a class="code hl_variable" href="classTechSliderLabel.html#af098e794169e9c0b9ef34b48383cb5f3">m_originalGlowColor</a>;</div>
+<div class="line"><a id="l00508" name="l00508"></a><span class="lineno">  508</span>            <a class="code hl_function" href="classTechSliderLabel.html#af0ebb1447f625a86980ae1f48b97835c">applyTechStyle</a>();</div>
+<div class="line"><a id="l00509" name="l00509"></a><span class="lineno">  509</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00510" name="l00510"></a><span class="lineno">  510</span>            <span class="comment">// 开启后立即根据当前值重算颜色</span></div>
+<div class="line"><a id="l00511" name="l00511"></a><span class="lineno">  511</span>            <span class="comment">// 我们需要让setValue逻辑生效，但setValue有值差异检查</span></div>
+<div class="line"><a id="l00512" name="l00512"></a><span class="lineno">  512</span>            <span class="comment">// 这里我们手动触发一次颜色更新，或者临时修改m_value触发setValue</span></div>
+<div class="line"><a id="l00513" name="l00513"></a><span class="lineno">  513</span>            <span class="keywordtype">double</span> currentVal = <a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a>;</div>
+<div class="line"><a id="l00514" name="l00514"></a><span class="lineno">  514</span>            <a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a> = -999999.0; <span class="comment">// 强制不同</span></div>
+<div class="line"><a id="l00515" name="l00515"></a><span class="lineno">  515</span>            <a class="code hl_slot" href="classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c">setValue</a>(currentVal);</div>
+<div class="line"><a id="l00516" name="l00516"></a><span class="lineno">  516</span>        }</div>
+<div class="line"><a id="l00517" name="l00517"></a><span class="lineno">  517</span>    }</div>
+<div class="line"><a id="l00518" name="l00518"></a><span class="lineno">  518</span>}</div>
+</div>
+<div class="line"><a id="l00519" name="l00519"></a><span class="lineno">  519</span> </div>
+<div class="foldopen" id="foldopen00520" data-start="{" data-end="}">
+<div class="line"><a id="l00520" name="l00520"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#a31b54e8e26a4fda38e2f2a1c201a952f">  520</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#a31b54e8e26a4fda38e2f2a1c201a952f">TechSliderLabel::updateFromModbus</a>(<span class="keywordtype">double</span> value)</div>
+<div class="line"><a id="l00521" name="l00521"></a><span class="lineno">  521</span>{</div>
+<div class="line"><a id="l00522" name="l00522"></a><span class="lineno">  522</span>    <span class="comment">// 从Modbus更新值，但不触发用户操作的信号</span></div>
+<div class="line"><a id="l00523" name="l00523"></a><span class="lineno">  523</span>    <span class="keywordflow">if</span> (qAbs(<a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a> - <a class="code hl_property" href="classTechSliderLabel.html#a27a457e778e20506a1e913ad91c7c168">value</a>) &gt; 0.0001) {</div>
+<div class="line"><a id="l00524" name="l00524"></a><span class="lineno">  524</span>        <a class="code hl_variable" href="classTechSliderLabel.html#af0313c2f0dd2e6ae0e1c006d88a7150f">m_oldValue</a> = <a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a>;</div>
+<div class="line"><a id="l00525" name="l00525"></a><span class="lineno">  525</span>        <a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a> = <a class="code hl_property" href="classTechSliderLabel.html#a27a457e778e20506a1e913ad91c7c168">value</a>;</div>
+<div class="line"><a id="l00526" name="l00526"></a><span class="lineno">  526</span> </div>
+<div class="line"><a id="l00527" name="l00527"></a><span class="lineno">  527</span>        <span class="comment">// 阻塞信号更新UI</span></div>
+<div class="line"><a id="l00528" name="l00528"></a><span class="lineno">  528</span>        <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;blockSignals(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00529" name="l00529"></a><span class="lineno">  529</span>        <a class="code hl_function" href="classTechSliderLabel.html#a462ee04c6eb27bdb898d84c0580fa2f1">updateSliderFromValue</a>();</div>
+<div class="line"><a id="l00530" name="l00530"></a><span class="lineno">  530</span>        <a class="code hl_variable" href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">m_slider</a>-&gt;blockSignals(<span class="keyword">false</span>);</div>
+<div class="line"><a id="l00531" name="l00531"></a><span class="lineno">  531</span> </div>
+<div class="line"><a id="l00532" name="l00532"></a><span class="lineno">  532</span>        <a class="code hl_function" href="classTechSliderLabel.html#a7c23aa694737f6797998e3652b4c4c62">updateValueLabelFromValue</a>();</div>
+<div class="line"><a id="l00533" name="l00533"></a><span class="lineno">  533</span> </div>
+<div class="line"><a id="l00534" name="l00534"></a><span class="lineno">  534</span>        <span class="comment">// 只发出值改变信号，不发出带记录的信号</span></div>
+<div class="line"><a id="l00535" name="l00535"></a><span class="lineno">  535</span>        emit <a class="code hl_signal" href="classTechSliderLabel.html#a1a227665e06f4b23ce294145d3d93223">valueChanged</a>(<a class="code hl_variable" href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">m_value</a>);</div>
+<div class="line"><a id="l00536" name="l00536"></a><span class="lineno">  536</span> </div>
+<div class="line"><a id="l00537" name="l00537"></a><span class="lineno">  537</span>        <a class="code hl_function" href="classTechSliderLabel.html#aed6e6498a8c93bbab810a4f6c4f3a5e9">requestRepaint</a>();</div>
+<div class="line"><a id="l00538" name="l00538"></a><span class="lineno">  538</span>    }</div>
+<div class="line"><a id="l00539" name="l00539"></a><span class="lineno">  539</span>}</div>
+</div>
+<div class="line"><a id="l00540" name="l00540"></a><span class="lineno">  540</span> </div>
+<div class="foldopen" id="foldopen00541" data-start="{" data-end="}">
+<div class="line"><a id="l00541" name="l00541"></a><span class="lineno"><a class="line" href="classTechSliderLabel.html#aed6e6498a8c93bbab810a4f6c4f3a5e9">  541</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classTechSliderLabel.html#aed6e6498a8c93bbab810a4f6c4f3a5e9">TechSliderLabel::requestRepaint</a>()</div>
+<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>{</div>
+<div class="line"><a id="l00543" name="l00543"></a><span class="lineno">  543</span>    <span class="keywordflow">if</span> (!<a class="code hl_variable" href="classTechSliderLabel.html#a6dbe7d2903e81c0809bc9fd65ff1f639">m_repaintElapsed</a>.isValid()) {</div>
+<div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>        <a class="code hl_variable" href="classTechSliderLabel.html#a6dbe7d2903e81c0809bc9fd65ff1f639">m_repaintElapsed</a>.start();</div>
+<div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span>        update();</div>
+<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span>        <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00547" name="l00547"></a><span class="lineno">  547</span>    }</div>
+<div class="line"><a id="l00548" name="l00548"></a><span class="lineno">  548</span> </div>
+<div class="line"><a id="l00549" name="l00549"></a><span class="lineno">  549</span>    <span class="keyword">const</span> qint64 elapsed = <a class="code hl_variable" href="classTechSliderLabel.html#a6dbe7d2903e81c0809bc9fd65ff1f639">m_repaintElapsed</a>.elapsed();</div>
+<div class="line"><a id="l00550" name="l00550"></a><span class="lineno">  550</span>    <span class="keywordflow">if</span> (elapsed &gt;= <a class="code hl_variable" href="classTechSliderLabel.html#a7e64192eb9e82b7dcb68ef52afa880fe">m_minRepaintIntervalMs</a>) {</div>
+<div class="line"><a id="l00551" name="l00551"></a><span class="lineno">  551</span>        <a class="code hl_variable" href="classTechSliderLabel.html#a6dbe7d2903e81c0809bc9fd65ff1f639">m_repaintElapsed</a>.restart();</div>
+<div class="line"><a id="l00552" name="l00552"></a><span class="lineno">  552</span>        update();</div>
+<div class="line"><a id="l00553" name="l00553"></a><span class="lineno">  553</span>        <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00554" name="l00554"></a><span class="lineno">  554</span>    }</div>
+<div class="line"><a id="l00555" name="l00555"></a><span class="lineno">  555</span> </div>
+<div class="line"><a id="l00556" name="l00556"></a><span class="lineno">  556</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classTechSliderLabel.html#ad3b340c7af43c81bc50e1558859bd9ca">m_repaintPending</a>) {</div>
+<div class="line"><a id="l00557" name="l00557"></a><span class="lineno">  557</span>        <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00558" name="l00558"></a><span class="lineno">  558</span>    }</div>
+<div class="line"><a id="l00559" name="l00559"></a><span class="lineno">  559</span> </div>
+<div class="line"><a id="l00560" name="l00560"></a><span class="lineno">  560</span>    <a class="code hl_variable" href="classTechSliderLabel.html#ad3b340c7af43c81bc50e1558859bd9ca">m_repaintPending</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00561" name="l00561"></a><span class="lineno">  561</span>    <span class="keyword">const</span> <span class="keywordtype">int</span> remainMs = <a class="code hl_variable" href="classTechSliderLabel.html#a7e64192eb9e82b7dcb68ef52afa880fe">m_minRepaintIntervalMs</a> - <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(elapsed);</div>
+<div class="line"><a id="l00562" name="l00562"></a><span class="lineno">  562</span>    QTimer::singleShot(remainMs, <span class="keyword">this</span>, [<span class="keyword">this</span>]() {</div>
+<div class="line"><a id="l00563" name="l00563"></a><span class="lineno">  563</span>        <a class="code hl_variable" href="classTechSliderLabel.html#ad3b340c7af43c81bc50e1558859bd9ca">m_repaintPending</a> = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00564" name="l00564"></a><span class="lineno">  564</span>        <a class="code hl_variable" href="classTechSliderLabel.html#a6dbe7d2903e81c0809bc9fd65ff1f639">m_repaintElapsed</a>.restart();</div>
+<div class="line"><a id="l00565" name="l00565"></a><span class="lineno">  565</span>        update();</div>
+<div class="line"><a id="l00566" name="l00566"></a><span class="lineno">  566</span>    });</div>
+<div class="line"><a id="l00567" name="l00567"></a><span class="lineno">  567</span>}</div>
+</div>
+<div class="ttc" id="aclassAnimationManager_html_a7b55a1f9d04cf1952debcbabd81afb14"><div class="ttname"><a href="classAnimationManager.html#a7b55a1f9d04cf1952debcbabd81afb14">AnimationManager::instance</a></div><div class="ttdeci">static AnimationManager * instance()</div><div class="ttdoc">功能: 获取 AnimationManager 单例，用于统一管理 UI 动画定时更新。 如何使用: 调用 AnimationManager::instance() 并通过 registerWidget...</div><div class="ttdef"><b>Definition</b> <a href="animationmanager_8cpp_source.html#l00006">animationmanager.cpp:6</a></div></div>
+<div class="ttc" id="aclassAnimationManager_html_aac70352febbaeb9158e24a6031cc7cad"><div class="ttname"><a href="classAnimationManager.html#aac70352febbaeb9158e24a6031cc7cad">AnimationManager::registerWidget</a></div><div class="ttdeci">void registerWidget(QObject *widget)</div><div class="ttdoc">功能: 将一个 QObject（通常为 QWidget 或其子类）注册到动画管理器，以在定时器触发时更新动画。 如何使用: 在控件创建或需要动画时调用 registerWidget(widget)。 如...</div><div class="ttdef"><b>Definition</b> <a href="animationmanager_8cpp_source.html#l00034">animationmanager.cpp:34</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a01086621a1786923f00ea8b27cad3e05"><div class="ttname"><a href="classTechSliderLabel.html#a01086621a1786923f00ea8b27cad3e05">TechSliderLabel::m_minimum</a></div><div class="ttdeci">double m_minimum</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00381">techsliderlabel.h:381</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a02209ae4f5b571605241206a38a840d0"><div class="ttname"><a href="classTechSliderLabel.html#a02209ae4f5b571605241206a38a840d0">TechSliderLabel::m_pulseAlpha</a></div><div class="ttdeci">qreal m_pulseAlpha</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00407">techsliderlabel.h:407</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a0674bddcd82c2c7f3ef00d188a94532c"><div class="ttname"><a href="classTechSliderLabel.html#a0674bddcd82c2c7f3ef00d188a94532c">TechSliderLabel::setSecondaryColor</a></div><div class="ttdeci">void setSecondaryColor(const QColor &amp;color)</div><div class="ttdoc">设置次要颜色（标签/文字颜色）</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00397">techsliderlabel.cpp:397</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a0872001257c746a369e331b3fa3706d6"><div class="ttname"><a href="classTechSliderLabel.html#a0872001257c746a369e331b3fa3706d6">TechSliderLabel::m_value</a></div><div class="ttdeci">double m_value</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00379">techsliderlabel.h:379</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a0a1bf3d87b4c292359285a824240fe25"><div class="ttname"><a href="classTechSliderLabel.html#a0a1bf3d87b4c292359285a824240fe25">TechSliderLabel::m_slider</a></div><div class="ttdeci">QSlider * m_slider</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00373">techsliderlabel.h:373</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a106e5fb25c568a3f7ab30a56260a8e76"><div class="ttname"><a href="classTechSliderLabel.html#a106e5fb25c568a3f7ab30a56260a8e76">TechSliderLabel::TechSliderLabel</a></div><div class="ttdeci">TechSliderLabel(QWidget *parent=nullptr)</div><div class="ttdoc">构造 TechSliderLabel 控件</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00006">techsliderlabel.cpp:6</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a10d07ff09d52cb1219e891a55fcc32eb"><div class="ttname"><a href="classTechSliderLabel.html#a10d07ff09d52cb1219e891a55fcc32eb">TechSliderLabel::m_pulseDirection</a></div><div class="ttdeci">bool m_pulseDirection</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00408">techsliderlabel.h:408</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a137cc9f9cfc6955943135d841fe1bcfb"><div class="ttname"><a href="classTechSliderLabel.html#a137cc9f9cfc6955943135d841fe1bcfb">TechSliderLabel::paintEvent</a></div><div class="ttdeci">void paintEvent(QPaintEvent *event) override</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00148">techsliderlabel.cpp:148</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a14488cb084932cfc503a3d93f86fa115"><div class="ttname"><a href="classTechSliderLabel.html#a14488cb084932cfc503a3d93f86fa115">TechSliderLabel::valueToSlider</a></div><div class="ttdeci">int valueToSlider(double value) const</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00168">techsliderlabel.cpp:168</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a144a0e2ec866e135ffa8f98680c8ed6c"><div class="ttname"><a href="classTechSliderLabel.html#a144a0e2ec866e135ffa8f98680c8ed6c">TechSliderLabel::m_secondaryColor</a></div><div class="ttdeci">QColor m_secondaryColor</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00390">techsliderlabel.h:390</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a182bb1cdb77ec6bd0379b3bd3fa3fe12"><div class="ttname"><a href="classTechSliderLabel.html#a182bb1cdb77ec6bd0379b3bd3fa3fe12">TechSliderLabel::labelText</a></div><div class="ttdeci">QString labelText</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00043">techsliderlabel.h:43</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a1a227665e06f4b23ce294145d3d93223"><div class="ttname"><a href="classTechSliderLabel.html#a1a227665e06f4b23ce294145d3d93223">TechSliderLabel::valueChanged</a></div><div class="ttdeci">void valueChanged(double value)</div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a20e76cbe3e35a76f8f5110d49b3a0e83"><div class="ttname"><a href="classTechSliderLabel.html#a20e76cbe3e35a76f8f5110d49b3a0e83">TechSliderLabel::onSliderValueChanged</a></div><div class="ttdeci">void onSliderValueChanged(int value)</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00173">techsliderlabel.cpp:173</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a21615e2103f1149deee8db4e2c1a3f30"><div class="ttname"><a href="classTechSliderLabel.html#a21615e2103f1149deee8db4e2c1a3f30">TechSliderLabel::m_scanLineEnabled</a></div><div class="ttdeci">bool m_scanLineEnabled</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00396">techsliderlabel.h:396</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a23c83e1e9e83b75370c009ca898e789e"><div class="ttname"><a href="classTechSliderLabel.html#a23c83e1e9e83b75370c009ca898e789e">TechSliderLabel::m_pulseEnabled</a></div><div class="ttdeci">bool m_pulseEnabled</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00397">techsliderlabel.h:397</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a2600814871dd5b4858f7d895ef65b23c"><div class="ttname"><a href="classTechSliderLabel.html#a2600814871dd5b4858f7d895ef65b23c">TechSliderLabel::setPrecision</a></div><div class="ttdeci">void setPrecision(int precision)</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00324">techsliderlabel.cpp:324</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a26b83a33b108f934d4296a52b5a2ab8c"><div class="ttname"><a href="classTechSliderLabel.html#a26b83a33b108f934d4296a52b5a2ab8c">TechSliderLabel::m_originalSecondaryColor</a></div><div class="ttdeci">QColor m_originalSecondaryColor</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00416">techsliderlabel.h:416</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a27a457e778e20506a1e913ad91c7c168"><div class="ttname"><a href="classTechSliderLabel.html#a27a457e778e20506a1e913ad91c7c168">TechSliderLabel::value</a></div><div class="ttdeci">double value</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00038">techsliderlabel.h:38</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a31b54e8e26a4fda38e2f2a1c201a952f"><div class="ttname"><a href="classTechSliderLabel.html#a31b54e8e26a4fda38e2f2a1c201a952f">TechSliderLabel::updateFromModbus</a></div><div class="ttdeci">void updateFromModbus(double value)</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00520">techsliderlabel.cpp:520</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a326219af66ba50a2fe784f9e67ff2bfe"><div class="ttname"><a href="classTechSliderLabel.html#a326219af66ba50a2fe784f9e67ff2bfe">TechSliderLabel::updateScanLine</a></div><div class="ttdeci">void updateScanLine()</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00213">techsliderlabel.cpp:213</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a3545825ef0117abe8c6883b9cc5a63b9"><div class="ttname"><a href="classTechSliderLabel.html#a3545825ef0117abe8c6883b9cc5a63b9">TechSliderLabel::setSingleStep</a></div><div class="ttdeci">void setSingleStep(double step)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00341">techsliderlabel.cpp:341</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a391db8f381c606dd28f3c277bbcff9b2"><div class="ttname"><a href="classTechSliderLabel.html#a391db8f381c606dd28f3c277bbcff9b2">TechSliderLabel::m_glowColor</a></div><div class="ttdeci">QColor m_glowColor</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00391">techsliderlabel.h:391</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a3c47c6124c2d4989431e6a912c125765"><div class="ttname"><a href="classTechSliderLabel.html#a3c47c6124c2d4989431e6a912c125765">TechSliderLabel::updateAnimation</a></div><div class="ttdeci">void updateAnimation()</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00455">techsliderlabel.cpp:455</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a3d5a53285c89d132b26bea200a17c08d"><div class="ttname"><a href="classTechSliderLabel.html#a3d5a53285c89d132b26bea200a17c08d">TechSliderLabel::enableScanLine</a></div><div class="ttdeci">void enableScanLine(bool enable)</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00435">techsliderlabel.cpp:435</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a3f30d7b64372953e259913253c97e1db"><div class="ttname"><a href="classTechSliderLabel.html#a3f30d7b64372953e259913253c97e1db">TechSliderLabel::setTechBlueStyle</a></div><div class="ttdeci">void setTechBlueStyle()</div><div class="ttdoc">应用内置科技蓝主题样式</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00447">techsliderlabel.cpp:447</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a462ee04c6eb27bdb898d84c0580fa2f1"><div class="ttname"><a href="classTechSliderLabel.html#a462ee04c6eb27bdb898d84c0580fa2f1">TechSliderLabel::updateSliderFromValue</a></div><div class="ttdeci">void updateSliderFromValue()</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00195">techsliderlabel.cpp:195</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a4a876f38a516a9dde25333e8825b94ff"><div class="ttname"><a href="classTechSliderLabel.html#a4a876f38a516a9dde25333e8825b94ff">TechSliderLabel::m_glowEnabled</a></div><div class="ttdeci">bool m_glowEnabled</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00395">techsliderlabel.h:395</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a4c98fb21f0ecdc9a82a3e4baede89935"><div class="ttname"><a href="classTechSliderLabel.html#a4c98fb21f0ecdc9a82a3e4baede89935">TechSliderLabel::updateRangeLabels</a></div><div class="ttdeci">void updateRangeLabels()</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00132">techsliderlabel.cpp:132</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a4cd42a7fe07e925043c7a6aa526e8cc2"><div class="ttname"><a href="classTechSliderLabel.html#a4cd42a7fe07e925043c7a6aa526e8cc2">TechSliderLabel::m_mainLayout</a></div><div class="ttdeci">QVBoxLayout * m_mainLayout</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00374">techsliderlabel.h:374</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a4ed77eb53a70132af1a04882db282553"><div class="ttname"><a href="classTechSliderLabel.html#a4ed77eb53a70132af1a04882db282553">TechSliderLabel::m_sliderContainer</a></div><div class="ttdeci">QWidget * m_sliderContainer</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00404">techsliderlabel.h:404</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a4f95aaaf43bf112f85d6f35b842e5788"><div class="ttname"><a href="classTechSliderLabel.html#a4f95aaaf43bf112f85d6f35b842e5788">TechSliderLabel::setPrimaryColor</a></div><div class="ttdeci">void setPrimaryColor(const QColor &amp;color)</div><div class="ttdoc">设置主颜色（滑块/刻度主色）</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00391">techsliderlabel.cpp:391</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a5077735698bc022037f5312872e31e6e"><div class="ttname"><a href="classTechSliderLabel.html#a5077735698bc022037f5312872e31e6e">TechSliderLabel::m_forceControlEnabled</a></div><div class="ttdeci">bool m_forceControlEnabled</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00414">techsliderlabel.h:414</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a5276c5ae2190f3f95c08339c4669ff40"><div class="ttname"><a href="classTechSliderLabel.html#a5276c5ae2190f3f95c08339c4669ff40">TechSliderLabel::m_scanLinePos</a></div><div class="ttdeci">int m_scanLinePos</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00405">techsliderlabel.h:405</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a55e2b58de7d9d235a9d796f442f4818e"><div class="ttname"><a href="classTechSliderLabel.html#a55e2b58de7d9d235a9d796f442f4818e">TechSliderLabel::minimum</a></div><div class="ttdeci">double minimum</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00039">techsliderlabel.h:39</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a5967ac6ac9b43e0439dc5a5f68124479"><div class="ttname"><a href="classTechSliderLabel.html#a5967ac6ac9b43e0439dc5a5f68124479">TechSliderLabel::m_firstRowLayout</a></div><div class="ttdeci">QHBoxLayout * m_firstRowLayout</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00375">techsliderlabel.h:375</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a5be2d27b9a42b44cd0d0728d16763797"><div class="ttname"><a href="classTechSliderLabel.html#a5be2d27b9a42b44cd0d0728d16763797">TechSliderLabel::sliderToValue</a></div><div class="ttdeci">double sliderToValue(int sliderVal) const</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00163">techsliderlabel.cpp:163</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a5db9db9a7ec40b77927586131b2aed11"><div class="ttname"><a href="classTechSliderLabel.html#a5db9db9a7ec40b77927586131b2aed11">TechSliderLabel::setMinimum</a></div><div class="ttdeci">void setMinimum(double min)</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00310">techsliderlabel.cpp:310</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a651f8341d461d927a0acfa0f635a7abd"><div class="ttname"><a href="classTechSliderLabel.html#a651f8341d461d927a0acfa0f635a7abd">TechSliderLabel::m_originalPrimaryColor</a></div><div class="ttdeci">QColor m_originalPrimaryColor</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00415">techsliderlabel.h:415</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a66efa0956feece0f04bc26a6fb2c4c53"><div class="ttname"><a href="classTechSliderLabel.html#a66efa0956feece0f04bc26a6fb2c4c53">TechSliderLabel::setLabelText</a></div><div class="ttdeci">void setLabelText(const QString &amp;text)</div><div class="ttdoc">设置标签文本</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00361">techsliderlabel.cpp:361</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a6aea5baeaefe4f43a9b0e8366d81b663"><div class="ttname"><a href="classTechSliderLabel.html#a6aea5baeaefe4f43a9b0e8366d81b663">TechSliderLabel::setMaximum</a></div><div class="ttdeci">void setMaximum(double max)</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00317">techsliderlabel.cpp:317</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a6dbe7d2903e81c0809bc9fd65ff1f639"><div class="ttname"><a href="classTechSliderLabel.html#a6dbe7d2903e81c0809bc9fd65ff1f639">TechSliderLabel::m_repaintElapsed</a></div><div class="ttdeci">QElapsedTimer m_repaintElapsed</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00411">techsliderlabel.h:411</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a6de30f5feda3a7c97fd30da112e25564"><div class="ttname"><a href="classTechSliderLabel.html#a6de30f5feda3a7c97fd30da112e25564">TechSliderLabel::m_precision</a></div><div class="ttdeci">int m_precision</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00384">techsliderlabel.h:384</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a6fd400c3475635b65ea416a326440c58"><div class="ttname"><a href="classTechSliderLabel.html#a6fd400c3475635b65ea416a326440c58">TechSliderLabel::setModbusAddress</a></div><div class="ttdeci">void setModbusAddress(int address)</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00491">techsliderlabel.cpp:491</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a77ab98e12a7e5c3d46d7134584880814"><div class="ttname"><a href="classTechSliderLabel.html#a77ab98e12a7e5c3d46d7134584880814">TechSliderLabel::modbusAddressChanged</a></div><div class="ttdeci">void modbusAddressChanged(int address)</div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a7c23aa694737f6797998e3652b4c4c62"><div class="ttname"><a href="classTechSliderLabel.html#a7c23aa694737f6797998e3652b4c4c62">TechSliderLabel::updateValueLabelFromValue</a></div><div class="ttdeci">void updateValueLabelFromValue()</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00203">techsliderlabel.cpp:203</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a7e64192eb9e82b7dcb68ef52afa880fe"><div class="ttname"><a href="classTechSliderLabel.html#a7e64192eb9e82b7dcb68ef52afa880fe">TechSliderLabel::m_minRepaintIntervalMs</a></div><div class="ttdeci">int m_minRepaintIntervalMs</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00410">techsliderlabel.h:410</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a82262f4d206dc247dde93b976786f058"><div class="ttname"><a href="classTechSliderLabel.html#a82262f4d206dc247dde93b976786f058">TechSliderLabel::setLabelWidth</a></div><div class="ttdeci">void setLabelWidth(int width)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00368">techsliderlabel.cpp:368</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a828f613163e68d3fe982c8f1b08dbd10"><div class="ttname"><a href="classTechSliderLabel.html#a828f613163e68d3fe982c8f1b08dbd10">TechSliderLabel::precision</a></div><div class="ttdeci">int precision</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00041">techsliderlabel.h:41</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a87092180697a6c78c80c8788e3f25e85"><div class="ttname"><a href="classTechSliderLabel.html#a87092180697a6c78c80c8788e3f25e85">TechSliderLabel::m_secondRowLayout</a></div><div class="ttdeci">QHBoxLayout * m_secondRowLayout</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00376">techsliderlabel.h:376</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a874212f0bdd29ef3b7e6fd51a1b9af50"><div class="ttname"><a href="classTechSliderLabel.html#a874212f0bdd29ef3b7e6fd51a1b9af50">TechSliderLabel::setupUI</a></div><div class="ttdeci">void setupUI()</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00048">techsliderlabel.cpp:48</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a91b1be0ff7daa459d3a631991cf3272c"><div class="ttname"><a href="classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c">TechSliderLabel::setValue</a></div><div class="ttdeci">void setValue(double value)</div><div class="ttdoc">设置当前值并更新显示</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00264">techsliderlabel.cpp:264</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a94f4a4536b724b6921a83ac1ad756fa5"><div class="ttname"><a href="classTechSliderLabel.html#a94f4a4536b724b6921a83ac1ad756fa5">TechSliderLabel::resizeEvent</a></div><div class="ttdeci">void resizeEvent(QResizeEvent *event) override</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00155">techsliderlabel.cpp:155</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a98b69db009dcc40777c5402dab282baf"><div class="ttname"><a href="classTechSliderLabel.html#a98b69db009dcc40777c5402dab282baf">TechSliderLabel::updatePulseEffect</a></div><div class="ttdeci">void updatePulseEffect()</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00224">techsliderlabel.cpp:224</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a99c04e18c22bdbbcdbfcfd242656a85a"><div class="ttname"><a href="classTechSliderLabel.html#a99c04e18c22bdbbcdbfcfd242656a85a">TechSliderLabel::setSuffix</a></div><div class="ttdeci">void setSuffix(const QString &amp;suffix)</div><div class="ttdoc">设置数值后缀（单位）</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00349">techsliderlabel.cpp:349</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a9b7150569a3b11ab524bd3f662d39dbe"><div class="ttname"><a href="classTechSliderLabel.html#a9b7150569a3b11ab524bd3f662d39dbe">TechSliderLabel::m_scanLineWidth</a></div><div class="ttdeci">int m_scanLineWidth</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00406">techsliderlabel.h:406</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_a9ced694dc0471d5b42ecaf32a0a6b431"><div class="ttname"><a href="classTechSliderLabel.html#a9ced694dc0471d5b42ecaf32a0a6b431">TechSliderLabel::m_suffix</a></div><div class="ttdeci">QString m_suffix</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00385">techsliderlabel.h:385</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_aa2b663cc3c1184173e92402f4e3dfe8b"><div class="ttname"><a href="classTechSliderLabel.html#aa2b663cc3c1184173e92402f4e3dfe8b">TechSliderLabel::m_minLabel</a></div><div class="ttdeci">QLabel * m_minLabel</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00401">techsliderlabel.h:401</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_aa8a64980e79495053b61c4e27b03997c"><div class="ttname"><a href="classTechSliderLabel.html#aa8a64980e79495053b61c4e27b03997c">TechSliderLabel::m_modbusAddress</a></div><div class="ttdeci">int m_modbusAddress</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00386">techsliderlabel.h:386</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_aaebaf2f47deb7e3e02e2ab716b8938a7"><div class="ttname"><a href="classTechSliderLabel.html#aaebaf2f47deb7e3e02e2ab716b8938a7">TechSliderLabel::maximum</a></div><div class="ttdeci">double maximum</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00040">techsliderlabel.h:40</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_aaff4ac11b8b42fe6d9ff55e9a27c7cbf"><div class="ttname"><a href="classTechSliderLabel.html#aaff4ac11b8b42fe6d9ff55e9a27c7cbf">TechSliderLabel::enablePulseEffect</a></div><div class="ttdeci">void enablePulseEffect(bool enable)</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00441">techsliderlabel.cpp:441</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_ab33e7141c8b20676cfeb86815dca0ed8"><div class="ttname"><a href="classTechSliderLabel.html#ab33e7141c8b20676cfeb86815dca0ed8">TechSliderLabel::m_shadowEffect</a></div><div class="ttdeci">QGraphicsDropShadowEffect * m_shadowEffect</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00392">techsliderlabel.h:392</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_abad4dbaf3e589a830f7ccf95a563a3e0"><div class="ttname"><a href="classTechSliderLabel.html#abad4dbaf3e589a830f7ccf95a563a3e0">TechSliderLabel::m_singleStep</a></div><div class="ttdeci">double m_singleStep</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00383">techsliderlabel.h:383</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_ac457382a82600c402ef77946b669bf30"><div class="ttname"><a href="classTechSliderLabel.html#ac457382a82600c402ef77946b669bf30">TechSliderLabel::m_maximum</a></div><div class="ttdeci">double m_maximum</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00382">techsliderlabel.h:382</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_acbd3293a9179ac145812493883f78e8c"><div class="ttname"><a href="classTechSliderLabel.html#acbd3293a9179ac145812493883f78e8c">TechSliderLabel::setRangeLabelsWidth</a></div><div class="ttdeci">void setRangeLabelsWidth(int width)</div><div class="ttdoc">设置范围标签宽度</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00375">techsliderlabel.cpp:375</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_ad19109e0a48812466ea0bb4518bdfe25"><div class="ttname"><a href="classTechSliderLabel.html#ad19109e0a48812466ea0bb4518bdfe25">TechSliderLabel::valueChangedWithRecord</a></div><div class="ttdeci">void valueChangedWithRecord(double oldValue, double newValue)</div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_ad3b340c7af43c81bc50e1558859bd9ca"><div class="ttname"><a href="classTechSliderLabel.html#ad3b340c7af43c81bc50e1558859bd9ca">TechSliderLabel::m_repaintPending</a></div><div class="ttdeci">bool m_repaintPending</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00409">techsliderlabel.h:409</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_ad52df8064c14254c53ef53fa452537d5"><div class="ttname"><a href="classTechSliderLabel.html#ad52df8064c14254c53ef53fa452537d5">TechSliderLabel::m_valueLabel</a></div><div class="ttdeci">QLabel * m_valueLabel</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00372">techsliderlabel.h:372</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_ad6e07ab13c38f22e9fa011b8130e428b"><div class="ttname"><a href="classTechSliderLabel.html#ad6e07ab13c38f22e9fa011b8130e428b">TechSliderLabel::m_label</a></div><div class="ttdeci">QLabel * m_label</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00371">techsliderlabel.h:371</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_ad9650bee24eaa319d1ef2d35d68ad90c"><div class="ttname"><a href="classTechSliderLabel.html#ad9650bee24eaa319d1ef2d35d68ad90c">TechSliderLabel::m_conversionFactor</a></div><div class="ttdeci">int m_conversionFactor</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00420">techsliderlabel.h:420</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_adb1d9d5283369dc0f09cb17004670985"><div class="ttname"><a href="classTechSliderLabel.html#adb1d9d5283369dc0f09cb17004670985">TechSliderLabel::setGlowIntensity</a></div><div class="ttdeci">void setGlowIntensity(int intensity)</div><div class="ttdoc">设置发光强度</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00409">techsliderlabel.cpp:409</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_adb65ffc9ea4492201db628a6ed5ae7c9"><div class="ttname"><a href="classTechSliderLabel.html#adb65ffc9ea4492201db628a6ed5ae7c9">TechSliderLabel::setGlowColor</a></div><div class="ttdeci">void setGlowColor(const QColor &amp;color)</div><div class="ttdoc">设置发光颜色（用于高亮/边缘发光）</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00403">techsliderlabel.cpp:403</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_ae18567bdc79263f75823be58f4c07f24"><div class="ttname"><a href="classTechSliderLabel.html#ae18567bdc79263f75823be58f4c07f24">TechSliderLabel::m_maxLabel</a></div><div class="ttdeci">QLabel * m_maxLabel</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00402">techsliderlabel.h:402</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_ae1ec5a7453bc90d036404e8f8be00a6a"><div class="ttname"><a href="classTechSliderLabel.html#ae1ec5a7453bc90d036404e8f8be00a6a">TechSliderLabel::setForceControlMode</a></div><div class="ttdeci">void setForceControlMode(bool enabled)</div><div class="ttdoc">设置力控模式开启状态</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00499">techsliderlabel.cpp:499</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_ae29f6c11bad5b8a1481200a4cd89c09b"><div class="ttname"><a href="classTechSliderLabel.html#ae29f6c11bad5b8a1481200a4cd89c09b">TechSliderLabel::m_sliderLayout</a></div><div class="ttdeci">QHBoxLayout * m_sliderLayout</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00403">techsliderlabel.h:403</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_ae2d6b74fd9e54932a8889ff477a6bba8"><div class="ttname"><a href="classTechSliderLabel.html#ae2d6b74fd9e54932a8889ff477a6bba8">TechSliderLabel::setRange</a></div><div class="ttdeci">void setRange(double min, double max)</div><div class="ttdoc">设置显示范围</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00332">techsliderlabel.cpp:332</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_aed6e6498a8c93bbab810a4f6c4f3a5e9"><div class="ttname"><a href="classTechSliderLabel.html#aed6e6498a8c93bbab810a4f6c4f3a5e9">TechSliderLabel::requestRepaint</a></div><div class="ttdeci">void requestRepaint()</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00541">techsliderlabel.cpp:541</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_af0313c2f0dd2e6ae0e1c006d88a7150f"><div class="ttname"><a href="classTechSliderLabel.html#af0313c2f0dd2e6ae0e1c006d88a7150f">TechSliderLabel::m_oldValue</a></div><div class="ttdeci">double m_oldValue</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00380">techsliderlabel.h:380</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_af098e794169e9c0b9ef34b48383cb5f3"><div class="ttname"><a href="classTechSliderLabel.html#af098e794169e9c0b9ef34b48383cb5f3">TechSliderLabel::m_originalGlowColor</a></div><div class="ttdeci">QColor m_originalGlowColor</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00417">techsliderlabel.h:417</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_af0ebb1447f625a86980ae1f48b97835c"><div class="ttname"><a href="classTechSliderLabel.html#af0ebb1447f625a86980ae1f48b97835c">TechSliderLabel::applyTechStyle</a></div><div class="ttdeci">void applyTechStyle()</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00259">techsliderlabel.h:259</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_afbebce1c4527a4b11638c4c789f70848"><div class="ttname"><a href="classTechSliderLabel.html#afbebce1c4527a4b11638c4c789f70848">TechSliderLabel::enableGlowEffect</a></div><div class="ttdeci">void enableGlowEffect(bool enable)</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00416">techsliderlabel.cpp:416</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_aff3eb821ae66b87664b92298ac7462e0"><div class="ttname"><a href="classTechSliderLabel.html#aff3eb821ae66b87664b92298ac7462e0">TechSliderLabel::m_primaryColor</a></div><div class="ttdeci">QColor m_primaryColor</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00389">techsliderlabel.h:389</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_aff4a891b36e70b10fbd4f088155dbff4"><div class="ttname"><a href="classTechSliderLabel.html#aff4a891b36e70b10fbd4f088155dbff4">TechSliderLabel::setupConnections</a></div><div class="ttdeci">void setupConnections()</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00123">techsliderlabel.cpp:123</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html_aff4cf65c76598e4ba31c3574a4109f89"><div class="ttname"><a href="classTechSliderLabel.html#aff4cf65c76598e4ba31c3574a4109f89">TechSliderLabel::setRangeLabelsVisible</a></div><div class="ttdeci">void setRangeLabelsVisible(bool visible)</div><div class="ttdoc">设置范围标签可见性</div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8cpp_source.html#l00383">techsliderlabel.cpp:383</a></div></div>
+<div class="ttc" id="atechsliderlabel_8h_html"><div class="ttname"><a href="techsliderlabel_8h.html">techsliderlabel.h</a></div><div class="ttdoc">滑块标签控件的声明，显示与滑块关联的文本信息。</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="techsliderlabel_8cpp.html">techsliderlabel.cpp</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

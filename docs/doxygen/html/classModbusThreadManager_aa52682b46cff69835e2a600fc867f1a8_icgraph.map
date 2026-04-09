@@ -1,0 +1,7 @@
+<map id="ModbusThreadManager::disconnectFromDevice" name="ModbusThreadManager::disconnectFromDevice">
+<area shape="rect" id="Node000001" title="使用示例:" alt="" coords="304,23,483,63"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a553eb12168811fff34cbdb871948ce48" title="更新模拟器IP主机号（192.168.1.XXX）" alt="" coords="5,5,256,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="290,36,256,33,257,27,291,31"/>
+<area shape="rect" id="Node000003" href="$classMainWindow.html#ae98d00a93bc118200eeef9f9bba1dba7" title="析构 MainWindow，释放资源并停止后台任务" alt="" coords="27,55,235,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="290,55,235,61,235,55,290,50"/>
+</map>

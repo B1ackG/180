@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: modbusthreadmanager.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('modbusthreadmanager_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">modbusthreadmanager.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="modbusthreadmanager_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// file name: modbusthreadmanager.h</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#ifndef MODBUSTHREADMANAGER_H</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="modbusthreadmanager_8h.html#a80783825fead347c572d48f33039c912">   16</a></span><span class="preprocessor">#define MODBUSTHREADMANAGER_H</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &lt;QObject&gt;</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &lt;QThread&gt;</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;QMap&gt;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &quot;<a class="code" href="modbustcpclient_8h.html">modbustcpclient.h</a>&quot;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <span class="keyword">class </span><a class="code hl_class" href="classTechSliderEdit.html">TechSliderEdit</a>;  <span class="comment">// 前向声明</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keyword">class </span><a class="code hl_class" href="classTechSliderLabel.html">TechSliderLabel</a>; <span class="comment">// 前向声明</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
+<div class="foldopen" id="foldopen00026" data-start="{" data-end="};">
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="classModbusThreadManager.html">   26</a></span><span class="keyword">class </span><a class="code hl_class" href="classModbusThreadManager.html">ModbusThreadManager</a> : <span class="keyword">public</span> QObject</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>{</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    Q_OBJECT</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keyword">static</span> <a class="code hl_class" href="classModbusThreadManager.html">ModbusThreadManager</a>* <a class="code hl_function" href="classModbusThreadManager.html#a3d6b84fa0918dcfe29e6962041d44e53">instance</a>();</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="comment">// ... 已有的其他方法 ...</span></div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusThreadManager.html#a434400756e655bcded6989f7828eb65e">readSingleRegister</a>(<span class="keywordtype">int</span> address, quint16 &amp;value);</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusThreadManager.html#a2e913ddddb8d201caaa5079d118981ba">readAndDebugAddress</a>(<span class="keywordtype">int</span> address);  <span class="comment">// 新增：读取并调试输出指定地址的值</span></div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span> </div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <span class="comment">// 连接管理</span></div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusThreadManager.html#ad92a60c68a016c06a95c6e2aafa2930f">connectToDevice</a>(<span class="keyword">const</span> QString &amp;host, quint16 port = 502, <span class="keywordtype">int</span> slaveId = 1);</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusThreadManager.html#aa52682b46cff69835e2a600fc867f1a8">disconnectFromDevice</a>();</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span> </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusThreadManager.html#ae3b2ae28795aa8acb39148c4ffaa7f5c">isConnected</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span> </div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    <span class="comment">// 寄存器管理 - TechSliderEdit</span></div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusThreadManager.html#a3af369290d07982ed1e6556a6875597d">registerSlider</a>(<a class="code hl_class" href="classTechSliderEdit.html">TechSliderEdit</a> *slider, <span class="keywordtype">int</span> address);</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span> </div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusThreadManager.html#aa8f3b3a8d71d179528a46698ae2b0f6c">unregisterSlider</a>(<a class="code hl_class" href="classTechSliderEdit.html">TechSliderEdit</a> *slider);</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span> </div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusThreadManager.html#aa8f3b3a8d71d179528a46698ae2b0f6c">unregisterSlider</a>(<span class="keywordtype">int</span> address);</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span> </div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>    <span class="comment">// 寄存器管理 - TechSliderLabel</span></div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusThreadManager.html#a7dedc2e37e8c0d51cc7998de91a616b0">registerSliderLabel</a>(<a class="code hl_class" href="classTechSliderLabel.html">TechSliderLabel</a> *sliderLabel, <span class="keywordtype">int</span> address);</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusThreadManager.html#adbad3abbf9eb82d7cbabe96d38f8f2c4">unregisterSliderLabel</a>(<a class="code hl_class" href="classTechSliderLabel.html">TechSliderLabel</a> *sliderLabel);</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span> </div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusThreadManager.html#adbad3abbf9eb82d7cbabe96d38f8f2c4">unregisterSliderLabel</a>(<span class="keywordtype">int</span> address);</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span> </div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>    <span class="comment">// 配置</span></div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusThreadManager.html#ae4a62ee20be1ea76666450536ac70815">setPollInterval</a>(<span class="keywordtype">int</span> ms);</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span> </div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusThreadManager.html#ac786b96191c397b53a5b2a16c07359af">setAutoReconnect</a>(<span class="keywordtype">bool</span> enable, <span class="keywordtype">int</span> interval = 5000);</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span> </div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>    <span class="comment">// 寄存器读写操作</span></div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>    quint16 <a class="code hl_function" href="classModbusThreadManager.html#a434400756e655bcded6989f7828eb65e">readSingleRegister</a>(<span class="keywordtype">int</span> address);</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span> </div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusThreadManager.html#a85b995d560926de42940c66575bc750b">readMultipleRegisters</a>(<span class="keywordtype">int</span> startAddress, <span class="keywordtype">int</span> count);</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span> </div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    <span class="comment">// 新增：读取保持寄存器函数（功能码0x03）</span></div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusThreadManager.html#aef7b28d686b3368e8483098327aee668">readHoldingRegisters</a>(<span class="keywordtype">int</span> startAddress, <span class="keywordtype">int</span> count);  <span class="comment">// 修改返回类型为bool</span></div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusThreadManager.html#a48021a6bb0b7ca2950836b6df5552863">readInputRegisters</a>(<span class="keywordtype">int</span> startAddress, <span class="keywordtype">int</span> count);    <span class="comment">// 修改返回类型为bool</span></div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span> </div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusThreadManager.html#af3cb78bb33dda405ce0a3efb15c9aa2c">readMultipleHoldingRegisters</a>(<span class="keywordtype">int</span> startAddress, <span class="keywordtype">int</span> count);</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span> </div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusThreadManager.html#aa2cdb1ec7221c90b6959c018a7caa5c4">writeSingleRegister</a>(<span class="keywordtype">int</span> address, quint16 value);  <span class="comment">// 新增：写入单个寄存器</span></div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span> </div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>signals:</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno"><a class="line" href="classModbusThreadManager.html#aa1c42fcfc1b26d7e6a00d5fc0228711f">  204</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classModbusThreadManager.html#aa1c42fcfc1b26d7e6a00d5fc0228711f">connected</a>();</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno"><a class="line" href="classModbusThreadManager.html#a490aacce1ccc98114ba12a938ee5b8bc">  205</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classModbusThreadManager.html#a490aacce1ccc98114ba12a938ee5b8bc">disconnected</a>();</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno"><a class="line" href="classModbusThreadManager.html#a7257ab31aa6715622d965edf66edb0ae">  206</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classModbusThreadManager.html#a7257ab31aa6715622d965edf66edb0ae">errorOccurred</a>(<span class="keyword">const</span> QString &amp;error);</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno"><a class="line" href="classModbusThreadManager.html#a4977e969e2f04a6e614d95ffc1c82fef">  207</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classModbusThreadManager.html#a4977e969e2f04a6e614d95ffc1c82fef">registerValueChanged</a>(<span class="keywordtype">int</span> address, quint16 value);</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno"><a class="line" href="classModbusThreadManager.html#aa97b383bcf9be692b49d307a717bfb10">  208</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classModbusThreadManager.html#aa97b383bcf9be692b49d307a717bfb10">registerWritten</a>(<span class="keywordtype">int</span> address, quint16 value);  <span class="comment">// 新增：寄存器写入信号</span></div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno"><a class="line" href="classModbusThreadManager.html#ab3d6427ff17fc8b77e19386e7e0f3deb">  209</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classModbusThreadManager.html#ab3d6427ff17fc8b77e19386e7e0f3deb">writeOperationComplete</a>(<span class="keywordtype">bool</span> success, <span class="keyword">const</span> QString &amp;message);  <span class="comment">// 新增：写入操作完成信号</span></div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span> </div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classModbusThreadManager.html">ModbusThreadManager</a>(QObject *parent = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    <a class="code hl_function" href="classModbusThreadManager.html#aee8fa8ed7e5c8c0c51e40693cbc38b9a">~ModbusThreadManager</a>();</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span> </div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>    <span class="comment">// 单例模式</span></div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    <span class="comment">// 线程安全单例通过 `instance()` 局部静态变量实现（无需额外成员）</span></div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span> </div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span><span class="keyword">private</span> slots:</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classModbusThreadManager.html#a055958d4fb9af47a9c477f86cbb23c42">onRegisterValueChanged</a>(<span class="keywordtype">int</span> address, quint16 value);</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classModbusThreadManager.html#abf4ccaf962f7abf7229e9e09554a8488">onSliderDestroyed</a>(QObject *obj);</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classModbusThreadManager.html#a9da8dd7f85fb7233a9bd374f41bddc3c">onSliderLabelDestroyed</a>(QObject *obj);</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span> </div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno"><a class="line" href="classModbusThreadManager.html#a5946a5f404ba38cbf7e28f768beaa4a9">  224</a></span>    <a class="code hl_class" href="classModbusTCPClient.html">ModbusTCPClient</a> *<a class="code hl_variable" href="classModbusThreadManager.html#a5946a5f404ba38cbf7e28f768beaa4a9">m_modbusClient</a>;</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span> </div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>    <span class="comment">// TechSliderEdit 映射表</span></div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno"><a class="line" href="classModbusThreadManager.html#a78b45166572f789d880b562e30f988d6">  227</a></span>    QMap&lt;int, TechSliderEdit*&gt; <a class="code hl_variable" href="classModbusThreadManager.html#a78b45166572f789d880b562e30f988d6">m_addressToSlider</a>;</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno"><a class="line" href="classModbusThreadManager.html#a837617b8ce1f24b3bf991e193a4c62dd">  228</a></span>    QMap&lt;TechSliderEdit*, int&gt; <a class="code hl_variable" href="classModbusThreadManager.html#a837617b8ce1f24b3bf991e193a4c62dd">m_sliderToAddress</a>;</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span> </div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>    <span class="comment">// TechSliderLabel 映射表</span></div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno"><a class="line" href="classModbusThreadManager.html#a463d54644abf78ab47a3dbc81f433de8">  231</a></span>    QMap&lt;int, TechSliderLabel*&gt; <a class="code hl_variable" href="classModbusThreadManager.html#a463d54644abf78ab47a3dbc81f433de8">m_addressToSliderLabel</a>;</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno"><a class="line" href="classModbusThreadManager.html#aa356173b2684c841c842aa3c8758cb33">  232</a></span>    QMap&lt;TechSliderLabel*, int&gt; <a class="code hl_variable" href="classModbusThreadManager.html#aa356173b2684c841c842aa3c8758cb33">m_sliderLabelToAddress</a>;</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>};</div>
+</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span> </div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span><span class="preprocessor">#endif </span><span class="comment">// MODBUSTHREADMANAGER_H</span></div>
+<div class="ttc" id="aclassModbusTCPClient_html"><div class="ttname"><a href="classModbusTCPClient.html">ModbusTCPClient</a></div><div class="ttdef"><b>Definition</b> <a href="modbustcpclient_8h_source.html#l00025">modbustcpclient.h:26</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html"><div class="ttname"><a href="classModbusThreadManager.html">ModbusThreadManager</a></div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8h_source.html#l00026">modbusthreadmanager.h:27</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a055958d4fb9af47a9c477f86cbb23c42"><div class="ttname"><a href="classModbusThreadManager.html#a055958d4fb9af47a9c477f86cbb23c42">ModbusThreadManager::onRegisterValueChanged</a></div><div class="ttdeci">void onRegisterValueChanged(int address, quint16 value)</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00160">modbusthreadmanager.cpp:160</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a2e913ddddb8d201caaa5079d118981ba"><div class="ttname"><a href="classModbusThreadManager.html#a2e913ddddb8d201caaa5079d118981ba">ModbusThreadManager::readAndDebugAddress</a></div><div class="ttdeci">void readAndDebugAddress(int address)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00225">modbusthreadmanager.cpp:225</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a3af369290d07982ed1e6556a6875597d"><div class="ttname"><a href="classModbusThreadManager.html#a3af369290d07982ed1e6556a6875597d">ModbusThreadManager::registerSlider</a></div><div class="ttdeci">void registerSlider(TechSliderEdit *slider, int address)</div><div class="ttdoc">将 TechSliderEdit 与寄存器地址关联</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00066">modbusthreadmanager.cpp:66</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a3d6b84fa0918dcfe29e6962041d44e53"><div class="ttname"><a href="classModbusThreadManager.html#a3d6b84fa0918dcfe29e6962041d44e53">ModbusThreadManager::instance</a></div><div class="ttdeci">static ModbusThreadManager * instance()</div><div class="ttdoc">获取 ModbusThreadManager 单例实例</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00007">modbusthreadmanager.cpp:7</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a434400756e655bcded6989f7828eb65e"><div class="ttname"><a href="classModbusThreadManager.html#a434400756e655bcded6989f7828eb65e">ModbusThreadManager::readSingleRegister</a></div><div class="ttdeci">bool readSingleRegister(int address, quint16 &amp;value)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00219">modbusthreadmanager.cpp:219</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a463d54644abf78ab47a3dbc81f433de8"><div class="ttname"><a href="classModbusThreadManager.html#a463d54644abf78ab47a3dbc81f433de8">ModbusThreadManager::m_addressToSliderLabel</a></div><div class="ttdeci">QMap&lt; int, TechSliderLabel * &gt; m_addressToSliderLabel</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8h_source.html#l00231">modbusthreadmanager.h:231</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a48021a6bb0b7ca2950836b6df5552863"><div class="ttname"><a href="classModbusThreadManager.html#a48021a6bb0b7ca2950836b6df5552863">ModbusThreadManager::readInputRegisters</a></div><div class="ttdeci">bool readInputRegisters(int startAddress, int count)</div><div class="ttdoc">读取输入寄存器（功能码 0x04）</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00286">modbusthreadmanager.cpp:286</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a490aacce1ccc98114ba12a938ee5b8bc"><div class="ttname"><a href="classModbusThreadManager.html#a490aacce1ccc98114ba12a938ee5b8bc">ModbusThreadManager::disconnected</a></div><div class="ttdeci">void disconnected()</div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a4977e969e2f04a6e614d95ffc1c82fef"><div class="ttname"><a href="classModbusThreadManager.html#a4977e969e2f04a6e614d95ffc1c82fef">ModbusThreadManager::registerValueChanged</a></div><div class="ttdeci">void registerValueChanged(int address, quint16 value)</div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a5946a5f404ba38cbf7e28f768beaa4a9"><div class="ttname"><a href="classModbusThreadManager.html#a5946a5f404ba38cbf7e28f768beaa4a9">ModbusThreadManager::m_modbusClient</a></div><div class="ttdeci">ModbusTCPClient * m_modbusClient</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8h_source.html#l00224">modbusthreadmanager.h:224</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a7257ab31aa6715622d965edf66edb0ae"><div class="ttname"><a href="classModbusThreadManager.html#a7257ab31aa6715622d965edf66edb0ae">ModbusThreadManager::errorOccurred</a></div><div class="ttdeci">void errorOccurred(const QString &amp;error)</div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a78b45166572f789d880b562e30f988d6"><div class="ttname"><a href="classModbusThreadManager.html#a78b45166572f789d880b562e30f988d6">ModbusThreadManager::m_addressToSlider</a></div><div class="ttdeci">QMap&lt; int, TechSliderEdit * &gt; m_addressToSlider</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8h_source.html#l00227">modbusthreadmanager.h:227</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a7dedc2e37e8c0d51cc7998de91a616b0"><div class="ttname"><a href="classModbusThreadManager.html#a7dedc2e37e8c0d51cc7998de91a616b0">ModbusThreadManager::registerSliderLabel</a></div><div class="ttdeci">void registerSliderLabel(TechSliderLabel *sliderLabel, int address)</div><div class="ttdoc">将 TechSliderLabel 与寄存器地址关联（只读显示）</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00113">modbusthreadmanager.cpp:113</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a837617b8ce1f24b3bf991e193a4c62dd"><div class="ttname"><a href="classModbusThreadManager.html#a837617b8ce1f24b3bf991e193a4c62dd">ModbusThreadManager::m_sliderToAddress</a></div><div class="ttdeci">QMap&lt; TechSliderEdit *, int &gt; m_sliderToAddress</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8h_source.html#l00228">modbusthreadmanager.h:228</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a85b995d560926de42940c66575bc750b"><div class="ttname"><a href="classModbusThreadManager.html#a85b995d560926de42940c66575bc750b">ModbusThreadManager::readMultipleRegisters</a></div><div class="ttdeci">void readMultipleRegisters(int startAddress, int count)</div><div class="ttdoc">读取一段寄存器</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00250">modbusthreadmanager.cpp:250</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a9da8dd7f85fb7233a9bd374f41bddc3c"><div class="ttname"><a href="classModbusThreadManager.html#a9da8dd7f85fb7233a9bd374f41bddc3c">ModbusThreadManager::onSliderLabelDestroyed</a></div><div class="ttdeci">void onSliderLabelDestroyed(QObject *obj)</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00192">modbusthreadmanager.cpp:192</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_aa1c42fcfc1b26d7e6a00d5fc0228711f"><div class="ttname"><a href="classModbusThreadManager.html#aa1c42fcfc1b26d7e6a00d5fc0228711f">ModbusThreadManager::connected</a></div><div class="ttdeci">void connected()</div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_aa2cdb1ec7221c90b6959c018a7caa5c4"><div class="ttname"><a href="classModbusThreadManager.html#aa2cdb1ec7221c90b6959c018a7caa5c4">ModbusThreadManager::writeSingleRegister</a></div><div class="ttdeci">bool writeSingleRegister(int address, quint16 value)</div><div class="ttdoc">写单个寄存器</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00259">modbusthreadmanager.cpp:259</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_aa356173b2684c841c842aa3c8758cb33"><div class="ttname"><a href="classModbusThreadManager.html#aa356173b2684c841c842aa3c8758cb33">ModbusThreadManager::m_sliderLabelToAddress</a></div><div class="ttdeci">QMap&lt; TechSliderLabel *, int &gt; m_sliderLabelToAddress</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8h_source.html#l00232">modbusthreadmanager.h:232</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_aa52682b46cff69835e2a600fc867f1a8"><div class="ttname"><a href="classModbusThreadManager.html#aa52682b46cff69835e2a600fc867f1a8">ModbusThreadManager::disconnectFromDevice</a></div><div class="ttdeci">void disconnectFromDevice()</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00053">modbusthreadmanager.cpp:53</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_aa8f3b3a8d71d179528a46698ae2b0f6c"><div class="ttname"><a href="classModbusThreadManager.html#aa8f3b3a8d71d179528a46698ae2b0f6c">ModbusThreadManager::unregisterSlider</a></div><div class="ttdeci">void unregisterSlider(TechSliderEdit *slider)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00088">modbusthreadmanager.cpp:88</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_aa97b383bcf9be692b49d307a717bfb10"><div class="ttname"><a href="classModbusThreadManager.html#aa97b383bcf9be692b49d307a717bfb10">ModbusThreadManager::registerWritten</a></div><div class="ttdeci">void registerWritten(int address, quint16 value)</div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_ab3d6427ff17fc8b77e19386e7e0f3deb"><div class="ttname"><a href="classModbusThreadManager.html#ab3d6427ff17fc8b77e19386e7e0f3deb">ModbusThreadManager::writeOperationComplete</a></div><div class="ttdeci">void writeOperationComplete(bool success, const QString &amp;message)</div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_abf4ccaf962f7abf7229e9e09554a8488"><div class="ttname"><a href="classModbusThreadManager.html#abf4ccaf962f7abf7229e9e09554a8488">ModbusThreadManager::onSliderDestroyed</a></div><div class="ttdeci">void onSliderDestroyed(QObject *obj)</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00179">modbusthreadmanager.cpp:179</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_ac786b96191c397b53a5b2a16c07359af"><div class="ttname"><a href="classModbusThreadManager.html#ac786b96191c397b53a5b2a16c07359af">ModbusThreadManager::setAutoReconnect</a></div><div class="ttdeci">void setAutoReconnect(bool enable, int interval=5000)</div><div class="ttdoc">启用/禁用自动重连</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00212">modbusthreadmanager.cpp:212</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_ad92a60c68a016c06a95c6e2aafa2930f"><div class="ttname"><a href="classModbusThreadManager.html#ad92a60c68a016c06a95c6e2aafa2930f">ModbusThreadManager::connectToDevice</a></div><div class="ttdeci">bool connectToDevice(const QString &amp;host, quint16 port=502, int slaveId=1)</div><div class="ttdoc">连接到 Modbus 设备</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00040">modbusthreadmanager.cpp:40</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_adbad3abbf9eb82d7cbabe96d38f8f2c4"><div class="ttname"><a href="classModbusThreadManager.html#adbad3abbf9eb82d7cbabe96d38f8f2c4">ModbusThreadManager::unregisterSliderLabel</a></div><div class="ttdeci">void unregisterSliderLabel(TechSliderLabel *sliderLabel)</div><div class="ttdoc">注销标签与地址的关联</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00135">modbusthreadmanager.cpp:135</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_ae3b2ae28795aa8acb39148c4ffaa7f5c"><div class="ttname"><a href="classModbusThreadManager.html#ae3b2ae28795aa8acb39148c4ffaa7f5c">ModbusThreadManager::isConnected</a></div><div class="ttdeci">bool isConnected() const</div><div class="ttdoc">查询连接状态</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00061">modbusthreadmanager.cpp:61</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_ae4a62ee20be1ea76666450536ac70815"><div class="ttname"><a href="classModbusThreadManager.html#ae4a62ee20be1ea76666450536ac70815">ModbusThreadManager::setPollInterval</a></div><div class="ttdeci">void setPollInterval(int ms)</div><div class="ttdoc">设置轮询间隔（毫秒）</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00205">modbusthreadmanager.cpp:205</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_aee8fa8ed7e5c8c0c51e40693cbc38b9a"><div class="ttname"><a href="classModbusThreadManager.html#aee8fa8ed7e5c8c0c51e40693cbc38b9a">ModbusThreadManager::~ModbusThreadManager</a></div><div class="ttdeci">~ModbusThreadManager()</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00031">modbusthreadmanager.cpp:31</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_aef7b28d686b3368e8483098327aee668"><div class="ttname"><a href="classModbusThreadManager.html#aef7b28d686b3368e8483098327aee668">ModbusThreadManager::readHoldingRegisters</a></div><div class="ttdeci">bool readHoldingRegisters(int startAddress, int count)</div><div class="ttdoc">读取保持寄存器（功能码 0x03）</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00277">modbusthreadmanager.cpp:277</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_af3cb78bb33dda405ce0a3efb15c9aa2c"><div class="ttname"><a href="classModbusThreadManager.html#af3cb78bb33dda405ce0a3efb15c9aa2c">ModbusThreadManager::readMultipleHoldingRegisters</a></div><div class="ttdeci">void readMultipleHoldingRegisters(int startAddress, int count)</div><div class="ttdoc">批量读取保持寄存器（内部可能分片）</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00295">modbusthreadmanager.cpp:295</a></div></div>
+<div class="ttc" id="aclassTechSliderEdit_html"><div class="ttname"><a href="classTechSliderEdit.html">TechSliderEdit</a></div><div class="ttdef"><b>Definition</b> <a href="techslideredit_8h_source.html#l00038">techslideredit.h:39</a></div></div>
+<div class="ttc" id="aclassTechSliderLabel_html"><div class="ttname"><a href="classTechSliderLabel.html">TechSliderLabel</a></div><div class="ttdef"><b>Definition</b> <a href="techsliderlabel_8h_source.html#l00034">techsliderlabel.h:35</a></div></div>
+<div class="ttc" id="amodbustcpclient_8h_html"><div class="ttname"><a href="modbustcpclient_8h.html">modbustcpclient.h</a></div><div class="ttdoc">基于 TCP 的 Modbus 客户端声明，用于与 Modbus TCP 设备进行通信。</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="modbusthreadmanager_8h.html">modbusthreadmanager.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

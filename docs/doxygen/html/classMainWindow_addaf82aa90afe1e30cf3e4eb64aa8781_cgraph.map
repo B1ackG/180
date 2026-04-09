@@ -1,0 +1,124 @@
+<map id="MainWindow::modbusInit" name="MainWindow::modbusInit">
+<area shape="rect" id="Node000001" title="初始化 Modbus 相关配置" alt="" coords="5,263,192,288"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a8c5c1b8b58df6dba337afa33818f4b7a" title=" " alt="" coords="1497,506,1691,546"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,260,163,210,199,181,239,156,354,94,403,72,450,56,498,44,551,36,681,30,997,30,1065,27,1125,19,1230,4,1279,4,1328,12,1380,33,1435,69,1481,114,1517,168,1545,227,1565,288,1579,348,1588,405,1595,492,1590,492,1583,405,1574,350,1560,290,1540,229,1513,171,1477,118,1432,73,1377,38,1327,17,1279,9,1231,10,1126,24,1065,32,997,35,681,35,551,41,499,49,452,61,405,77,357,99,241,160,202,185,166,214,114,264"/>
+<area shape="rect" id="Node000004" href="$classMainWindow.html#acbab849b6f59058cacc4d4052df31981" title="创建并绑定 Modbus 标签" alt="" coords="249,169,491,195"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="136,260,318,197,320,202,138,265"/>
+<area shape="rect" id="Node000006" href="$classMainWindow.html#a853ad5679a500c6ca99c1a21b540f2de" title="创建并配置 Modbus 管理器" alt="" coords="241,448,499,473"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="120,286,340,438,337,442,117,290"/>
+<area shape="rect" id="Node000079" href="$classMainWindow.html#a99b4e2d3531831992f48d616c89641d1" title="初始化 Modbus 变量映射" alt="" coords="240,497,500,523"/>
+<area shape="poly" id="edge72_Node000001_Node000079" title=" " alt="" coords="107,287,123,327,151,381,190,437,214,462,242,484,251,489,248,494,238,488,211,466,186,441,146,383,118,329,102,289"/>
+<area shape="rect" id="Node000003" href="$classFeatureSwitchManager.html#aa558b5e5c8c59422920a0006cc304f0e" title="检查某个大功能是否可用" alt="" coords="1981,743,2152,783"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1692,530,1749,539,1810,553,1873,573,1931,602,1968,631,2001,665,2049,730,2045,733,1997,668,1965,635,1928,607,1871,578,1809,558,1748,544,1691,535"/>
+<area shape="rect" id="Node000005" href="$classMainModbusLabelMapper.html#a433bc955fb71e3b0174bdae7bc3c265e" title="扫描根控件并构建寄存器到 QLabel 的映射表。" alt="" coords="587,70,777,110"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="405,166,547,119,579,111,580,116,549,124,407,172"/>
+<area shape="poly" id="edge18_Node000006_Node000002" title=" " alt="" coords="387,445,454,402,499,379,547,362,618,347,689,338,762,334,835,334,980,346,1120,370,1250,401,1365,436,1462,470,1535,498,1533,503,1460,475,1363,441,1248,407,1119,375,980,352,835,340,762,339,690,343,619,353,549,367,501,384,457,406,390,450"/>
+<area shape="rect" id="Node000007" href="$classMainModbusConnector.html#a480216169d71602293e4720c905a4a4f" title="连接指定端点并应用默认轮询/重连配置。" alt="" coords="597,262,767,302"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="382,446,449,385,496,349,547,318,583,303,585,308,549,323,499,354,452,389,386,450"/>
+<area shape="rect" id="Node000016" href="$classModbusThreadManager.html#aa1c42fcfc1b26d7e6a00d5fc0228711f" title=" " alt="" coords="595,377,769,417"/>
+<area shape="poly" id="edge14_Node000006_Node000016" title=" " alt="" coords="432,445,580,415,581,420,433,450"/>
+<area shape="rect" id="Node000017" href="$classModbusThreadManager.html#a490aacce1ccc98114ba12a938ee5b8bc" title=" " alt="" coords="595,441,769,481"/>
+<area shape="poly" id="edge15_Node000006_Node000017" title=" " alt="" coords="499,458,581,458,581,463,499,463"/>
+<area shape="rect" id="Node000018" href="$classModbusThreadManager.html#a7257ab31aa6715622d965edf66edb0ae" title=" " alt="" coords="595,505,769,545"/>
+<area shape="poly" id="edge16_Node000006_Node000018" title=" " alt="" coords="437,471,501,483,582,500,581,506,499,489,436,476"/>
+<area shape="rect" id="Node000019" href="$classModbusThreadManager.html#a3d6b84fa0918dcfe29e6962041d44e53" title="获取 ModbusThreadManager 单例实例" alt="" coords="595,569,769,609"/>
+<area shape="poly" id="edge17_Node000006_Node000019" title=" " alt="" coords="476,471,502,484,519,501,527,520,534,538,550,554,583,571,580,576,546,559,530,541,522,522,514,504,498,488,473,476"/>
+<area shape="rect" id="Node000020" href="$classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57" title=" " alt="" coords="1481,999,1707,1024"/>
+<area shape="poly" id="edge19_Node000006_Node000020" title=" " alt="" coords="487,471,502,484,520,511,532,545,541,585,545,629,547,729,541,838,533,948,529,1051,533,1140,540,1177,550,1208,580,1268,609,1318,639,1360,671,1395,708,1426,752,1454,803,1480,865,1506,949,1538,1025,1563,1095,1580,1162,1586,1227,1580,1293,1562,1360,1528,1432,1478,1457,1456,1479,1431,1516,1374,1544,1311,1564,1247,1577,1183,1585,1125,1590,1038,1596,1038,1590,1126,1582,1184,1569,1248,1549,1313,1521,1376,1483,1434,1461,1460,1435,1483,1363,1533,1294,1567,1228,1586,1162,1591,1095,1585,1024,1568,947,1543,863,1511,801,1485,749,1458,705,1430,668,1399,635,1363,605,1321,575,1270,546,1210,535,1178,528,1141,524,1051,528,948,536,838,541,729,540,629,535,585,527,546,515,514,498,488,483,475"/>
+<area shape="rect" id="Node000023" href="$classMainWindow.html#a6de38b22cae925674fd5ceb43c30c6f1" title="Modbus 已连接" alt="" coords="557,732,807,757"/>
+<area shape="poly" id="edge23_Node000006_Node000023" title=" " alt="" coords="485,471,502,484,523,513,531,543,531,574,526,604,522,634,522,663,530,691,550,719,553,722,550,726,546,722,525,693,516,663,517,633,521,603,526,573,526,544,518,516,498,488,482,475"/>
+<area shape="rect" id="Node000058" href="$classMainWindow.html#a52e1f7327e42ec45712db37b9075259c" title="Modbus 已断开" alt="" coords="548,683,816,708"/>
+<area shape="poly" id="edge46_Node000006_Node000058" title=" " alt="" coords="484,471,502,484,520,507,527,531,529,555,526,579,524,603,526,626,533,648,550,669,554,673,550,677,546,673,528,650,520,627,519,602,521,579,523,555,522,532,515,509,498,488,481,476"/>
+<area shape="rect" id="Node000059" href="$classMainWindow.html#a75cc9bce55acf3ca4d1cee541eed5144" title="Modbus 错误回调" alt="" coords="577,633,787,659"/>
+<area shape="poly" id="edge49_Node000006_Node000059" title=" " alt="" coords="482,471,502,484,516,500,524,518,527,553,530,587,536,603,550,619,566,629,563,634,546,623,532,606,524,589,521,554,518,519,512,503,498,488,479,476"/>
+<area shape="rect" id="Node000060" href="$classMainWindow.html#a98a901aeb61b8ddcf35943404fbbf1c1" title="Modbus 寄存器值变化回调" alt="" coords="565,1157,799,1197"/>
+<area shape="poly" id="edge52_Node000006_Node000060" title=" " alt="" coords="486,471,502,484,529,518,543,551,549,583,549,616,543,686,543,726,551,769,580,878,614,983,671,1143,666,1145,609,985,575,879,545,770,538,726,537,686,543,616,544,584,538,552,524,521,498,488,482,476"/>
+<area shape="rect" id="Node000077" href="$classModbusThreadManager.html#a4977e969e2f04a6e614d95ffc1c82fef" title=" " alt="" coords="595,134,769,174"/>
+<area shape="poly" id="edge70_Node000006_Node000077" title=" " alt="" coords="373,447,393,397,428,326,451,287,479,249,511,214,547,184,580,166,583,171,549,188,514,218,483,252,456,290,432,328,397,399,378,449"/>
+<area shape="rect" id="Node000078" href="$classMainModbusConnector.html#accfad2cbbc6a99573489f5a283f38767" title="根据运行模式选择主设备连接端点。" alt="" coords="597,198,767,238"/>
+<area shape="poly" id="edge71_Node000006_Node000078" title=" " alt="" coords="376,446,399,407,437,353,486,296,515,270,547,248,582,231,585,236,549,252,519,274,490,300,441,356,404,410,380,449"/>
+<area shape="rect" id="Node000008" href="$classModbusThreadManager.html#ad92a60c68a016c06a95c6e2aafa2930f" title="连接到 Modbus 设备" alt="" coords="908,262,1083,302"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="767,279,894,279,894,285,767,285"/>
+<area shape="rect" id="Node000012" href="$classModbusThreadManager.html#ac786b96191c397b53a5b2a16c07359af" title="启用/禁用自动重连" alt="" coords="908,97,1083,137"/>
+<area shape="poly" id="edge10_Node000007_Node000012" title=" " alt="" coords="767,270,792,261,814,248,831,227,838,205,845,182,862,159,894,139,897,143,866,163,849,184,843,207,836,230,818,252,794,266,768,275"/>
+<area shape="rect" id="Node000014" href="$classModbusThreadManager.html#ae4a62ee20be1ea76666450536ac70815" title="设置轮询间隔（毫秒）" alt="" coords="908,173,1083,213"/>
+<area shape="poly" id="edge12_Node000007_Node000014" title=" " alt="" coords="767,260,815,247,922,214,923,220,817,252,768,265"/>
+<area shape="rect" id="Node000009" href="$classModbusTCPClient.html#ac6853316af6a3adcb526900580e6421d" title="使用示例:" alt="" coords="1207,262,1401,302"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="1083,279,1193,279,1193,285,1083,285"/>
+<area shape="rect" id="Node000010" href="$classModbusTCPClient.html#a8ab5bd396e86a9d86151b5f4f6ac583f" title="开始轮询已注册的寄存器列表" alt="" coords="1195,212,1413,237"/>
+<area shape="poly" id="edge9_Node000008_Node000010" title=" " alt="" coords="1082,263,1221,237,1222,242,1083,268"/>
+<area shape="rect" id="Node000013" href="$classModbusTCPClient.html#a90ca9cb72ad7e275b3f2cdf5d8e0b128" title="使用示例:" alt="" coords="1207,83,1401,123"/>
+<area shape="poly" id="edge11_Node000012_Node000013" title=" " alt="" coords="1083,110,1193,105,1193,111,1083,115"/>
+<area shape="rect" id="Node000015" href="$classModbusTCPClient.html#a75663a3df5adab252182d11e05e3fbdb" title="设置轮询间隔（毫秒）" alt="" coords="1211,147,1397,187"/>
+<area shape="poly" id="edge13_Node000014_Node000015" title=" " alt="" coords="1082,183,1197,173,1197,179,1083,188"/>
+<area shape="rect" id="Node000021" href="$classFeatureSwitchManager.html#af4a8c4a54a17fdddbdb9eece6b8da932" title="组合检查：先检查所属大功能，再检查小功能（若提供）" alt="" coords="1757,835,1927,875"/>
+<area shape="poly" id="edge20_Node000020_Node000021" title=" " alt="" coords="1614,996,1796,880,1799,885,1617,1001"/>
+<area shape="poly" id="edge21_Node000021_Node000003" title=" " alt="" coords="1891,833,2003,786,2005,791,1893,838"/>
+<area shape="rect" id="Node000022" href="$classFeatureSwitchManager.html#a34a3f96557e81a21f547065c8ce2608b" title="检查某个小功能是否可用" alt="" coords="1977,835,2156,875"/>
+<area shape="poly" id="edge22_Node000021_Node000022" title=" " alt="" coords="1928,853,1964,853,1964,858,1928,858"/>
+<area shape="poly" id="edge34_Node000023_Node000002" title=" " alt="" coords="799,730,814,719,831,696,838,673,838,649,836,624,833,599,834,575,843,551,862,529,883,516,909,506,974,492,1053,484,1141,483,1324,492,1483,508,1482,514,1323,497,1141,488,1053,490,975,497,911,511,886,521,866,533,847,554,839,576,838,599,841,623,844,649,843,674,836,699,818,722,802,734"/>
+<area shape="poly" id="edge35_Node000023_Node000020" title=" " alt="" coords="689,757,705,813,738,896,761,939,790,981,825,1018,865,1048,888,1058,917,1065,988,1074,1073,1075,1166,1070,1355,1048,1511,1024,1512,1029,1356,1054,1166,1075,1073,1080,987,1079,916,1070,886,1063,863,1052,821,1022,786,984,757,942,733,898,700,815,684,758"/>
+<area shape="rect" id="Node000024" href="$classOperationRecorder.html#ae5e0a07f7b387272fd297c103b4fe42c" title="添加操作记录" alt="" coords="1228,809,1380,849"/>
+<area shape="poly" id="edge24_Node000023_Node000024" title=" " alt="" coords="736,755,864,781,1051,805,1214,820,1214,825,1051,810,864,786,735,760"/>
+<area shape="rect" id="Node000034" href="$classMainModbusStatus.html#a7ef38d77f1f8dabacbbedfb36998563c" title="将状态写入操作记录器。" alt="" coords="894,667,1097,707"/>
+<area shape="poly" id="edge27_Node000023_Node000034" title=" " alt="" coords="753,729,816,718,880,706,881,711,816,723,754,735"/>
+<area shape="rect" id="Node000035" href="$classMainModbusStatus.html#ab8a3b62ba01f98cc779bedeb4ac7b8a3" title="将状态应用到状态栏 UI。" alt="" coords="893,401,1097,441"/>
+<area shape="poly" id="edge29_Node000023_Node000035" title=" " alt="" coords="800,730,814,719,836,688,845,657,844,625,839,592,834,559,832,525,840,491,862,457,879,443,883,447,866,461,845,493,838,526,839,558,844,591,850,624,850,657,841,690,818,722,803,734"/>
+<area shape="rect" id="Node000036" href="$classMainWindow.html#a1b7c705b53c4b13ef719044fcd0c81f4" title="启用或禁用 TCP 传输" alt="" coords="864,617,1127,643"/>
+<area shape="poly" id="edge30_Node000023_Node000036" title=" " alt="" coords="792,729,814,718,830,703,838,687,846,669,862,653,877,645,879,650,866,657,850,672,842,689,834,707,818,723,794,734"/>
+<area shape="rect" id="Node000041" href="$classMainDeviceModbusApi.html#af7a3a4d874cad596e8cf9a79cb92a8b7" title="判断管理器是否可用于主设备 Modbus 操作。" alt="" coords="1509,617,1679,657"/>
+<area shape="poly" id="edge36_Node000023_Node000041" title=" " alt="" coords="798,730,814,719,829,701,835,682,836,641,837,601,845,581,862,564,885,551,912,543,981,534,1064,535,1156,544,1345,575,1503,611,1502,616,1344,580,1156,549,1064,540,982,539,913,548,887,556,866,568,850,584,842,602,841,641,841,683,833,703,818,723,801,734"/>
+<area shape="rect" id="Node000043" href="$classMainWindow.html#a690f93e15045a12140ad5cdd411ff74c" title="执行开机时需要写入的 Modbus 寄存器初始值" alt="" coords="889,998,1101,1038"/>
+<area shape="poly" id="edge38_Node000023_Node000043" title=" " alt="" coords="691,756,714,800,751,862,802,928,832,958,865,984,878,991,876,996,863,988,829,962,798,932,746,865,709,803,687,759"/>
+<area shape="rect" id="Node000051" href="$classMainDeviceModbusApi.html#a0fafc4541f82d6ed5ff4f032eeb12eba" title="读取保持寄存器。" alt="" coords="1219,617,1389,657"/>
+<area shape="poly" id="edge43_Node000023_Node000051" title=" " alt="" coords="797,729,814,719,826,705,833,692,836,661,841,631,848,617,862,604,909,580,959,567,1012,562,1064,564,1116,572,1164,583,1245,609,1244,614,1163,588,1115,577,1064,570,1012,567,960,572,911,585,866,608,853,620,846,633,842,662,838,693,831,708,818,723,800,734"/>
+<area shape="rect" id="Node000056" href="$classMainWindow.html#a03f37918e02b032a4f0d75fb9b2df31a" title="配置浮点寄存器读取" alt="" coords="879,731,1112,771"/>
+<area shape="poly" id="edge45_Node000023_Node000056" title=" " alt="" coords="807,745,865,746,865,751,807,750"/>
+<area shape="rect" id="Node000025" href="$classOperationRecorder.html#a99de0d8b91e199e6f1aab3b664df07e1" title=" " alt="" coords="1518,777,1670,817"/>
+<area shape="poly" id="edge25_Node000024_Node000025" title=" " alt="" coords="1380,818,1504,804,1504,809,1380,823"/>
+<area shape="rect" id="Node000026" href="$classOperationRecorder.html#a334ae0662731c03b4a767ee6c47212df" title=" " alt="" coords="1517,841,1671,881"/>
+<area shape="poly" id="edge26_Node000024_Node000026" title=" " alt="" coords="1380,834,1503,848,1502,853,1380,840"/>
+<area shape="poly" id="edge28_Node000034_Node000024" title=" " alt="" coords="1098,701,1128,717,1146,737,1153,757,1160,776,1176,794,1216,814,1213,819,1173,799,1156,779,1148,759,1141,739,1125,721,1096,706"/>
+<area shape="poly" id="edge32_Node000036_Node000002" title=" " alt="" coords="1069,615,1483,542,1484,548,1070,620"/>
+<area shape="rect" id="Node000037" href="$classOperationRecorder.html#abe2a45d4d8d93b7f9b9338cd4a8cb7c0" title="启用/禁用 TCP 传输" alt="" coords="1218,681,1390,721"/>
+<area shape="poly" id="edge31_Node000036_Node000037" title=" " alt="" coords="1068,640,1127,653,1175,666,1209,675,1207,680,1174,671,1126,658,1066,645"/>
+<area shape="rect" id="Node000040" href="$classOperationRecorder.html#abf45d116c8ab17f758d7db9e457e4a2e" title="设置远端 TCP 服务器地址与端口" alt="" coords="1228,745,1380,785"/>
+<area shape="poly" id="edge33_Node000036_Node000040" title=" " alt="" coords="1104,640,1128,653,1146,672,1153,693,1160,712,1176,730,1216,750,1213,755,1173,735,1156,715,1148,694,1141,675,1125,657,1101,645"/>
+<area shape="rect" id="Node000042" href="$classModbusThreadManager.html#ae3b2ae28795aa8acb39148c4ffaa7f5c" title="查询连接状态" alt="" coords="1755,617,1929,657"/>
+<area shape="poly" id="edge37_Node000041_Node000042" title=" " alt="" coords="1679,634,1741,634,1741,639,1679,639"/>
+<area shape="poly" id="edge39_Node000043_Node000020" title=" " alt="" coords="1101,1014,1468,1010,1468,1015,1102,1019"/>
+<area shape="rect" id="Node000044" href="$classMainWindow.html#a41a5e7d92b4ce45c8decb5c38cbe780c" title="向主控设备写入寄存器" alt="" coords="1185,923,1423,948"/>
+<area shape="poly" id="edge40_Node000043_Node000044" title=" " alt="" coords="1079,995,1126,983,1246,949,1248,954,1127,988,1081,1000"/>
+<area shape="poly" id="edge41_Node000044_Node000020" title=" " alt="" coords="1358,945,1434,965,1536,992,1534,997,1433,970,1357,951"/>
+<area shape="poly" id="edge42_Node000044_Node000041" title=" " alt="" coords="1416,920,1432,909,1447,893,1455,877,1461,843,1464,806,1469,785,1479,763,1518,709,1559,665,1562,668,1522,712,1484,766,1474,787,1469,807,1467,844,1460,879,1451,896,1435,913,1419,924"/>
+<area shape="poly" id="edge44_Node000051_Node000041" title=" " alt="" coords="1390,634,1495,634,1495,639,1390,639"/>
+<area shape="poly" id="edge47_Node000058_Node000034" title=" " alt="" coords="816,689,880,687,880,693,817,694"/>
+<area shape="poly" id="edge48_Node000058_Node000035" title=" " alt="" coords="799,680,814,669,833,645,841,619,842,594,839,567,836,540,836,512,843,485,862,457,880,443,883,447,866,461,848,487,841,513,841,540,844,566,847,593,846,620,838,647,818,673,803,685"/>
+<area shape="poly" id="edge50_Node000059_Node000034" title=" " alt="" coords="779,656,880,669,880,675,778,661"/>
+<area shape="poly" id="edge51_Node000059_Node000035" title=" " alt="" coords="787,635,814,619,830,600,837,581,838,541,839,499,847,478,862,457,880,444,883,448,866,461,851,481,845,500,844,541,842,582,834,603,818,623,789,640"/>
+<area shape="poly" id="edge57_Node000060_Node000020" title=" " alt="" coords="800,1180,932,1181,1092,1172,1178,1162,1265,1148,1350,1129,1432,1103,1469,1088,1505,1068,1564,1030,1567,1034,1508,1073,1472,1092,1434,1108,1351,1134,1266,1153,1179,1168,1093,1177,932,1186,800,1186"/>
+<area shape="poly" id="edge53_Node000060_Node000024" title=" " alt="" coords="687,1155,708,1101,744,1029,767,991,795,954,827,921,863,893,904,870,949,852,996,838,1043,829,1135,819,1214,819,1214,824,1135,825,1044,834,997,843,951,857,907,875,865,897,830,925,799,958,772,994,748,1032,713,1104,692,1157"/>
+<area shape="rect" id="Node000061" href="$classMainWindow.html#a13c583e4b5141af73591fb9d9382c8d5" title="检查并处理报警条件" alt="" coords="1175,873,1433,899"/>
+<area shape="poly" id="edge54_Node000060_Node000061" title=" " alt="" coords="689,1155,712,1108,749,1047,799,985,829,957,863,934,915,916,990,902,1160,888,1161,893,990,908,917,921,865,939,833,961,803,988,754,1050,717,1111,694,1158"/>
+<area shape="rect" id="Node000068" href="$classMainWindow.html#a42ed48dbe928e8f5a996a65d28b0049b" title="按 DCBA FEHG 字节顺序将4个寄存器转换为 double" alt="" coords="1189,1429,1419,1469"/>
+<area shape="poly" id="edge58_Node000060_Node000068" title=" " alt="" coords="696,1195,720,1238,757,1293,806,1348,835,1372,865,1391,920,1410,998,1424,1175,1440,1175,1446,997,1429,918,1415,863,1396,831,1376,802,1351,753,1296,715,1241,691,1198"/>
+<area shape="rect" id="Node000069" href="$classMainWindow.html#a070d89e7402171a22acda5160da598fd" title="将两个寄存器转换为 float" alt="" coords="887,1113,1104,1139"/>
+<area shape="poly" id="edge59_Node000060_Node000069" title=" " alt="" coords="799,1155,902,1138,903,1143,800,1160"/>
+<area shape="rect" id="Node000070" href="$classMainWindow.html#acbe20191d78d69843fdb1ddf0dad27a2" title="切换力控制模式" alt="" coords="877,948,1113,973"/>
+<area shape="poly" id="edge60_Node000060_Node000070" title=" " alt="" coords="694,1155,720,1118,759,1071,807,1023,863,984,881,975,883,980,865,988,810,1027,763,1074,724,1121,698,1158"/>
+<area shape="rect" id="Node000073" href="$classMainWindow.html#a06332787e2a6fdf4cb15690f55f59956" title="更新大力值标签" alt="" coords="888,1214,1103,1254"/>
+<area shape="poly" id="edge65_Node000060_Node000073" title=" " alt="" coords="792,1194,875,1209,874,1214,792,1199"/>
+<area shape="rect" id="Node000074" href="$classMainWindow.html#ab4bc50f46a4337cc9bf3a663600bf37a" title="刷新功能开关组按钮视觉状态" alt="" coords="889,1278,1102,1318"/>
+<area shape="poly" id="edge66_Node000060_Node000074" title=" " alt="" coords="720,1194,786,1229,865,1263,889,1271,888,1277,863,1268,784,1234,717,1199"/>
+<area shape="rect" id="Node000075" href="$classMainWindow.html#aa1074b475b1fc7328502a7347f77aca9" title="更新指定滑块标签的数值显示" alt="" coords="898,1457,1093,1497"/>
+<area shape="poly" id="edge67_Node000060_Node000075" title=" " alt="" coords="694,1196,717,1245,754,1310,804,1378,833,1409,866,1436,888,1449,885,1453,862,1440,830,1413,800,1381,749,1312,712,1247,689,1198"/>
+<area shape="rect" id="Node000076" href="$classMainWindow.html#a5e3798183b915fead91538dc52337a3e" title="更新小力值标签" alt="" coords="880,1342,1111,1382"/>
+<area shape="poly" id="edge69_Node000060_Node000076" title=" " alt="" coords="703,1195,770,1261,816,1297,865,1328,881,1335,879,1339,863,1332,813,1301,767,1265,699,1199"/>
+<area shape="poly" id="edge55_Node000061_Node000002" title=" " alt="" coords="1415,871,1431,859,1454,829,1464,799,1465,769,1462,739,1457,707,1456,674,1462,639,1479,603,1505,574,1536,551,1539,555,1509,578,1484,606,1467,641,1462,674,1463,706,1467,738,1470,769,1469,800,1459,831,1435,862,1418,875"/>
+<area shape="poly" id="edge56_Node000061_Node000020" title=" " alt="" coords="1393,896,1434,909,1472,926,1508,947,1567,988,1564,992,1505,952,1470,931,1432,914,1392,901"/>
+<area shape="poly" id="edge63_Node000070_Node000020" title=" " alt="" coords="1114,968,1468,998,1467,1003,1113,973"/>
+<area shape="poly" id="edge61_Node000070_Node000024" title=" " alt="" coords="1015,945,1083,904,1174,859,1214,846,1216,851,1176,864,1086,908,1018,950"/>
+<area shape="poly" id="edge64_Node000070_Node000044" title=" " alt="" coords="1113,948,1172,943,1172,949,1114,954"/>
+<area shape="poly" id="edge62_Node000070_Node000061" title=" " alt="" coords="1053,945,1126,926,1174,909,1214,899,1216,904,1175,914,1127,931,1055,950"/>
+<area shape="poly" id="edge68_Node000075_Node000068" title=" " alt="" coords="1093,1465,1175,1458,1175,1463,1093,1470"/>
+</map>

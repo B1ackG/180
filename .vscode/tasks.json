@@ -22,6 +22,12 @@
             "type": "shell",
             "command": "make clean || true",
             "problemMatcher": []
+        },
+        {
+            "label": "Docs (Doxygen)",
+            "type": "shell",
+            "command": "mkdir -p docs/doxygen && doxygen Doxyfile",
+            "problemMatcher": []
         }
     ]
 }

@@ -1,0 +1,48 @@
+<map id="SteeringModeSelector::updateButtonStyles" name="SteeringModeSelector::updateButtonStyles">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1459,133,1624,173"/>
+<area shape="rect" id="Node000002" href="$classSteeringModeSelector.html#a83ba49f86df85c7a42426368517d5e60" title="设置激活（选中）颜色" alt="" coords="1245,5,1411,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1505,127,1461,93,1409,60,1385,48,1387,43,1412,55,1464,88,1508,123"/>
+<area shape="rect" id="Node000007" href="$classSteeringModeSelector.html#a5faedbfed8e1c1bd33d7cc484a275cc5" title="功能: 设置内部按钮样式。 如何使用: 在创建后或运行时调用以改变视觉样式。 如何修改: 若增加新样式，扩展 TechPushButton::ButtonStyle 并在样式更新中处理。" alt="" coords="1245,69,1411,109"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="1460,132,1394,112,1396,107,1461,127"/>
+<area shape="rect" id="Node000008" href="$classSteeringModeSelector.html#a294f2b57c847b38efc8994c8e7c75e78" title="设置当前转向模式" alt="" coords="1245,408,1411,448"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="1518,186,1347,409,1343,406,1514,183"/>
+<area shape="rect" id="Node000011" href="$classSteeringModeSelector.html#a974f951ff27fee043585eb4e747aa599" title="功能: 构造函数，初始化转向模式选择器 UI。 如何使用: 在需要显示转向模式选择的界面创建并添加到布局。 如何修改: 若需支持更多转向模式或不同布局，在 initUI 中扩展并增加枚举项。" alt="" coords="497,345,671,385"/>
+<area shape="poly" id="edge27_Node000001_Node000011" title=" " alt="" coords="1453,179,1411,188,1287,205,1190,210,1093,218,970,239,876,263,783,293,635,348,633,343,782,288,874,258,969,233,1092,212,1189,205,1287,199,1410,183,1452,174"/>
+<area shape="rect" id="Node000019" href="$classSteeringModeSelector.html#a275258715805f1d432aa39ebc6dfc80c" title="设置未激活颜色" alt="" coords="1245,133,1411,173"/>
+<area shape="poly" id="edge25_Node000001_Node000019" title=" " alt="" coords="1445,156,1411,156,1411,151,1445,151"/>
+<area shape="rect" id="Node000003" href="$classMainWindow.html#ac20d5a395f792ec6b8ac3ca083af7601" title="设置转向模式控制" alt="" coords="719,133,921,173"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="1232,45,1107,70,970,104,874,136,872,131,969,99,1106,65,1231,39"/>
+<area shape="rect" id="Node000004" href="$classMainWindow.html#a9388168e83016e31d2668a501450bcac" title="初始化窗口 UI（内部）" alt="" coords="510,233,658,258"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="755,181,720,194,618,235,616,230,718,190,753,176"/>
+<area shape="rect" id="Node000005" href="$classMainWindow.html#a0cb4955bff598ad95110e9525a52214d" title="初始化核心页面和基础 UI 模块" alt="" coords="251,425,449,465"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="559,269,376,427,373,423,556,265"/>
+<area shape="rect" id="Node000006" href="$classMainWindow.html#a996c5a2b6f77944776856f08ec30858d" title="构造 MainWindow 并初始化内部状态与 UI" alt="" coords="5,477,203,502"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="237,468,176,479,175,474,236,463"/>
+<area shape="poly" id="edge7_Node000007_Node000003" title=" " alt="" coords="1232,104,922,143,921,138,1231,99"/>
+<area shape="rect" id="Node000009" href="$classSteeringModeSelector.html#afd1d25dc10c16829501b63f932101019" title=" " alt="" coords="1001,504,1166,544"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="1280,457,1198,494,1163,507,1161,501,1196,490,1278,452"/>
+<area shape="rect" id="Node000012" href="$classSteeringModeSelector.html#ae141fdf78d0ea744ad6fda01ee364b18" title=" " alt="" coords="1001,568,1166,608"/>
+<area shape="poly" id="edge12_Node000008_Node000012" title=" " alt="" coords="1305,461,1259,511,1230,536,1199,558,1167,573,1165,568,1196,554,1227,532,1256,507,1301,457"/>
+<area shape="rect" id="Node000013" href="$classSteeringModeSelector.html#af8fbcf1562db74c6e4febac094c61813" title=" " alt="" coords="1001,312,1166,352"/>
+<area shape="poly" id="edge14_Node000008_Node000013" title=" " alt="" coords="1278,404,1196,366,1161,355,1163,349,1198,362,1280,399"/>
+<area shape="rect" id="Node000014" href="$classSteeringModeSelector.html#a5c402ca2d0da0858bfbda8e01c77cfe7" title=" " alt="" coords="1001,376,1166,416"/>
+<area shape="poly" id="edge16_Node000008_Node000014" title=" " alt="" coords="1231,418,1166,409,1167,404,1232,413"/>
+<area shape="rect" id="Node000015" href="$classSteeringModeSelector.html#af253646c008426ed2108383e4c01765e" title=" " alt="" coords="1001,440,1166,480"/>
+<area shape="poly" id="edge18_Node000008_Node000015" title=" " alt="" coords="1232,443,1167,452,1166,447,1231,438"/>
+<area shape="rect" id="Node000016" href="$classMainWindow.html#a94d428ca5fe0f37ad40109bd9981d125" title="转向模式变更回调" alt="" coords="974,248,1193,288"/>
+<area shape="poly" id="edge20_Node000008_Node000016" title=" " alt="" coords="1301,399,1256,349,1227,324,1196,302,1171,291,1174,286,1199,298,1230,320,1259,345,1305,395"/>
+<area shape="rect" id="Node000017" href="$classMainWindow.html#a3e0a36e37aaa3085efc35aebf3f257a5" title="初始化 AGV Modbus 子系统" alt="" coords="969,633,1197,658"/>
+<area shape="poly" id="edge22_Node000008_Node000017" title=" " alt="" coords="1316,462,1298,500,1273,543,1239,586,1199,622,1174,635,1171,630,1196,618,1236,583,1268,540,1293,497,1311,460"/>
+<area shape="rect" id="Node000010" href="$classSteeringModeSelector.html#a7aef4fb0a679593298cbbfa202a523bf" title=" " alt="" coords="737,408,903,448"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="992,502,968,494,863,451,865,446,970,490,993,497"/>
+<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="730,407,659,388,661,383,731,402"/>
+<area shape="poly" id="edge13_Node000012_Node000010" title=" " alt="" coords="986,567,968,558,929,533,892,504,837,450,841,447,896,500,932,529,971,554,988,562"/>
+<area shape="poly" id="edge15_Node000013_Node000010" title=" " alt="" coords="993,359,970,366,865,410,863,405,968,362,992,354"/>
+<area shape="poly" id="edge17_Node000014_Node000010" title=" " alt="" coords="988,410,903,421,903,415,987,405"/>
+<area shape="poly" id="edge19_Node000015_Node000010" title=" " alt="" coords="987,451,903,441,903,435,988,446"/>
+<area shape="poly" id="edge21_Node000016_Node000003" title=" " alt="" coords="1023,245,866,176,868,171,1025,240"/>
+<area shape="rect" id="Node000018" href="$classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c" title="初始化业务子系统（通信、线程、样式、控制）" alt="" coords="251,501,449,541"/>
+<area shape="poly" id="edge23_Node000017_Node000018" title=" " alt="" coords="994,633,449,541,450,535,994,628"/>
+<area shape="poly" id="edge24_Node000018_Node000006" title=" " alt="" coords="236,509,202,505,202,499,237,504"/>
+<area shape="poly" id="edge26_Node000019_Node000003" title=" " alt="" coords="1231,156,922,156,922,151,1231,151"/>
+</map>

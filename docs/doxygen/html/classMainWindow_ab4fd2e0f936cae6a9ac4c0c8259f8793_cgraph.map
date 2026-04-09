@@ -1,0 +1,30 @@
+<map id="MainWindow::pollModbusVariables" name="MainWindow::pollModbusVariables">
+<area shape="rect" id="Node000001" title="立即轮询 Modbus 变量" alt="" coords="5,113,253,139"/>
+<area shape="rect" id="Node000002" href="$classMainModbusPoller.html#ab4b07dc78bfd848cdb7370eaeb4cfa32" title="轮询下一条 Modbus 变量。" alt="" coords="301,74,507,114"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="238,111,287,105,288,110,239,116"/>
+<area shape="rect" id="Node000013" href="$classMainModbusPoller.html#a5e0ed6050839d2bafaa550a68fbe49f0" title="当前轮询周期是否应跳过。" alt="" coords="307,138,501,178"/>
+<area shape="poly" id="edge15_Node000001_Node000013" title=" " alt="" coords="239,136,294,143,293,148,238,141"/>
+<area shape="rect" id="Node000003" href="$classModbusVariables.html#aca5b5fdbc05b4720ecd8c3056da82ae7" title="使用示例:" alt="" coords="555,5,793,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="471,71,554,47,611,32,613,37,555,53,473,77"/>
+<area shape="rect" id="Node000004" href="$classMainDeviceModbusApi.html#af7a3a4d874cad596e8cf9a79cb92a8b7" title="判断管理器是否可用于主设备 Modbus 操作。" alt="" coords="845,71,1016,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="507,91,831,89,831,94,507,96"/>
+<area shape="rect" id="Node000007" href="$classModbusVariables.html#ac130b9582b881933824eeb94e7adea87" title="功能: 将 PLC 风格地址解析为 Modbus 数值地址与位位置（若为位变量）。 如何使用: 用于将配置中的 PLC 地址转换为底层 Modbus 操作地址。 如何修改: 若支持更多地址格式或厂商差异..." alt="" coords="559,107,789,132"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="507,101,546,105,545,110,507,106"/>
+<area shape="rect" id="Node000008" href="$classMainDeviceModbusApi.html#a77da325c61d632fa5a0404a2a86f8f22" title="读取并调试输出指定地址。" alt="" coords="585,157,763,197"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="472,112,508,123,556,142,582,150,580,155,554,147,506,129,470,117"/>
+<area shape="rect" id="Node000005" href="$classModbusThreadManager.html#ae3b2ae28795aa8acb39148c4ffaa7f5c" title="查询连接状态" alt="" coords="1368,71,1543,111"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="1016,89,1354,89,1354,94,1016,94"/>
+<area shape="rect" id="Node000006" href="$classModbusTCPClient.html#ac0eb40bf43e015281059b0144a928675" title="查询连接状态" alt="" coords="1620,136,1843,161"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1543,107,1656,131,1655,136,1542,112"/>
+<area shape="poly" id="edge8_Node000008_Node000004" title=" " alt="" coords="754,154,792,142,868,114,870,119,794,147,755,159"/>
+<area shape="rect" id="Node000009" href="$classModbusThreadManager.html#a2e913ddddb8d201caaa5079d118981ba" title="使用示例:" alt="" coords="841,157,1020,197"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="763,174,827,174,827,179,763,179"/>
+<area shape="poly" id="edge10_Node000009_Node000006" title=" " alt="" coords="1020,171,1606,150,1606,156,1020,176"/>
+<area shape="rect" id="Node000010" href="$classModbusTCPClient.html#af981f2837fc0fcd176d9626be6b664f5" title="读取保持寄存器（功能码 0x03）" alt="" coords="1068,186,1291,226"/>
+<area shape="poly" id="edge11_Node000009_Node000010" title=" " alt="" coords="1020,185,1055,189,1054,194,1020,190"/>
+<area shape="rect" id="Node000011" href="$classModbusTCPClient.html#a5e8a92c023cdc3ecc431d0dcbe408a6f" title=" " alt="" coords="1339,193,1572,219"/>
+<area shape="poly" id="edge12_Node000010_Node000011" title=" " alt="" coords="1291,203,1325,203,1325,209,1291,209"/>
+<area shape="poly" id="edge14_Node000011_Node000006" title=" " alt="" coords="1517,191,1656,162,1657,167,1518,196"/>
+<area shape="rect" id="Node000012" href="$classModbusTCPClient.html#a112f20f6eb34d2281ce96e7321940953" title=" " alt="" coords="1623,186,1840,226"/>
+<area shape="poly" id="edge13_Node000011_Node000012" title=" " alt="" coords="1572,203,1609,203,1609,209,1572,209"/>
+</map>

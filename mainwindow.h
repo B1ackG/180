@@ -560,6 +560,7 @@ private:
     // ----- 通信轮询与重连参数（可持久化） -----
     int m_mainModbusPollIntervalMs = 500;
     int m_mainUiPollIntervalMs = 200;
+    bool m_uiStateSyncEnabled = true;
     int m_mainReconnectIntervalMs = 5000;
     int m_agvPollIntervalMs = 200;
     int m_agvReconnectIntervalMs = 5000;

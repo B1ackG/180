@@ -1,0 +1,7 @@
+<map id="TechArcGauge::TechArcGauge" name="TechArcGauge::TechArcGauge">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,220,60"/>
+<area shape="rect" id="Node000002" href="$classAnimationManager.html#a7b55a1f9d04cf1952debcbabd81afb14" title="功能: 获取 AnimationManager 单例，用于统一管理 UI 动画定时更新。 如何使用: 调用 AnimationManager::instance() 并通过 registerWidget..." alt="" coords="268,5,477,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,33,254,29,255,34,220,38"/>
+<area shape="rect" id="Node000003" href="$classAnimationManager.html#aac70352febbaeb9158e24a6031cc7cad" title="功能: 将一个 QObject（通常为 QWidget 或其子类）注册到动画管理器，以在定时器触发时更新动画。 如何使用: 在控件创建或需要动画时调用 registerWidget(widget)。 如..." alt="" coords="271,55,475,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="220,56,257,60,257,66,220,62"/>
+</map>

@@ -1,0 +1,417 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: agvmodbusmanager.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('agvmodbusmanager_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">agvmodbusmanager.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="agvmodbusmanager_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">// file name: agvmodbusmanager.h</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#ifndef AGVMODBUSMANAGER_H</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="agvmodbusmanager_8h.html#a8da6bdffadc2b0ab8584199532c4b131">   16</a></span><span class="preprocessor">#define AGVMODBUSMANAGER_H</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &lt;QObject&gt;</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &lt;QThread&gt;</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;QTimer&gt;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &lt;QMutex&gt;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &lt;QTcpSocket&gt;</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &lt;QHostAddress&gt;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &lt;QVector&gt;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &lt;QMap&gt;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#include &lt;QListWidget&gt;</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#include &lt;QDateTime&gt;</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#include &lt;QSet&gt;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="comment">/*位变量（BOOL）：</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="comment"></span> </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="comment">    前触边 -&gt; 对象名: label_front_touch</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="comment"></span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="comment">    后触边 -&gt; 对象名: label_back_touch</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span><span class="comment"></span> </div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="comment">    左触边 -&gt; 对象名: label_left_touch</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="comment"></span> </div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="comment">    右触边 -&gt; 对象名: label_right_touch</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="comment"></span> </div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="comment">    前避障减速 -&gt; 对象名: label_front_slow</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="comment"></span> </div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span><span class="comment">    前避障停止 -&gt; 对象名: label_front_stop</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="comment"></span> </div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span><span class="comment">    后避障减速 -&gt; 对象名: label_back_slow</span></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="comment"></span> </div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="comment">    后避障停止 -&gt; 对象名: label_back_stop</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span><span class="comment"></span> </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="comment">    点动运行中 -&gt; 对象名: label_jog_running</span></div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="comment"></span> </div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="comment">    转向轮回正 -&gt; 不显示</span></div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="comment"></span> </div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="comment">    横移模式转向轮到位 -&gt; 不显示</span></div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><span class="comment"></span> </div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span><span class="comment">    原地旋转模式转向轮到位 -&gt; 不显示</span></div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="comment"></span> </div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span><span class="comment">    低电报警 -&gt; 不单独显示，合并到故障显示</span></div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span><span class="comment"></span> </div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span><span class="comment">    通讯故障 -&gt; 不单独显示，合并到故障显示</span></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="comment"></span> </div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span><span class="comment">    驱动故障 -&gt; 不单独显示，合并到故障显示</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="comment"></span> </div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="comment">字变量（INT）：</span></div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span><span class="comment"></span> </div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="comment">    电池1电量 -&gt; 进度条: progressBar_battery1, 标签: label_battery1_text</span></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="comment"></span> </div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="comment">    电池2电量 -&gt; 标签: label_battery2_text</span></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="comment"></span> </div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span><span class="comment">    行驶速度 -&gt; 标签: label_speed</span></div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="comment"></span> </div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="comment">    点动位移 -&gt; 标签: label_jog_displacement</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="comment"></span> </div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="comment">    转向1故障代码 -&gt; 通过故障代码列表显示</span></div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="comment"></span> </div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="comment">    转向2故障代码 -&gt; 通过故障代码列表显示</span></div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="comment"></span> </div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="comment">    转向3故障代码 -&gt; 通过故障代码列表显示</span></div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="comment"></span> </div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span><span class="comment">    转向4故障代码 -&gt; 通过故障代码列表显示</span></div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span><span class="comment"></span> </div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span><span class="comment">    行走1故障代码 -&gt; 通过故障代码列表显示</span></div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span><span class="comment"></span> </div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span><span class="comment">    行走2故障代码 -&gt; 通过故障代码列表显示</span></div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span><span class="comment"></span> </div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span><span class="comment">    行走3故障代码 -&gt; 通过故障代码列表显示</span></div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><span class="comment"></span> </div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span><span class="comment">    行走4故障代码 -&gt; 通过故障代码列表显示*/</span></div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
+<div class="foldopen" id="foldopen00088" data-start="{" data-end="};">
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html">   88</a></span><span class="keyword">class </span><a class="code hl_class" href="classAGVModbusManager.html">AGVModbusManager</a> : <span class="keyword">public</span> QObject</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>{</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    Q_OBJECT</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span> </div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classAGVModbusManager.html">AGVModbusManager</a>(QObject *parent = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    <a class="code hl_function" href="classAGVModbusManager.html#a096343b6175dad54fc30e6e3034dfb39">~AGVModbusManager</a>();</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span> </div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    <span class="comment">// 连接管理</span></div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classAGVModbusManager.html#aeb885c05d449b8cb10abc16e78acc72b">connectToDevice</a>(<span class="keyword">const</span> QString &amp;host = <span class="stringliteral">&quot;192.168.1.88&quot;</span>, quint16 port = 502);</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span> </div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classAGVModbusManager.html#aa602a9b4c7c2c731bad14e4435f941e6">disconnectFromDevice</a>();</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span> </div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classAGVModbusManager.html#a1e0321a0cc3e28ba495cabbc83b193d4">isConnected</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span> </div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>    <span class="comment">// 配置</span></div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classAGVModbusManager.html#a2810a32b6b77c701b0dce19006be2be3">setPollInterval</a>(<span class="keywordtype">int</span> ms);    <span class="comment">// 设置轮询间隔</span></div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a25fa11cc6733c1c8c343661613979ae7">  154</a></span>    <span class="keywordtype">int</span> <a class="code hl_function" href="classAGVModbusManager.html#a25fa11cc6733c1c8c343661613979ae7">pollInterval</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classAGVModbusManager.html#a55295c29278e569ce80bcb8b8f7af00c">m_pollInterval</a>; } <span class="comment">// 获取轮询间隔</span></div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span> </div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classAGVModbusManager.html#aa384a8360664fbeac6ffdc2d5dc27c17">setAutoReconnect</a>(<span class="keywordtype">bool</span> enable, <span class="keywordtype">int</span> interval = 5000);</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span> </div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>    <span class="comment">// 批量读取寄存器</span></div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classAGVModbusManager.html#a96e7d4dc7b4b16c805e3c332cb1a7abe">readMultipleRegisters</a>(<span class="keywordtype">int</span> startAddress, <span class="keywordtype">int</span> count);</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span> </div>
+<div class="foldopen" id="foldopen00183" data-start="{" data-end="}">
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#af461bdd79f188cc7a4c75ea2b9f7b362">  183</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classAGVModbusManager.html#af461bdd79f188cc7a4c75ea2b9f7b362">testUpdateProgressBar</a>(<span class="keyword">const</span> QString &amp;name, <span class="keywordtype">int</span> value) {</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>        emit <a class="code hl_signal" href="classAGVModbusManager.html#a2631baf1c703e9b39b5180ba5ad81910">updateProgressBar</a>(name, value);</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    }</div>
+</div>
+<div class="foldopen" id="foldopen00186" data-start="{" data-end="}">
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a31ba0bd58048344be262c32b2e53252e">  186</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classAGVModbusManager.html#a31ba0bd58048344be262c32b2e53252e">testUpdateStatusLabel</a>(<span class="keyword">const</span> QString &amp;name, <span class="keyword">const</span> QString &amp;text) {</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>        emit <a class="code hl_signal" href="classAGVModbusManager.html#a18916f7c0ab0603ee4b10bdd431c4730">updateStatusLabel</a>(name, text);</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    }</div>
+</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span> </div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    <span class="comment">// 添加写入功能</span></div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classAGVModbusManager.html#aec03e5a2f2710570382b6063a1ffe826">writeSingleRegister</a>(<span class="keywordtype">int</span> address, quint16 value);</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span> </div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>signals:</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>    <span class="comment">// 状态信号</span></div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a2a3cb376088bf914b1714b114933389b">  207</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classAGVModbusManager.html#a2a3cb376088bf914b1714b114933389b">connected</a>();</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#ac8010d1accdec2616c993f0f2be93aca">  208</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classAGVModbusManager.html#ac8010d1accdec2616c993f0f2be93aca">disconnected</a>();</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a987007d6e13c46a28d4f08c42b1f4d63">  209</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classAGVModbusManager.html#a987007d6e13c46a28d4f08c42b1f4d63">errorOccurred</a>(<span class="keyword">const</span> QString &amp;error);</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span> </div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>    <span class="comment">// 数据更新信号</span></div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a95a6319d2d7cd445e21e1f5ffe97c6c6">  212</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classAGVModbusManager.html#a95a6319d2d7cd445e21e1f5ffe97c6c6">registerValueChanged</a>(<span class="keywordtype">int</span> address, quint16 value);</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span> </div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    <span class="comment">// AGV专用信号</span></div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a6057fece482cae5d4051dfcdcd98a2a4">  215</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classAGVModbusManager.html#a6057fece482cae5d4051dfcdcd98a2a4">bitVariableChanged</a>(<span class="keywordtype">int</span> address, <span class="keywordtype">int</span> bitPosition, <span class="keywordtype">bool</span> value);</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a23d0b02b1366e6700932bb390613cb3d">  216</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classAGVModbusManager.html#a23d0b02b1366e6700932bb390613cb3d">wordVariableChanged</a>(<span class="keywordtype">int</span> address, quint16 value);</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span> </div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>    <span class="comment">// UI更新信号</span></div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a078a8488ede9249885f0085cb1e33336">  219</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classAGVModbusManager.html#a078a8488ede9249885f0085cb1e33336">updateFaultsLabel</a>(<span class="keyword">const</span> QString &amp;faultText);</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a2631baf1c703e9b39b5180ba5ad81910">  220</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classAGVModbusManager.html#a2631baf1c703e9b39b5180ba5ad81910">updateProgressBar</a>(<span class="keyword">const</span> QString &amp;name, <span class="keywordtype">int</span> value);</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a18916f7c0ab0603ee4b10bdd431c4730">  221</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classAGVModbusManager.html#a18916f7c0ab0603ee4b10bdd431c4730">updateStatusLabel</a>(<span class="keyword">const</span> QString &amp;name, <span class="keyword">const</span> QString &amp;text);</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a6adec0d37945bf256b7c55249a5b1328">  222</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classAGVModbusManager.html#a6adec0d37945bf256b7c55249a5b1328">addFaultCodeToList</a>(<span class="keyword">const</span> QString &amp;faultCode);</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a6fa5f7825d2c268735182edf7a3ca50f">  223</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classAGVModbusManager.html#a6fa5f7825d2c268735182edf7a3ca50f">clearFaultCodes</a>();</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span> </div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    <span class="comment">// 心跳信号（用于调试）</span></div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#adcab3e2e8a61e26dca17b7bf21a69baa">  226</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classAGVModbusManager.html#adcab3e2e8a61e26dca17b7bf21a69baa">heartbeatReceived</a>();</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>    <span class="comment">// 添加写入完成信号</span></div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#aff47f520dfd90ff5fcd6a0f5212b6b14">  228</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classAGVModbusManager.html#aff47f520dfd90ff5fcd6a0f5212b6b14">writeCompleted</a>(<span class="keywordtype">int</span> address, quint16 value, <span class="keywordtype">bool</span> success);</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span> </div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span> </div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span><span class="keyword">private</span> slots:</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classAGVModbusManager.html#aae7e42a424ae7c081cd85733ebf9a15a">onConnected</a>();</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classAGVModbusManager.html#ac1f43b1ea984a6b7d133247249d87d16">onDisconnected</a>();</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classAGVModbusManager.html#a9927be2cfc4e70ce9ca4baa5428ea2f6">onError</a>(QAbstractSocket::SocketError error);</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classAGVModbusManager.html#addbb04b41d5ad09b61ebbaa36af6ff79">onReadyRead</a>();</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classAGVModbusManager.html#a00864c542ff307f111b69134edb08f86">pollRegisters</a>();</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classAGVModbusManager.html#ab8a833b1a3e7fbb509bbecca25c1cca0">tryReconnect</a>();</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span> </div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a8fbfeb267027abb9b2f423991c0d2866">  240</a></span>    QMap&lt;quint16, QDateTime&gt; <a class="code hl_variable" href="classAGVModbusManager.html#a8fbfeb267027abb9b2f423991c0d2866">m_requestTimestamps</a>;  <span class="comment">// 请求时间戳</span></div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#adfc276f7c1e1a80f47abee2055ff0553">  241</a></span>    <span class="keyword">static</span> <span class="keyword">const</span> <span class="keywordtype">int</span> <a class="code hl_variable" href="classAGVModbusManager.html#adfc276f7c1e1a80f47abee2055ff0553">REQUEST_TIMEOUT</a> = 2000;        <span class="comment">// 请求超时时间（毫秒）</span></div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>     <span class="comment">// Modbus协议处理</span></div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>    QByteArray <a class="code hl_function" href="classAGVModbusManager.html#ae27c44191aeb772c2f3cc29d2a45b9d6">createReadRequest</a>(<span class="keywordtype">int</span> startAddress, <span class="keywordtype">int</span> count);</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classAGVModbusManager.html#afe8402210cd7dd4e73dc8c9b15b13aee">parseResponse</a>(QByteArray &amp;data);</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classAGVModbusManager.html#a532317f919179d0f4679c2b15335fefa">parseSingleResponseFrame</a>(QByteArray &amp;data);</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classAGVModbusManager.html#a3f3addb7fadad500d1049caac52a3594">processSingleResponseFrame</a>(<span class="keyword">const</span> QByteArray &amp;frame, quint16 transactionId);</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span> </div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>    <span class="comment">// 响应缓冲区</span></div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#abe5938c2ea4caad85debecf90bce149b">  249</a></span>    QByteArray <a class="code hl_variable" href="classAGVModbusManager.html#abe5938c2ea4caad85debecf90bce149b">m_responseBuffer</a>;</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span> </div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    <span class="comment">// 数据处理</span></div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classAGVModbusManager.html#ab56d2e6c99153a4ac64d983d2842e49a">processBitVariables</a>(<span class="keywordtype">int</span> address, quint16 value);</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classAGVModbusManager.html#a69f3005ecd5b18306529fc3284aabca2">processWordVariables</a>(<span class="keywordtype">int</span> address, quint16 value);</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span> </div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>    <span class="comment">// 状态管理</span></div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#acd8e5b7c89aec16f3c89c54ffb424abb">  256</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classAGVModbusManager.html#acd8e5b7c89aec16f3c89c54ffb424abb">updateConnectionStatus</a>(<span class="keywordtype">bool</span> <a class="code hl_signal" href="classAGVModbusManager.html#a2a3cb376088bf914b1714b114933389b">connected</a>);</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    QString <a class="code hl_function" href="classAGVModbusManager.html#a32a0a2473f27cbccae2eedfdb13bee54">getBitVariableName</a>(<span class="keywordtype">int</span> address, <span class="keywordtype">int</span> bitPos) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>    QString <a class="code hl_function" href="classAGVModbusManager.html#a45f7ab48f6a5d1531de6110fc51104d6">getWordVariableName</a>(<span class="keywordtype">int</span> address) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span> </div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>    <span class="comment">// 故障处理</span></div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classAGVModbusManager.html#a664116ab5c719164c36a150c7cd9e195">updateFaultsDisplay</a>();</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classAGVModbusManager.html#aa8d31a14e4e70159fa3a2ca959f899a0">updateFaultCodesDisplay</a>();</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>    <span class="comment">// 添加创建写入请求的函数</span></div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    QByteArray <a class="code hl_function" href="classAGVModbusManager.html#a3635763c93cd21764900cab25136b890">createWriteRequest</a>(<span class="keywordtype">int</span> address, quint16 value);</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span> </div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>    <span class="comment">// 添加处理写入响应的函数</span></div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a3a7fc1843be8fb8a831d18b7bfb28018">  267</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classAGVModbusManager.html#a3a7fc1843be8fb8a831d18b7bfb28018">parseWriteResponse</a>(<span class="keyword">const</span> QByteArray &amp;frame, quint16 transactionId);</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span> </div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a73a240a6bcb443ba9c56d72beae096fa">  270</a></span>    QTcpSocket *<a class="code hl_variable" href="classAGVModbusManager.html#a73a240a6bcb443ba9c56d72beae096fa">m_socket</a>;</div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#aefe233853818a531055c70394baf7bbe">  271</a></span>    QThread *<a class="code hl_variable" href="classAGVModbusManager.html#aefe233853818a531055c70394baf7bbe">m_networkThread</a>;</div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a864c8bb871f351dc9dd99fa12a9ade6e">  272</a></span>    QMutex <a class="code hl_variable" href="classAGVModbusManager.html#a864c8bb871f351dc9dd99fa12a9ade6e">m_mutex</a>;</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span> </div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a268d9a8c561b3ebcf4e9ec47484151f7">  274</a></span>    QString <a class="code hl_variable" href="classAGVModbusManager.html#a268d9a8c561b3ebcf4e9ec47484151f7">m_host</a>;</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a19410af75e9c63c5828b408fbe2f663e">  275</a></span>    quint16 <a class="code hl_variable" href="classAGVModbusManager.html#a19410af75e9c63c5828b408fbe2f663e">m_port</a>;</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span> </div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a0a5da51c499916c607f0d7f0380ea15b">  277</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="classAGVModbusManager.html#a0a5da51c499916c607f0d7f0380ea15b">m_autoReconnect</a>;</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a5d7a04230ad892ad35d5820ae0746825">  278</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="classAGVModbusManager.html#a5d7a04230ad892ad35d5820ae0746825">m_reconnectInterval</a>;</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a05115d6581bb6a74ae00270e243a3031">  279</a></span>    QTimer *<a class="code hl_variable" href="classAGVModbusManager.html#a05115d6581bb6a74ae00270e243a3031">m_reconnectTimer</a>;</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span> </div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#af9b2e253c7713f7e03c0bf203f206a81">  281</a></span>    QTimer *<a class="code hl_variable" href="classAGVModbusManager.html#af9b2e253c7713f7e03c0bf203f206a81">m_pollTimer</a>;</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a55295c29278e569ce80bcb8b8f7af00c">  282</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="classAGVModbusManager.html#a55295c29278e569ce80bcb8b8f7af00c">m_pollInterval</a>;</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span> </div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#adc95f9a8c7dfc907fbcde6bbe19f2cc1">  284</a></span>    quint16 <a class="code hl_variable" href="classAGVModbusManager.html#adc95f9a8c7dfc907fbcde6bbe19f2cc1">m_transactionId</a>;</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a850ea4e32e8d2749e767e4ae7fbf8568">  285</a></span>    QMap&lt;quint16, int&gt; <a class="code hl_variable" href="classAGVModbusManager.html#a850ea4e32e8d2749e767e4ae7fbf8568">m_transactionAddressMap</a>;  <span class="comment">// 事务ID -&gt; 起始地址映射</span></div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span> </div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>    <span class="comment">// 数据存储</span></div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a9065d6cf697b91a73da9d8627cc5b03b">  288</a></span>    QMap&lt;int, quint16&gt; <a class="code hl_variable" href="classAGVModbusManager.html#a9065d6cf697b91a73da9d8627cc5b03b">m_registerValues</a>;  <span class="comment">// 地址 -&gt; 值</span></div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span> </div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>    <span class="comment">// 位变量状态</span></div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#af919c841b03378732361ea0d404ffb41">  291</a></span>    QMap&lt;int, QMap&lt;int, bool&gt;&gt; <a class="code hl_variable" href="classAGVModbusManager.html#af919c841b03378732361ea0d404ffb41">m_bitStates</a>;  <span class="comment">// 地址 -&gt; {位位置 -&gt; 状态}</span></div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span> </div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>    <span class="comment">// 故障状态</span></div>
+<div class="foldopen" id="foldopen00294" data-start="{" data-end="};">
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno"><a class="line" href="structAGVModbusManager_1_1FaultStatus.html">  294</a></span>    <span class="keyword">struct </span><a class="code hl_struct" href="structAGVModbusManager_1_1FaultStatus.html">FaultStatus</a> {</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno"><a class="line" href="structAGVModbusManager_1_1FaultStatus.html#ab21c4e68a514abf97c8121235acd2900">  295</a></span>        <span class="keywordtype">bool</span> <a class="code hl_variable" href="structAGVModbusManager_1_1FaultStatus.html#ab21c4e68a514abf97c8121235acd2900">lowBattery</a> = <span class="keyword">false</span>;     <span class="comment">// 低电报警</span></div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno"><a class="line" href="structAGVModbusManager_1_1FaultStatus.html#a5d2e36877d602452392e66acf7294843">  296</a></span>        <span class="keywordtype">bool</span> <a class="code hl_variable" href="structAGVModbusManager_1_1FaultStatus.html#a5d2e36877d602452392e66acf7294843">commFault</a> = <span class="keyword">false</span>;      <span class="comment">// 通讯故障</span></div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno"><a class="line" href="structAGVModbusManager_1_1FaultStatus.html#a4568ede62b084d1d81cba1823f7a17da">  297</a></span>        <span class="keywordtype">bool</span> <a class="code hl_variable" href="structAGVModbusManager_1_1FaultStatus.html#a4568ede62b084d1d81cba1823f7a17da">driveFault</a> = <span class="keyword">false</span>;     <span class="comment">// 驱动故障</span></div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#adb21c81659eb226a0129b555bce7ac84">  298</a></span>    } <a class="code hl_variable" href="classAGVModbusManager.html#adb21c81659eb226a0129b555bce7ac84">m_faultStatus</a>;</div>
+</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span> </div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>    <span class="comment">// 故障代码</span></div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#af8fdf51a85f2e1b12845204f31baa7a6">  301</a></span>    QMap&lt;int, quint16&gt; <a class="code hl_variable" href="classAGVModbusManager.html#af8fdf51a85f2e1b12845204f31baa7a6">m_faultCodes</a>;  <span class="comment">// 地址 -&gt; 故障代码</span></div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span> </div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>    <span class="comment">// 心跳检测</span></div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#adb74e7649a7a6bc3140a8e82362593da">  304</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="classAGVModbusManager.html#adb74e7649a7a6bc3140a8e82362593da">m_lastHeartbeatState</a> = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#ae7b7a420f68bb8b7e74f830da42e6e3c">  305</a></span>    QDateTime <a class="code hl_variable" href="classAGVModbusManager.html#ae7b7a420f68bb8b7e74f830da42e6e3c">m_lastHeartbeatTime</a>;</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span> </div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#aea74b0e88bdf7bcc8d61b2ce350b30f1">  307</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="classAGVModbusManager.html#aea74b0e88bdf7bcc8d61b2ce350b30f1">m_connectedState</a> = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a313db185e40f67a66bcdb601305fa759">  308</a></span>    QSet&lt;int&gt; <a class="code hl_variable" href="classAGVModbusManager.html#a313db185e40f67a66bcdb601305fa759">m_disconnectedWriteWarnedAddresses</a>;</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#acd41b4cf931999db4b6f6a5653e54c5b">  309</a></span>    QString <a class="code hl_variable" href="classAGVModbusManager.html#acd41b4cf931999db4b6f6a5653e54c5b">m_lastSocketError</a>;</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a0e672cbd224020a33e9951c369d740f3">  310</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="classAGVModbusManager.html#a0e672cbd224020a33e9951c369d740f3">m_writesEnabled</a> = <span class="keyword">true</span>; <span class="comment">// 控制是否允许向AGV写入；默认开启，避免正常控制被静默拦截</span></div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span> </div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>    <span class="comment">// 运行时控制写入开关</span></div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#ac0077e4cacce81792fd922c9fee37236">  314</a></span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classAGVModbusManager.html#ac0077e4cacce81792fd922c9fee37236">setWritesEnabled</a>(<span class="keywordtype">bool</span> enabled) { <a class="code hl_variable" href="classAGVModbusManager.html#a0e672cbd224020a33e9951c369d740f3">m_writesEnabled</a> = enabled; }</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno"><a class="line" href="classAGVModbusManager.html#a490d7ea8236074a97a7a979219500552">  315</a></span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classAGVModbusManager.html#a490d7ea8236074a97a7a979219500552">writesEnabled</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classAGVModbusManager.html#a0e672cbd224020a33e9951c369d740f3">m_writesEnabled</a>; }</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>};</div>
+</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span> </div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span><span class="preprocessor">#endif </span><span class="comment">// AGVMODBUSMANAGER_H</span></div>
+<div class="ttc" id="aclassAGVModbusManager_html"><div class="ttname"><a href="classAGVModbusManager.html">AGVModbusManager</a></div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00088">agvmodbusmanager.h:89</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a00864c542ff307f111b69134edb08f86"><div class="ttname"><a href="classAGVModbusManager.html#a00864c542ff307f111b69134edb08f86">AGVModbusManager::pollRegisters</a></div><div class="ttdeci">void pollRegisters()</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00187">agvmodbusmanager.cpp:187</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a05115d6581bb6a74ae00270e243a3031"><div class="ttname"><a href="classAGVModbusManager.html#a05115d6581bb6a74ae00270e243a3031">AGVModbusManager::m_reconnectTimer</a></div><div class="ttdeci">QTimer * m_reconnectTimer</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00279">agvmodbusmanager.h:279</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a078a8488ede9249885f0085cb1e33336"><div class="ttname"><a href="classAGVModbusManager.html#a078a8488ede9249885f0085cb1e33336">AGVModbusManager::updateFaultsLabel</a></div><div class="ttdeci">void updateFaultsLabel(const QString &amp;faultText)</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a096343b6175dad54fc30e6e3034dfb39"><div class="ttname"><a href="classAGVModbusManager.html#a096343b6175dad54fc30e6e3034dfb39">AGVModbusManager::~AGVModbusManager</a></div><div class="ttdeci">~AGVModbusManager()</div><div class="ttdoc">功能: 析构函数，清理 socket、线程和计时器等资源。 如何使用: 由 Qt 对象树自动销毁或手动 delete。 如何修改: 增加资源时在析构中同步释放并确保线程安全。</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00043">agvmodbusmanager.cpp:43</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a0a5da51c499916c607f0d7f0380ea15b"><div class="ttname"><a href="classAGVModbusManager.html#a0a5da51c499916c607f0d7f0380ea15b">AGVModbusManager::m_autoReconnect</a></div><div class="ttdeci">bool m_autoReconnect</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00277">agvmodbusmanager.h:277</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a0e672cbd224020a33e9951c369d740f3"><div class="ttname"><a href="classAGVModbusManager.html#a0e672cbd224020a33e9951c369d740f3">AGVModbusManager::m_writesEnabled</a></div><div class="ttdeci">bool m_writesEnabled</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00310">agvmodbusmanager.h:310</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a18916f7c0ab0603ee4b10bdd431c4730"><div class="ttname"><a href="classAGVModbusManager.html#a18916f7c0ab0603ee4b10bdd431c4730">AGVModbusManager::updateStatusLabel</a></div><div class="ttdeci">void updateStatusLabel(const QString &amp;name, const QString &amp;text)</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a19410af75e9c63c5828b408fbe2f663e"><div class="ttname"><a href="classAGVModbusManager.html#a19410af75e9c63c5828b408fbe2f663e">AGVModbusManager::m_port</a></div><div class="ttdeci">quint16 m_port</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00275">agvmodbusmanager.h:275</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a1e0321a0cc3e28ba495cabbc83b193d4"><div class="ttname"><a href="classAGVModbusManager.html#a1e0321a0cc3e28ba495cabbc83b193d4">AGVModbusManager::isConnected</a></div><div class="ttdeci">bool isConnected() const</div><div class="ttdoc">功能: 返回当前网络连接状态。 如何使用: 用于 UI 指示或决定是否发起读写操作。 如何修改: 若支持多设备，应提供设备级别的状态查询接口。</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00085">agvmodbusmanager.cpp:85</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a23d0b02b1366e6700932bb390613cb3d"><div class="ttname"><a href="classAGVModbusManager.html#a23d0b02b1366e6700932bb390613cb3d">AGVModbusManager::wordVariableChanged</a></div><div class="ttdeci">void wordVariableChanged(int address, quint16 value)</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a25fa11cc6733c1c8c343661613979ae7"><div class="ttname"><a href="classAGVModbusManager.html#a25fa11cc6733c1c8c343661613979ae7">AGVModbusManager::pollInterval</a></div><div class="ttdeci">int pollInterval() const</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00154">agvmodbusmanager.h:154</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a2631baf1c703e9b39b5180ba5ad81910"><div class="ttname"><a href="classAGVModbusManager.html#a2631baf1c703e9b39b5180ba5ad81910">AGVModbusManager::updateProgressBar</a></div><div class="ttdeci">void updateProgressBar(const QString &amp;name, int value)</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a268d9a8c561b3ebcf4e9ec47484151f7"><div class="ttname"><a href="classAGVModbusManager.html#a268d9a8c561b3ebcf4e9ec47484151f7">AGVModbusManager::m_host</a></div><div class="ttdeci">QString m_host</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00274">agvmodbusmanager.h:274</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a2810a32b6b77c701b0dce19006be2be3"><div class="ttname"><a href="classAGVModbusManager.html#a2810a32b6b77c701b0dce19006be2be3">AGVModbusManager::setPollInterval</a></div><div class="ttdeci">void setPollInterval(int ms)</div><div class="ttdoc">功能: 设置寄存器轮询间隔（毫秒）。 如何使用: 在连接或初始化时调用以控制数据刷新频率。 如何修改: 可支持按类型或优先级的细粒度间隔配置。</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00169">agvmodbusmanager.cpp:169</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a2a3cb376088bf914b1714b114933389b"><div class="ttname"><a href="classAGVModbusManager.html#a2a3cb376088bf914b1714b114933389b">AGVModbusManager::connected</a></div><div class="ttdeci">void connected()</div><div class="ttdoc">使用示例:</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a313db185e40f67a66bcdb601305fa759"><div class="ttname"><a href="classAGVModbusManager.html#a313db185e40f67a66bcdb601305fa759">AGVModbusManager::m_disconnectedWriteWarnedAddresses</a></div><div class="ttdeci">QSet&lt; int &gt; m_disconnectedWriteWarnedAddresses</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00308">agvmodbusmanager.h:308</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a31ba0bd58048344be262c32b2e53252e"><div class="ttname"><a href="classAGVModbusManager.html#a31ba0bd58048344be262c32b2e53252e">AGVModbusManager::testUpdateStatusLabel</a></div><div class="ttdeci">void testUpdateStatusLabel(const QString &amp;name, const QString &amp;text)</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00186">agvmodbusmanager.h:186</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a32a0a2473f27cbccae2eedfdb13bee54"><div class="ttname"><a href="classAGVModbusManager.html#a32a0a2473f27cbccae2eedfdb13bee54">AGVModbusManager::getBitVariableName</a></div><div class="ttdeci">QString getBitVariableName(int address, int bitPos) const</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00651">agvmodbusmanager.cpp:651</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a3635763c93cd21764900cab25136b890"><div class="ttname"><a href="classAGVModbusManager.html#a3635763c93cd21764900cab25136b890">AGVModbusManager::createWriteRequest</a></div><div class="ttdeci">QByteArray createWriteRequest(int address, quint16 value)</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00811">agvmodbusmanager.cpp:811</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a3a7fc1843be8fb8a831d18b7bfb28018"><div class="ttname"><a href="classAGVModbusManager.html#a3a7fc1843be8fb8a831d18b7bfb28018">AGVModbusManager::parseWriteResponse</a></div><div class="ttdeci">bool parseWriteResponse(const QByteArray &amp;frame, quint16 transactionId)</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a3f3addb7fadad500d1049caac52a3594"><div class="ttname"><a href="classAGVModbusManager.html#a3f3addb7fadad500d1049caac52a3594">AGVModbusManager::processSingleResponseFrame</a></div><div class="ttdeci">bool processSingleResponseFrame(const QByteArray &amp;frame, quint16 transactionId)</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00374">agvmodbusmanager.cpp:374</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a45f7ab48f6a5d1531de6110fc51104d6"><div class="ttname"><a href="classAGVModbusManager.html#a45f7ab48f6a5d1531de6110fc51104d6">AGVModbusManager::getWordVariableName</a></div><div class="ttdeci">QString getWordVariableName(int address) const</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00687">agvmodbusmanager.cpp:687</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a490d7ea8236074a97a7a979219500552"><div class="ttname"><a href="classAGVModbusManager.html#a490d7ea8236074a97a7a979219500552">AGVModbusManager::writesEnabled</a></div><div class="ttdeci">bool writesEnabled() const</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00315">agvmodbusmanager.h:315</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a532317f919179d0f4679c2b15335fefa"><div class="ttname"><a href="classAGVModbusManager.html#a532317f919179d0f4679c2b15335fefa">AGVModbusManager::parseSingleResponseFrame</a></div><div class="ttdeci">bool parseSingleResponseFrame(QByteArray &amp;data)</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00347">agvmodbusmanager.cpp:347</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a55295c29278e569ce80bcb8b8f7af00c"><div class="ttname"><a href="classAGVModbusManager.html#a55295c29278e569ce80bcb8b8f7af00c">AGVModbusManager::m_pollInterval</a></div><div class="ttdeci">int m_pollInterval</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00282">agvmodbusmanager.h:282</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a5d7a04230ad892ad35d5820ae0746825"><div class="ttname"><a href="classAGVModbusManager.html#a5d7a04230ad892ad35d5820ae0746825">AGVModbusManager::m_reconnectInterval</a></div><div class="ttdeci">int m_reconnectInterval</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00278">agvmodbusmanager.h:278</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a6057fece482cae5d4051dfcdcd98a2a4"><div class="ttname"><a href="classAGVModbusManager.html#a6057fece482cae5d4051dfcdcd98a2a4">AGVModbusManager::bitVariableChanged</a></div><div class="ttdeci">void bitVariableChanged(int address, int bitPosition, bool value)</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a664116ab5c719164c36a150c7cd9e195"><div class="ttname"><a href="classAGVModbusManager.html#a664116ab5c719164c36a150c7cd9e195">AGVModbusManager::updateFaultsDisplay</a></div><div class="ttdeci">void updateFaultsDisplay()</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00711">agvmodbusmanager.cpp:711</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a69f3005ecd5b18306529fc3284aabca2"><div class="ttname"><a href="classAGVModbusManager.html#a69f3005ecd5b18306529fc3284aabca2">AGVModbusManager::processWordVariables</a></div><div class="ttdeci">void processWordVariables(int address, quint16 value)</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00573">agvmodbusmanager.cpp:573</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a6adec0d37945bf256b7c55249a5b1328"><div class="ttname"><a href="classAGVModbusManager.html#a6adec0d37945bf256b7c55249a5b1328">AGVModbusManager::addFaultCodeToList</a></div><div class="ttdeci">void addFaultCodeToList(const QString &amp;faultCode)</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a6fa5f7825d2c268735182edf7a3ca50f"><div class="ttname"><a href="classAGVModbusManager.html#a6fa5f7825d2c268735182edf7a3ca50f">AGVModbusManager::clearFaultCodes</a></div><div class="ttdeci">void clearFaultCodes()</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a73a240a6bcb443ba9c56d72beae096fa"><div class="ttname"><a href="classAGVModbusManager.html#a73a240a6bcb443ba9c56d72beae096fa">AGVModbusManager::m_socket</a></div><div class="ttdeci">QTcpSocket * m_socket</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00270">agvmodbusmanager.h:270</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a850ea4e32e8d2749e767e4ae7fbf8568"><div class="ttname"><a href="classAGVModbusManager.html#a850ea4e32e8d2749e767e4ae7fbf8568">AGVModbusManager::m_transactionAddressMap</a></div><div class="ttdeci">QMap&lt; quint16, int &gt; m_transactionAddressMap</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00285">agvmodbusmanager.h:285</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a864c8bb871f351dc9dd99fa12a9ade6e"><div class="ttname"><a href="classAGVModbusManager.html#a864c8bb871f351dc9dd99fa12a9ade6e">AGVModbusManager::m_mutex</a></div><div class="ttdeci">QMutex m_mutex</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00272">agvmodbusmanager.h:272</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a8fbfeb267027abb9b2f423991c0d2866"><div class="ttname"><a href="classAGVModbusManager.html#a8fbfeb267027abb9b2f423991c0d2866">AGVModbusManager::m_requestTimestamps</a></div><div class="ttdeci">QMap&lt; quint16, QDateTime &gt; m_requestTimestamps</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00240">agvmodbusmanager.h:240</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a9065d6cf697b91a73da9d8627cc5b03b"><div class="ttname"><a href="classAGVModbusManager.html#a9065d6cf697b91a73da9d8627cc5b03b">AGVModbusManager::m_registerValues</a></div><div class="ttdeci">QMap&lt; int, quint16 &gt; m_registerValues</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00288">agvmodbusmanager.h:288</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a95a6319d2d7cd445e21e1f5ffe97c6c6"><div class="ttname"><a href="classAGVModbusManager.html#a95a6319d2d7cd445e21e1f5ffe97c6c6">AGVModbusManager::registerValueChanged</a></div><div class="ttdeci">void registerValueChanged(int address, quint16 value)</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a96e7d4dc7b4b16c805e3c332cb1a7abe"><div class="ttname"><a href="classAGVModbusManager.html#a96e7d4dc7b4b16c805e3c332cb1a7abe">AGVModbusManager::readMultipleRegisters</a></div><div class="ttdeci">void readMultipleRegisters(int startAddress, int count)</div><div class="ttdoc">功能: 读取一段寄存器并触发相应的处理与信号。 如何使用: 提供起始地址与数量以批量获取数据。 如何修改: 对大数量读取请分片或增加并发控制以兼容设备限制。</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00275">agvmodbusmanager.cpp:275</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a987007d6e13c46a28d4f08c42b1f4d63"><div class="ttname"><a href="classAGVModbusManager.html#a987007d6e13c46a28d4f08c42b1f4d63">AGVModbusManager::errorOccurred</a></div><div class="ttdeci">void errorOccurred(const QString &amp;error)</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a9927be2cfc4e70ce9ca4baa5428ea2f6"><div class="ttname"><a href="classAGVModbusManager.html#a9927be2cfc4e70ce9ca4baa5428ea2f6">AGVModbusManager::onError</a></div><div class="ttdeci">void onError(QAbstractSocket::SocketError error)</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00132">agvmodbusmanager.cpp:132</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_aa384a8360664fbeac6ffdc2d5dc27c17"><div class="ttname"><a href="classAGVModbusManager.html#aa384a8360664fbeac6ffdc2d5dc27c17">AGVModbusManager::setAutoReconnect</a></div><div class="ttdeci">void setAutoReconnect(bool enable, int interval=5000)</div><div class="ttdoc">功能: 启用或禁用自动重连并设置重连间隔。 如何使用: 在不稳定网络环境下启用以保持连接可用性。 如何修改: 可实现指数退避等更复杂的重连策略。</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00177">agvmodbusmanager.cpp:177</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_aa602a9b4c7c2c731bad14e4435f941e6"><div class="ttname"><a href="classAGVModbusManager.html#aa602a9b4c7c2c731bad14e4435f941e6">AGVModbusManager::disconnectFromDevice</a></div><div class="ttdeci">void disconnectFromDevice()</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00071">agvmodbusmanager.cpp:71</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_aa8d31a14e4e70159fa3a2ca959f899a0"><div class="ttname"><a href="classAGVModbusManager.html#aa8d31a14e4e70159fa3a2ca959f899a0">AGVModbusManager::updateFaultCodesDisplay</a></div><div class="ttdeci">void updateFaultCodesDisplay()</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00750">agvmodbusmanager.cpp:750</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_aae7e42a424ae7c081cd85733ebf9a15a"><div class="ttname"><a href="classAGVModbusManager.html#aae7e42a424ae7c081cd85733ebf9a15a">AGVModbusManager::onConnected</a></div><div class="ttdeci">void onConnected()</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00090">agvmodbusmanager.cpp:90</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_ab56d2e6c99153a4ac64d983d2842e49a"><div class="ttname"><a href="classAGVModbusManager.html#ab56d2e6c99153a4ac64d983d2842e49a">AGVModbusManager::processBitVariables</a></div><div class="ttdeci">void processBitVariables(int address, quint16 value)</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00480">agvmodbusmanager.cpp:480</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_ab8a833b1a3e7fbb509bbecca25c1cca0"><div class="ttname"><a href="classAGVModbusManager.html#ab8a833b1a3e7fbb509bbecca25c1cca0">AGVModbusManager::tryReconnect</a></div><div class="ttdeci">void tryReconnect()</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00161">agvmodbusmanager.cpp:161</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_abe5938c2ea4caad85debecf90bce149b"><div class="ttname"><a href="classAGVModbusManager.html#abe5938c2ea4caad85debecf90bce149b">AGVModbusManager::m_responseBuffer</a></div><div class="ttdeci">QByteArray m_responseBuffer</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00249">agvmodbusmanager.h:249</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_ac0077e4cacce81792fd922c9fee37236"><div class="ttname"><a href="classAGVModbusManager.html#ac0077e4cacce81792fd922c9fee37236">AGVModbusManager::setWritesEnabled</a></div><div class="ttdeci">void setWritesEnabled(bool enabled)</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00314">agvmodbusmanager.h:314</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_ac1f43b1ea984a6b7d133247249d87d16"><div class="ttname"><a href="classAGVModbusManager.html#ac1f43b1ea984a6b7d133247249d87d16">AGVModbusManager::onDisconnected</a></div><div class="ttdeci">void onDisconnected()</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00113">agvmodbusmanager.cpp:113</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_ac8010d1accdec2616c993f0f2be93aca"><div class="ttname"><a href="classAGVModbusManager.html#ac8010d1accdec2616c993f0f2be93aca">AGVModbusManager::disconnected</a></div><div class="ttdeci">void disconnected()</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_acd41b4cf931999db4b6f6a5653e54c5b"><div class="ttname"><a href="classAGVModbusManager.html#acd41b4cf931999db4b6f6a5653e54c5b">AGVModbusManager::m_lastSocketError</a></div><div class="ttdeci">QString m_lastSocketError</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00309">agvmodbusmanager.h:309</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_acd8e5b7c89aec16f3c89c54ffb424abb"><div class="ttname"><a href="classAGVModbusManager.html#acd8e5b7c89aec16f3c89c54ffb424abb">AGVModbusManager::updateConnectionStatus</a></div><div class="ttdeci">void updateConnectionStatus(bool connected)</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_adb21c81659eb226a0129b555bce7ac84"><div class="ttname"><a href="classAGVModbusManager.html#adb21c81659eb226a0129b555bce7ac84">AGVModbusManager::m_faultStatus</a></div><div class="ttdeci">struct AGVModbusManager::FaultStatus m_faultStatus</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_adb74e7649a7a6bc3140a8e82362593da"><div class="ttname"><a href="classAGVModbusManager.html#adb74e7649a7a6bc3140a8e82362593da">AGVModbusManager::m_lastHeartbeatState</a></div><div class="ttdeci">bool m_lastHeartbeatState</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00304">agvmodbusmanager.h:304</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_adc95f9a8c7dfc907fbcde6bbe19f2cc1"><div class="ttname"><a href="classAGVModbusManager.html#adc95f9a8c7dfc907fbcde6bbe19f2cc1">AGVModbusManager::m_transactionId</a></div><div class="ttdeci">quint16 m_transactionId</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00284">agvmodbusmanager.h:284</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_adcab3e2e8a61e26dca17b7bf21a69baa"><div class="ttname"><a href="classAGVModbusManager.html#adcab3e2e8a61e26dca17b7bf21a69baa">AGVModbusManager::heartbeatReceived</a></div><div class="ttdeci">void heartbeatReceived()</div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_addbb04b41d5ad09b61ebbaa36af6ff79"><div class="ttname"><a href="classAGVModbusManager.html#addbb04b41d5ad09b61ebbaa36af6ff79">AGVModbusManager::onReadyRead</a></div><div class="ttdeci">void onReadyRead()</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00309">agvmodbusmanager.cpp:309</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_adfc276f7c1e1a80f47abee2055ff0553"><div class="ttname"><a href="classAGVModbusManager.html#adfc276f7c1e1a80f47abee2055ff0553">AGVModbusManager::REQUEST_TIMEOUT</a></div><div class="ttdeci">static const int REQUEST_TIMEOUT</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00241">agvmodbusmanager.h:241</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_ae27c44191aeb772c2f3cc29d2a45b9d6"><div class="ttname"><a href="classAGVModbusManager.html#ae27c44191aeb772c2f3cc29d2a45b9d6">AGVModbusManager::createReadRequest</a></div><div class="ttdeci">QByteArray createReadRequest(int startAddress, int count)</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00237">agvmodbusmanager.cpp:237</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_ae7b7a420f68bb8b7e74f830da42e6e3c"><div class="ttname"><a href="classAGVModbusManager.html#ae7b7a420f68bb8b7e74f830da42e6e3c">AGVModbusManager::m_lastHeartbeatTime</a></div><div class="ttdeci">QDateTime m_lastHeartbeatTime</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00305">agvmodbusmanager.h:305</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_aea74b0e88bdf7bcc8d61b2ce350b30f1"><div class="ttname"><a href="classAGVModbusManager.html#aea74b0e88bdf7bcc8d61b2ce350b30f1">AGVModbusManager::m_connectedState</a></div><div class="ttdeci">bool m_connectedState</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00307">agvmodbusmanager.h:307</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_aeb885c05d449b8cb10abc16e78acc72b"><div class="ttname"><a href="classAGVModbusManager.html#aeb885c05d449b8cb10abc16e78acc72b">AGVModbusManager::connectToDevice</a></div><div class="ttdeci">bool connectToDevice(const QString &amp;host=&quot;192.168.1.88&quot;, quint16 port=502)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00055">agvmodbusmanager.cpp:55</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_aec03e5a2f2710570382b6063a1ffe826"><div class="ttname"><a href="classAGVModbusManager.html#aec03e5a2f2710570382b6063a1ffe826">AGVModbusManager::writeSingleRegister</a></div><div class="ttdeci">bool writeSingleRegister(int address, quint16 value)</div><div class="ttdoc">功能: 写单个寄存器到 AGV 设备。 如何使用: 提供地址和值，调用后观察 writeCompleted 或 errorOccurred 信号以获取结果。 如何修改: 若需事务进行多寄存器写入，请使用...</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00782">agvmodbusmanager.cpp:782</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_aefe233853818a531055c70394baf7bbe"><div class="ttname"><a href="classAGVModbusManager.html#aefe233853818a531055c70394baf7bbe">AGVModbusManager::m_networkThread</a></div><div class="ttdeci">QThread * m_networkThread</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00271">agvmodbusmanager.h:271</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_af461bdd79f188cc7a4c75ea2b9f7b362"><div class="ttname"><a href="classAGVModbusManager.html#af461bdd79f188cc7a4c75ea2b9f7b362">AGVModbusManager::testUpdateProgressBar</a></div><div class="ttdeci">void testUpdateProgressBar(const QString &amp;name, int value)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00183">agvmodbusmanager.h:183</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_af8fdf51a85f2e1b12845204f31baa7a6"><div class="ttname"><a href="classAGVModbusManager.html#af8fdf51a85f2e1b12845204f31baa7a6">AGVModbusManager::m_faultCodes</a></div><div class="ttdeci">QMap&lt; int, quint16 &gt; m_faultCodes</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00301">agvmodbusmanager.h:301</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_af919c841b03378732361ea0d404ffb41"><div class="ttname"><a href="classAGVModbusManager.html#af919c841b03378732361ea0d404ffb41">AGVModbusManager::m_bitStates</a></div><div class="ttdeci">QMap&lt; int, QMap&lt; int, bool &gt; &gt; m_bitStates</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00291">agvmodbusmanager.h:291</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_af9b2e253c7713f7e03c0bf203f206a81"><div class="ttname"><a href="classAGVModbusManager.html#af9b2e253c7713f7e03c0bf203f206a81">AGVModbusManager::m_pollTimer</a></div><div class="ttdeci">QTimer * m_pollTimer</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00281">agvmodbusmanager.h:281</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_afe8402210cd7dd4e73dc8c9b15b13aee"><div class="ttname"><a href="classAGVModbusManager.html#afe8402210cd7dd4e73dc8c9b15b13aee">AGVModbusManager::parseResponse</a></div><div class="ttdeci">bool parseResponse(QByteArray &amp;data)</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00320">agvmodbusmanager.cpp:320</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_aff47f520dfd90ff5fcd6a0f5212b6b14"><div class="ttname"><a href="classAGVModbusManager.html#aff47f520dfd90ff5fcd6a0f5212b6b14">AGVModbusManager::writeCompleted</a></div><div class="ttdeci">void writeCompleted(int address, quint16 value, bool success)</div></div>
+<div class="ttc" id="astructAGVModbusManager_1_1FaultStatus_html"><div class="ttname"><a href="structAGVModbusManager_1_1FaultStatus.html">AGVModbusManager::FaultStatus</a></div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00294">agvmodbusmanager.h:294</a></div></div>
+<div class="ttc" id="astructAGVModbusManager_1_1FaultStatus_html_a4568ede62b084d1d81cba1823f7a17da"><div class="ttname"><a href="structAGVModbusManager_1_1FaultStatus.html#a4568ede62b084d1d81cba1823f7a17da">AGVModbusManager::FaultStatus::driveFault</a></div><div class="ttdeci">bool driveFault</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00297">agvmodbusmanager.h:297</a></div></div>
+<div class="ttc" id="astructAGVModbusManager_1_1FaultStatus_html_a5d2e36877d602452392e66acf7294843"><div class="ttname"><a href="structAGVModbusManager_1_1FaultStatus.html#a5d2e36877d602452392e66acf7294843">AGVModbusManager::FaultStatus::commFault</a></div><div class="ttdeci">bool commFault</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00296">agvmodbusmanager.h:296</a></div></div>
+<div class="ttc" id="astructAGVModbusManager_1_1FaultStatus_html_ab21c4e68a514abf97c8121235acd2900"><div class="ttname"><a href="structAGVModbusManager_1_1FaultStatus.html#ab21c4e68a514abf97c8121235acd2900">AGVModbusManager::FaultStatus::lowBattery</a></div><div class="ttdeci">bool lowBattery</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00295">agvmodbusmanager.h:295</a></div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="agvmodbusmanager_8h.html">agvmodbusmanager.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

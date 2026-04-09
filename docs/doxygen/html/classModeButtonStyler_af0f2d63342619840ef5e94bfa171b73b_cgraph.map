@@ -1,0 +1,17 @@
+<map id="ModeButtonStyler::applyGroupStyle" name="ModeButtonStyler::applyGroupStyle">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,143,228,183"/>
+<area shape="rect" id="Node000002" href="$classTechPushButton.html#ae97cfaec7f6319ddc26326c23af62870" title="启用/禁用脉冲效果" alt="" coords="280,22,492,62"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,141,206,106,275,72,295,64,297,69,277,76,208,111,150,145"/>
+<area shape="rect" id="Node000005" href="$classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1" title="设置按钮风格" alt="" coords="288,86,484,126"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="211,141,277,126,278,132,212,146"/>
+<area shape="rect" id="Node000006" href="$classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0" title="设置发光颜色" alt="" coords="276,151,496,176"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="228,161,262,161,262,166,228,166"/>
+<area shape="rect" id="Node000007" href="$classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af" title="设置主色" alt="" coords="284,201,488,241"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="212,181,278,195,277,200,211,186"/>
+<area shape="rect" id="Node000008" href="$classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013" title="设置文字颜色" alt="" coords="279,265,493,291"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="149,181,207,216,277,250,304,259,302,264,275,255,204,221,146,186"/>
+<area shape="rect" id="Node000003" href="$classTechPushButton.html#a18b11452ed8913fd1174407fc0aae6ab" title="开始脉冲动画" alt="" coords="544,5,743,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="492,29,530,26,530,31,492,35"/>
+<area shape="rect" id="Node000004" href="$classTechPushButton.html#a1992e0832de45ad00c35a4a269e02fdb" title="停止脉冲动画" alt="" coords="545,55,741,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="492,50,532,54,531,59,492,55"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="techslidermanager.h" name="techslidermanager.h">
+<area shape="rect" id="Node000001" title="滑动控件管理器的声明，负责管理多个滑块控件的状态与交互。" alt="" coords="151,5,305,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,80,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,33,86,76,85,71,197,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="104,79,171,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,33,165,72,161,68,212,29"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="195,79,261,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="231,31,231,65,225,65,225,31"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="285,79,363,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="245,29,299,68,296,72,242,33"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="387,79,447,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="259,28,375,71,373,76,257,33"/>
+</map>

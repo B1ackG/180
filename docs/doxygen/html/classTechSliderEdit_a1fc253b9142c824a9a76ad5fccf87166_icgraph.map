@@ -1,0 +1,13 @@
+<map id="TechSliderEdit::setupPresetButtons" name="TechSliderEdit::setupPresetButtons">
+<area shape="rect" id="Node000001" title=" " alt="" coords="500,87,699,127"/>
+<area shape="rect" id="Node000002" href="$classTechSliderEdit.html#a9e149fac720b1c697ef11d21cecd6b4c" title=" " alt="" coords="265,87,452,127"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="486,110,452,110,452,105,486,105"/>
+<area shape="rect" id="Node000003" href="$classTechSliderEdit.html#aa8318e11812e6b6dca31866fb583afd7" title="设置发光颜色（用于发光/高亮效果）" alt="" coords="7,5,215,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="305,83,216,46,173,33,175,28,218,41,307,79"/>
+<area shape="rect" id="Node000004" href="$classTechSliderEdit.html#a7bf71bd31a5561a81ee1fe007b0245f4" title="设置主颜色（用于滑块、进度条等主视觉元素）" alt="" coords="15,55,207,95"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="251,96,207,90,208,85,252,91"/>
+<area shape="rect" id="Node000005" href="$classTechSliderEdit.html#ac2cf466212c7780e9bf7e381841f6de7" title="设置次要颜色（用于标签、文字等次要元素）" alt="" coords="7,119,216,159"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="252,124,217,128,216,123,252,118"/>
+<area shape="rect" id="Node000006" href="$classTechSliderEdit.html#a94e81a0fe9bd2fa6c8b4bab981b9631a" title="构造 TechSliderEdit 控件" alt="" coords="5,184,217,209"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="307,136,218,174,175,186,173,181,216,169,305,131"/>
+</map>

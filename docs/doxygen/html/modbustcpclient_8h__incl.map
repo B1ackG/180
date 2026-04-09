@@ -1,0 +1,15 @@
+<map id="modbustcpclient.h" name="modbustcpclient.h">
+<area shape="rect" id="Node000001" title="基于 TCP 的 Modbus 客户端声明，用于与 Modbus TCP 设备进行通信。" alt="" coords="241,5,383,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,80,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="269,33,94,79,93,74,268,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="104,79,200,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="287,33,192,75,190,71,285,28"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="224,79,301,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="306,33,281,69,276,66,302,29"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="326,79,399,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="323,29,349,66,344,69,318,33"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="423,79,494,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="337,28,424,70,421,75,334,33"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="519,79,615,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="354,28,513,72,512,78,352,33"/>
+</map>

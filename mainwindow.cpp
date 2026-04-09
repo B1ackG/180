@@ -120,6 +120,7 @@ void MainWindow::loadPollingRuntimeSettings()
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("Polling");
 
+    m_uiStateSyncEnabled = settings.value("ui_state_sync_enabled", true).toBool();
     m_mainModbusPollIntervalMs = settings.value("main_modbus_poll_ms", 500).toInt();
     m_mainUiPollIntervalMs = settings.value("main_ui_poll_ms", 200).toInt();
     m_mainReconnectIntervalMs = settings.value("main_reconnect_ms", 5000).toInt();
@@ -145,6 +146,7 @@ void MainWindow::savePollingRuntimeSettings() const
 {
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("Polling");
+    settings.setValue("ui_state_sync_enabled", m_uiStateSyncEnabled);
     settings.setValue("main_modbus_poll_ms", m_mainModbusPollIntervalMs);
     settings.setValue("main_ui_poll_ms", m_mainUiPollIntervalMs);
     settings.setValue("main_reconnect_ms", m_mainReconnectIntervalMs);
@@ -315,7 +317,9 @@ void MainWindow::setupRecordAndPermissionConnections()
 
     connect(ui->TBtn_HistoryRecord, &QPushButton::clicked, this, [this]() {
         if (m_currentUserRole >= UserRole::Admin) {
-            ui->StackedWidget->setCurrentIndex(6);
+            if (ui->page_HistoryRecord) {
+                ui->StackedWidget->setCurrentWidget(ui->page_HistoryRecord);
+            }
             ui->TBtn_HistoryRecord->setChecked(true);
             updateRecordDisplay();
             showNotification("已进入操作记录页面");
@@ -362,8 +366,10 @@ void MainWindow::setupRecordAndPermissionConnections()
         updateFunctionSwitchVisuals();
     });
 
-    connect(ui->TBtn_PermissionPage, &QPushButton::clicked, [=]() {
-        ui->StackedWidget->setCurrentIndex(5);
+    connect(ui->TBtn_PermissionPage, &QPushButton::clicked, [this]() {
+        if (ui->page_Permission) {
+            ui->StackedWidget->setCurrentWidget(ui->page_Permission);
+        }
         ui->TBtn_PermissionPage->setChecked(true);
     });
 
@@ -483,6 +489,9 @@ void MainWindow::setupStyles()
 
     // 顶部分组与按钮基础风格统一由 .ui 样式表维护，便于 Qt Creator 中可视化调整。
     if (ui) {
+        if (ui->TBtn_Stepmove) ui->TBtn_Stepmove->setCheckable(false);
+        if (ui->TBtn_MoveMode) ui->TBtn_MoveMode->setCheckable(false);
+        if (ui->TBtn_ControlMode) ui->TBtn_ControlMode->setCheckable(false);
         updateFunctionSwitchVisuals();
     }
 
@@ -614,7 +623,7 @@ void MainWindow::updateFunctionSwitchVisuals()
     } else if (m_stepModeEnabled) {
         applyModeStyle(ui->TBtn_Stepmove, "rgba(30, 148, 84, 0.90)", "#a9ffd0");
     } else {
-        applyModeStyle(ui->TBtn_Stepmove, "rgba(0, 112, 212, 0.90)", "#9fd9ff");
+        applyModeStyle(ui->TBtn_Stepmove, "rgba(172, 108, 26, 0.90)", "#ffd7a1");
     }
 
     // 关节/坐标：未选择与步进按钮保持同灰色
@@ -628,7 +637,7 @@ void MainWindow::updateFunctionSwitchVisuals()
 
     // 有线/无线：白/黄差异
     if (m_controlMode == WIRED_MODE) {
-        applyModeStyle(ui->TBtn_ControlMode, "rgba(100, 110, 126, 0.88)", "#d7e3ef");
+        applyModeStyle(ui->TBtn_ControlMode, "rgba(30, 126, 150, 0.90)", "#a8f0ff");
     } else {
         applyModeStyle(ui->TBtn_ControlMode, "rgba(158, 122, 16, 0.88)", "#ffe28f");
     }
@@ -1003,13 +1012,13 @@ void MainWindow::setupDataSimulation()
 
     // 临时测试：使用 pushButton_5 (工艺页) 手动触发力控报警
     // 因为 Btn_Test 在当前UI中不存在
-    if (ui->pushButton_5) {
-        ui->pushButton_5->setText("测试报警"); 
-        connect(ui->pushButton_5, &QPushButton::clicked, this, [this]() {
-            qCDebug(lcMainWindow) << "测试按钮点击：手动触发力控超限报警";
-            showAlarm("力控超限警报触发\n请点击下方按钮清除报警\n请手动移出超限位置", "#ff8800"); 
-        });
-    }
+    // if (ui->pushButton_5) {
+    //     ui->pushButton_5->setText("测试报警");
+    //     connect(ui->pushButton_5, &QPushButton::clicked, this, [this]() {
+    //         qCDebug(lcMainWindow) << "测试按钮点击：手动触发力控超限报警";
+    //         showAlarm("力控超限警报触发\n请点击下方按钮清除报警\n请手动移出超限位置", "#ff8800");
+    //     });
+    // }
     
     // 原有的 Btn_Test 代码已删除
 }
@@ -1132,9 +1141,9 @@ void MainWindow::initSliderEditUI()
                 this, [this](double /*oldValue*/, double newValue) {
                     const double speedPercent = qBound(0.0, newValue, 100.0);
                     const int speedValue = qBound(0, static_cast<int>(qRound(speedPercent)), 100);
-                    writeToMainDevice(5002, speedValue);
+                    writeToMainDevice(5001, speedValue);
 
-                    qCDebug(lcMainWindow) << "RobotSpeed(%)直写地址5002, 值:" << speedValue;
+                    qCDebug(lcMainWindow) << "RobotSpeed(%)直写地址5001, 值:" << speedValue;
                 });
     } else {
         qWarning() << "未找到控件: TechSliderEdit_Robot_RobotSpeed";
@@ -1425,32 +1434,20 @@ void MainWindow::setupRecordUI()
         return;
     }
 
-    while (ui->StackedWidget->count() < 7) {
-        QWidget *newPage = new QWidget();
-        ui->StackedWidget->addWidget(newPage);
-    }
-
-    QWidget *recordPage = ui->StackedWidget->widget(6);
+    QWidget *recordPage = ui->page_HistoryRecord;
     if (!recordPage) {
-        recordPage = new QWidget();
-        ui->StackedWidget->insertWidget(6, recordPage);
+        qCWarning(lcMainWindow) << "未找到 page_HistoryRecord，跳过记录页面初始化";
+        return;
     }
 
-    // 清理旧布局
-    if (recordPage->layout()) {
-        QLayoutItem *item;
-        while ((item = recordPage->layout()->takeAt(0)) != nullptr) {
-            if (item->widget()) item->widget()->deleteLater();
-            delete item;
-        }
-        delete recordPage->layout();
+    QQuickWidget *historyQuick = ui->quickWidget_HistoryList;
+    if (!historyQuick) {
+        historyQuick = new QQuickWidget(recordPage);
+        historyQuick->setObjectName("quickWidget_HistoryList");
+        historyQuick->setGeometry(20, 12, 1180, 618);
     }
 
-    QVBoxLayout *layout = new QVBoxLayout(recordPage);
-    layout->setContentsMargins(10, 0, 30, 10); // 增加左右边距，使中间的列表收窄
-    layout->setSpacing(5);
-
-    m_historyListQml = new QQuickWidget(this);
+    m_historyListQml = historyQuick;
     m_historyListQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
     connect(m_historyListQml, &QQuickWidget::statusChanged, this, [this](QQuickWidget::Status status) {
         if (status == QQuickWidget::Error && m_historyListQml) {
@@ -1462,8 +1459,6 @@ void MainWindow::setupRecordUI()
     });
     m_historyListQml->setSource(QUrl("qrc:/HistoryList.qml"));
     m_historyListQml->setClearColor(Qt::transparent);
-
-    layout->addWidget(m_historyListQml);
 
     // 连接信号
     connect(m_recorder, &OperationRecorder::recordAdded, this, [this](const OperationRecord &record) {
@@ -1601,17 +1596,40 @@ QString MainWindow::getControlPageName(QWidget *widget)
 /***************************************管理员界面**********************************/
 void MainWindow::setupAdminPasswordPage()
 {
-    // 权限验证页面（第5页）
-    QWidget *adminPage = new QWidget();
-    adminPage->setObjectName("adminPasswordPage");
-    ui->StackedWidget->insertWidget(5, adminPage); // 插入为第6页
+    // 权限验证页面：使用 .ui 中页面，便于 Qt Creator 可视化编辑
+    QWidget *adminPage = ui->page_Permission;
+    if (!adminPage) {
+        qCWarning(lcMainWindow) << "未找到 page_Permission，跳过权限页面初始化";
+        return;
+    }
+
+    QWidget *contentHost = adminPage->findChild<QWidget*>("permissionContentHost");
+    QWidget *targetParent = contentHost ? contentHost : adminPage;
+
+    // 隐藏权限页中非宿主控件，避免与动态内容重叠
+    const auto directChildren = adminPage->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly);
+    for (QWidget *child : directChildren) {
+        if (child && child != targetParent) {
+            child->setVisible(false);
+        }
+    }
+
+    // 清理旧布局，支持重复初始化
+    if (targetParent->layout()) {
+        QLayoutItem *item;
+        while ((item = targetParent->layout()->takeAt(0)) != nullptr) {
+            if (item->widget()) item->widget()->deleteLater();
+            delete item;
+        }
+        delete targetParent->layout();
+    }
 
     // 创建科技感背景
-    QVBoxLayout *mainLayout = new QVBoxLayout(adminPage);
+    QVBoxLayout *mainLayout = new QVBoxLayout(targetParent);
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
     // 背景容器
-    QWidget *container = new QWidget(adminPage);
+    QWidget *container = new QWidget(targetParent);
     container->setObjectName("adminContainer");
     QVBoxLayout *containerLayout = new QVBoxLayout(container);
     containerLayout->setAlignment(Qt::AlignCenter);
@@ -1750,7 +1768,7 @@ void MainWindow::setupAdminPasswordPage()
 
     // 设置样式
     QString style = QString(
-        "#adminPasswordPage {"
+        "#page_Permission {"
         "    background-color: #0a0a1a;"
         "}"
         "#adminContainer {"
@@ -3052,8 +3070,6 @@ void MainWindow::updateSliderLabelValue(const QString& labelName, float value)
         // 特殊逻辑：根据不同仪表解析对应的速度寄存器
         if (labelName == "robot_ArcGauge_J3Length") {
             // J3 速度 = (48-51) 的 double + (52-55) 的 double, 范围 0~40
-            const int v1_addr[4] = {48, 49, 50, 51};
-            const int v2_addr[4] = {52, 53, 54, 55};
             if (g_registerCache.contains(48) && g_registerCache.contains(51) && 
                 g_registerCache.contains(52) && g_registerCache.contains(55)) {
                 double v1 = registersToDoubleDCBAFEHG(g_registerCache[48], g_registerCache[49], g_registerCache[50], g_registerCache[51]);
@@ -3102,7 +3118,9 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
     // 更新寄存器缓存
     g_registerCache[address] = value;
 
-    if (address == 501 && ui && ui->TBtn_Stepmove) {
+    const bool allowUiStateSync = m_uiStateSyncEnabled;
+
+    if (allowUiStateSync && address == 501 && ui && ui->TBtn_Stepmove) {
         if (value == 2) {
             m_stepModeUnknown = false;
             m_stepModeEnabled = true;
@@ -3137,7 +3155,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         updateFunctionSwitchVisuals();
     }
 
-    if (address == 525 && ui && ui->TBtn_MoveMode) {
+    if (allowUiStateSync && address == 525 && ui && ui->TBtn_MoveMode) {
         if (value == 2) {
             m_moveModeUnknown = false;
             m_isJointMode = true;
@@ -3173,70 +3191,72 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         "robot_ArcGauge_J1Angle", "robot_ArcGauge_J2Height", "robot_ArcGauge_J3Length", "robot_ArcGauge_J4Angle"
     };
 
-    for (const QString &labelName : targetLabels) {
-        if (!m_sliderLabelConfigs.contains(labelName)) {
-            continue;
-        }
-
-        const SliderLabelConfig &config = m_sliderLabelConfigs[labelName];
-        const QVector<int> regs = {
-            config.modbusAddress1,
-            config.modbusAddress2,
-            config.modbusAddress3,
-            config.modbusAddress4
-        };
-
-        if (!regs.contains(address)) {
-            continue;
-        }
-
-        bool ready = true;
-        for (int reg : regs) {
-            if (!g_registerCache.contains(reg)) {
-                ready = false;
-                break;
+    if (allowUiStateSync) {
+        for (const QString &labelName : targetLabels) {
+            if (!m_sliderLabelConfigs.contains(labelName)) {
+                continue;
             }
-        }
 
-        if (!ready) {
-            continue;
-        }
+            const SliderLabelConfig &config = m_sliderLabelConfigs[labelName];
+            const QVector<int> regs = {
+                config.modbusAddress1,
+                config.modbusAddress2,
+                config.modbusAddress3,
+                config.modbusAddress4
+            };
 
-        const quint16 reg1 = g_registerCache[config.modbusAddress1];
-        const quint16 reg2 = g_registerCache[config.modbusAddress2];
-        const quint16 reg3 = g_registerCache[config.modbusAddress3];
-        const quint16 reg4 = g_registerCache[config.modbusAddress4];
-        double value64 = registersToDoubleDCBAFEHG(reg1, reg2, reg3, reg4);
+            if (!regs.contains(address)) {
+                continue;
+            }
 
-        // 如果开启了求和模式 (用于 J3Length = 12-15 + 16-19)
-        if (config.isSumMode) {
-            bool sumReady = true;
-            for (int i = 0; i < 4; ++i) {
-                if (!g_registerCache.contains(config.sumAddress[i])) {
-                    sumReady = false;
+            bool ready = true;
+            for (int reg : regs) {
+                if (!g_registerCache.contains(reg)) {
+                    ready = false;
                     break;
                 }
             }
 
-            if (sumReady) {
-                const double sumPart = registersToDoubleDCBAFEHG(
-                    g_registerCache[config.sumAddress[0]],
-                    g_registerCache[config.sumAddress[1]],
-                    g_registerCache[config.sumAddress[2]],
-                    g_registerCache[config.sumAddress[3]]
-                );
-                value64 += sumPart;
+            if (!ready) {
+                continue;
             }
-        }
 
-        static QMap<QString, int> debugCounter;
-        if (debugCounter[labelName]++ % 8 == 0) {
-            // qWarning() << "[四控件读数]" << labelName
-            //          << (config.isSumMode ? " (求和模式)" : "")
-            //          << "解析值:" << value64;
-        }
+            const quint16 reg1 = g_registerCache[config.modbusAddress1];
+            const quint16 reg2 = g_registerCache[config.modbusAddress2];
+            const quint16 reg3 = g_registerCache[config.modbusAddress3];
+            const quint16 reg4 = g_registerCache[config.modbusAddress4];
+            double value64 = registersToDoubleDCBAFEHG(reg1, reg2, reg3, reg4);
 
-        updateSliderLabelValue(labelName, static_cast<float>(value64));
+            // 如果开启了求和模式 (用于 J3Length = 12-15 + 16-19)
+            if (config.isSumMode) {
+                bool sumReady = true;
+                for (int i = 0; i < 4; ++i) {
+                    if (!g_registerCache.contains(config.sumAddress[i])) {
+                        sumReady = false;
+                        break;
+                    }
+                }
+
+                if (sumReady) {
+                    const double sumPart = registersToDoubleDCBAFEHG(
+                        g_registerCache[config.sumAddress[0]],
+                        g_registerCache[config.sumAddress[1]],
+                        g_registerCache[config.sumAddress[2]],
+                        g_registerCache[config.sumAddress[3]]
+                    );
+                    value64 += sumPart;
+                }
+            }
+
+            static QMap<QString, int> debugCounter;
+            if (debugCounter[labelName]++ % 8 == 0) {
+                // qWarning() << "[四控件读数]" << labelName
+                //          << (config.isSumMode ? " (求和模式)" : "")
+                //          << "解析值:" << value64;
+            }
+
+            updateSliderLabelValue(labelName, static_cast<float>(value64));
+        }
     }
     // ============ 新增：检测报警地址 ============
     if (address == 804) {
@@ -5720,7 +5740,7 @@ void MainWindow::onTcpConnectionStatusChanged(bool connected)
     }
 
     // 更新记录页面状态标签
-    QWidget *recordPage = ui->StackedWidget->widget(6);
+    QWidget *recordPage = ui->page_HistoryRecord;
     if (recordPage) {
         QLabel *tcpStatusLabel = recordPage->findChild<QLabel*>("tcpStatusLabel");
         if (tcpStatusLabel) {
@@ -5753,7 +5773,7 @@ void MainWindow::onTcpTransmissionComplete()
 void MainWindow::onTcpTransmissionError(const QString &error)
 {
     // 在记录页面显示错误
-    QWidget *recordPage = ui->StackedWidget->widget(6);
+    QWidget *recordPage = ui->page_HistoryRecord;
     if (recordPage) {
         QLabel *tcpStatusLabel = recordPage->findChild<QLabel*>("tcpStatusLabel");
         if (tcpStatusLabel) {

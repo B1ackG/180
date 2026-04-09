@@ -1,0 +1,7 @@
+<map id="EnableButtonWorker::stopPolling" name="EnableButtonWorker::stopPolling">
+<area shape="rect" id="Node000001" title="使用示例:" alt="" coords="261,35,416,75"/>
+<area shape="rect" id="Node000002" href="$classEnableButtonWorker.html#a8aa423b2e8fa6a32aca2a6ee4d32ec12" title="功能: 析构函数，停止轮询并释放资源。 如何使用: 对象被销毁时自动调用，不需手动调用。 如何修改: 若增加外部资源，确保在析构中正确关闭。" alt="" coords="23,5,196,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="247,46,196,39,197,34,248,40"/>
+<area shape="rect" id="Node000003" href="$classMainWindow.html#ae98d00a93bc118200eeef9f9bba1dba7" title="析构 MainWindow，释放资源并停止后台任务" alt="" coords="5,70,213,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="248,68,214,73,213,67,247,63"/>
+</map>

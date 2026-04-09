@@ -1,0 +1,21 @@
+<map id="MainWindow::onAGVWordVariableChanged" name="MainWindow::onAGVWordVariableChanged">
+<area shape="rect" id="Node000001" title="AGV 字变量变化" alt="" coords="5,153,248,193"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57" title=" " alt="" coords="325,78,550,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,151,295,117,355,104,356,109,297,123,187,156"/>
+<area shape="rect" id="Node000006" href="$classMainWindow.html#aeb6dac6ef6f3db2bac189c2b8e613574" title="更新 AGV 进度条" alt="" coords="296,131,579,157"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="248,159,289,155,290,161,249,165"/>
+<area shape="rect" id="Node000009" href="$classMainWindow.html#a3c29ab9c4fed9e30162b27cf13884814" title="更新 AGV 状态标签" alt="" coords="315,181,560,221"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="249,182,302,186,301,192,248,187"/>
+<area shape="rect" id="Node000010" href="$classMainWindow.html#a96888849301ae79d38fb196b86c634dc" title="更新速度显示" alt="" coords="338,246,537,271"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="178,191,235,212,297,231,340,241,339,246,295,236,233,217,176,196"/>
+<area shape="rect" id="Node000003" href="$classFeatureSwitchManager.html#af4a8c4a54a17fdddbdb9eece6b8da932" title="组合检查：先检查所属大功能，再检查小功能（若提供）" alt="" coords="631,69,801,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="550,87,616,87,617,92,550,93"/>
+<area shape="rect" id="Node000004" href="$classFeatureSwitchManager.html#aa558b5e5c8c59422920a0006cc304f0e" title="检查某个大功能是否可用" alt="" coords="875,5,1045,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="792,67,870,46,871,51,794,72"/>
+<area shape="rect" id="Node000005" href="$classFeatureSwitchManager.html#a34a3f96557e81a21f547065c8ce2608b" title="检查某个小功能是否可用" alt="" coords="871,69,1049,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="801,87,857,87,857,92,801,92"/>
+<area shape="rect" id="Node000007" href="$classBatteryWidget.html#a48c83ee12cd158d3451325fc13b0828e" title=" " alt="" coords="627,134,805,159"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="579,143,613,143,613,148,579,148"/>
+<area shape="rect" id="Node000008" href="$classBatteryWidget.html#a4ff1cb2dd24699489f58572a027aefa7" title=" " alt="" coords="853,134,1067,159"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="805,144,840,144,840,149,805,149"/>
+</map>

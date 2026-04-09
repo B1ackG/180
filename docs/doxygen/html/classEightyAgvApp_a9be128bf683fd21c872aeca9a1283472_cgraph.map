@@ -1,0 +1,26 @@
+<map id="EightyAgvApp::EightyAgvApp" name="EightyAgvApp::EightyAgvApp">
+<area shape="rect" id="Node000001" title="构造 AGV 业务对象。" alt="" coords="5,179,217,204"/>
+<area shape="rect" id="Node000002" href="$classAGVModbusManager.html#a2a3cb376088bf914b1714b114933389b" title="使用示例:" alt="" coords="276,5,509,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,177,175,110,216,72,264,40,279,33,281,38,267,44,220,76,179,114,124,180"/>
+<area shape="rect" id="Node000003" href="$classAGVModbusManager.html#ac8010d1accdec2616c993f0f2be93aca" title=" " alt="" coords="267,55,519,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="126,177,184,133,223,109,264,89,287,81,289,86,266,94,225,114,187,137,129,181"/>
+<area shape="rect" id="Node000004" href="$classAGVModbusManager.html#a987007d6e13c46a28d4f08c42b1f4d63" title=" " alt="" coords="265,104,520,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="146,176,265,138,302,130,303,135,266,143,148,181"/>
+<area shape="rect" id="Node000005" href="$classEightyAgvApp.html#a94b02be1f47b714c3e7bfce0fe30c55d" title="AGV 连接成功后的内部回调。" alt="" coords="277,153,508,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="217,179,263,175,264,180,218,184"/>
+<area shape="rect" id="Node000007" href="$classEightyAgvApp.html#a199360fa74adc48364fc8eac862dad79" title="AGV 断开连接后的内部回调。" alt="" coords="267,203,518,228"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="218,198,254,201,253,206,217,203"/>
+<area shape="rect" id="Node000008" href="$classEightyAgvApp.html#a79b832709490bd648a50dfd28a971391" title="AGV 通信错误后的内部回调。" alt="" coords="296,252,489,277"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="150,202,266,237,308,247,307,252,265,242,149,207"/>
+<area shape="rect" id="Node000010" href="$classEightyAgvApp.html#afd2643b899c2aa2b1a542a54ec56b1e4" title="处理寄存器值变化。" alt="" coords="281,302,504,342"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="130,202,188,244,226,267,266,288,286,295,284,300,264,292,224,272,185,248,127,206"/>
+<area shape="rect" id="Node000012" href="$classAGVModbusManager.html#a95a6319d2d7cd445e21e1f5ffe97c6c6" title=" " alt="" coords="285,366,501,406"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="123,203,177,274,219,316,267,352,279,358,277,363,264,356,215,320,173,277,119,206"/>
+<area shape="rect" id="Node000006" href="$classEightyAgvApp.html#a4c661588b9cb19432a5e1f5a4ec1a720" title="AGV 连接状态变化信号。" alt="" coords="568,179,804,204"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="508,173,554,177,554,183,508,179"/>
+<area shape="poly" id="edge7_Node000007_Node000006" title=" " alt="" coords="518,202,554,199,555,205,518,208"/>
+<area shape="rect" id="Node000009" href="$classEightyAgvApp.html#a7e9777fbc105b73fbc7f06a5e24f9b17" title="告警触发信号。" alt="" coords="577,252,795,277"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="490,262,563,262,563,267,490,267"/>
+<area shape="rect" id="Node000011" href="$classEightyAgvApp.html#a5e158deb34b22d623d7e3ae937c8cd12" title="电池电量更新信号。" alt="" coords="575,309,797,335"/>
+<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="504,319,561,319,561,325,504,325"/>
+</map>

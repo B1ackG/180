@@ -1,0 +1,11 @@
+<map id="MainWindow::onAGVAddFaultCodeToList" name="MainWindow::onAGVAddFaultCodeToList">
+<area shape="rect" id="Node000001" title="将故障码加入列表" alt="" coords="5,37,217,77"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57" title=" " alt="" coords="265,45,491,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,55,252,55,252,60,217,60"/>
+<area shape="rect" id="Node000003" href="$classFeatureSwitchManager.html#af4a8c4a54a17fdddbdb9eece6b8da932" title="组合检查：先检查所属大功能，再检查小功能（若提供）" alt="" coords="539,37,709,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="491,55,525,55,525,60,491,60"/>
+<area shape="rect" id="Node000004" href="$classFeatureSwitchManager.html#aa558b5e5c8c59422920a0006cc304f0e" title="检查某个大功能是否可用" alt="" coords="761,5,932,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="709,42,747,37,748,42,710,48"/>
+<area shape="rect" id="Node000005" href="$classFeatureSwitchManager.html#a34a3f96557e81a21f547065c8ce2608b" title="检查某个小功能是否可用" alt="" coords="757,69,936,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="710,67,744,72,743,77,709,72"/>
+</map>

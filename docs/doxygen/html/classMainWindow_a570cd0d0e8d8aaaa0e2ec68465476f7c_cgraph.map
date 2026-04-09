@@ -1,0 +1,5 @@
+<map id="MainWindow::checkSteeringSwitchCompletion" name="MainWindow::checkSteeringSwitchCompletion">
+<area shape="rect" id="Node000001" title="检查转向切换完成状态（由 Modbus 值驱动）" alt="" coords="5,5,211,45"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a754eb9d3e69acefaa499c13cae68529e" title="隐藏报警显示" alt="" coords="259,13,439,38"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="211,23,245,23,245,28,211,28"/>
+</map>

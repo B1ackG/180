@@ -1,0 +1,18 @@
+<map id="TechSliderLabel::setForceControlMode" name="TechSliderLabel::setForceControlMode">
+<area shape="rect" id="Node000001" title="设置力控模式开启状态" alt="" coords="5,44,192,84"/>
+<area shape="rect" id="Node000002" href="$classTechSliderLabel.html#af0ebb1447f625a86980ae1f48b97835c" title=" " alt="" coords="489,5,685,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,54,475,31,475,37,193,59"/>
+<area shape="rect" id="Node000004" href="$classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c" title="设置当前值并更新显示" alt="" coords="240,77,427,102"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="192,71,227,75,226,80,192,77"/>
+<area shape="rect" id="Node000003" href="$classTechSliderLabel.html#a4c98fb21f0ecdc9a82a3e4baede89935" title=" " alt="" coords="747,5,964,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="685,23,733,23,733,28,685,28"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="384,74,493,46,494,51,385,79"/>
+<area shape="rect" id="Node000005" href="$classTechSliderLabel.html#a462ee04c6eb27bdb898d84c0580fa2f1" title=" " alt="" coords="480,69,693,109"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="427,87,466,87,466,92,427,92"/>
+<area shape="rect" id="Node000007" href="$classTechSliderLabel.html#a7c23aa694737f6797998e3652b4c4c62" title=" " alt="" coords="481,133,693,173"/>
+<area shape="poly" id="edge7_Node000004_Node000007" title=" " alt="" coords="385,100,494,127,493,132,384,105"/>
+<area shape="rect" id="Node000008" href="$classTechSliderLabel.html#a1a227665e06f4b23ce294145d3d93223" title=" " alt="" coords="475,198,699,223"/>
+<area shape="poly" id="edge8_Node000004_Node000008" title=" " alt="" coords="351,100,404,141,439,164,476,183,500,192,498,197,474,188,436,168,401,145,347,104"/>
+<area shape="rect" id="Node000006" href="$classTechSliderLabel.html#a14488cb084932cfc503a3d93f86fa115" title=" " alt="" coords="765,69,946,109"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="694,87,751,87,751,92,694,92"/>
+</map>

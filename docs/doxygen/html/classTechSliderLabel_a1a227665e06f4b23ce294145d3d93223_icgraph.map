@@ -1,0 +1,28 @@
+<map id="TechSliderLabel::valueChanged" name="TechSliderLabel::valueChanged">
+<area shape="rect" id="Node000001" title=" " alt="" coords="1068,178,1292,203"/>
+<area shape="rect" id="Node000002" href="$classTechSliderLabel.html#a20e76cbe3e35a76f8f5110d49b3a0e83" title=" " alt="" coords="562,5,746,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1125,176,718,48,720,43,1126,171"/>
+<area shape="rect" id="Node000005" href="$classTechSliderLabel.html#a91b1be0ff7daa459d3a631991cf3272c" title="设置当前值并更新显示" alt="" coords="822,178,1009,203"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="1054,193,1009,193,1009,188,1054,188"/>
+<area shape="rect" id="Node000010" href="$classTechSliderLabel.html#a31b54e8e26a4fda38e2f2a1c201a952f" title=" " alt="" coords="811,305,1020,345"/>
+<area shape="poly" id="edge12_Node000001_Node000010" title=" " alt="" coords="1143,212,957,308,955,303,1141,207"/>
+<area shape="rect" id="Node000003" href="$classTechSliderLabel.html#aff4a891b36e70b10fbd4f088155dbff4" title=" " alt="" coords="251,70,497,95"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="549,49,438,73,436,67,548,44"/>
+<area shape="rect" id="Node000004" href="$classTechSliderLabel.html#a106e5fb25c568a3f7ab30a56260a8e76" title="构造 TechSliderLabel 控件" alt="" coords="5,88,203,128"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="237,98,203,101,203,96,237,93"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="887,171,815,109,761,66,722,48,724,43,764,62,818,105,891,167"/>
+<area shape="poly" id="edge10_Node000005_Node000003" title=" " alt="" coords="882,173,827,143,762,117,695,102,626,92,497,84,498,78,627,87,696,97,763,112,829,138,884,168"/>
+<area shape="poly" id="edge11_Node000005_Node000004" title=" " alt="" coords="849,178,762,161,610,143,457,129,203,114,203,109,457,124,610,137,763,156,850,172"/>
+<area shape="rect" id="Node000006" href="$classTechSliderLabel.html#ae1ec5a7453bc90d036404e8f8be00a6a" title="设置力控模式开启状态" alt="" coords="561,171,747,211"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="808,193,748,193,748,188,808,188"/>
+<area shape="rect" id="Node000007" href="$classTechSliderLabel.html#a6aea5baeaefe4f43a9b0e8366d81b663" title=" " alt="" coords="545,235,763,261"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="844,209,713,238,712,233,843,204"/>
+<area shape="rect" id="Node000008" href="$classTechSliderLabel.html#a5db9db9a7ec40b77927586131b2aed11" title=" " alt="" coords="547,285,761,310"/>
+<area shape="poly" id="edge8_Node000005_Node000008" title=" " alt="" coords="884,213,829,244,764,274,722,287,721,282,762,270,826,240,881,208"/>
+<area shape="rect" id="Node000009" href="$classTechSliderLabel.html#ae2d6b74fd9e54932a8889ff477a6bba8" title="设置显示范围" alt="" coords="558,334,750,359"/>
+<area shape="poly" id="edge9_Node000005_Node000009" title=" " alt="" coords="896,216,841,271,804,300,764,325,735,336,733,331,761,320,801,296,837,267,892,212"/>
+<area shape="rect" id="Node000011" href="$classModbusThreadManager.html#a055958d4fb9af47a9c477f86cbb23c42" title=" " alt="" coords="557,384,751,424"/>
+<area shape="poly" id="edge13_Node000010_Node000011" title=" " alt="" coords="837,352,763,375,724,387,722,381,762,369,836,347"/>
+<area shape="rect" id="Node000012" href="$classModbusThreadManager.html#afe2268ae681e8c8ab9bbd396f516688f" title=" " alt="" coords="283,384,465,424"/>
+<area shape="poly" id="edge14_Node000011_Node000012" title=" " alt="" coords="544,407,465,407,465,401,544,401"/>
+</map>

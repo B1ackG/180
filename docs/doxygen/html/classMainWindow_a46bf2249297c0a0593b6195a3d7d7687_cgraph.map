@@ -1,0 +1,15 @@
+<map id="MainWindow::updateTcpServerHost" name="MainWindow::updateTcpServerHost">
+<area shape="rect" id="Node000001" title="更新TCP服务器IP（仅修改主机号）" alt="" coords="5,109,256,134"/>
+<area shape="rect" id="Node000002" href="$classOperationRecorder.html#abf45d116c8ab17f758d7db9e457e4a2e" title="设置远端 TCP 服务器地址与端口" alt="" coords="304,101,456,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="256,119,290,119,290,124,256,124"/>
+<area shape="rect" id="Node000003" href="$classOperationRecorder.html#a20308fd183b5b0dbe00ce89fcc0b823e" title=" " alt="" coords="506,37,658,77"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="443,99,504,79,506,84,445,104"/>
+<area shape="rect" id="Node000006" href="$classOperationRecorder.html#a58ad39183fa0657421f3534579b67169" title=" " alt="" coords="504,101,660,141"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="456,119,490,119,490,124,456,124"/>
+<area shape="rect" id="Node000007" href="$classOperationRecorder.html#a5b34105cc69529110573a59a3fab7cab" title=" " alt="" coords="504,165,660,205"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="445,139,506,159,504,164,443,144"/>
+<area shape="rect" id="Node000004" href="$classOperationRecorder.html#a60e73780538b8376d7e68e9cc09fe5a9" title=" " alt="" coords="716,5,875,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="658,43,702,37,703,42,659,49"/>
+<area shape="rect" id="Node000005" href="$classOperationRecorder.html#a37d0a54d4ebddd9ad4c248331f70a0e3" title=" " alt="" coords="708,69,883,109"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="659,66,695,72,694,77,658,71"/>
+</map>

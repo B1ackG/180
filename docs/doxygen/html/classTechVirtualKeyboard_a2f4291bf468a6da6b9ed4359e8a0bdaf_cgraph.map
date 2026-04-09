@@ -1,0 +1,7 @@
+<map id="TechVirtualKeyboard::hideEvent" name="TechVirtualKeyboard::hideEvent">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,160,67"/>
+<area shape="rect" id="Node000002" href="$classAnimationManager.html#a7b55a1f9d04cf1952debcbabd81afb14" title="功能: 获取 AnimationManager 单例，用于统一管理 UI 动画定时更新。 如何使用: 调用 AnimationManager::instance() 并通过 registerWidget..." alt="" coords="213,5,423,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,35,203,30,203,35,161,40"/>
+<area shape="rect" id="Node000003" href="$classAnimationManager.html#acfee425d9fda00d302d33c5a6a58c7d9" title="功能: 注销已注册的控件，停止对其的动画更新。 如何使用: 在控件销毁或不再需要动画时调用以避免悬挂指针。 如何修改: 若使用弱引用，则可在内部自动回收，此处可简化为可选操作。" alt="" coords="208,55,428,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,54,195,58,194,63,160,59"/>
+</map>

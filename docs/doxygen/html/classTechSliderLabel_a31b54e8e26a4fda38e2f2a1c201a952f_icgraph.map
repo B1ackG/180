@@ -1,0 +1,7 @@
+<map id="TechSliderLabel::updateFromModbus" name="TechSliderLabel::updateFromModbus">
+<area shape="rect" id="Node000001" title=" " alt="" coords="477,5,687,45"/>
+<area shape="rect" id="Node000002" href="$classModbusThreadManager.html#a055958d4fb9af47a9c477f86cbb23c42" title=" " alt="" coords="236,5,429,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="464,28,429,28,429,23,464,23"/>
+<area shape="rect" id="Node000003" href="$classModbusThreadManager.html#afe2268ae681e8c8ab9bbd396f516688f" title=" " alt="" coords="5,5,188,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="222,28,188,28,188,23,222,23"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="ModbusVariables::ModbusVariables" name="ModbusVariables::ModbusVariables">
+<area shape="rect" id="Node000001" title="功能: 构造 ModbusVariables 实例并初始化变量表。 如何使用: 在程序启动或配置加载时创建该对象以管理变量映射。 如何修改: 若需支持多源变量表，可在构造中注入数据源或添加加载接口。" alt="" coords="5,13,257,38"/>
+<area shape="rect" id="Node000002" href="$classModbusVariables.html#a0325a1b230238f402bfcb8d270b614c2" title="使用示例:" alt="" coords="305,5,500,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="258,23,292,23,292,28,258,28"/>
+<area shape="rect" id="Node000003" href="$classModbusVariables.html#a1a73f503802a7511a4527f18e7c11afe" title=" " alt="" coords="548,13,767,38"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="500,23,535,23,535,28,500,28"/>
+<area shape="rect" id="Node000004" href="$classModbusVariables.html#ac130b9582b881933824eeb94e7adea87" title="功能: 将 PLC 风格地址解析为 Modbus 数值地址与位位置（若为位变量）。 如何使用: 用于将配置中的 PLC 地址转换为底层 Modbus 操作地址。 如何修改: 若支持更多地址格式或厂商差异..." alt="" coords="815,13,1044,38"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="767,23,801,23,801,28,767,28"/>
+</map>

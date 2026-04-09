@@ -1,0 +1,15 @@
+<map id="AGVModbusManager::connectToDevice" name="AGVModbusManager::connectToDevice">
+<area shape="rect" id="Node000001" title="使用示例:" alt="" coords="844,65,1061,105"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a3e0a36e37aaa3085efc35aebf3f257a5" title="初始化 AGV Modbus 子系统" alt="" coords="556,19,784,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="832,65,737,47,738,42,833,60"/>
+<area shape="rect" id="Node000005" href="$classAGVModbusManager.html#ab8a833b1a3e7fbb509bbecca25c1cca0" title=" " alt="" coords="544,73,796,98"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="830,88,796,88,796,83,830,83"/>
+<area shape="rect" id="Node000007" href="$classMainWindow.html#a553eb12168811fff34cbdb871948ce48" title="更新模拟器IP主机号（192.168.1.XXX）" alt="" coords="545,122,795,147"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="831,109,744,125,743,119,830,104"/>
+<area shape="rect" id="Node000003" href="$classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c" title="初始化业务子系统（通信、线程、样式、控制）" alt="" coords="274,5,473,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="542,32,473,30,473,25,542,26"/>
+<area shape="rect" id="Node000004" href="$classMainWindow.html#a996c5a2b6f77944776856f08ec30858d" title="构造 MainWindow 并初始化内部状态与 UI" alt="" coords="5,13,203,38"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="260,28,203,28,203,23,260,23"/>
+<area shape="rect" id="Node000006" href="$classAGVModbusManager.html#a588ed9c3dd720d19485e1fcc53ce6cb3" title="功能: 构造 AGVModbusManager，用于管理 AGV 专用的 Modbus 通信与数据处理。 如何使用: 在应用初始化阶段创建该管理对象并连接相应信号以接收更新。 如何修改: 若需要支持多个..." alt="" coords="251,69,496,109"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="531,90,496,90,496,85,531,85"/>
+</map>

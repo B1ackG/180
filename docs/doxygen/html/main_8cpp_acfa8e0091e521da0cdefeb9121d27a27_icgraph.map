@@ -1,0 +1,8 @@
+<map id="waitWithUiEvents" name="waitWithUiEvents">
+<area shape="rect" id="Node000001" title=" " alt="" coords="327,5,465,31"/>
+<area shape="rect" id="Node000002" href="$main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="5,5,60,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="313,21,60,21,60,15,313,15"/>
+<area shape="rect" id="Node000003" href="$main_8cpp.html#a72bf06f7c3b4827acd2c7df2b203ab46" title=" " alt="" coords="108,31,279,56"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="313,31,279,35,279,30,313,26"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="99,31,60,25,61,20,100,26"/>
+</map>

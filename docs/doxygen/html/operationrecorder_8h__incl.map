@@ -1,0 +1,23 @@
+<map id="operationrecorder.h" name="operationrecorder.h">
+<area shape="rect" id="Node000001" title="操作记录器的声明，用于记录用户/系统操作以便回放或审计。" alt="" coords="435,5,584,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,80,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="435,31,282,51,94,81,93,76,281,46,434,25"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="104,79,200,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="452,33,214,80,213,75,451,28"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="225,79,279,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="468,33,293,81,292,76,467,28"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="304,79,405,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="486,33,393,75,391,70,483,28"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="430,79,485,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="503,33,476,69,472,66,499,29"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="509,79,616,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="520,29,548,66,544,69,516,33"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="641,79,770,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="542,28,661,71,660,76,540,33"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="795,79,891,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="563,28,782,74,781,80,562,33"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="915,79,1010,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="585,27,902,76,901,81,584,32"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="1034,79,1105,104"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="584,22,778,42,898,57,1021,76,1020,81,897,62,778,47,584,28"/>
+</map>

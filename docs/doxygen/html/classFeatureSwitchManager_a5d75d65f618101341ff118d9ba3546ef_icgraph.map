@@ -1,0 +1,12 @@
+<map id="FeatureSwitchManager::setSmallFeatureEnabled" name="FeatureSwitchManager::setSmallFeatureEnabled">
+<area shape="rect" id="Node000001" title="设置指定小功能是否启用（仅影响内存中的禁用集合）" alt="" coords="845,35,1033,75"/>
+<area shape="rect" id="Node000002" href="$classFeatureSwitchWidget.html#a84c23636e2ceb40e36e67dc481a184fc" title=" " alt="" coords="637,35,797,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="832,57,798,57,798,52,832,52"/>
+<area shape="rect" id="Node000003" href="$classFeatureSwitchWidget.html#ab63967accbc0ea912c2d2870c2140a06" title=" " alt="" coords="429,5,589,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="624,44,589,39,590,34,624,39"/>
+<area shape="rect" id="Node000004" href="$classFeatureSwitchWidget.html#a859090336219fd32f18b5c10019b1016" title=" " alt="" coords="221,35,381,75"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="624,60,589,60,429,60,381,59,381,54,429,55,589,55,624,54"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="416,41,382,46,381,41,416,36"/>
+<area shape="rect" id="Node000005" href="$classFeatureSwitchWidget.html#a5efb15d0351e260b8923889832dbf319" title=" " alt="" coords="5,35,173,75"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="207,57,173,57,173,52,207,52"/>
+</map>

@@ -1,0 +1,17 @@
+<map id="TechSliderEdit::setRange" name="TechSliderEdit::setRange">
+<area shape="rect" id="Node000001" title="设置可选范围" alt="" coords="5,134,188,159"/>
+<area shape="rect" id="Node000002" href="$classTechSliderEdit.html#a96a5c7481f43a7417a24c2fa8d89440f" title="使用示例:" alt="" coords="251,77,428,102"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,131,271,103,272,108,152,137"/>
+<area shape="rect" id="Node000007" href="$classTechSliderEdit.html#a9ffbc1bde3e65af7ac9788b90ccab1ca" title=" " alt="" coords="243,127,436,167"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="188,144,229,144,229,149,188,149"/>
+<area shape="rect" id="Node000008" href="$classTechSliderEdit.html#af6195fe4eaa68d639b92a9fc76eb5047" title=" " alt="" coords="236,191,443,231"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="147,157,250,184,249,190,145,162"/>
+<area shape="rect" id="Node000003" href="$classTechSliderEdit.html#aa425cc8db65cc17257f75061a8037831" title=" " alt="" coords="501,5,695,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="391,74,503,46,504,51,393,79"/>
+<area shape="rect" id="Node000004" href="$classTechSliderEdit.html#ac30ed3fce4100e4a54dee578d8d79fa2" title=" " alt="" coords="497,69,699,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="428,87,483,87,483,92,428,92"/>
+<area shape="rect" id="Node000006" href="$classTechSliderEdit.html#a70dffee73b2b671ed12428e8cb83fe91" title=" " alt="" coords="491,134,705,159"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="398,99,527,128,526,134,397,105"/>
+<area shape="rect" id="Node000005" href="$classTechSliderEdit.html#a1dfbc69ff00d41c39012cb4c39162b1b" title=" " alt="" coords="753,77,961,102"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="700,87,740,87,740,92,700,92"/>
+</map>

@@ -143,11 +143,25 @@ void FeatureSwitchWidget::setupUI()
     sdesc["alarm.status_logs"] = "报警状态周期日志";
     sdesc["debug.qdebug"] = "全局调试输出(qDebug)";
 
+    const QSet<QString> logSwitchKeys = {
+        "modbus_main.read_logs",
+        "modbus_main.write_logs",
+        "modbus_agv.read_logs",
+        "modbus_agv.write_logs",
+        "alarm.status_logs",
+        "debug.qdebug"
+    };
+
+    int smallIndex = 0;
     for (int i = 0; i < smallKeys.size(); ++i) {
         const QString key = smallKeys.at(i);
+        if (logSwitchKeys.contains(key)) {
+            continue;
+        }
         QString label = sdesc.contains(key) ? QString("%1 [%2]").arg(sdesc.value(key)).arg(key) : key;
         QCheckBox *cb = new QCheckBox(label);
-        smallLayout->addWidget(cb, i / 2, i % 2);
+        smallLayout->addWidget(cb, smallIndex / 2, smallIndex % 2);
+        ++smallIndex;
         m_smallCheckboxes[key] = cb;
 
         // 互斥处理：本机模拟器和远程模拟器
@@ -166,6 +180,19 @@ void FeatureSwitchWidget::setupUI()
         }
     }
     scrollLayout->addWidget(smallGroup);
+
+    QGroupBox *logGroup = new QGroupBox("日志类型开关 (Log Switches)");
+    QGridLayout *logLayout = new QGridLayout(logGroup);
+    QStringList logKeys = logSwitchKeys.values();
+    logKeys.sort();
+    for (int i = 0; i < logKeys.size(); ++i) {
+        const QString key = logKeys.at(i);
+        QString label = sdesc.contains(key) ? QString("%1 [%2]").arg(sdesc.value(key)).arg(key) : key;
+        QCheckBox *cb = new QCheckBox(label);
+        logLayout->addWidget(cb, i / 2, i % 2);
+        m_smallCheckboxes[key] = cb;
+    }
+    scrollLayout->addWidget(logGroup);
     
     // 轮询参数配置组
     setupPollingUI(scrollLayout);
@@ -229,6 +256,9 @@ void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
     QGroupBox *pollGroup = new QGroupBox("通信轮询参数 (Polling Settings)");
     QVBoxLayout *pollLayout = new QVBoxLayout(pollGroup);
 
+    m_cbUiStateSync = new QCheckBox("启用控件状态同步");
+    pollLayout->addWidget(m_cbUiStateSync);
+
     auto addPollItem = [&](const QString &label, QLineEdit *&edit) {
         QHBoxLayout *h = new QHBoxLayout();
         h->addWidget(new QLabel(label));
@@ -242,7 +272,7 @@ void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
     };
 
     addPollItem("主控 Modbus 轮询 (ms):", m_editMainModbusPoll);
-    addPollItem("主控 UI 刷新 (ms):", m_editMainUiPoll);
+    addPollItem("控件状态同步轮询 (ms):", m_editMainUiPoll);
     addPollItem("主控 重连间隔 (ms):", m_editMainReconnect);
     addPollItem("AGV Modbus 轮询 (ms):", m_editAgvPoll);
     addPollItem("AGV 重连间隔 (ms):", m_editAgvReconnect);
@@ -255,13 +285,18 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
     QGroupBox *limitGroup = new QGroupBox("参数范围自定义 (Parameter Limits)");
     QVBoxLayout *limitLayout = new QVBoxLayout(limitGroup);
 
-    // 使用固定的四个主页控件键，避免与 MainWindow 内部结构直接耦合。
-    QStringList targetNames = {"label_Value1", "label_Value2", "label_Value3", "label_Value4"};
+    // 与 MainWindow::setupSliderLabelConfigs 的 key 保持一致，确保修改可落地到运行态。
+    QStringList targetNames = {
+        "robot_ArcGauge_J1Angle",
+        "robot_ArcGauge_J2Height",
+        "robot_ArcGauge_J3Length",
+        "robot_ArcGauge_J4Angle"
+    };
     QMap<QString, QString> itemLabels;
-    itemLabels["label_Value1"] = "悬臂角度 (Target1)";
-    itemLabels["label_Value2"] = "升降高度 (Target2)";
-    itemLabels["label_Value3"] = "悬臂长度 (Target3)";
-    itemLabels["label_Value4"] = "末端角度 (Target4)";
+    itemLabels["robot_ArcGauge_J1Angle"] = "悬臂角度 (J1)";
+    itemLabels["robot_ArcGauge_J2Height"] = "升降高度 (J2)";
+    itemLabels["robot_ArcGauge_J3Length"] = "总伸展长度 (J3)";
+    itemLabels["robot_ArcGauge_J4Angle"] = "末端角度 (J4)";
 
     for (const QString &name : targetNames) {
         QHBoxLayout *row = new QHBoxLayout();
@@ -300,6 +335,7 @@ void FeatureSwitchWidget::loadPollingState()
 {
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("Polling");
+    m_cbUiStateSync->setChecked(settings.value("ui_state_sync_enabled", true).toBool());
     m_editMainModbusPoll->setText(settings.value("main_modbus_poll_ms", 500).toString());
     m_editMainUiPoll->setText(settings.value("main_ui_poll_ms", 200).toString());
     m_editMainReconnect->setText(settings.value("main_reconnect_ms", 5000).toString());
@@ -312,6 +348,7 @@ void FeatureSwitchWidget::savePollingState()
 {
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("Polling");
+    settings.setValue("ui_state_sync_enabled", m_cbUiStateSync->isChecked());
     settings.setValue("main_modbus_poll_ms", m_editMainModbusPoll->text().toInt());
     settings.setValue("main_ui_poll_ms", m_editMainUiPoll->text().toInt());
     settings.setValue("main_reconnect_ms", m_editMainReconnect->text().toInt());
@@ -324,10 +361,17 @@ void FeatureSwitchWidget::savePollingState()
 void FeatureSwitchWidget::loadSliderLimitState()
 {
     const QMap<QString, QPair<double, double>> defaultRanges = {
-        {"label_Value1", qMakePair(-90.0, 90.0)},
-        {"label_Value2", qMakePair(-850.0, 1150.0)},
-        {"label_Value3", qMakePair(0.0, 1600.0)},
-        {"label_Value4", qMakePair(-180.0, 180.0)}
+        {"robot_ArcGauge_J1Angle", qMakePair(-90.0, 90.0)},
+        {"robot_ArcGauge_J2Height", qMakePair(-850.0, 1150.0)},
+        {"robot_ArcGauge_J3Length", qMakePair(0.0, 1600.0)},
+        {"robot_ArcGauge_J4Angle", qMakePair(-180.0, 180.0)}
+    };
+
+    const QMap<QString, QString> legacyKeyMap = {
+        {"robot_ArcGauge_J1Angle", "label_Value1"},
+        {"robot_ArcGauge_J2Height", "label_Value2"},
+        {"robot_ArcGauge_J3Length", "label_Value3"},
+        {"robot_ArcGauge_J4Angle", "label_Value4"}
     };
 
     QSettings settings("config.ini", QSettings::IniFormat);
@@ -337,8 +381,23 @@ void FeatureSwitchWidget::loadSliderLimitState()
         QString keyMax = QString("%1_max").arg(it.key());
 
         const auto range = defaultRanges.value(it.key(), qMakePair(0.0, 100.0));
-        const double minVal = settings.value(keyMin, range.first).toDouble();
-        const double maxVal = settings.value(keyMax, range.second).toDouble();
+
+        QVariant minVar = settings.value(keyMin);
+        QVariant maxVar = settings.value(keyMax);
+        if (!minVar.isValid() || !maxVar.isValid()) {
+            const QString legacy = legacyKeyMap.value(it.key());
+            if (!legacy.isEmpty()) {
+                if (!minVar.isValid()) {
+                    minVar = settings.value(QString("%1_min").arg(legacy));
+                }
+                if (!maxVar.isValid()) {
+                    maxVar = settings.value(QString("%1_max").arg(legacy));
+                }
+            }
+        }
+
+        const double minVal = minVar.isValid() ? minVar.toDouble() : range.first;
+        const double maxVal = maxVar.isValid() ? maxVar.toDouble() : range.second;
         
         it.value().minEdit->setText(QString::number(minVal));
         it.value().maxEdit->setText(QString::number(maxVal));
@@ -350,12 +409,28 @@ void FeatureSwitchWidget::saveSliderLimitState()
 {
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("SliderLabelLimits");
+
+    const QMap<QString, QString> legacyKeyMap = {
+        {"robot_ArcGauge_J1Angle", "label_Value1"},
+        {"robot_ArcGauge_J2Height", "label_Value2"},
+        {"robot_ArcGauge_J3Length", "label_Value3"},
+        {"robot_ArcGauge_J4Angle", "label_Value4"}
+    };
+
     for (auto it = m_limitEdits.begin(); it != m_limitEdits.end(); ++it) {
         QString keyMin = QString("%1_min").arg(it.key());
         QString keyMax = QString("%1_max").arg(it.key());
-        
-        settings.setValue(keyMin, it.value().minEdit->text().toDouble());
-        settings.setValue(keyMax, it.value().maxEdit->text().toDouble());
+
+        const double minVal = it.value().minEdit->text().toDouble();
+        const double maxVal = it.value().maxEdit->text().toDouble();
+        settings.setValue(keyMin, minVal);
+        settings.setValue(keyMax, maxVal);
+
+        const QString legacy = legacyKeyMap.value(it.key());
+        if (!legacy.isEmpty()) {
+            settings.setValue(QString("%1_min").arg(legacy), minVal);
+            settings.setValue(QString("%1_max").arg(legacy), maxVal);
+        }
     }
     settings.endGroup();
     settings.sync();

@@ -1,0 +1,290 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: MainModbusConnector类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classMainModbusConnector.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-static-methods">静态 Public 成员函数</a> &#124;
+<a href="classMainModbusConnector-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">MainModbusConnector类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>主设备 Modbus 连接与配置辅助类。  
+ <a href="classMainModbusConnector.html#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="mainmodbusconnector_8h_source.html">mainmodbusconnector.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:accfad2cbbc6a99573489f5a283f38767" id="r_accfad2cbbc6a99573489f5a283f38767"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structMainModbusEndpoint.html">MainModbusEndpoint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMainModbusConnector.html#accfad2cbbc6a99573489f5a283f38767">selectEndpoint</a> (bool localSimulatorEnabled, bool remoteSimulatorEnabled, const QString &amp;remoteSimulatorHost=QStringLiteral(&quot;192.168.1.70&quot;))</td></tr>
+<tr class="memdesc:accfad2cbbc6a99573489f5a283f38767"><td class="mdescLeft">&#160;</td><td class="mdescRight">根据运行模式选择主设备连接端点。  <br /></td></tr>
+<tr class="separator:accfad2cbbc6a99573489f5a283f38767"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a480216169d71602293e4720c905a4a4f" id="r_a480216169d71602293e4720c905a4a4f"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMainModbusConnector.html#a480216169d71602293e4720c905a4a4f">connectAndConfigure</a> (<a class="el" href="classModbusThreadManager.html">ModbusThreadManager</a> *manager, const <a class="el" href="structMainModbusEndpoint.html">MainModbusEndpoint</a> &amp;endpoint, int pollIntervalMs, int reconnectIntervalMs)</td></tr>
+<tr class="memdesc:a480216169d71602293e4720c905a4a4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">连接指定端点并应用默认轮询/重连配置。  <br /></td></tr>
+<tr class="separator:a480216169d71602293e4720c905a4a4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>主设备 Modbus 连接与配置辅助类。 </p>
+<p>负责根据功能开关选择目标端点，并在连接成功后统一配置轮询与自动重连参数。 这使得主界面的启动逻辑更简洁，也便于在不同部署环境之间切换。 </p>
+
+<p class="definition">在文件 <a class="el" href="mainmodbusconnector_8h_source.html">mainmodbusconnector.h</a> 第 <a class="el" href="mainmodbusconnector_8h_source.html#l00027">27</a> 行定义.</p>
+</div><h2 class="groupheader">成员函数说明</h2>
+<a id="a480216169d71602293e4720c905a4a4f" name="a480216169d71602293e4720c905a4a4f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a480216169d71602293e4720c905a4a4f">&#9670;&#160;</a></span>connectAndConfigure()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool MainModbusConnector::connectAndConfigure </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classModbusThreadManager.html">ModbusThreadManager</a> *&#160;</td>
+          <td class="paramname"><em>manager</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structMainModbusEndpoint.html">MainModbusEndpoint</a> &amp;&#160;</td>
+          <td class="paramname"><em>endpoint</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pollIntervalMs</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>reconnectIntervalMs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>连接指定端点并应用默认轮询/重连配置。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">manager</td><td>Modbus 线程管理器。 </td></tr>
+    <tr><td class="paramname">endpoint</td><td>目标连接端点。 </td></tr>
+    <tr><td class="paramname">pollIntervalMs</td><td>轮询间隔（毫秒）。 </td></tr>
+    <tr><td class="paramname">reconnectIntervalMs</td><td>自动重连间隔（毫秒）。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>连接请求是否成功发起。</dd></dl>
+<p>使用示例: </p><div class="fragment"><div class="line"><span class="keyword">auto</span> endpoint = <a class="code hl_function" href="classMainModbusConnector.html#accfad2cbbc6a99573489f5a283f38767">MainModbusConnector::selectEndpoint</a>(<span class="keyword">false</span>, <span class="keyword">false</span>);</div>
+<div class="line"><a class="code hl_function" href="classMainModbusConnector.html#a480216169d71602293e4720c905a4a4f">MainModbusConnector::connectAndConfigure</a>(<a class="code hl_function" href="classModbusThreadManager.html#a3d6b84fa0918dcfe29e6962041d44e53">ModbusThreadManager::instance</a>(),</div>
+<div class="line">                                         endpoint,</div>
+<div class="line">                                         500,</div>
+<div class="line">                                         5000);</div>
+<div class="ttc" id="aclassMainModbusConnector_html_a480216169d71602293e4720c905a4a4f"><div class="ttname"><a href="classMainModbusConnector.html#a480216169d71602293e4720c905a4a4f">MainModbusConnector::connectAndConfigure</a></div><div class="ttdeci">static bool connectAndConfigure(ModbusThreadManager *manager, const MainModbusEndpoint &amp;endpoint, int pollIntervalMs, int reconnectIntervalMs)</div><div class="ttdoc">连接指定端点并应用默认轮询/重连配置。</div><div class="ttdef"><b>Definition</b> <a href="mainmodbusconnector_8cpp_source.html#l00024">mainmodbusconnector.cpp:24</a></div></div>
+<div class="ttc" id="aclassMainModbusConnector_html_accfad2cbbc6a99573489f5a283f38767"><div class="ttname"><a href="classMainModbusConnector.html#accfad2cbbc6a99573489f5a283f38767">MainModbusConnector::selectEndpoint</a></div><div class="ttdeci">static MainModbusEndpoint selectEndpoint(bool localSimulatorEnabled, bool remoteSimulatorEnabled, const QString &amp;remoteSimulatorHost=QStringLiteral(&quot;192.168.1.70&quot;))</div><div class="ttdoc">根据运行模式选择主设备连接端点。</div><div class="ttdef"><b>Definition</b> <a href="mainmodbusconnector_8cpp_source.html#l00005">mainmodbusconnector.cpp:5</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a3d6b84fa0918dcfe29e6962041d44e53"><div class="ttname"><a href="classModbusThreadManager.html#a3d6b84fa0918dcfe29e6962041d44e53">ModbusThreadManager::instance</a></div><div class="ttdeci">static ModbusThreadManager * instance()</div><div class="ttdoc">获取 ModbusThreadManager 单例实例</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00007">modbusthreadmanager.cpp:7</a></div></div>
+</div><!-- fragment --> 
+<p class="definition">在文件 <a class="el" href="mainmodbusconnector_8cpp_source.html">mainmodbusconnector.cpp</a> 第 <a class="el" href="mainmodbusconnector_8cpp_source.html#l00024">24</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="modbusthreadmanager_8cpp_source.html#l00040">ModbusThreadManager::connectToDevice()</a>, <a class="el" href="mainmodbusconnector_8h_source.html#l00017">MainModbusEndpoint::host</a>, <a class="el" href="mainmodbusconnector_8h_source.html#l00018">MainModbusEndpoint::port</a>, <a class="el" href="modbusthreadmanager_8cpp_source.html#l00212">ModbusThreadManager::setAutoReconnect()</a> , 以及 <a class="el" href="modbusthreadmanager_8cpp_source.html#l00205">ModbusThreadManager::setPollInterval()</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l02735">MainWindow::setupModbusManager()</a> , 以及 <a class="el" href="mainwindow_8cpp_source.html#l05660">MainWindow::updateSimulatorHost()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classMainModbusConnector_a480216169d71602293e4720c905a4a4f_cgraph.svg" width="940" height="232"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classMainModbusConnector_a480216169d71602293e4720c905a4a4f_icgraph.svg" width="1214" height="94"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="accfad2cbbc6a99573489f5a283f38767" name="accfad2cbbc6a99573489f5a283f38767"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#accfad2cbbc6a99573489f5a283f38767">&#9670;&#160;</a></span>selectEndpoint()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structMainModbusEndpoint.html">MainModbusEndpoint</a> MainModbusConnector::selectEndpoint </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>localSimulatorEnabled</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>remoteSimulatorEnabled</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>remoteSimulatorHost</em> = <code>QStringLiteral(&quot;192.168.1.70&quot;)</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>根据运行模式选择主设备连接端点。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">localSimulatorEnabled</td><td>是否启用本地仿真器。 </td></tr>
+    <tr><td class="paramname">remoteSimulatorEnabled</td><td>是否启用远程仿真器。 </td></tr>
+    <tr><td class="paramname">remoteSimulatorHost</td><td>远程仿真器主机地址。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>选定的端点信息。</dd></dl>
+<p>选择规则:</p><ul>
+<li><p class="startli">默认使用生产环境地址 <code>192.168.1.13:502</code></p><ul>
+<li>若启用本地仿真，则切换到 <code>127.0.0.1:5020</code></li>
+<li>若启用远程仿真，则切换到指定主机的 <code>5020</code></li>
+</ul>
+<p class="startli">使用示例: </p><div class="fragment"><div class="line"><span class="keyword">const</span> <span class="keyword">auto</span> endpoint = <a class="code hl_function" href="classMainModbusConnector.html#accfad2cbbc6a99573489f5a283f38767">MainModbusConnector::selectEndpoint</a>(<span class="keyword">true</span>, <span class="keyword">false</span>);</div>
+</div><!-- fragment --> </li>
+</ul>
+
+<p class="definition">在文件 <a class="el" href="mainmodbusconnector_8cpp_source.html">mainmodbusconnector.cpp</a> 第 <a class="el" href="mainmodbusconnector_8cpp_source.html#l00005">5</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="mainmodbusconnector_8h_source.html#l00017">MainModbusEndpoint::host</a> , 以及 <a class="el" href="mainmodbusconnector_8h_source.html#l00018">MainModbusEndpoint::port</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l02735">MainWindow::setupModbusManager()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classMainModbusConnector_accfad2cbbc6a99573489f5a283f38767_icgraph.svg" width="1214" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li><a class="el" href="mainmodbusconnector_8h_source.html">mainmodbusconnector.h</a></li>
+<li><a class="el" href="mainmodbusconnector_8cpp_source.html">mainmodbusconnector.cpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="classMainModbusConnector.html">MainModbusConnector</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

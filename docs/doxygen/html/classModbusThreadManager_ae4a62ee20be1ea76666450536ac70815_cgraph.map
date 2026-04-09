@@ -1,0 +1,5 @@
+<map id="ModbusThreadManager::setPollInterval" name="ModbusThreadManager::setPollInterval">
+<area shape="rect" id="Node000001" title="设置轮询间隔（毫秒）" alt="" coords="5,5,180,45"/>
+<area shape="rect" id="Node000002" href="$classModbusTCPClient.html#a75663a3df5adab252182d11e05e3fbdb" title="设置轮询间隔（毫秒）" alt="" coords="228,5,415,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,23,214,23,214,28,180,28"/>
+</map>

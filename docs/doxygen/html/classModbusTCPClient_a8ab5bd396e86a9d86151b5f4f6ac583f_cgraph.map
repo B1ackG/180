@@ -1,0 +1,5 @@
+<map id="ModbusTCPClient::startPolling" name="ModbusTCPClient::startPolling">
+<area shape="rect" id="Node000001" title="开始轮询已注册的寄存器列表" alt="" coords="5,5,223,31"/>
+<area shape="rect" id="Node000002" href="$classModbusTCPClient.html#ac0eb40bf43e015281059b0144a928675" title="查询连接状态" alt="" coords="271,5,493,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,15,257,15,257,21,223,21"/>
+</map>

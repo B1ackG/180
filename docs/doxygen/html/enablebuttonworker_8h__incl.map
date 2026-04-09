@@ -1,0 +1,9 @@
+<map id="enablebuttonworker.h" name="enablebuttonworker.h">
+<area shape="rect" id="Node000001" title="启用按钮后台任务处理的声明，用于异步处理按键使能/禁用逻辑。" alt="" coords="61,5,224,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,80,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,33,72,73,69,68,125,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="104,79,181,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="145,31,145,65,140,65,140,31"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="206,79,277,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="160,29,216,68,213,73,157,33"/>
+</map>

@@ -1,0 +1,15 @@
+<map id="mappingconfig.h" name="mappingconfig.h">
+<area shape="rect" id="Node000001" title="映射配置相关的声明，用于键位/动作与内部控制信号的映射定义。" alt="" coords="157,5,287,31"/>
+<area shape="rect" id="Node000002" href="$180__agv__app_8cpp.html" title=" " alt="" coords="5,79,140,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,39,98,81,96,76,185,34"/>
+<area shape="rect" id="Node000003" href="$mainwindow_8h.html" title="主窗口的声明，包含主要 UI 控件与界面逻辑的入口类。" alt="" coords="164,79,280,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="225,44,225,79,219,79,219,44"/>
+<area shape="rect" id="Node000007" href="$mappingconfig_8cpp.html" title=" " alt="" coords="304,79,449,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="260,34,352,76,350,81,258,39"/>
+<area shape="rect" id="Node000004" href="$main_8cpp.html" title=" " alt="" coords="50,152,133,177"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="190,113,114,154,111,149,187,108"/>
+<area shape="rect" id="Node000005" href="$mainwindow_8cpp.html" title=" " alt="" coords="157,152,287,177"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="225,118,225,152,219,152,219,118"/>
+<area shape="rect" id="Node000006" href="$mainwindow__lifecycle_8cpp.html" title=" " alt="" coords="311,152,506,177"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="265,106,379,149,377,154,264,111"/>
+</map>

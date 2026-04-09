@@ -1,0 +1,78 @@
+<map id="MainWindow::getCurrentPageName" name="MainWindow::getCurrentPageName">
+<area shape="rect" id="Node000001" title="获取当前页面名称" alt="" coords="2820,357,3072,382"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a9b3a9425314a630034b116008ddc9bd6" title="移除警告按钮点击" alt="" coords="2557,171,2745,211"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="2921,349,2857,291,2815,259,2771,232,2728,213,2730,208,2773,227,2818,255,2860,287,2924,345"/>
+<area shape="rect" id="Node000021" href="$classMainWindow.html#acbe20191d78d69843fdb1ddf0dad27a2" title="切换力控制模式" alt="" coords="1377,286,1613,311"/>
+<area shape="poly" id="edge42_Node000001_Node000021" title=" " alt="" coords="2915,351,2851,311,2812,291,2771,276,2662,251,2575,245,2487,248,2373,251,2090,251,1953,254,1816,264,1588,289,1588,283,1816,259,1953,249,2090,245,2373,245,2486,242,2575,239,2663,246,2773,271,2814,286,2854,306,2918,346"/>
+<area shape="rect" id="Node000022" href="$classMainWindow.html#a454f76c75e34e4bbca84028e918fbb7f" title="控制模式按钮点击" alt="" coords="2545,285,2757,325"/>
+<area shape="poly" id="edge27_Node000001_Node000022" title=" " alt="" coords="2873,356,2743,328,2744,323,2874,351"/>
+<area shape="rect" id="Node000023" href="$classMainWindow.html#a44f2eee701c11706c6848e14b532d6e2" title="力清除按钮按下" alt="" coords="2551,349,2750,389"/>
+<area shape="poly" id="edge28_Node000001_Node000023" title=" " alt="" coords="2806,372,2750,372,2750,367,2806,367"/>
+<area shape="rect" id="Node000025" href="$classMainWindow.html#a5658e9e7d531abea34b958d0d84797e9" title="步进移动按钮点击" alt="" coords="2532,413,2769,453"/>
+<area shape="poly" id="edge30_Node000001_Node000025" title=" " alt="" coords="2874,388,2744,416,2743,411,2873,382"/>
+<area shape="rect" id="Node000026" href="$classMainWindow.html#a7340247f4fdcdda31feeff7c7d76c24e" title="记录步进移动动作开始/持续状态" alt="" coords="2541,477,2760,517"/>
+<area shape="poly" id="edge31_Node000001_Node000026" title=" " alt="" coords="2915,392,2851,430,2773,468,2739,480,2737,475,2771,463,2849,425,2913,387"/>
+<area shape="rect" id="Node000033" href="$classMainWindow.html#af1ff4b3366450e34b205f1f742a59d67" title="记录步进移动结束（用于历史记录）" alt="" coords="2529,542,2772,567"/>
+<area shape="poly" id="edge39_Node000001_Node000033" title=" " alt="" coords="2928,395,2865,464,2822,501,2773,532,2741,544,2739,539,2771,527,2818,496,2861,460,2925,391"/>
+<area shape="rect" id="Node000003" href="$classMainWindow.html#a275f82041a17d27f784e0ad00a85ee20" title="显示报警信息" alt="" coords="2279,127,2465,153"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="2543,174,2442,155,2443,150,2544,169"/>
+<area shape="rect" id="Node000004" href="$classMainWindow.html#ab9147bb2c67d22bbe402c0ee90479df7" title="AGV 驻车按钮点击" alt="" coords="1988,63,2195,103"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="2295,127,2189,105,2190,100,2296,122"/>
+<area shape="rect" id="Node000008" href="$classMainWindow.html#a94d428ca5fe0f37ad40109bd9981d125" title="转向模式变更回调" alt="" coords="1681,5,1900,45"/>
+<area shape="poly" id="edge7_Node000003_Node000008" title=" " alt="" coords="2342,121,2285,85,2250,67,2214,53,2134,35,2051,25,1971,21,1900,21,1900,16,1972,15,2051,19,2135,30,2215,48,2252,62,2287,80,2345,117"/>
+<area shape="rect" id="Node000012" href="$classMainWindow.html#aa19a20304d8451b142c09ff59f2feadb" title="测试报警按钮点击回调" alt="" coords="1376,120,1613,160"/>
+<area shape="poly" id="edge12_Node000003_Node000012" title=" " alt="" coords="2265,143,1614,143,1614,137,2265,137"/>
+<area shape="rect" id="Node000013" href="$classMainWindow.html#a1fbf4a418449528c12752e848adf03fd" title="刷新报警显示" alt="" coords="1968,178,2215,203"/>
+<area shape="poly" id="edge13_Node000003_Node000013" title=" " alt="" coords="2288,158,2163,181,2162,175,2287,153"/>
+<area shape="rect" id="Node000005" href="$classMainWindow.html#a1808e0153338f4857c6d2737ff28eff1" title="初始化 AGV OA 控制" alt="" coords="497,111,740,137"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="1974,85,1496,85,1209,85,1082,88,954,95,734,114,733,109,953,90,1082,83,1209,80,1496,80,1974,80"/>
+<area shape="rect" id="Node000006" href="$classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c" title="初始化业务子系统（通信、线程、样式、控制）" alt="" coords="251,131,449,171"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="484,140,450,143,449,138,483,135"/>
+<area shape="rect" id="Node000007" href="$classMainWindow.html#a996c5a2b6f77944776856f08ec30858d" title="构造 MainWindow 并初始化内部状态与 UI" alt="" coords="5,106,203,131"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="236,139,202,134,202,129,237,133"/>
+<area shape="rect" id="Node000009" href="$classMainWindow.html#ac20d5a395f792ec6b8ac3ca083af7601" title="设置转向模式控制" alt="" coords="1393,5,1596,45"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="1667,28,1596,28,1596,23,1667,23"/>
+<area shape="rect" id="Node000010" href="$classMainWindow.html#a9388168e83016e31d2668a501450bcac" title="初始化窗口 UI（内部）" alt="" coords="1137,15,1285,41"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="1379,29,1285,30,1285,25,1379,24"/>
+<area shape="rect" id="Node000011" href="$classMainWindow.html#a0cb4955bff598ad95110e9525a52214d" title="初始化核心页面和基础 UI 模块" alt="" coords="251,29,449,69"/>
+<area shape="poly" id="edge10_Node000010_Node000011" title=" " alt="" coords="1123,33,450,50,450,44,1123,27"/>
+<area shape="poly" id="edge11_Node000011_Node000007" title=" " alt="" coords="266,76,151,109,149,103,265,70"/>
+<area shape="poly" id="edge25_Node000013_Node000002" title=" " alt="" coords="2228,188,2556,188,2556,193,2228,193"/>
+<area shape="poly" id="edge26_Node000013_Node000008" title=" " alt="" coords="2054,174,1827,48,1829,43,2056,169"/>
+<area shape="rect" id="Node000014" href="$classMainWindow.html#a13c583e4b5141af73591fb9d9382c8d5" title="检查并处理报警条件" alt="" coords="1661,185,1920,210"/>
+<area shape="poly" id="edge14_Node000013_Node000014" title=" " alt="" coords="1955,196,1920,197,1920,192,1954,191"/>
+<area shape="poly" id="edge19_Node000014_Node000012" title=" " alt="" coords="1710,185,1598,163,1599,157,1711,179"/>
+<area shape="rect" id="Node000015" href="$classMainWindow.html#a98a901aeb61b8ddcf35943404fbbf1c1" title="Modbus 寄存器值变化回调" alt="" coords="1093,232,1328,272"/>
+<area shape="poly" id="edge15_Node000014_Node000015" title=" " alt="" coords="1691,214,1614,224,1328,248,1328,242,1613,219,1690,209"/>
+<area shape="rect" id="Node000018" href="$classMainWindow.html#a8f09afe7a212a8e5e0d7713090e96362" title="配置报警系统" alt="" coords="1376,185,1613,210"/>
+<area shape="poly" id="edge20_Node000014_Node000018" title=" " alt="" coords="1648,200,1613,200,1613,195,1648,195"/>
+<area shape="poly" id="edge23_Node000014_Node000021" title=" " alt="" coords="1704,216,1663,232,1649,241,1639,250,1629,259,1615,269,1561,288,1559,283,1612,264,1626,255,1635,246,1645,236,1660,227,1702,211"/>
+<area shape="rect" id="Node000016" href="$classMainWindow.html#a853ad5679a500c6ca99c1a21b540f2de" title="创建并配置 Modbus 管理器" alt="" coords="788,235,1045,261"/>
+<area shape="poly" id="edge16_Node000015_Node000016" title=" " alt="" coords="1079,253,1046,252,1046,247,1079,248"/>
+<area shape="rect" id="Node000017" href="$classMainWindow.html#addaf82aa90afe1e30cf3e4eb64aa8781" title="初始化 Modbus 相关配置" alt="" coords="525,213,712,238"/>
+<area shape="poly" id="edge17_Node000016_Node000017" title=" " alt="" coords="774,240,712,235,712,230,774,235"/>
+<area shape="poly" id="edge18_Node000017_Node000006" title=" " alt="" coords="558,211,422,173,424,168,559,206"/>
+<area shape="rect" id="Node000019" href="$classMainWindow.html#a6f3c99998126dce8380b74868d4bda50" title="启动报警子系统" alt="" coords="1095,182,1326,207"/>
+<area shape="poly" id="edge21_Node000018_Node000019" title=" " alt="" coords="1362,199,1326,198,1326,193,1362,193"/>
+<area shape="rect" id="Node000020" href="$main_8cpp.html#a0ddf1224851353fc92bfbff6f499fa97" title=" " alt="" coords="889,182,944,207"/>
+<area shape="poly" id="edge22_Node000019_Node000020" title=" " alt="" coords="1081,197,944,197,944,192,1081,192"/>
+<area shape="poly" id="edge24_Node000021_Node000015" title=" " alt="" coords="1403,286,1328,274,1329,269,1404,281"/>
+<area shape="rect" id="Node000024" href="$classMainWindow.html#a0185d3e9bcbd70d266a39a1cacf5de62" title="设置清除力值按钮" alt="" coords="2263,349,2481,389"/>
+<area shape="poly" id="edge29_Node000023_Node000024" title=" " alt="" coords="2538,372,2481,372,2481,367,2538,367"/>
+<area shape="rect" id="Node000027" href="$classMainWindow.html#a4e1c9886a8c54f75f28c4c907d7bd706" title="使能按键在步进模式下按下" alt="" coords="2264,471,2480,511"/>
+<area shape="poly" id="edge32_Node000026_Node000027" title=" " alt="" coords="2527,497,2480,496,2480,491,2527,492"/>
+<area shape="rect" id="Node000028" href="$classMainWindow.html#a9197e9d8b772da27daa6b97b7e475c27" title="处理使能按键状态变化" alt="" coords="1988,471,2195,511"/>
+<area shape="poly" id="edge33_Node000027_Node000028" title=" " alt="" coords="2251,493,2195,493,2195,488,2251,488"/>
+<area shape="rect" id="Node000029" href="$classMainWindow.html#ae1fab0c9c8805057a2741b5746a232ca" title="使能按键通过套接字激活时回调" alt="" coords="1683,499,1899,539"/>
+<area shape="poly" id="edge34_Node000028_Node000029" title=" " alt="" coords="1975,504,1899,511,1899,506,1974,499"/>
+<area shape="rect" id="Node000030" href="$classMainWindow.html#a7743545d4c55479b74eba437beb05cc0" title="使能按键状态变更回调" alt="" coords="1683,369,1899,409"/>
+<area shape="poly" id="edge35_Node000028_Node000030" title=" " alt="" coords="2017,469,1850,412,1852,407,2019,464"/>
+<area shape="rect" id="Node000032" href="$classMainWindow.html#a90c2239e56369319b8da15d7472ad37e" title="轮询使能按键状态" alt="" coords="1679,449,1903,474"/>
+<area shape="poly" id="edge38_Node000028_Node000032" title=" " alt="" coords="1974,482,1902,475,1903,470,1974,477"/>
+<area shape="rect" id="Node000031" href="$classMainWindow.html#a70960a32b3b52e4b0ed0c5917c5c708d" title="初始化使能按键线程与逻辑" alt="" coords="501,289,737,314"/>
+<area shape="poly" id="edge36_Node000030_Node000031" title=" " alt="" coords="1669,383,737,313,737,307,1669,378"/>
+<area shape="poly" id="edge37_Node000031_Node000006" title=" " alt="" coords="570,286,496,252,430,211,376,173,379,169,433,207,499,247,572,281"/>
+<area shape="rect" id="Node000034" href="$classMainWindow.html#aec6d7b8324fbd5a55116837dc9d0a40a" title="使能按键在步进模式下释放" alt="" coords="2264,535,2480,575"/>
+<area shape="poly" id="edge40_Node000033_Node000034" title=" " alt="" coords="2516,557,2480,557,2480,552,2516,552"/>
+<area shape="poly" id="edge41_Node000034_Node000028" title=" " alt="" coords="2270,534,2179,513,2180,508,2271,529"/>
+</map>

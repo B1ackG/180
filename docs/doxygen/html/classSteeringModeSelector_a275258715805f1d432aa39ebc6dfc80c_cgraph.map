@@ -1,0 +1,19 @@
+<map id="SteeringModeSelector::setInactiveColor" name="SteeringModeSelector::setInactiveColor">
+<area shape="rect" id="Node000001" title="设置未激活颜色" alt="" coords="5,143,171,183"/>
+<area shape="rect" id="Node000002" href="$classSteeringModeSelector.html#aaac9c2e4fd9567a08b7bf67ff3436aba" title=" " alt="" coords="219,143,384,183"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,161,205,161,205,166,171,166"/>
+<area shape="rect" id="Node000003" href="$classTechPushButton.html#ae97cfaec7f6319ddc26326c23af62870" title="启用/禁用脉冲效果" alt="" coords="436,22,648,62"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="325,141,373,106,431,72,448,64,450,69,433,76,376,110,329,145"/>
+<area shape="rect" id="Node000006" href="$classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1" title="设置按钮风格" alt="" coords="444,86,640,126"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="384,141,443,127,445,132,385,146"/>
+<area shape="rect" id="Node000007" href="$classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0" title="设置发光颜色" alt="" coords="432,151,652,176"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="385,161,418,161,418,166,385,166"/>
+<area shape="rect" id="Node000008" href="$classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af" title="设置主色" alt="" coords="440,201,644,241"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="385,180,445,195,443,200,384,186"/>
+<area shape="rect" id="Node000009" href="$classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013" title="设置文字颜色" alt="" coords="435,265,649,291"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="327,181,374,217,433,250,457,259,455,264,431,255,372,221,324,186"/>
+<area shape="rect" id="Node000004" href="$classTechPushButton.html#a18b11452ed8913fd1174407fc0aae6ab" title="开始脉冲动画" alt="" coords="700,5,899,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="648,29,686,26,686,31,648,35"/>
+<area shape="rect" id="Node000005" href="$classTechPushButton.html#a1992e0832de45ad00c35a4a269e02fdb" title="停止脉冲动画" alt="" coords="701,55,897,80"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="648,50,688,54,687,59,648,55"/>
+</map>

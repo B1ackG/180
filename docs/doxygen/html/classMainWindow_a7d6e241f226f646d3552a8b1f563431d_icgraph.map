@@ -1,0 +1,5 @@
+<map id="MainWindow::setForceDisplayMode" name="MainWindow::setForceDisplayMode">
+<area shape="rect" id="Node000001" title="设置力值显示模式" alt="" coords="287,13,540,38"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#af8c15080733dc340004ac7d4ccd4ed90" title="设置力值显示模式切换按钮" alt="" coords="5,5,239,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="273,28,239,28,239,23,273,23"/>
+</map>

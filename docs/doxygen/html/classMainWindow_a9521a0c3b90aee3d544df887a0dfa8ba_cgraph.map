@@ -1,0 +1,23 @@
+<map id="MainWindow::setupSubsystemConnections" name="MainWindow::setupSubsystemConnections">
+<area shape="rect" id="Node000001" title="连接子系统状态反馈信号" alt="" coords="5,197,227,237"/>
+<area shape="rect" id="Node000002" href="$classMainWindow.html#a8c5c1b8b58df6dba337afa33818f4b7a" title=" " alt="" coords="295,5,489,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,196,187,127,227,88,273,55,286,48,288,53,276,60,231,92,191,130,133,199"/>
+<area shape="rect" id="Node000004" href="$classMainWindow.html#a014481927e9c71aeeee80ec6d7141b23" title="TCP 连接状态变更回调" alt="" coords="281,69,503,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="144,195,202,157,274,119,293,111,295,116,276,124,205,161,146,199"/>
+<area shape="rect" id="Node000006" href="$classMainWindow.html#a12e5d4da7b7aeccaca47c557129af3b7" title="TCP 传输完成回调" alt="" coords="275,133,509,173"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="202,195,291,174,293,179,204,200"/>
+<area shape="rect" id="Node000007" href="$classMainWindow.html#a545b8bf6d2e86f0365919b5643ea325a" title="TCP 传输错误回调" alt="" coords="275,197,509,237"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="227,215,261,215,261,220,227,220"/>
+<area shape="rect" id="Node000008" href="$classOperationRecorder.html#a7eb3289693fee3ffcd10c42dcb95d520" title=" " alt="" coords="285,261,499,301"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="204,235,293,256,291,261,202,240"/>
+<area shape="rect" id="Node000009" href="$classOperationRecorder.html#a30db764f45364aa86b0cba0bc3a8c465" title=" " alt="" coords="297,325,487,365"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="146,235,205,273,276,311,295,318,293,323,274,316,202,278,144,240"/>
+<area shape="rect" id="Node000010" href="$classOperationRecorder.html#a60e73780538b8376d7e68e9cc09fe5a9" title=" " alt="" coords="313,389,471,429"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="133,236,191,304,231,343,276,375,301,387,298,392,273,380,227,347,187,308,129,239"/>
+<area shape="rect" id="Node000003" href="$classFeatureSwitchManager.html#aa558b5e5c8c59422920a0006cc304f0e" title="检查某个大功能是否可用" alt="" coords="583,5,754,45"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="490,23,570,23,570,28,490,28"/>
+<area shape="rect" id="Node000005" href="$classMainWindow.html#ad9d8c581087891f346c722209577216c" title="显示临时通知（气泡/提示条）" alt="" coords="557,141,780,166"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="480,107,600,135,599,140,479,112"/>
+<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="510,151,543,151,543,156,510,156"/>
+<area shape="poly" id="edge8_Node000007_Node000005" title=" " alt="" coords="479,195,599,167,600,172,480,200"/>
+</map>

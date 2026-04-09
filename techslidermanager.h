@@ -70,19 +70,11 @@ public:
 
     /**
      * @brief 初始化默认配置
-     */
-    /**
-     * @brief 初始化默认配置
      *
      * 加载或创建默认 `TechSliderConfig`，不修改已存在的页面实例。
      */
     void initializeConfig();
 
-    /**
-     * @brief 为指定页面创建/设置 UI
-     *
-     * @param pageName 页面标识。
-     */
     /**
      * @brief 为指定页面创建/设置 UI
      *
@@ -94,18 +86,10 @@ public:
     void setupPageUI(const QString& pageName);
 
     /**
-     * @brief 为所有已知页面创建/设置 UI
-     */
-    /**
      * @brief 为所有已注册页面创建 UI
      */
     void setupAllUI();
 
-    /**
-     * @brief 批量更新值（通常来自 Modbus）
-     *
-     * @param modbusData 键为地址，值为读取到的浮点数值。
-     */
     /**
      * @brief 批量更新值（通常来自 Modbus）
      *
@@ -125,28 +109,12 @@ public:
      */
 
     /**
-     * @brief 批量更新值（通常来源于 Modbus）
-     * @param modbusData 键为地址，值为读取到的浮点值
-     * @note 此接口遍历配置并将数据分发到已缓存的标签控件
-     */
-
-    /**
-     * @brief 更新单个 label 的值
-     */
-    /**
      * @brief 更新单个 label 的值
      *
      * @param pageName 页面名
      * @param labelName 标签名称
      * @param value 要设置的数值
      * @note 若找不到对应的标签，则函数静默返回并在调试模式打印信息。
-     */
-    /**
-     * @brief 更新单个标签的值
-     * @param pageName 页面标识
-     * @param labelName 标签名
-     * @param value 要设置的数值
-     * @note 若标签不存在函数将静默返回
      */
     void updateLabelValue(const QString& pageName, const QString& labelName, float value);
 
@@ -159,21 +127,11 @@ public:
 
     /**
      * @brief 添加或更新某页面的滑块配置
-     */
-    /**
-     * @brief 添加或更新某页面的滑块配置
      *
      * @param pageName 页面名
      * @param labelName 标签名
      * @param config 配置项（地址、文本、单位、样式等）
      * @note 调用后若页面已创建 UI，需要调用 `setupPageUI(pageName)` 或特定刷新逻辑。
-     */
-    /**
-     * @brief 添加或更新某页面的滑块配置
-     * @param pageName 页面标识
-     * @param labelName 标签名
-     * @param config 配置结构（包含 Modbus 地址、显示文本、单位与样式）
-     * @note 调用后若页面 UI 已创建，需要调用 `setupPageUI(pageName)` 进行刷新
      */
     void addConfig(const QString& pageName, const QString& labelName,
                    const TechSliderConfig& config);

@@ -1,0 +1,53 @@
+<map id="FeatureSwitchWidget::setupUI" name="FeatureSwitchWidget::setupUI">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,328,165,368"/>
+<area shape="rect" id="Node000002" href="$classFeatureSwitchManager.html#a688e12b1391d335c0e7e2ea9fe3be9e1" title="获取所有已知的大功能键集合（只读引用）" alt="" coords="213,92,384,132"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,327,108,288,134,239,168,187,212,142,218,137,221,141,215,146,173,190,138,241,113,290,97,329"/>
+<area shape="rect" id="Node000003" href="$classFeatureSwitchManager.html#a69ae848bf487f86787b3c2e5d2b95784" title="获取所有已知的小功能键集合（只读引用）" alt="" coords="213,156,384,196"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="100,326,147,271,178,240,212,212,232,200,235,204,215,217,181,244,151,275,104,329"/>
+<area shape="rect" id="Node000004" href="$classFeatureSwitchManager.html#a5ed26f22003763fbda90121157d73a42" title="获取单例实例" alt="" coords="661,325,831,365"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="165,345,647,343,647,348,165,350"/>
+<area shape="rect" id="Node000005" href="$classFeatureSwitchWidget.html#a84c23636e2ceb40e36e67dc481a184fc" title=" " alt="" coords="437,212,597,252"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="106,326,152,289,181,271,212,256,265,241,320,231,423,225,424,230,321,237,267,246,214,261,184,275,155,293,109,330"/>
+<area shape="rect" id="Node000011" href="$classFeatureSwitchWidget.html#a8ff4a6f95121aa85e0b8428362aa23fd" title=" " alt="" coords="219,385,379,425"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="161,365,211,379,210,384,160,371"/>
+<area shape="rect" id="Node000019" href="$classFeatureSwitchWidget.html#ab63967accbc0ea912c2d2870c2140a06" title=" " alt="" coords="219,271,379,311"/>
+<area shape="poly" id="edge21_Node000001_Node000019" title=" " alt="" coords="160,325,210,312,211,317,161,331"/>
+<area shape="rect" id="Node000021" href="$classFeatureSwitchWidget.html#abdbefa7261c1333c462fb9d675577fca" title=" " alt="" coords="219,449,379,489"/>
+<area shape="poly" id="edge26_Node000001_Node000021" title=" " alt="" coords="113,366,159,400,215,435,227,441,225,446,212,440,156,405,110,370"/>
+<area shape="rect" id="Node000022" href="$classFeatureSwitchWidget.html#a68c43deec0c15cdbb8e5b7735362f2a0" title=" " alt="" coords="219,513,379,553"/>
+<area shape="poly" id="edge27_Node000001_Node000022" title=" " alt="" coords="101,367,146,431,178,467,215,499,223,504,220,509,212,503,174,471,142,435,96,370"/>
+<area shape="rect" id="Node000023" href="$classFeatureSwitchWidget.html#abfbd845ee589f5079ae076c011752efa" title=" " alt="" coords="219,577,379,617"/>
+<area shape="poly" id="edge28_Node000001_Node000023" title=" " alt="" coords="96,367,112,408,137,461,171,515,215,563,221,568,218,572,212,567,167,519,132,463,107,410,91,369"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="566,250,604,271,628,292,652,311,665,317,662,322,649,316,625,296,601,276,563,255"/>
+<area shape="rect" id="Node000006" href="$classFeatureSwitchWidget.html#a9d417b9c0e80c8f3e1ec80401fc358e9" title=" " alt="" coords="651,69,841,109"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="536,210,585,165,616,140,649,119,662,113,664,117,652,124,619,145,588,169,540,214"/>
+<area shape="rect" id="Node000007" href="$classFeatureSwitchWidget.html#a704a49c2842c06b15041740837900102" title=" " alt="" coords="666,133,826,173"/>
+<area shape="poly" id="edge7_Node000005_Node000007" title=" " alt="" coords="574,209,650,183,671,175,673,180,652,188,576,214"/>
+<area shape="rect" id="Node000008" href="$classFeatureSwitchWidget.html#a6eb603279d65fd4d5bbe83c8b1011fda" title=" " alt="" coords="663,197,829,237"/>
+<area shape="poly" id="edge8_Node000005_Node000008" title=" " alt="" coords="598,224,649,221,650,226,598,230"/>
+<area shape="rect" id="Node000009" href="$classFeatureSwitchManager.html#a710ead3beef5bb00357f0fde5ed738ac" title="设置指定大功能是否启用（仅影响内存中的禁用集合）" alt="" coords="660,261,832,301"/>
+<area shape="poly" id="edge9_Node000005_Node000009" title=" " alt="" coords="598,247,647,257,646,263,597,252"/>
+<area shape="rect" id="Node000010" href="$classFeatureSwitchManager.html#a5d75d65f618101341ff118d9ba3546ef" title="设置指定小功能是否启用（仅影响内存中的禁用集合）" alt="" coords="652,5,840,45"/>
+<area shape="poly" id="edge10_Node000005_Node000010" title=" " alt="" coords="527,210,573,135,608,92,649,55,658,49,661,54,652,59,612,96,577,138,531,213"/>
+<area shape="poly" id="edge12_Node000011_Node000004" title=" " alt="" coords="379,393,602,364,647,358,647,363,603,369,379,398"/>
+<area shape="rect" id="Node000012" href="$classFeatureSwitchWidget.html#a7c4537d4cadd149f5e0b5c2fb080e21a" title=" " alt="" coords="437,444,597,484"/>
+<area shape="poly" id="edge13_Node000011_Node000012" title=" " alt="" coords="374,423,430,438,428,443,373,428"/>
+<area shape="rect" id="Node000017" href="$classFeatureSwitchManager.html#a6d00f72876217024c7a189d841a2de56" title="从配置文件重新加载开关状态（覆盖内存状态）" alt="" coords="432,627,603,667"/>
+<area shape="poly" id="edge19_Node000011_Node000017" title=" " alt="" coords="370,423,386,435,400,453,408,471,414,505,418,540,423,558,434,577,453,598,474,617,470,621,449,602,430,580,418,560,412,541,408,506,403,473,395,456,382,439,367,427"/>
+<area shape="poly" id="edge14_Node000012_Node000004" title=" " alt="" coords="561,441,601,418,624,396,649,375,661,369,664,373,652,380,628,400,604,422,563,446"/>
+<area shape="rect" id="Node000013" href="$classFeatureSwitchManager.html#aa558b5e5c8c59422920a0006cc304f0e" title="检查某个大功能是否可用" alt="" coords="661,517,831,557"/>
+<area shape="poly" id="edge15_Node000012_Node000013" title=" " alt="" coords="581,482,671,511,669,516,580,487"/>
+<area shape="rect" id="Node000014" href="$classFeatureSwitchManager.html#a34a3f96557e81a21f547065c8ce2608b" title="检查某个小功能是否可用" alt="" coords="657,581,835,621"/>
+<area shape="poly" id="edge16_Node000012_Node000014" title=" " alt="" coords="559,482,604,513,619,528,628,542,637,554,652,567,662,573,659,577,649,571,633,558,624,545,615,531,601,517,556,486"/>
+<area shape="rect" id="Node000015" href="$classFeatureSwitchWidget.html#a7e85d035fc5d32dbd609bd8baf31bd5c" title=" " alt="" coords="666,389,826,429"/>
+<area shape="poly" id="edge17_Node000012_Node000015" title=" " alt="" coords="597,442,652,429,653,434,598,447"/>
+<area shape="rect" id="Node000016" href="$classFeatureSwitchWidget.html#aae7e2c6532f87036e877fc5a9aca188c" title=" " alt="" coords="665,453,827,493"/>
+<area shape="poly" id="edge18_Node000012_Node000016" title=" " alt="" coords="598,465,651,467,651,472,598,470"/>
+<area shape="rect" id="Node000018" href="$classFeatureSwitchManager.html#a0350a21917b1359bb743699acab5dd49" title="返回当前用于持久化的配置文件路径" alt="" coords="661,645,831,685"/>
+<area shape="poly" id="edge20_Node000017_Node000018" title=" " alt="" coords="603,651,647,655,647,660,603,656"/>
+<area shape="poly" id="edge22_Node000019_Node000004" title=" " alt="" coords="379,298,647,331,646,336,379,303"/>
+<area shape="poly" id="edge23_Node000019_Node000005" title=" " alt="" coords="373,268,428,253,430,258,374,273"/>
+<area shape="rect" id="Node000020" href="$classFeatureSwitchManager.html#a652dc489d92fa62cdf94876ddf5d2182" title="将当前内存状态保存到配置文件" alt="" coords="432,527,603,567"/>
+<area shape="poly" id="edge24_Node000019_Node000020" title=" " alt="" coords="327,309,358,337,386,372,402,406,409,436,416,464,434,494,461,517,457,521,430,498,411,466,403,437,397,408,382,375,354,341,324,313"/>
+<area shape="poly" id="edge25_Node000020_Node000018" title=" " alt="" coords="546,564,594,598,652,631,667,638,665,643,649,636,591,602,543,569"/>
+</map>

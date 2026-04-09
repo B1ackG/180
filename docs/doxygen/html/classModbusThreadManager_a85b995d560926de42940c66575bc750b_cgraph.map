@@ -1,0 +1,12 @@
+<map id="ModbusThreadManager::readMultipleRegisters" name="ModbusThreadManager::readMultipleRegisters">
+<area shape="rect" id="Node000001" title="读取一段寄存器" alt="" coords="5,27,180,67"/>
+<area shape="rect" id="Node000002" href="$classModbusTCPClient.html#ac0eb40bf43e015281059b0144a928675" title="查询连接状态" alt="" coords="763,5,985,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,41,749,20,749,25,180,47"/>
+<area shape="rect" id="Node000003" href="$classModbusTCPClient.html#a3b84024fafa0c0156163ed52cf25c89f" title="使用示例:" alt="" coords="228,55,433,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,55,215,59,214,64,180,60"/>
+<area shape="rect" id="Node000004" href="$classModbusTCPClient.html#a5e8a92c023cdc3ecc431d0dcbe408a6f" title=" " alt="" coords="481,63,715,88"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="434,73,468,73,468,78,434,78"/>
+<area shape="poly" id="edge5_Node000004_Node000002" title=" " alt="" coords="659,60,798,31,800,36,661,65"/>
+<area shape="rect" id="Node000005" href="$classModbusTCPClient.html#a112f20f6eb34d2281ce96e7321940953" title=" " alt="" coords="765,55,983,95"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="715,73,751,73,751,78,715,78"/>
+</map>

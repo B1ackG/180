@@ -1,0 +1,2790 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: AGVModbusManager类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classAGVModbusManager.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">类</a> &#124;
+<a href="#signals">信号</a> &#124;
+<a href="#pub-methods">Public 成员函数</a> &#124;
+<a href="#pri-slots">Private 槽</a> &#124;
+<a href="#pri-methods">Private 成员函数</a> &#124;
+<a href="#pri-attribs">Private 属性</a> &#124;
+<a href="#pri-static-attribs">静态 Private 属性</a> &#124;
+<a href="classAGVModbusManager-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">AGVModbusManager类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><code>#include &lt;<a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a>&gt;</code></p>
+<div class="dynheader">
+类 AGVModbusManager 继承关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager__inherit__graph.svg" width="170" height="110"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<center><span class="legend">[<a target="top" href="graph_legend.html">图例</a>]</span></center></div>
+<div class="dynheader">
+AGVModbusManager 的协作图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager__coll__graph.svg" width="350" height="124"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<center><span class="legend">[<a target="top" href="graph_legend.html">图例</a>]</span></center></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+类</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structAGVModbusManager_1_1FaultStatus.html">FaultStatus</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="signals" name="signals"></a>
+信号</h2></td></tr>
+<tr class="memitem:a2a3cb376088bf914b1714b114933389b" id="r_a2a3cb376088bf914b1714b114933389b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a2a3cb376088bf914b1714b114933389b">connected</a> ()</td></tr>
+<tr class="memdesc:a2a3cb376088bf914b1714b114933389b"><td class="mdescLeft">&#160;</td><td class="mdescRight">使用示例:  <br /></td></tr>
+<tr class="separator:a2a3cb376088bf914b1714b114933389b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac8010d1accdec2616c993f0f2be93aca" id="r_ac8010d1accdec2616c993f0f2be93aca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#ac8010d1accdec2616c993f0f2be93aca">disconnected</a> ()</td></tr>
+<tr class="separator:ac8010d1accdec2616c993f0f2be93aca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a987007d6e13c46a28d4f08c42b1f4d63" id="r_a987007d6e13c46a28d4f08c42b1f4d63"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a987007d6e13c46a28d4f08c42b1f4d63">errorOccurred</a> (const QString &amp;error)</td></tr>
+<tr class="separator:a987007d6e13c46a28d4f08c42b1f4d63"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95a6319d2d7cd445e21e1f5ffe97c6c6" id="r_a95a6319d2d7cd445e21e1f5ffe97c6c6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a95a6319d2d7cd445e21e1f5ffe97c6c6">registerValueChanged</a> (int address, quint16 value)</td></tr>
+<tr class="separator:a95a6319d2d7cd445e21e1f5ffe97c6c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6057fece482cae5d4051dfcdcd98a2a4" id="r_a6057fece482cae5d4051dfcdcd98a2a4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a6057fece482cae5d4051dfcdcd98a2a4">bitVariableChanged</a> (int address, int bitPosition, bool value)</td></tr>
+<tr class="separator:a6057fece482cae5d4051dfcdcd98a2a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23d0b02b1366e6700932bb390613cb3d" id="r_a23d0b02b1366e6700932bb390613cb3d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a23d0b02b1366e6700932bb390613cb3d">wordVariableChanged</a> (int address, quint16 value)</td></tr>
+<tr class="separator:a23d0b02b1366e6700932bb390613cb3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a078a8488ede9249885f0085cb1e33336" id="r_a078a8488ede9249885f0085cb1e33336"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a078a8488ede9249885f0085cb1e33336">updateFaultsLabel</a> (const QString &amp;faultText)</td></tr>
+<tr class="separator:a078a8488ede9249885f0085cb1e33336"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2631baf1c703e9b39b5180ba5ad81910" id="r_a2631baf1c703e9b39b5180ba5ad81910"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a2631baf1c703e9b39b5180ba5ad81910">updateProgressBar</a> (const QString &amp;name, int value)</td></tr>
+<tr class="separator:a2631baf1c703e9b39b5180ba5ad81910"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a18916f7c0ab0603ee4b10bdd431c4730" id="r_a18916f7c0ab0603ee4b10bdd431c4730"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a18916f7c0ab0603ee4b10bdd431c4730">updateStatusLabel</a> (const QString &amp;name, const QString &amp;text)</td></tr>
+<tr class="separator:a18916f7c0ab0603ee4b10bdd431c4730"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6adec0d37945bf256b7c55249a5b1328" id="r_a6adec0d37945bf256b7c55249a5b1328"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a6adec0d37945bf256b7c55249a5b1328">addFaultCodeToList</a> (const QString &amp;faultCode)</td></tr>
+<tr class="separator:a6adec0d37945bf256b7c55249a5b1328"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6fa5f7825d2c268735182edf7a3ca50f" id="r_a6fa5f7825d2c268735182edf7a3ca50f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a6fa5f7825d2c268735182edf7a3ca50f">clearFaultCodes</a> ()</td></tr>
+<tr class="separator:a6fa5f7825d2c268735182edf7a3ca50f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcab3e2e8a61e26dca17b7bf21a69baa" id="r_adcab3e2e8a61e26dca17b7bf21a69baa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#adcab3e2e8a61e26dca17b7bf21a69baa">heartbeatReceived</a> ()</td></tr>
+<tr class="separator:adcab3e2e8a61e26dca17b7bf21a69baa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff47f520dfd90ff5fcd6a0f5212b6b14" id="r_aff47f520dfd90ff5fcd6a0f5212b6b14"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#aff47f520dfd90ff5fcd6a0f5212b6b14">writeCompleted</a> (int address, quint16 value, bool success)</td></tr>
+<tr class="separator:aff47f520dfd90ff5fcd6a0f5212b6b14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public 成员函数</h2></td></tr>
+<tr class="memitem:a588ed9c3dd720d19485e1fcc53ce6cb3" id="r_a588ed9c3dd720d19485e1fcc53ce6cb3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a588ed9c3dd720d19485e1fcc53ce6cb3">AGVModbusManager</a> (QObject *parent=nullptr)</td></tr>
+<tr class="memdesc:a588ed9c3dd720d19485e1fcc53ce6cb3"><td class="mdescLeft">&#160;</td><td class="mdescRight">功能: 构造 AGVModbusManager，用于管理 AGV 专用的 Modbus 通信与数据处理。 如何使用: 在应用初始化阶段创建该管理对象并连接相应信号以接收更新。 如何修改: 若需要支持多个 AGV，可将其改造成工厂/管理容器而非单例式全局对象。  <br /></td></tr>
+<tr class="separator:a588ed9c3dd720d19485e1fcc53ce6cb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a096343b6175dad54fc30e6e3034dfb39" id="r_a096343b6175dad54fc30e6e3034dfb39"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a096343b6175dad54fc30e6e3034dfb39">~AGVModbusManager</a> ()</td></tr>
+<tr class="memdesc:a096343b6175dad54fc30e6e3034dfb39"><td class="mdescLeft">&#160;</td><td class="mdescRight">功能: 析构函数，清理 socket、线程和计时器等资源。 如何使用: 由 Qt 对象树自动销毁或手动 delete。 如何修改: 增加资源时在析构中同步释放并确保线程安全。  <br /></td></tr>
+<tr class="separator:a096343b6175dad54fc30e6e3034dfb39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb885c05d449b8cb10abc16e78acc72b" id="r_aeb885c05d449b8cb10abc16e78acc72b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#aeb885c05d449b8cb10abc16e78acc72b">connectToDevice</a> (const QString &amp;host=&quot;192.168.1.88&quot;, quint16 port=502)</td></tr>
+<tr class="memdesc:aeb885c05d449b8cb10abc16e78acc72b"><td class="mdescLeft">&#160;</td><td class="mdescRight">使用示例:  <br /></td></tr>
+<tr class="separator:aeb885c05d449b8cb10abc16e78acc72b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa602a9b4c7c2c731bad14e4435f941e6" id="r_aa602a9b4c7c2c731bad14e4435f941e6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#aa602a9b4c7c2c731bad14e4435f941e6">disconnectFromDevice</a> ()</td></tr>
+<tr class="memdesc:aa602a9b4c7c2c731bad14e4435f941e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">使用示例:  <br /></td></tr>
+<tr class="separator:aa602a9b4c7c2c731bad14e4435f941e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e0321a0cc3e28ba495cabbc83b193d4" id="r_a1e0321a0cc3e28ba495cabbc83b193d4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a1e0321a0cc3e28ba495cabbc83b193d4">isConnected</a> () const</td></tr>
+<tr class="memdesc:a1e0321a0cc3e28ba495cabbc83b193d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">功能: 返回当前网络连接状态。 如何使用: 用于 UI 指示或决定是否发起读写操作。 如何修改: 若支持多设备，应提供设备级别的状态查询接口。  <br /></td></tr>
+<tr class="separator:a1e0321a0cc3e28ba495cabbc83b193d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2810a32b6b77c701b0dce19006be2be3" id="r_a2810a32b6b77c701b0dce19006be2be3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a2810a32b6b77c701b0dce19006be2be3">setPollInterval</a> (int ms)</td></tr>
+<tr class="memdesc:a2810a32b6b77c701b0dce19006be2be3"><td class="mdescLeft">&#160;</td><td class="mdescRight">功能: 设置寄存器轮询间隔（毫秒）。 如何使用: 在连接或初始化时调用以控制数据刷新频率。 如何修改: 可支持按类型或优先级的细粒度间隔配置。  <br /></td></tr>
+<tr class="separator:a2810a32b6b77c701b0dce19006be2be3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25fa11cc6733c1c8c343661613979ae7" id="r_a25fa11cc6733c1c8c343661613979ae7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a25fa11cc6733c1c8c343661613979ae7">pollInterval</a> () const</td></tr>
+<tr class="separator:a25fa11cc6733c1c8c343661613979ae7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa384a8360664fbeac6ffdc2d5dc27c17" id="r_aa384a8360664fbeac6ffdc2d5dc27c17"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#aa384a8360664fbeac6ffdc2d5dc27c17">setAutoReconnect</a> (bool enable, int interval=5000)</td></tr>
+<tr class="memdesc:aa384a8360664fbeac6ffdc2d5dc27c17"><td class="mdescLeft">&#160;</td><td class="mdescRight">功能: 启用或禁用自动重连并设置重连间隔。 如何使用: 在不稳定网络环境下启用以保持连接可用性。 如何修改: 可实现指数退避等更复杂的重连策略。  <br /></td></tr>
+<tr class="separator:aa384a8360664fbeac6ffdc2d5dc27c17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96e7d4dc7b4b16c805e3c332cb1a7abe" id="r_a96e7d4dc7b4b16c805e3c332cb1a7abe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a96e7d4dc7b4b16c805e3c332cb1a7abe">readMultipleRegisters</a> (int startAddress, int count)</td></tr>
+<tr class="memdesc:a96e7d4dc7b4b16c805e3c332cb1a7abe"><td class="mdescLeft">&#160;</td><td class="mdescRight">功能: 读取一段寄存器并触发相应的处理与信号。 如何使用: 提供起始地址与数量以批量获取数据。 如何修改: 对大数量读取请分片或增加并发控制以兼容设备限制。  <br /></td></tr>
+<tr class="separator:a96e7d4dc7b4b16c805e3c332cb1a7abe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af461bdd79f188cc7a4c75ea2b9f7b362" id="r_af461bdd79f188cc7a4c75ea2b9f7b362"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#af461bdd79f188cc7a4c75ea2b9f7b362">testUpdateProgressBar</a> (const QString &amp;name, int value)</td></tr>
+<tr class="memdesc:af461bdd79f188cc7a4c75ea2b9f7b362"><td class="mdescLeft">&#160;</td><td class="mdescRight">使用示例:  <br /></td></tr>
+<tr class="separator:af461bdd79f188cc7a4c75ea2b9f7b362"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a31ba0bd58048344be262c32b2e53252e" id="r_a31ba0bd58048344be262c32b2e53252e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a31ba0bd58048344be262c32b2e53252e">testUpdateStatusLabel</a> (const QString &amp;name, const QString &amp;text)</td></tr>
+<tr class="separator:a31ba0bd58048344be262c32b2e53252e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec03e5a2f2710570382b6063a1ffe826" id="r_aec03e5a2f2710570382b6063a1ffe826"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#aec03e5a2f2710570382b6063a1ffe826">writeSingleRegister</a> (int address, quint16 value)</td></tr>
+<tr class="memdesc:aec03e5a2f2710570382b6063a1ffe826"><td class="mdescLeft">&#160;</td><td class="mdescRight">功能: 写单个寄存器到 AGV 设备。 如何使用: 提供地址和值，调用后观察 writeCompleted 或 errorOccurred 信号以获取结果。 如何修改: 若需事务进行多寄存器写入，请使用批量写接口并加入确认机制。  <br /></td></tr>
+<tr class="separator:aec03e5a2f2710570382b6063a1ffe826"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac0077e4cacce81792fd922c9fee37236" id="r_ac0077e4cacce81792fd922c9fee37236"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#ac0077e4cacce81792fd922c9fee37236">setWritesEnabled</a> (bool enabled)</td></tr>
+<tr class="separator:ac0077e4cacce81792fd922c9fee37236"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a490d7ea8236074a97a7a979219500552" id="r_a490d7ea8236074a97a7a979219500552"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a490d7ea8236074a97a7a979219500552">writesEnabled</a> () const</td></tr>
+<tr class="separator:a490d7ea8236074a97a7a979219500552"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-slots" name="pri-slots"></a>
+Private 槽</h2></td></tr>
+<tr class="memitem:aae7e42a424ae7c081cd85733ebf9a15a" id="r_aae7e42a424ae7c081cd85733ebf9a15a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#aae7e42a424ae7c081cd85733ebf9a15a">onConnected</a> ()</td></tr>
+<tr class="separator:aae7e42a424ae7c081cd85733ebf9a15a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1f43b1ea984a6b7d133247249d87d16" id="r_ac1f43b1ea984a6b7d133247249d87d16"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#ac1f43b1ea984a6b7d133247249d87d16">onDisconnected</a> ()</td></tr>
+<tr class="separator:ac1f43b1ea984a6b7d133247249d87d16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9927be2cfc4e70ce9ca4baa5428ea2f6" id="r_a9927be2cfc4e70ce9ca4baa5428ea2f6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a9927be2cfc4e70ce9ca4baa5428ea2f6">onError</a> (QAbstractSocket::SocketError error)</td></tr>
+<tr class="separator:a9927be2cfc4e70ce9ca4baa5428ea2f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:addbb04b41d5ad09b61ebbaa36af6ff79" id="r_addbb04b41d5ad09b61ebbaa36af6ff79"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#addbb04b41d5ad09b61ebbaa36af6ff79">onReadyRead</a> ()</td></tr>
+<tr class="separator:addbb04b41d5ad09b61ebbaa36af6ff79"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00864c542ff307f111b69134edb08f86" id="r_a00864c542ff307f111b69134edb08f86"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a00864c542ff307f111b69134edb08f86">pollRegisters</a> ()</td></tr>
+<tr class="separator:a00864c542ff307f111b69134edb08f86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab8a833b1a3e7fbb509bbecca25c1cca0" id="r_ab8a833b1a3e7fbb509bbecca25c1cca0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#ab8a833b1a3e7fbb509bbecca25c1cca0">tryReconnect</a> ()</td></tr>
+<tr class="separator:ab8a833b1a3e7fbb509bbecca25c1cca0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
+Private 成员函数</h2></td></tr>
+<tr class="memitem:ae27c44191aeb772c2f3cc29d2a45b9d6" id="r_ae27c44191aeb772c2f3cc29d2a45b9d6"><td class="memItemLeft" align="right" valign="top">QByteArray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#ae27c44191aeb772c2f3cc29d2a45b9d6">createReadRequest</a> (int startAddress, int count)</td></tr>
+<tr class="separator:ae27c44191aeb772c2f3cc29d2a45b9d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe8402210cd7dd4e73dc8c9b15b13aee" id="r_afe8402210cd7dd4e73dc8c9b15b13aee"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#afe8402210cd7dd4e73dc8c9b15b13aee">parseResponse</a> (QByteArray &amp;data)</td></tr>
+<tr class="separator:afe8402210cd7dd4e73dc8c9b15b13aee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a532317f919179d0f4679c2b15335fefa" id="r_a532317f919179d0f4679c2b15335fefa"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a532317f919179d0f4679c2b15335fefa">parseSingleResponseFrame</a> (QByteArray &amp;data)</td></tr>
+<tr class="separator:a532317f919179d0f4679c2b15335fefa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f3addb7fadad500d1049caac52a3594" id="r_a3f3addb7fadad500d1049caac52a3594"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a3f3addb7fadad500d1049caac52a3594">processSingleResponseFrame</a> (const QByteArray &amp;frame, quint16 transactionId)</td></tr>
+<tr class="separator:a3f3addb7fadad500d1049caac52a3594"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab56d2e6c99153a4ac64d983d2842e49a" id="r_ab56d2e6c99153a4ac64d983d2842e49a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#ab56d2e6c99153a4ac64d983d2842e49a">processBitVariables</a> (int address, quint16 value)</td></tr>
+<tr class="separator:ab56d2e6c99153a4ac64d983d2842e49a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69f3005ecd5b18306529fc3284aabca2" id="r_a69f3005ecd5b18306529fc3284aabca2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a69f3005ecd5b18306529fc3284aabca2">processWordVariables</a> (int address, quint16 value)</td></tr>
+<tr class="separator:a69f3005ecd5b18306529fc3284aabca2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd8e5b7c89aec16f3c89c54ffb424abb" id="r_acd8e5b7c89aec16f3c89c54ffb424abb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#acd8e5b7c89aec16f3c89c54ffb424abb">updateConnectionStatus</a> (bool <a class="el" href="classAGVModbusManager.html#a2a3cb376088bf914b1714b114933389b">connected</a>)</td></tr>
+<tr class="separator:acd8e5b7c89aec16f3c89c54ffb424abb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a32a0a2473f27cbccae2eedfdb13bee54" id="r_a32a0a2473f27cbccae2eedfdb13bee54"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a32a0a2473f27cbccae2eedfdb13bee54">getBitVariableName</a> (int address, int bitPos) const</td></tr>
+<tr class="separator:a32a0a2473f27cbccae2eedfdb13bee54"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a45f7ab48f6a5d1531de6110fc51104d6" id="r_a45f7ab48f6a5d1531de6110fc51104d6"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a45f7ab48f6a5d1531de6110fc51104d6">getWordVariableName</a> (int address) const</td></tr>
+<tr class="separator:a45f7ab48f6a5d1531de6110fc51104d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a664116ab5c719164c36a150c7cd9e195" id="r_a664116ab5c719164c36a150c7cd9e195"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a664116ab5c719164c36a150c7cd9e195">updateFaultsDisplay</a> ()</td></tr>
+<tr class="separator:a664116ab5c719164c36a150c7cd9e195"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8d31a14e4e70159fa3a2ca959f899a0" id="r_aa8d31a14e4e70159fa3a2ca959f899a0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#aa8d31a14e4e70159fa3a2ca959f899a0">updateFaultCodesDisplay</a> ()</td></tr>
+<tr class="separator:aa8d31a14e4e70159fa3a2ca959f899a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3635763c93cd21764900cab25136b890" id="r_a3635763c93cd21764900cab25136b890"><td class="memItemLeft" align="right" valign="top">QByteArray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a3635763c93cd21764900cab25136b890">createWriteRequest</a> (int address, quint16 value)</td></tr>
+<tr class="separator:a3635763c93cd21764900cab25136b890"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a7fc1843be8fb8a831d18b7bfb28018" id="r_a3a7fc1843be8fb8a831d18b7bfb28018"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a3a7fc1843be8fb8a831d18b7bfb28018">parseWriteResponse</a> (const QByteArray &amp;frame, quint16 transactionId)</td></tr>
+<tr class="separator:a3a7fc1843be8fb8a831d18b7bfb28018"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
+Private 属性</h2></td></tr>
+<tr class="memitem:a8fbfeb267027abb9b2f423991c0d2866" id="r_a8fbfeb267027abb9b2f423991c0d2866"><td class="memItemLeft" align="right" valign="top">QMap&lt; quint16, QDateTime &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a8fbfeb267027abb9b2f423991c0d2866">m_requestTimestamps</a></td></tr>
+<tr class="separator:a8fbfeb267027abb9b2f423991c0d2866"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe5938c2ea4caad85debecf90bce149b" id="r_abe5938c2ea4caad85debecf90bce149b"><td class="memItemLeft" align="right" valign="top">QByteArray&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#abe5938c2ea4caad85debecf90bce149b">m_responseBuffer</a></td></tr>
+<tr class="separator:abe5938c2ea4caad85debecf90bce149b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73a240a6bcb443ba9c56d72beae096fa" id="r_a73a240a6bcb443ba9c56d72beae096fa"><td class="memItemLeft" align="right" valign="top">QTcpSocket *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a73a240a6bcb443ba9c56d72beae096fa">m_socket</a></td></tr>
+<tr class="separator:a73a240a6bcb443ba9c56d72beae096fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aefe233853818a531055c70394baf7bbe" id="r_aefe233853818a531055c70394baf7bbe"><td class="memItemLeft" align="right" valign="top">QThread *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#aefe233853818a531055c70394baf7bbe">m_networkThread</a></td></tr>
+<tr class="separator:aefe233853818a531055c70394baf7bbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a864c8bb871f351dc9dd99fa12a9ade6e" id="r_a864c8bb871f351dc9dd99fa12a9ade6e"><td class="memItemLeft" align="right" valign="top">QMutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a864c8bb871f351dc9dd99fa12a9ade6e">m_mutex</a></td></tr>
+<tr class="separator:a864c8bb871f351dc9dd99fa12a9ade6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a268d9a8c561b3ebcf4e9ec47484151f7" id="r_a268d9a8c561b3ebcf4e9ec47484151f7"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a268d9a8c561b3ebcf4e9ec47484151f7">m_host</a></td></tr>
+<tr class="separator:a268d9a8c561b3ebcf4e9ec47484151f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19410af75e9c63c5828b408fbe2f663e" id="r_a19410af75e9c63c5828b408fbe2f663e"><td class="memItemLeft" align="right" valign="top">quint16&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a19410af75e9c63c5828b408fbe2f663e">m_port</a></td></tr>
+<tr class="separator:a19410af75e9c63c5828b408fbe2f663e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a5da51c499916c607f0d7f0380ea15b" id="r_a0a5da51c499916c607f0d7f0380ea15b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a0a5da51c499916c607f0d7f0380ea15b">m_autoReconnect</a></td></tr>
+<tr class="separator:a0a5da51c499916c607f0d7f0380ea15b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d7a04230ad892ad35d5820ae0746825" id="r_a5d7a04230ad892ad35d5820ae0746825"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a5d7a04230ad892ad35d5820ae0746825">m_reconnectInterval</a></td></tr>
+<tr class="separator:a5d7a04230ad892ad35d5820ae0746825"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05115d6581bb6a74ae00270e243a3031" id="r_a05115d6581bb6a74ae00270e243a3031"><td class="memItemLeft" align="right" valign="top">QTimer *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a05115d6581bb6a74ae00270e243a3031">m_reconnectTimer</a></td></tr>
+<tr class="separator:a05115d6581bb6a74ae00270e243a3031"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9b2e253c7713f7e03c0bf203f206a81" id="r_af9b2e253c7713f7e03c0bf203f206a81"><td class="memItemLeft" align="right" valign="top">QTimer *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#af9b2e253c7713f7e03c0bf203f206a81">m_pollTimer</a></td></tr>
+<tr class="separator:af9b2e253c7713f7e03c0bf203f206a81"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55295c29278e569ce80bcb8b8f7af00c" id="r_a55295c29278e569ce80bcb8b8f7af00c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a55295c29278e569ce80bcb8b8f7af00c">m_pollInterval</a></td></tr>
+<tr class="separator:a55295c29278e569ce80bcb8b8f7af00c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc95f9a8c7dfc907fbcde6bbe19f2cc1" id="r_adc95f9a8c7dfc907fbcde6bbe19f2cc1"><td class="memItemLeft" align="right" valign="top">quint16&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#adc95f9a8c7dfc907fbcde6bbe19f2cc1">m_transactionId</a></td></tr>
+<tr class="separator:adc95f9a8c7dfc907fbcde6bbe19f2cc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a850ea4e32e8d2749e767e4ae7fbf8568" id="r_a850ea4e32e8d2749e767e4ae7fbf8568"><td class="memItemLeft" align="right" valign="top">QMap&lt; quint16, int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a850ea4e32e8d2749e767e4ae7fbf8568">m_transactionAddressMap</a></td></tr>
+<tr class="separator:a850ea4e32e8d2749e767e4ae7fbf8568"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9065d6cf697b91a73da9d8627cc5b03b" id="r_a9065d6cf697b91a73da9d8627cc5b03b"><td class="memItemLeft" align="right" valign="top">QMap&lt; int, quint16 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a9065d6cf697b91a73da9d8627cc5b03b">m_registerValues</a></td></tr>
+<tr class="separator:a9065d6cf697b91a73da9d8627cc5b03b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af919c841b03378732361ea0d404ffb41" id="r_af919c841b03378732361ea0d404ffb41"><td class="memItemLeft" align="right" valign="top">QMap&lt; int, QMap&lt; int, bool &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#af919c841b03378732361ea0d404ffb41">m_bitStates</a></td></tr>
+<tr class="separator:af919c841b03378732361ea0d404ffb41"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb21c81659eb226a0129b555bce7ac84" id="r_adb21c81659eb226a0129b555bce7ac84"><td class="memItemLeft" align="right" valign="top">struct <a class="el" href="structAGVModbusManager_1_1FaultStatus.html">AGVModbusManager::FaultStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#adb21c81659eb226a0129b555bce7ac84">m_faultStatus</a></td></tr>
+<tr class="separator:adb21c81659eb226a0129b555bce7ac84"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af8fdf51a85f2e1b12845204f31baa7a6" id="r_af8fdf51a85f2e1b12845204f31baa7a6"><td class="memItemLeft" align="right" valign="top">QMap&lt; int, quint16 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#af8fdf51a85f2e1b12845204f31baa7a6">m_faultCodes</a></td></tr>
+<tr class="separator:af8fdf51a85f2e1b12845204f31baa7a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb74e7649a7a6bc3140a8e82362593da" id="r_adb74e7649a7a6bc3140a8e82362593da"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#adb74e7649a7a6bc3140a8e82362593da">m_lastHeartbeatState</a> = false</td></tr>
+<tr class="separator:adb74e7649a7a6bc3140a8e82362593da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7b7a420f68bb8b7e74f830da42e6e3c" id="r_ae7b7a420f68bb8b7e74f830da42e6e3c"><td class="memItemLeft" align="right" valign="top">QDateTime&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#ae7b7a420f68bb8b7e74f830da42e6e3c">m_lastHeartbeatTime</a></td></tr>
+<tr class="separator:ae7b7a420f68bb8b7e74f830da42e6e3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea74b0e88bdf7bcc8d61b2ce350b30f1" id="r_aea74b0e88bdf7bcc8d61b2ce350b30f1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#aea74b0e88bdf7bcc8d61b2ce350b30f1">m_connectedState</a> = false</td></tr>
+<tr class="separator:aea74b0e88bdf7bcc8d61b2ce350b30f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a313db185e40f67a66bcdb601305fa759" id="r_a313db185e40f67a66bcdb601305fa759"><td class="memItemLeft" align="right" valign="top">QSet&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a313db185e40f67a66bcdb601305fa759">m_disconnectedWriteWarnedAddresses</a></td></tr>
+<tr class="separator:a313db185e40f67a66bcdb601305fa759"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd41b4cf931999db4b6f6a5653e54c5b" id="r_acd41b4cf931999db4b6f6a5653e54c5b"><td class="memItemLeft" align="right" valign="top">QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#acd41b4cf931999db4b6f6a5653e54c5b">m_lastSocketError</a></td></tr>
+<tr class="separator:acd41b4cf931999db4b6f6a5653e54c5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e672cbd224020a33e9951c369d740f3" id="r_a0e672cbd224020a33e9951c369d740f3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#a0e672cbd224020a33e9951c369d740f3">m_writesEnabled</a> = true</td></tr>
+<tr class="separator:a0e672cbd224020a33e9951c369d740f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-static-attribs" name="pri-static-attribs"></a>
+静态 Private 属性</h2></td></tr>
+<tr class="memitem:adfc276f7c1e1a80f47abee2055ff0553" id="r_adfc276f7c1e1a80f47abee2055ff0553"><td class="memItemLeft" align="right" valign="top">static const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAGVModbusManager.html#adfc276f7c1e1a80f47abee2055ff0553">REQUEST_TIMEOUT</a> = 2000</td></tr>
+<tr class="separator:adfc276f7c1e1a80f47abee2055ff0553"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock">
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00088">88</a> 行定义.</p>
+</div><h2 class="groupheader">构造及析构函数说明</h2>
+<a id="a588ed9c3dd720d19485e1fcc53ce6cb3" name="a588ed9c3dd720d19485e1fcc53ce6cb3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a588ed9c3dd720d19485e1fcc53ce6cb3">&#9670;&#160;</a></span>AGVModbusManager()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">AGVModbusManager::AGVModbusManager </td>
+          <td>(</td>
+          <td class="paramtype">QObject *&#160;</td>
+          <td class="paramname"><em>parent</em> = <code>nullptr</code></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>功能: 构造 AGVModbusManager，用于管理 AGV 专用的 Modbus 通信与数据处理。 如何使用: 在应用初始化阶段创建该管理对象并连接相应信号以接收更新。 如何修改: 若需要支持多个 AGV，可将其改造成工厂/管理容器而非单例式全局对象。 </p>
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00006">6</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8h_source.html#l00281">m_pollTimer</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00279">m_reconnectTimer</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00270">m_socket</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00090">onConnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00113">onDisconnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00132">onError()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00309">onReadyRead()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00187">pollRegisters()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00161">tryReconnect()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a588ed9c3dd720d19485e1fcc53ce6cb3_cgraph.svg" width="2342" height="746"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a096343b6175dad54fc30e6e3034dfb39" name="a096343b6175dad54fc30e6e3034dfb39"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a096343b6175dad54fc30e6e3034dfb39">&#9670;&#160;</a></span>~AGVModbusManager()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">AGVModbusManager::~AGVModbusManager </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>功能: 析构函数，清理 socket、线程和计时器等资源。 如何使用: 由 Qt 对象树自动销毁或手动 delete。 如何修改: 增加资源时在析构中同步释放并确保线程安全。 </p>
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00043">43</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00071">disconnectFromDevice()</a> , 以及 <a class="el" href="agvmodbusmanager_8h_source.html#l00271">m_networkThread</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a096343b6175dad54fc30e6e3034dfb39_cgraph.svg" width="464" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<h2 class="groupheader">成员函数说明</h2>
+<a id="a6adec0d37945bf256b7c55249a5b1328" name="a6adec0d37945bf256b7c55249a5b1328"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6adec0d37945bf256b7c55249a5b1328">&#9670;&#160;</a></span>addFaultCodeToList</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::addFaultCodeToList </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>faultCode</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00573">processWordVariables()</a>, <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00750">updateFaultCodesDisplay()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a6adec0d37945bf256b7c55249a5b1328_icgraph.svg" width="2238" height="140"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a6057fece482cae5d4051dfcdcd98a2a4" name="a6057fece482cae5d4051dfcdcd98a2a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6057fece482cae5d4051dfcdcd98a2a4">&#9670;&#160;</a></span>bitVariableChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::bitVariableChanged </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>address</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>bitPosition</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00480">processBitVariables()</a> , 以及 <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a6057fece482cae5d4051dfcdcd98a2a4_icgraph.svg" width="1988" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a6fa5f7825d2c268735182edf7a3ca50f" name="a6fa5f7825d2c268735182edf7a3ca50f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6fa5f7825d2c268735182edf7a3ca50f">&#9670;&#160;</a></span>clearFaultCodes</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::clearFaultCodes </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00750">updateFaultCodesDisplay()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a6fa5f7825d2c268735182edf7a3ca50f_icgraph.svg" width="2246" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a2a3cb376088bf914b1714b114933389b" name="a2a3cb376088bf914b1714b114933389b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a3cb376088bf914b1714b114933389b">&#9670;&#160;</a></span>connected</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::connected </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>使用示例: </p>
+<div class="fragment"><div class="line">mgr.writeSingleRegister(200, 1);</div>
+</div><!-- fragment --> 
+<p class="reference">被这些函数引用 <a class="el" href="180__agv__app_8cpp_source.html#l00008">EightyAgvApp::EightyAgvApp()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00090">onConnected()</a> , 以及 <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a2a3cb376088bf914b1714b114933389b_icgraph.svg" width="1082" height="154"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aeb885c05d449b8cb10abc16e78acc72b" name="aeb885c05d449b8cb10abc16e78acc72b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb885c05d449b8cb10abc16e78acc72b">&#9670;&#160;</a></span>connectToDevice()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool AGVModbusManager::connectToDevice </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>host</em> = <code>&quot;192.168.1.88&quot;</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quint16&#160;</td>
+          <td class="paramname"><em>port</em> = <code>502</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>使用示例: </p>
+<div class="fragment"><div class="line"><span class="keyword">auto</span> *mgr = <span class="keyword">new</span> <a class="code hl_class" href="classAGVModbusManager.html">AGVModbusManager</a>(qApp);</div>
+<div class="line">mgr-&gt;setAutoReconnect(<span class="keyword">true</span>, 3000);</div>
+<div class="line">mgr-&gt;connectToDevice(<span class="stringliteral">&quot;192.168.1.88&quot;</span>, 502);</div>
+<div class="line">connect(mgr, &amp;<a class="code hl_signal" href="classAGVModbusManager.html#a95a6319d2d7cd445e21e1f5ffe97c6c6">AGVModbusManager::registerValueChanged</a>, [](<span class="keywordtype">int</span> addr, quint16 v){ qDebug() &lt;&lt; addr &lt;&lt; v; });</div>
+<div class="ttc" id="aclassAGVModbusManager_html"><div class="ttname"><a href="classAGVModbusManager.html">AGVModbusManager</a></div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8h_source.html#l00088">agvmodbusmanager.h:89</a></div></div>
+<div class="ttc" id="aclassAGVModbusManager_html_a95a6319d2d7cd445e21e1f5ffe97c6c6"><div class="ttname"><a href="classAGVModbusManager.html#a95a6319d2d7cd445e21e1f5ffe97c6c6">AGVModbusManager::registerValueChanged</a></div><div class="ttdeci">void registerValueChanged(int address, quint16 value)</div></div>
+</div><!-- fragment --><p> 功能: 连接到 AGV 的 Modbus 设备（默认 IP/端口可被覆盖）。 如何使用: 调用并监听 <a class="el" href="classAGVModbusManager.html#a2a3cb376088bf914b1714b114933389b" title="使用示例:">connected()</a>/errorOccurred() 信号以获取连接结果。 如何修改: 若需通过 DHCP 或多地址尝试连接，可在实现中增加尝试逻辑。 </p>
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00055">55</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8h_source.html#l00274">m_host</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00272">m_mutex</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00275">m_port</a> , 以及 <a class="el" href="agvmodbusmanager_8h_source.html#l00270">m_socket</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00161">tryReconnect()</a> , 以及 <a class="el" href="mainwindow_8cpp_source.html#l05660">MainWindow::updateSimulatorHost()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_aeb885c05d449b8cb10abc16e78acc72b_icgraph.svg" width="1067" height="154"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ae27c44191aeb772c2f3cc29d2a45b9d6" name="ae27c44191aeb772c2f3cc29d2a45b9d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae27c44191aeb772c2f3cc29d2a45b9d6">&#9670;&#160;</a></span>createReadRequest()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QByteArray AGVModbusManager::createReadRequest </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>startAddress</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00237">237</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8h_source.html#l00285">m_transactionAddressMap</a> , 以及 <a class="el" href="agvmodbusmanager_8h_source.html#l00284">m_transactionId</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00275">readMultipleRegisters()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_ae27c44191aeb772c2f3cc29d2a45b9d6_icgraph.svg" width="1820" height="178"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a3635763c93cd21764900cab25136b890" name="a3635763c93cd21764900cab25136b890"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3635763c93cd21764900cab25136b890">&#9670;&#160;</a></span>createWriteRequest()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QByteArray AGVModbusManager::createWriteRequest </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>address</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quint16&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00811">811</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8h_source.html#l00285">m_transactionAddressMap</a> , 以及 <a class="el" href="agvmodbusmanager_8h_source.html#l00284">m_transactionId</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00782">writeSingleRegister()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a3635763c93cd21764900cab25136b890_icgraph.svg" width="2463" height="414"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ac8010d1accdec2616c993f0f2be93aca" name="ac8010d1accdec2616c993f0f2be93aca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac8010d1accdec2616c993f0f2be93aca">&#9670;&#160;</a></span>disconnected</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::disconnected </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">被这些函数引用 <a class="el" href="180__agv__app_8cpp_source.html#l00008">EightyAgvApp::EightyAgvApp()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00113">onDisconnected()</a> , 以及 <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_ac8010d1accdec2616c993f0f2be93aca_icgraph.svg" width="1120" height="154"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aa602a9b4c7c2c731bad14e4435f941e6" name="aa602a9b4c7c2c731bad14e4435f941e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa602a9b4c7c2c731bad14e4435f941e6">&#9670;&#160;</a></span>disconnectFromDevice()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::disconnectFromDevice </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>使用示例: </p>
+<div class="fragment"><div class="line"> <a class="code hl_class" href="classAGVModbusManager.html">AGVModbusManager</a> mgr;</div>
+<div class="line">mgr.<a class="code hl_function" href="classAGVModbusManager.html#aeb885c05d449b8cb10abc16e78acc72b">connectToDevice</a>(<span class="stringliteral">&quot;192.168.1.88&quot;</span>, 502);</div>
+<div class="ttc" id="aclassAGVModbusManager_html_aeb885c05d449b8cb10abc16e78acc72b"><div class="ttname"><a href="classAGVModbusManager.html#aeb885c05d449b8cb10abc16e78acc72b">AGVModbusManager::connectToDevice</a></div><div class="ttdeci">bool connectToDevice(const QString &amp;host=&quot;192.168.1.88&quot;, quint16 port=502)</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="agvmodbusmanager_8cpp_source.html#l00055">agvmodbusmanager.cpp:55</a></div></div>
+</div><!-- fragment --><p> 功能: 主动断开与设备的连接并停止轮询。 如何使用: 在应用退出或停止通信时调用。 如何修改: 若需在断开前进行缓冲发送或状态同步，可在实现中添加流程。 </p>
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00071">71</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8h_source.html#l00307">m_connectedState</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00272">m_mutex</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00281">m_pollTimer</a> , 以及 <a class="el" href="agvmodbusmanager_8h_source.html#l00270">m_socket</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l05660">MainWindow::updateSimulatorHost()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00043">~AGVModbusManager()</a> , 以及 <a class="el" href="mainwindow__lifecycle_8cpp_source.html#l00089">MainWindow::~MainWindow()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_aa602a9b4c7c2c731bad14e4435f941e6_icgraph.svg" width="546" height="151"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a987007d6e13c46a28d4f08c42b1f4d63" name="a987007d6e13c46a28d4f08c42b1f4d63"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a987007d6e13c46a28d4f08c42b1f4d63">&#9670;&#160;</a></span>errorOccurred</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::errorOccurred </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>error</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">被这些函数引用 <a class="el" href="180__agv__app_8cpp_source.html#l00008">EightyAgvApp::EightyAgvApp()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00132">onError()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00320">parseResponse()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00374">processSingleResponseFrame()</a> , 以及 <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a987007d6e13c46a28d4f08c42b1f4d63_icgraph.svg" width="1743" height="267"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a32a0a2473f27cbccae2eedfdb13bee54" name="a32a0a2473f27cbccae2eedfdb13bee54"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a32a0a2473f27cbccae2eedfdb13bee54">&#9670;&#160;</a></span>getBitVariableName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString AGVModbusManager::getBitVariableName </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>address</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>bitPos</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00651">651</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00480">processBitVariables()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a32a0a2473f27cbccae2eedfdb13bee54_icgraph.svg" width="1946" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a45f7ab48f6a5d1531de6110fc51104d6" name="a45f7ab48f6a5d1531de6110fc51104d6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45f7ab48f6a5d1531de6110fc51104d6">&#9670;&#160;</a></span>getWordVariableName()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString AGVModbusManager::getWordVariableName </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>address</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00687">687</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00573">processWordVariables()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00750">updateFaultCodesDisplay()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a45f7ab48f6a5d1531de6110fc51104d6_icgraph.svg" width="2219" height="79"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="adcab3e2e8a61e26dca17b7bf21a69baa" name="adcab3e2e8a61e26dca17b7bf21a69baa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcab3e2e8a61e26dca17b7bf21a69baa">&#9670;&#160;</a></span>heartbeatReceived</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::heartbeatReceived </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00480">processBitVariables()</a> , 以及 <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_adcab3e2e8a61e26dca17b7bf21a69baa_icgraph.svg" width="1982" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a1e0321a0cc3e28ba495cabbc83b193d4" name="a1e0321a0cc3e28ba495cabbc83b193d4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e0321a0cc3e28ba495cabbc83b193d4">&#9670;&#160;</a></span>isConnected()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool AGVModbusManager::isConnected </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>功能: 返回当前网络连接状态。 如何使用: 用于 UI 指示或决定是否发起读写操作。 如何修改: 若支持多设备，应提供设备级别的状态查询接口。 </p>
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00085">85</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8h_source.html#l00307">m_connectedState</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l04090">MainWindow::onAGVModbusConnected()</a>, <a class="el" href="mainwindow_8cpp_source.html#l05020">MainWindow::onAGVParkBtnClicked()</a>, <a class="el" href="mainwindow_8cpp_source.html#l05332">MainWindow::onSteeringModeChanged()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00187">pollRegisters()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00275">readMultipleRegisters()</a>, <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00782">writeSingleRegister()</a> , 以及 <a class="el" href="mainwindow_8cpp_source.html#l04682">MainWindow::writeToAGVDevice()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a1e0321a0cc3e28ba495cabbc83b193d4_icgraph.svg" width="2534" height="587"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aae7e42a424ae7c081cd85733ebf9a15a" name="aae7e42a424ae7c081cd85733ebf9a15a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aae7e42a424ae7c081cd85733ebf9a15a">&#9670;&#160;</a></span>onConnected</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::onConnected </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">slot</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00090">90</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="classAGVModbusManager.html#a2a3cb376088bf914b1714b114933389b">connected()</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00277">m_autoReconnect</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00307">m_connectedState</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00308">m_disconnectedWriteWarnedAddresses</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00274">m_host</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00309">m_lastSocketError</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00282">m_pollInterval</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00281">m_pollTimer</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00275">m_port</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00279">m_reconnectTimer</a> , 以及 <a class="el" href="classAGVModbusManager.html#a18916f7c0ab0603ee4b10bdd431c4730">updateStatusLabel()</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00006">AGVModbusManager()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_aae7e42a424ae7c081cd85733ebf9a15a_cgraph.svg" width="543" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_aae7e42a424ae7c081cd85733ebf9a15a_icgraph.svg" width="555" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ac1f43b1ea984a6b7d133247249d87d16" name="ac1f43b1ea984a6b7d133247249d87d16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1f43b1ea984a6b7d133247249d87d16">&#9670;&#160;</a></span>onDisconnected</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::onDisconnected </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">slot</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00113">113</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="classAGVModbusManager.html#ac8010d1accdec2616c993f0f2be93aca">disconnected()</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00277">m_autoReconnect</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00307">m_connectedState</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00274">m_host</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00281">m_pollTimer</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00278">m_reconnectInterval</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00279">m_reconnectTimer</a> , 以及 <a class="el" href="classAGVModbusManager.html#a18916f7c0ab0603ee4b10bdd431c4730">updateStatusLabel()</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00006">AGVModbusManager()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_ac1f43b1ea984a6b7d133247249d87d16_cgraph.svg" width="582" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_ac1f43b1ea984a6b7d133247249d87d16_icgraph.svg" width="575" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a9927be2cfc4e70ce9ca4baa5428ea2f6" name="a9927be2cfc4e70ce9ca4baa5428ea2f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9927be2cfc4e70ce9ca4baa5428ea2f6">&#9670;&#160;</a></span>onError</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::onError </td>
+          <td>(</td>
+          <td class="paramtype">QAbstractSocket::SocketError&#160;</td>
+          <td class="paramname"><em>error</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">slot</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00132">132</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="classAGVModbusManager.html#a987007d6e13c46a28d4f08c42b1f4d63">errorOccurred()</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00277">m_autoReconnect</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00307">m_connectedState</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00274">m_host</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00309">m_lastSocketError</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00278">m_reconnectInterval</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00279">m_reconnectTimer</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00270">m_socket</a> , 以及 <a class="el" href="classAGVModbusManager.html#a18916f7c0ab0603ee4b10bdd431c4730">updateStatusLabel()</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00006">AGVModbusManager()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a9927be2cfc4e70ce9ca4baa5428ea2f6_cgraph.svg" width="527" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a9927be2cfc4e70ce9ca4baa5428ea2f6_icgraph.svg" width="518" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="addbb04b41d5ad09b61ebbaa36af6ff79" name="addbb04b41d5ad09b61ebbaa36af6ff79"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#addbb04b41d5ad09b61ebbaa36af6ff79">&#9670;&#160;</a></span>onReadyRead</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::onReadyRead </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">slot</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00309">309</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8h_source.html#l00249">m_responseBuffer</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00270">m_socket</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00320">parseResponse()</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00006">AGVModbusManager()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_addbb04b41d5ad09b61ebbaa36af6ff79_cgraph.svg" width="2030" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_addbb04b41d5ad09b61ebbaa36af6ff79_icgraph.svg" width="560" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="afe8402210cd7dd4e73dc8c9b15b13aee" name="afe8402210cd7dd4e73dc8c9b15b13aee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afe8402210cd7dd4e73dc8c9b15b13aee">&#9670;&#160;</a></span>parseResponse()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool AGVModbusManager::parseResponse </td>
+          <td>(</td>
+          <td class="paramtype">QByteArray &amp;&#160;</td>
+          <td class="paramname"><em>data</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00320">320</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="classAGVModbusManager.html#a987007d6e13c46a28d4f08c42b1f4d63">errorOccurred()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00347">parseSingleResponseFrame()</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00309">onReadyRead()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_afe8402210cd7dd4e73dc8c9b15b13aee_cgraph.svg" width="1726" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_afe8402210cd7dd4e73dc8c9b15b13aee_icgraph.svg" width="874" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a532317f919179d0f4679c2b15335fefa" name="a532317f919179d0f4679c2b15335fefa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a532317f919179d0f4679c2b15335fefa">&#9670;&#160;</a></span>parseSingleResponseFrame()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool AGVModbusManager::parseSingleResponseFrame </td>
+          <td>(</td>
+          <td class="paramtype">QByteArray &amp;&#160;</td>
+          <td class="paramname"><em>data</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00347">347</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00374">processSingleResponseFrame()</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00320">parseResponse()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a532317f919179d0f4679c2b15335fefa_cgraph.svg" width="1412" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a532317f919179d0f4679c2b15335fefa_icgraph.svg" width="1164" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a3a7fc1843be8fb8a831d18b7bfb28018" name="a3a7fc1843be8fb8a831d18b7bfb28018"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a7fc1843be8fb8a831d18b7bfb28018">&#9670;&#160;</a></span>parseWriteResponse()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool AGVModbusManager::parseWriteResponse </td>
+          <td>(</td>
+          <td class="paramtype">const QByteArray &amp;&#160;</td>
+          <td class="paramname"><em>frame</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quint16&#160;</td>
+          <td class="paramname"><em>transactionId</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a25fa11cc6733c1c8c343661613979ae7" name="a25fa11cc6733c1c8c343661613979ae7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a25fa11cc6733c1c8c343661613979ae7">&#9670;&#160;</a></span>pollInterval()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int AGVModbusManager::pollInterval </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00154">154</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8h_source.html#l00282">m_pollInterval</a>.</p>
+
+</div>
+</div>
+<a id="a00864c542ff307f111b69134edb08f86" name="a00864c542ff307f111b69134edb08f86"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a00864c542ff307f111b69134edb08f86">&#9670;&#160;</a></span>pollRegisters</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::pollRegisters </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">slot</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00187">187</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00085">isConnected()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00275">readMultipleRegisters()</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00006">AGVModbusManager()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a00864c542ff307f111b69134edb08f86_cgraph.svg" width="852" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a00864c542ff307f111b69134edb08f86_icgraph.svg" width="555" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab56d2e6c99153a4ac64d983d2842e49a" name="ab56d2e6c99153a4ac64d983d2842e49a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab56d2e6c99153a4ac64d983d2842e49a">&#9670;&#160;</a></span>processBitVariables()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::processBitVariables </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>address</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quint16&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00480">480</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="classAGVModbusManager.html#a6057fece482cae5d4051dfcdcd98a2a4">bitVariableChanged()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00651">getBitVariableName()</a>, <a class="el" href="classAGVModbusManager.html#adcab3e2e8a61e26dca17b7bf21a69baa">heartbeatReceived()</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00291">m_bitStates</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00304">m_lastHeartbeatState</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00305">m_lastHeartbeatTime</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00288">m_registerValues</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00711">updateFaultsDisplay()</a> , 以及 <a class="el" href="classAGVModbusManager.html#a18916f7c0ab0603ee4b10bdd431c4730">updateStatusLabel()</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00374">processSingleResponseFrame()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_ab56d2e6c99153a4ac64d983d2842e49a_cgraph.svg" width="770" height="307"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_ab56d2e6c99153a4ac64d983d2842e49a_icgraph.svg" width="1692" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a3f3addb7fadad500d1049caac52a3594" name="a3f3addb7fadad500d1049caac52a3594"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f3addb7fadad500d1049caac52a3594">&#9670;&#160;</a></span>processSingleResponseFrame()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool AGVModbusManager::processSingleResponseFrame </td>
+          <td>(</td>
+          <td class="paramtype">const QByteArray &amp;&#160;</td>
+          <td class="paramname"><em>frame</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quint16&#160;</td>
+          <td class="paramname"><em>transactionId</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00374">374</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="classAGVModbusManager.html#a987007d6e13c46a28d4f08c42b1f4d63">errorOccurred()</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00240">m_requestTimestamps</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00285">m_transactionAddressMap</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00480">processBitVariables()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00573">processWordVariables()</a>, <a class="el" href="classAGVModbusManager.html#a95a6319d2d7cd445e21e1f5ffe97c6c6">registerValueChanged()</a> , 以及 <a class="el" href="classAGVModbusManager.html#aff47f520dfd90ff5fcd6a0f5212b6b14">writeCompleted()</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00347">parseSingleResponseFrame()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a3f3addb7fadad500d1049caac52a3594_cgraph.svg" width="1122" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a3f3addb7fadad500d1049caac52a3594_icgraph.svg" width="1428" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a69f3005ecd5b18306529fc3284aabca2" name="a69f3005ecd5b18306529fc3284aabca2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a69f3005ecd5b18306529fc3284aabca2">&#9670;&#160;</a></span>processWordVariables()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::processWordVariables </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>address</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quint16&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00573">573</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="classAGVModbusManager.html#a6adec0d37945bf256b7c55249a5b1328">addFaultCodeToList()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00687">getWordVariableName()</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00301">m_faultCodes</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00750">updateFaultCodesDisplay()</a>, <a class="el" href="classAGVModbusManager.html#a2631baf1c703e9b39b5180ba5ad81910">updateProgressBar()</a>, <a class="el" href="classAGVModbusManager.html#a18916f7c0ab0603ee4b10bdd431c4730">updateStatusLabel()</a> , 以及 <a class="el" href="classAGVModbusManager.html#a23d0b02b1366e6700932bb390613cb3d">wordVariableChanged()</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00374">processSingleResponseFrame()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a69f3005ecd5b18306529fc3284aabca2_cgraph.svg" width="803" height="358"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a69f3005ecd5b18306529fc3284aabca2_icgraph.svg" width="1692" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a96e7d4dc7b4b16c805e3c332cb1a7abe" name="a96e7d4dc7b4b16c805e3c332cb1a7abe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96e7d4dc7b4b16c805e3c332cb1a7abe">&#9670;&#160;</a></span>readMultipleRegisters()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::readMultipleRegisters </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>startAddress</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>功能: 读取一段寄存器并触发相应的处理与信号。 如何使用: 提供起始地址与数量以批量获取数据。 如何修改: 对大数量读取请分片或增加并发控制以兼容设备限制。 </p>
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00275">275</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00237">createReadRequest()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00085">isConnected()</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00240">m_requestTimestamps</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00270">m_socket</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00285">m_transactionAddressMap</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00284">m_transactionId</a> , 以及 <a class="el" href="agvmodbusmanager_8h_source.html#l00241">REQUEST_TIMEOUT</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l04090">MainWindow::onAGVModbusConnected()</a>, <a class="el" href="mainwindow_8cpp_source.html#l05332">MainWindow::onSteeringModeChanged()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00187">pollRegisters()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a96e7d4dc7b4b16c805e3c332cb1a7abe_cgraph.svg" width="554" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a96e7d4dc7b4b16c805e3c332cb1a7abe_icgraph.svg" width="1566" height="178"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a95a6319d2d7cd445e21e1f5ffe97c6c6" name="a95a6319d2d7cd445e21e1f5ffe97c6c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a95a6319d2d7cd445e21e1f5ffe97c6c6">&#9670;&#160;</a></span>registerValueChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::registerValueChanged </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>address</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quint16&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">被这些函数引用 <a class="el" href="180__agv__app_8cpp_source.html#l00008">EightyAgvApp::EightyAgvApp()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00374">processSingleResponseFrame()</a> , 以及 <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a95a6319d2d7cd445e21e1f5ffe97c6c6_icgraph.svg" width="1704" height="163"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aa384a8360664fbeac6ffdc2d5dc27c17" name="aa384a8360664fbeac6ffdc2d5dc27c17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa384a8360664fbeac6ffdc2d5dc27c17">&#9670;&#160;</a></span>setAutoReconnect()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::setAutoReconnect </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enable</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>interval</em> = <code>5000</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>功能: 启用或禁用自动重连并设置重连间隔。 如何使用: 在不稳定网络环境下启用以保持连接可用性。 如何修改: 可实现指数退避等更复杂的重连策略。 </p>
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00177">177</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8h_source.html#l00277">m_autoReconnect</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00278">m_reconnectInterval</a> , 以及 <a class="el" href="agvmodbusmanager_8h_source.html#l00279">m_reconnectTimer</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l00162">MainWindow::applyPollingRuntimeSettings()</a> , 以及 <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_aa384a8360664fbeac6ffdc2d5dc27c17_icgraph.svg" width="1326" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a2810a32b6b77c701b0dce19006be2be3" name="a2810a32b6b77c701b0dce19006be2be3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2810a32b6b77c701b0dce19006be2be3">&#9670;&#160;</a></span>setPollInterval()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::setPollInterval </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>ms</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>功能: 设置寄存器轮询间隔（毫秒）。 如何使用: 在连接或初始化时调用以控制数据刷新频率。 如何修改: 可支持按类型或优先级的细粒度间隔配置。 </p>
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00169">169</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8h_source.html#l00282">m_pollInterval</a> , 以及 <a class="el" href="agvmodbusmanager_8h_source.html#l00281">m_pollTimer</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l00162">MainWindow::applyPollingRuntimeSettings()</a> , 以及 <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a2810a32b6b77c701b0dce19006be2be3_icgraph.svg" width="1320" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ac0077e4cacce81792fd922c9fee37236" name="ac0077e4cacce81792fd922c9fee37236"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac0077e4cacce81792fd922c9fee37236">&#9670;&#160;</a></span>setWritesEnabled()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::setWritesEnabled </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enabled</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00314">314</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8h_source.html#l00310">m_writesEnabled</a>.</p>
+
+</div>
+</div>
+<a id="af461bdd79f188cc7a4c75ea2b9f7b362" name="af461bdd79f188cc7a4c75ea2b9f7b362"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af461bdd79f188cc7a4c75ea2b9f7b362">&#9670;&#160;</a></span>testUpdateProgressBar()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::testUpdateProgressBar </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>使用示例: </p>
+<div class="fragment"><div class="line">mgr.readMultipleRegisters(100, 10);</div>
+</div><!-- fragment --><p> 功能: 测试用：发送进度条更新信号（用于调试/演示）。 如何使用: 在调试或 UI 演示时调用。 如何修改: 仅用于测试，生产代码可移除或受条件编译控制。 </p>
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00183">183</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="classAGVModbusManager.html#a2631baf1c703e9b39b5180ba5ad81910">updateProgressBar()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_af461bdd79f188cc7a4c75ea2b9f7b362_cgraph.svg" width="508" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a31ba0bd58048344be262c32b2e53252e" name="a31ba0bd58048344be262c32b2e53252e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a31ba0bd58048344be262c32b2e53252e">&#9670;&#160;</a></span>testUpdateStatusLabel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::testUpdateStatusLabel </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>text</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00186">186</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="classAGVModbusManager.html#a18916f7c0ab0603ee4b10bdd431c4730">updateStatusLabel()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a31ba0bd58048344be262c32b2e53252e_cgraph.svg" width="508" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="ab8a833b1a3e7fbb509bbecca25c1cca0" name="ab8a833b1a3e7fbb509bbecca25c1cca0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8a833b1a3e7fbb509bbecca25c1cca0">&#9670;&#160;</a></span>tryReconnect</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::tryReconnect </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span><span class="mlabel">slot</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00161">161</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00055">connectToDevice()</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00277">m_autoReconnect</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00274">m_host</a> , 以及 <a class="el" href="agvmodbusmanager_8h_source.html#l00275">m_port</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00006">AGVModbusManager()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_ab8a833b1a3e7fbb509bbecca25c1cca0_cgraph.svg" width="528" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_ab8a833b1a3e7fbb509bbecca25c1cca0_icgraph.svg" width="556" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="acd8e5b7c89aec16f3c89c54ffb424abb" name="acd8e5b7c89aec16f3c89c54ffb424abb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd8e5b7c89aec16f3c89c54ffb424abb">&#9670;&#160;</a></span>updateConnectionStatus()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::updateConnectionStatus </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>connected</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa8d31a14e4e70159fa3a2ca959f899a0" name="aa8d31a14e4e70159fa3a2ca959f899a0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8d31a14e4e70159fa3a2ca959f899a0">&#9670;&#160;</a></span>updateFaultCodesDisplay()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::updateFaultCodesDisplay </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00750">750</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="classAGVModbusManager.html#a6adec0d37945bf256b7c55249a5b1328">addFaultCodeToList()</a>, <a class="el" href="classAGVModbusManager.html#a6fa5f7825d2c268735182edf7a3ca50f">clearFaultCodes()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00687">getWordVariableName()</a> , 以及 <a class="el" href="agvmodbusmanager_8h_source.html#l00301">m_faultCodes</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00573">processWordVariables()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_aa8d31a14e4e70159fa3a2ca959f899a0_cgraph.svg" width="499" height="179"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_aa8d31a14e4e70159fa3a2ca959f899a0_icgraph.svg" width="1951" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a664116ab5c719164c36a150c7cd9e195" name="a664116ab5c719164c36a150c7cd9e195"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a664116ab5c719164c36a150c7cd9e195">&#9670;&#160;</a></span>updateFaultsDisplay()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::updateFaultsDisplay </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00711">711</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8h_source.html#l00296">AGVModbusManager::FaultStatus::commFault</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00297">AGVModbusManager::FaultStatus::driveFault</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00295">AGVModbusManager::FaultStatus::lowBattery</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00291">m_bitStates</a>, <a class="el" href="classAGVModbusManager.html#adb21c81659eb226a0129b555bce7ac84">m_faultStatus</a> , 以及 <a class="el" href="classAGVModbusManager.html#a078a8488ede9249885f0085cb1e33336">updateFaultsLabel()</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00480">processBitVariables()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a664116ab5c719164c36a150c7cd9e195_cgraph.svg" width="480" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a664116ab5c719164c36a150c7cd9e195_icgraph.svg" width="1951" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a078a8488ede9249885f0085cb1e33336" name="a078a8488ede9249885f0085cb1e33336"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a078a8488ede9249885f0085cb1e33336">&#9670;&#160;</a></span>updateFaultsLabel</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::updateFaultsLabel </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>faultText</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00711">updateFaultsDisplay()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a078a8488ede9249885f0085cb1e33336_icgraph.svg" width="2227" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a2631baf1c703e9b39b5180ba5ad81910" name="a2631baf1c703e9b39b5180ba5ad81910"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2631baf1c703e9b39b5180ba5ad81910">&#9670;&#160;</a></span>updateProgressBar</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::updateProgressBar </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00573">processWordVariables()</a>, <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a> , 以及 <a class="el" href="agvmodbusmanager_8h_source.html#l00183">testUpdateProgressBar()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a2631baf1c703e9b39b5180ba5ad81910_icgraph.svg" width="1974" height="171"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a18916f7c0ab0603ee4b10bdd431c4730" name="a18916f7c0ab0603ee4b10bdd431c4730"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a18916f7c0ab0603ee4b10bdd431c4730">&#9670;&#160;</a></span>updateStatusLabel</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::updateStatusLabel </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>text</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00090">onConnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00113">onDisconnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00132">onError()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00480">processBitVariables()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00573">processWordVariables()</a>, <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a> , 以及 <a class="el" href="agvmodbusmanager_8h_source.html#l00186">testUpdateStatusLabel()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a18916f7c0ab0603ee4b10bdd431c4730_icgraph.svg" width="1988" height="414"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a23d0b02b1366e6700932bb390613cb3d" name="a23d0b02b1366e6700932bb390613cb3d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a23d0b02b1366e6700932bb390613cb3d">&#9670;&#160;</a></span>wordVariableChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::wordVariableChanged </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>address</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quint16&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00573">processWordVariables()</a> , 以及 <a class="el" href="mainwindow_8cpp_source.html#l03789">MainWindow::setupAGVModbus()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_a23d0b02b1366e6700932bb390613cb3d_icgraph.svg" width="2003" height="115"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aff47f520dfd90ff5fcd6a0f5212b6b14" name="aff47f520dfd90ff5fcd6a0f5212b6b14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff47f520dfd90ff5fcd6a0f5212b6b14">&#9670;&#160;</a></span>writeCompleted</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void AGVModbusManager::writeCompleted </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>address</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quint16&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>success</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00374">processSingleResponseFrame()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_aff47f520dfd90ff5fcd6a0f5212b6b14_icgraph.svg" width="1747" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a490d7ea8236074a97a7a979219500552" name="a490d7ea8236074a97a7a979219500552"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a490d7ea8236074a97a7a979219500552">&#9670;&#160;</a></span>writesEnabled()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool AGVModbusManager::writesEnabled </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00315">315</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8h_source.html#l00310">m_writesEnabled</a>.</p>
+
+</div>
+</div>
+<a id="aec03e5a2f2710570382b6063a1ffe826" name="aec03e5a2f2710570382b6063a1ffe826"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec03e5a2f2710570382b6063a1ffe826">&#9670;&#160;</a></span>writeSingleRegister()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool AGVModbusManager::writeSingleRegister </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>address</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quint16&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>功能: 写单个寄存器到 AGV 设备。 如何使用: 提供地址和值，调用后观察 writeCompleted 或 errorOccurred 信号以获取结果。 如何修改: 若需事务进行多寄存器写入，请使用批量写接口并加入确认机制。 </p>
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a> 第 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00782">782</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00811">createWriteRequest()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00085">isConnected()</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00308">m_disconnectedWriteWarnedAddresses</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00240">m_requestTimestamps</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00270">m_socket</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00284">m_transactionId</a> , 以及 <a class="el" href="agvmodbusmanager_8h_source.html#l00310">m_writesEnabled</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l04719">MainWindow::writeAGVRegisterBits()</a> , 以及 <a class="el" href="mainwindow_8cpp_source.html#l04682">MainWindow::writeToAGVDevice()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_aec03e5a2f2710570382b6063a1ffe826_cgraph.svg" width="544" height="102"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classAGVModbusManager_aec03e5a2f2710570382b6063a1ffe826_icgraph.svg" width="2208" height="414"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<h2 class="groupheader">类成员变量说明</h2>
+<a id="a0a5da51c499916c607f0d7f0380ea15b" name="a0a5da51c499916c607f0d7f0380ea15b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a5da51c499916c607f0d7f0380ea15b">&#9670;&#160;</a></span>m_autoReconnect</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool AGVModbusManager::m_autoReconnect</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00277">277</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00090">onConnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00113">onDisconnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00132">onError()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00177">setAutoReconnect()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00161">tryReconnect()</a>.</p>
+
+</div>
+</div>
+<a id="af919c841b03378732361ea0d404ffb41" name="af919c841b03378732361ea0d404ffb41"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af919c841b03378732361ea0d404ffb41">&#9670;&#160;</a></span>m_bitStates</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QMap&lt;int, QMap&lt;int, bool&gt; &gt; AGVModbusManager::m_bitStates</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00291">291</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00480">processBitVariables()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00711">updateFaultsDisplay()</a>.</p>
+
+</div>
+</div>
+<a id="aea74b0e88bdf7bcc8d61b2ce350b30f1" name="aea74b0e88bdf7bcc8d61b2ce350b30f1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea74b0e88bdf7bcc8d61b2ce350b30f1">&#9670;&#160;</a></span>m_connectedState</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool AGVModbusManager::m_connectedState = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00307">307</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00071">disconnectFromDevice()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00085">isConnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00090">onConnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00113">onDisconnected()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00132">onError()</a>.</p>
+
+</div>
+</div>
+<a id="a313db185e40f67a66bcdb601305fa759" name="a313db185e40f67a66bcdb601305fa759"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a313db185e40f67a66bcdb601305fa759">&#9670;&#160;</a></span>m_disconnectedWriteWarnedAddresses</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QSet&lt;int&gt; AGVModbusManager::m_disconnectedWriteWarnedAddresses</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00308">308</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00090">onConnected()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00782">writeSingleRegister()</a>.</p>
+
+</div>
+</div>
+<a id="af8fdf51a85f2e1b12845204f31baa7a6" name="af8fdf51a85f2e1b12845204f31baa7a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af8fdf51a85f2e1b12845204f31baa7a6">&#9670;&#160;</a></span>m_faultCodes</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QMap&lt;int, quint16&gt; AGVModbusManager::m_faultCodes</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00301">301</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00573">processWordVariables()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00750">updateFaultCodesDisplay()</a>.</p>
+
+</div>
+</div>
+<a id="adb21c81659eb226a0129b555bce7ac84" name="adb21c81659eb226a0129b555bce7ac84"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb21c81659eb226a0129b555bce7ac84">&#9670;&#160;</a></span>m_faultStatus</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct <a class="el" href="structAGVModbusManager_1_1FaultStatus.html">AGVModbusManager::FaultStatus</a> AGVModbusManager::m_faultStatus</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00711">updateFaultsDisplay()</a>.</p>
+
+</div>
+</div>
+<a id="a268d9a8c561b3ebcf4e9ec47484151f7" name="a268d9a8c561b3ebcf4e9ec47484151f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a268d9a8c561b3ebcf4e9ec47484151f7">&#9670;&#160;</a></span>m_host</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString AGVModbusManager::m_host</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00274">274</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00055">connectToDevice()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00090">onConnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00113">onDisconnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00132">onError()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00161">tryReconnect()</a>.</p>
+
+</div>
+</div>
+<a id="adb74e7649a7a6bc3140a8e82362593da" name="adb74e7649a7a6bc3140a8e82362593da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb74e7649a7a6bc3140a8e82362593da">&#9670;&#160;</a></span>m_lastHeartbeatState</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool AGVModbusManager::m_lastHeartbeatState = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00304">304</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00480">processBitVariables()</a>.</p>
+
+</div>
+</div>
+<a id="ae7b7a420f68bb8b7e74f830da42e6e3c" name="ae7b7a420f68bb8b7e74f830da42e6e3c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7b7a420f68bb8b7e74f830da42e6e3c">&#9670;&#160;</a></span>m_lastHeartbeatTime</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QDateTime AGVModbusManager::m_lastHeartbeatTime</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00305">305</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00480">processBitVariables()</a>.</p>
+
+</div>
+</div>
+<a id="acd41b4cf931999db4b6f6a5653e54c5b" name="acd41b4cf931999db4b6f6a5653e54c5b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd41b4cf931999db4b6f6a5653e54c5b">&#9670;&#160;</a></span>m_lastSocketError</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QString AGVModbusManager::m_lastSocketError</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00309">309</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00090">onConnected()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00132">onError()</a>.</p>
+
+</div>
+</div>
+<a id="a864c8bb871f351dc9dd99fa12a9ade6e" name="a864c8bb871f351dc9dd99fa12a9ade6e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a864c8bb871f351dc9dd99fa12a9ade6e">&#9670;&#160;</a></span>m_mutex</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QMutex AGVModbusManager::m_mutex</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00272">272</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00055">connectToDevice()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00071">disconnectFromDevice()</a>.</p>
+
+</div>
+</div>
+<a id="aefe233853818a531055c70394baf7bbe" name="aefe233853818a531055c70394baf7bbe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aefe233853818a531055c70394baf7bbe">&#9670;&#160;</a></span>m_networkThread</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QThread* AGVModbusManager::m_networkThread</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00271">271</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00043">~AGVModbusManager()</a>.</p>
+
+</div>
+</div>
+<a id="a55295c29278e569ce80bcb8b8f7af00c" name="a55295c29278e569ce80bcb8b8f7af00c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a55295c29278e569ce80bcb8b8f7af00c">&#9670;&#160;</a></span>m_pollInterval</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int AGVModbusManager::m_pollInterval</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00282">282</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00090">onConnected()</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00154">pollInterval()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00169">setPollInterval()</a>.</p>
+
+</div>
+</div>
+<a id="af9b2e253c7713f7e03c0bf203f206a81" name="af9b2e253c7713f7e03c0bf203f206a81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9b2e253c7713f7e03c0bf203f206a81">&#9670;&#160;</a></span>m_pollTimer</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QTimer* AGVModbusManager::m_pollTimer</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00281">281</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00006">AGVModbusManager()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00071">disconnectFromDevice()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00090">onConnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00113">onDisconnected()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00169">setPollInterval()</a>.</p>
+
+</div>
+</div>
+<a id="a19410af75e9c63c5828b408fbe2f663e" name="a19410af75e9c63c5828b408fbe2f663e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19410af75e9c63c5828b408fbe2f663e">&#9670;&#160;</a></span>m_port</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">quint16 AGVModbusManager::m_port</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00275">275</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00055">connectToDevice()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00090">onConnected()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00161">tryReconnect()</a>.</p>
+
+</div>
+</div>
+<a id="a5d7a04230ad892ad35d5820ae0746825" name="a5d7a04230ad892ad35d5820ae0746825"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5d7a04230ad892ad35d5820ae0746825">&#9670;&#160;</a></span>m_reconnectInterval</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int AGVModbusManager::m_reconnectInterval</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00278">278</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00113">onDisconnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00132">onError()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00177">setAutoReconnect()</a>.</p>
+
+</div>
+</div>
+<a id="a05115d6581bb6a74ae00270e243a3031" name="a05115d6581bb6a74ae00270e243a3031"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05115d6581bb6a74ae00270e243a3031">&#9670;&#160;</a></span>m_reconnectTimer</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QTimer* AGVModbusManager::m_reconnectTimer</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00279">279</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00006">AGVModbusManager()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00090">onConnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00113">onDisconnected()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00132">onError()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00177">setAutoReconnect()</a>.</p>
+
+</div>
+</div>
+<a id="a9065d6cf697b91a73da9d8627cc5b03b" name="a9065d6cf697b91a73da9d8627cc5b03b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9065d6cf697b91a73da9d8627cc5b03b">&#9670;&#160;</a></span>m_registerValues</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QMap&lt;int, quint16&gt; AGVModbusManager::m_registerValues</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00288">288</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00480">processBitVariables()</a>.</p>
+
+</div>
+</div>
+<a id="a8fbfeb267027abb9b2f423991c0d2866" name="a8fbfeb267027abb9b2f423991c0d2866"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8fbfeb267027abb9b2f423991c0d2866">&#9670;&#160;</a></span>m_requestTimestamps</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QMap&lt;quint16, QDateTime&gt; AGVModbusManager::m_requestTimestamps</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00240">240</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00374">processSingleResponseFrame()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00275">readMultipleRegisters()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00782">writeSingleRegister()</a>.</p>
+
+</div>
+</div>
+<a id="abe5938c2ea4caad85debecf90bce149b" name="abe5938c2ea4caad85debecf90bce149b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe5938c2ea4caad85debecf90bce149b">&#9670;&#160;</a></span>m_responseBuffer</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QByteArray AGVModbusManager::m_responseBuffer</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00249">249</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00309">onReadyRead()</a>.</p>
+
+</div>
+</div>
+<a id="a73a240a6bcb443ba9c56d72beae096fa" name="a73a240a6bcb443ba9c56d72beae096fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a73a240a6bcb443ba9c56d72beae096fa">&#9670;&#160;</a></span>m_socket</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QTcpSocket* AGVModbusManager::m_socket</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00270">270</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00006">AGVModbusManager()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00055">connectToDevice()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00071">disconnectFromDevice()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00132">onError()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00309">onReadyRead()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00275">readMultipleRegisters()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00782">writeSingleRegister()</a>.</p>
+
+</div>
+</div>
+<a id="a850ea4e32e8d2749e767e4ae7fbf8568" name="a850ea4e32e8d2749e767e4ae7fbf8568"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a850ea4e32e8d2749e767e4ae7fbf8568">&#9670;&#160;</a></span>m_transactionAddressMap</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QMap&lt;quint16, int&gt; AGVModbusManager::m_transactionAddressMap</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00285">285</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00237">createReadRequest()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00811">createWriteRequest()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00374">processSingleResponseFrame()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00275">readMultipleRegisters()</a>.</p>
+
+</div>
+</div>
+<a id="adc95f9a8c7dfc907fbcde6bbe19f2cc1" name="adc95f9a8c7dfc907fbcde6bbe19f2cc1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adc95f9a8c7dfc907fbcde6bbe19f2cc1">&#9670;&#160;</a></span>m_transactionId</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">quint16 AGVModbusManager::m_transactionId</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00284">284</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00237">createReadRequest()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00811">createWriteRequest()</a>, <a class="el" href="agvmodbusmanager_8cpp_source.html#l00275">readMultipleRegisters()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00782">writeSingleRegister()</a>.</p>
+
+</div>
+</div>
+<a id="a0e672cbd224020a33e9951c369d740f3" name="a0e672cbd224020a33e9951c369d740f3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e672cbd224020a33e9951c369d740f3">&#9670;&#160;</a></span>m_writesEnabled</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool AGVModbusManager::m_writesEnabled = true</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00310">310</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8h_source.html#l00314">setWritesEnabled()</a>, <a class="el" href="agvmodbusmanager_8h_source.html#l00315">writesEnabled()</a> , 以及 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00782">writeSingleRegister()</a>.</p>
+
+</div>
+</div>
+<a id="adfc276f7c1e1a80f47abee2055ff0553" name="adfc276f7c1e1a80f47abee2055ff0553"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adfc276f7c1e1a80f47abee2055ff0553">&#9670;&#160;</a></span>REQUEST_TIMEOUT</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int AGVModbusManager::REQUEST_TIMEOUT = 2000</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">在文件 <a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a> 第 <a class="el" href="agvmodbusmanager_8h_source.html#l00241">241</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="agvmodbusmanager_8cpp_source.html#l00275">readMultipleRegisters()</a>.</p>
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li><a class="el" href="agvmodbusmanager_8h_source.html">agvmodbusmanager.h</a></li>
+<li><a class="el" href="agvmodbusmanager_8cpp_source.html">agvmodbusmanager.cpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="classAGVModbusManager.html">AGVModbusManager</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

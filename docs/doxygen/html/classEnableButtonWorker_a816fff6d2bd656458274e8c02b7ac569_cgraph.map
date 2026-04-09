@@ -1,0 +1,10 @@
+<map id="EnableButtonWorker::startPolling" name="EnableButtonWorker::startPolling">
+<area shape="rect" id="Node000001" title="功能: 启动轮询定时器或循环以检测按键状态变化。 如何使用: 在 worker 所在线程就绪后调用，一般在移入线程并启动线程后执行。 如何修改: 可调整轮询间隔或改用事件/中断机制以减少 CPU 占用。" alt="" coords="5,35,160,75"/>
+<area shape="rect" id="Node000002" href="$classEnableButtonWorker.html#ac25925bb8dea3725cba4255c7b29b0d3" title=" " alt="" coords="415,5,569,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,47,401,29,401,34,160,52"/>
+<area shape="rect" id="Node000003" href="$classEnableButtonWorker.html#abb6f128556b2db903ef0659c82e66cf1" title=" " alt="" coords="208,63,363,103"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,63,195,67,194,73,160,68"/>
+<area shape="poly" id="edge4_Node000003_Node000002" title=" " alt="" coords="357,60,405,47,407,52,359,65"/>
+<area shape="rect" id="Node000004" href="$classEnableButtonWorker.html#ae98b097b48d66804de60bb93f16c0e7e" title="使用示例:" alt="" coords="411,69,573,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="363,83,397,84,397,89,363,88"/>
+</map>

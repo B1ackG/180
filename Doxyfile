@@ -1,0 +1,64 @@
+# Doxygen configuration for project 180
+
+PROJECT_NAME           = "180"
+PROJECT_BRIEF          = "AGV Qt project API documentation"
+PROJECT_NUMBER         = "1.0"
+OUTPUT_DIRECTORY       = docs/doxygen
+CREATE_SUBDIRS         = NO
+
+OUTPUT_LANGUAGE        = Chinese
+USE_MDFILE_AS_MAINPAGE = DEBUG_USAGE.md
+
+INPUT                  = .
+FILE_PATTERNS          = *.h *.hpp *.cpp *.c *.cc *.qml *.ui *.md
+RECURSIVE              = YES
+EXCLUDE                = build .git .vscode .qtcreator documents Picture
+EXCLUDE_PATTERNS       = */build/* */.git/* */.vscode/* */.qtcreator/*
+
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+
+OPTIMIZE_OUTPUT_FOR_C  = NO
+OPTIMIZE_OUTPUT_JAVA   = NO
+OPTIMIZE_FOR_FORTRAN   = NO
+OPTIMIZE_OUTPUT_VHDL   = NO
+
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = NO
+
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+GENERATE_TREEVIEW      = YES
+
+GENERATE_LATEX         = NO
+GENERATE_XML           = NO
+
+HAVE_DOT               = YES
+DOT_IMAGE_FORMAT       = svg
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+INCLUDE_GRAPH          = YES
+INCLUDED_BY_GRAPH      = YES
+DIRECTORY_GRAPH        = YES
+DOT_MULTI_TARGETS      = YES
+DOT_NUM_THREADS        = 0
+
+FULL_PATH_NAMES        = NO
+STRIP_FROM_PATH        = .
+QUIET                  = NO
+JAVADOC_AUTOBRIEF      = YES
+MULTILINE_CPP_IS_BRIEF = YES
+MARKDOWN_SUPPORT       = YES
+AUTOLINK_SUPPORT       = YES

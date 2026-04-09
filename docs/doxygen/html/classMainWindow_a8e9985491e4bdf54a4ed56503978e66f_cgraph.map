@@ -1,0 +1,40 @@
+<map id="MainWindow::onAGVMoveSpeedChanged" name="MainWindow::onAGVMoveSpeedChanged">
+<area shape="rect" id="Node000001" title="AGV 移动速度变化" alt="" coords="5,295,239,335"/>
+<area shape="rect" id="Node000002" href="$classOperationRecorder.html#ae5e0a07f7b387272fd297c103b4fe42c" title="添加操作记录" alt="" coords="327,233,479,273"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,292,313,270,315,275,215,297"/>
+<area shape="rect" id="Node000012" href="$classMainWindow.html#aeb33203e3563d9db0e67d493e1a127a2" title="向 AGV 写寄存器" alt="" coords="287,334,520,359"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="239,325,278,330,278,335,238,331"/>
+<area shape="rect" id="Node000003" href="$classOperationRecorder.html#a99de0d8b91e199e6f1aab3b664df07e1" title=" " alt="" coords="611,233,763,273"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="480,251,598,251,598,256,480,256"/>
+<area shape="rect" id="Node000004" href="$classOperationRecorder.html#a334ae0662731c03b4a767ee6c47212df" title=" " alt="" coords="610,165,765,205"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="479,233,596,204,597,210,480,238"/>
+<area shape="rect" id="Node000005" href="$classOperationRecorder.html#a76e57ca1319df23bc72f4b7ed395f469" title=" " alt="" coords="902,229,1054,269"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="765,200,889,227,888,232,764,205"/>
+<area shape="rect" id="Node000007" href="$classOperationRecorder.html#a20308fd183b5b0dbe00ce89fcc0b823e" title=" " alt="" coords="902,37,1054,77"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="717,163,778,125,854,87,888,75,889,80,856,92,781,129,719,167"/>
+<area shape="rect" id="Node000010" href="$classOperationRecorder.html#a507cbb2e0e5b6babc09e31dc8127f101" title=" " alt="" coords="885,101,1071,141"/>
+<area shape="poly" id="edge9_Node000004_Node000010" title=" " alt="" coords="764,166,873,142,874,147,765,171"/>
+<area shape="rect" id="Node000011" href="$classOperationRecorder.html#a10162fd420bca1481d62d02b4afcfa30" title="使用示例:" alt="" coords="902,165,1054,205"/>
+<area shape="poly" id="edge10_Node000004_Node000011" title=" " alt="" coords="765,183,888,183,888,188,765,188"/>
+<area shape="rect" id="Node000006" href="$structOperationRecord.html#aae606bfdd782db1bd3fc32dbf0a814d7" title=" " alt="" coords="1149,237,1328,262"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="1054,247,1135,247,1135,252,1054,252"/>
+<area shape="rect" id="Node000008" href="$classOperationRecorder.html#a60e73780538b8376d7e68e9cc09fe5a9" title=" " alt="" coords="1159,69,1318,109"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="1055,64,1146,75,1145,81,1054,69"/>
+<area shape="rect" id="Node000009" href="$classOperationRecorder.html#a37d0a54d4ebddd9ad4c248331f70a0e3" title=" " alt="" coords="1151,5,1326,45"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="1054,45,1137,35,1138,40,1055,51"/>
+<area shape="rect" id="Node000013" href="$classAGVModbusManager.html#a1e0321a0cc3e28ba495cabbc83b193d4" title="功能: 返回当前网络连接状态。 如何使用: 用于 UI 指示或决定是否发起读写操作。 如何修改: 若支持多设备，应提供设备级别的状态查询接口。" alt="" coords="855,422,1101,447"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="432,357,493,383,569,407,638,419,708,427,841,434,841,439,708,432,637,424,567,412,491,388,429,362"/>
+<area shape="rect" id="Node000014" href="$classMainWindow.html#a0571dda89e7bcba308da02c1160fcb57" title=" " alt="" coords="575,303,800,329"/>
+<area shape="poly" id="edge13_Node000012_Node000014" title=" " alt="" coords="520,331,561,327,561,332,521,337"/>
+<area shape="rect" id="Node000018" href="$classAGVModbusManager.html#aec03e5a2f2710570382b6063a1ffe826" title="功能: 写单个寄存器到 AGV 设备。 如何使用: 提供地址和值，调用后观察 writeCompleted 或 errorOccurred 信号以获取结果。 如何修改: 若需事务进行多寄存器写入，请使用..." alt="" coords="568,357,807,397"/>
+<area shape="poly" id="edge17_Node000012_Node000018" title=" " alt="" coords="521,357,555,360,554,366,520,362"/>
+<area shape="rect" id="Node000015" href="$classFeatureSwitchManager.html#af4a8c4a54a17fdddbdb9eece6b8da932" title="组合检查：先检查所属大功能，再检查小功能（若提供）" alt="" coords="893,293,1063,333"/>
+<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="800,312,879,312,879,317,800,318"/>
+<area shape="rect" id="Node000016" href="$classFeatureSwitchManager.html#aa558b5e5c8c59422920a0006cc304f0e" title="检查某个大功能是否可用" alt="" coords="1153,355,1324,395"/>
+<area shape="poly" id="edge15_Node000015_Node000016" title=" " alt="" coords="1064,331,1141,349,1140,354,1063,336"/>
+<area shape="rect" id="Node000017" href="$classFeatureSwitchManager.html#a34a3f96557e81a21f547065c8ce2608b" title="检查某个小功能是否可用" alt="" coords="1149,291,1328,331"/>
+<area shape="poly" id="edge16_Node000015_Node000017" title=" " alt="" coords="1063,310,1135,309,1135,314,1063,315"/>
+<area shape="poly" id="edge19_Node000018_Node000013" title=" " alt="" coords="790,395,900,417,899,422,789,400"/>
+<area shape="rect" id="Node000019" href="$classAGVModbusManager.html#a3635763c93cd21764900cab25136b890" title=" " alt="" coords="875,357,1081,397"/>
+<area shape="poly" id="edge18_Node000018_Node000019" title=" " alt="" coords="807,375,861,375,861,380,807,380"/>
+</map>

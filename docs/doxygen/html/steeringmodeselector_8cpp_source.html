@@ -1,0 +1,492 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: steeringmodeselector.cpp 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('steeringmodeselector_8cpp_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">steeringmodeselector.cpp</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="steeringmodeselector_8cpp.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="steeringmodeselector_8h.html">steeringmodeselector.h</a>&quot;</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#include &lt;QDebug&gt;</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="foldopen" id="foldopen00004" data-start="{" data-end="}">
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#a974f951ff27fee043585eb4e747aa599">    4</a></span><a class="code hl_function" href="classSteeringModeSelector.html#a974f951ff27fee043585eb4e747aa599">SteeringModeSelector::SteeringModeSelector</a>(QWidget *parent)</div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span>    : QWidget(parent)</div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span>    , m_currentMode(<a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1af60f81637cc4a95b7352405583a6d3bb">STEER_FRONT_BACK</a>)  <span class="comment">// 默认前后轮转向</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span>    , m_buttonStyle(<a class="code hl_class" href="classTechPushButton.html">TechPushButton</a>::StyleHolographic)</div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span>    , m_activeColor(0, 200, 255)       <span class="comment">// 激活状态颜色（科技蓝）</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span>    , m_inactiveColor(80, 80, 100)     <span class="comment">// 非激活状态颜色（灰色）</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span>    , m_textColor(Qt::white)</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span>{</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span>    <span class="comment">// 设置默认样式</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    setAttribute(Qt::WA_StyledBackground);</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>    setStyleSheet(<span class="stringliteral">&quot;background-color: transparent;&quot;</span>);</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    <a class="code hl_function" href="classSteeringModeSelector.html#a7aef4fb0a679593298cbbfa202a523bf">initUI</a>();</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>    <a class="code hl_function" href="classSteeringModeSelector.html#aaac9c2e4fd9567a08b7bf67ff3436aba">updateButtonStyles</a>();</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>}</div>
+</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
+<div class="foldopen" id="foldopen00020" data-start="{" data-end="}">
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#a99fb9e4569668629e3ff5e5fde50d824">   20</a></span><a class="code hl_function" href="classSteeringModeSelector.html#a99fb9e4569668629e3ff5e5fde50d824">SteeringModeSelector::~SteeringModeSelector</a>()</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>{</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>}</div>
+</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
+<div class="foldopen" id="foldopen00024" data-start="{" data-end="}">
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#a7aef4fb0a679593298cbbfa202a523bf">   24</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classSteeringModeSelector.html#a7aef4fb0a679593298cbbfa202a523bf">SteeringModeSelector::initUI</a>()</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>{</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <span class="comment">// 主布局 - 垂直布局（标题+水平按钮）</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a7132c46afaf1f811427f1c4ea2c7024d">m_mainLayout</a> = <span class="keyword">new</span> QVBoxLayout(<span class="keyword">this</span>);</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a7132c46afaf1f811427f1c4ea2c7024d">m_mainLayout</a>-&gt;setContentsMargins(5, 5, 5, 5);</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a7132c46afaf1f811427f1c4ea2c7024d">m_mainLayout</a>-&gt;setSpacing(10);</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <span class="comment">// 标题</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#af3ae41dc14c31dc82989c8445d5f0517">m_titleLabel</a> = <span class="keyword">new</span> QLabel(<span class="stringliteral">&quot;转向模式选择&quot;</span>, <span class="keyword">this</span>);</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#af3ae41dc14c31dc82989c8445d5f0517">m_titleLabel</a>-&gt;setAlignment(Qt::AlignCenter);</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#af3ae41dc14c31dc82989c8445d5f0517">m_titleLabel</a>-&gt;setStyleSheet(<span class="stringliteral">&quot;color: white; font-size: 16px; font-weight: bold;&quot;</span>);</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a7132c46afaf1f811427f1c4ea2c7024d">m_mainLayout</a>-&gt;addWidget(<a class="code hl_variable" href="classSteeringModeSelector.html#af3ae41dc14c31dc82989c8445d5f0517">m_titleLabel</a>);</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="comment">// 按钮布局 - 两排布局（上排123，下排45）</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a5ac9220d3b0bc451add2bba17b48d967">m_buttonLayout</a> = <span class="keyword">new</span> QVBoxLayout();</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a5ac9220d3b0bc451add2bba17b48d967">m_buttonLayout</a>-&gt;setContentsMargins(0, 0, 0, 0);</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a5ac9220d3b0bc451add2bba17b48d967">m_buttonLayout</a>-&gt;setSpacing(8);</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="comment">// 创建按钮（恢复完整文本）</span></div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a> = <span class="keyword">new</span> <a class="code hl_class" href="classTechPushButton.html">TechPushButton</a>(<span class="stringliteral">&quot;前后轮转向&quot;</span>, <span class="keyword">this</span>);</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a> = <span class="keyword">new</span> <a class="code hl_class" href="classTechPushButton.html">TechPushButton</a>(<span class="stringliteral">&quot;前轮转向&quot;</span>, <span class="keyword">this</span>);</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a> = <span class="keyword">new</span> <a class="code hl_class" href="classTechPushButton.html">TechPushButton</a>(<span class="stringliteral">&quot;平移模式&quot;</span>, <span class="keyword">this</span>);</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a> = <span class="keyword">new</span> <a class="code hl_class" href="classTechPushButton.html">TechPushButton</a>(<span class="stringliteral">&quot;横向移动&quot;</span>, <span class="keyword">this</span>);</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a> = <span class="keyword">new</span> <a class="code hl_class" href="classTechPushButton.html">TechPushButton</a>(<span class="stringliteral">&quot;原地旋转&quot;</span>, <span class="keyword">this</span>);</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="comment">// 设置按钮属性</span></div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;setObjectName(<span class="stringliteral">&quot;btnFrontBack&quot;</span>);</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;setObjectName(<span class="stringliteral">&quot;btnFrontOnly&quot;</span>);</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;setObjectName(<span class="stringliteral">&quot;btnParallel&quot;</span>);</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;setObjectName(<span class="stringliteral">&quot;btnLateral&quot;</span>);</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;setObjectName(<span class="stringliteral">&quot;btnRotate&quot;</span>);</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="comment">// 设置推荐尺寸（标题+两排按钮布局）</span></div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    <span class="comment">// 推荐总宽度：3个按钮 × 120px + 2个间距 × 10px + 边距</span></div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <span class="comment">// 推荐高度：标题 + 两排按钮 + 间距</span></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keywordtype">int</span> btnWidth = 120;  <span class="comment">// 按钮宽度（适应较长的中文文本）</span></div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="keywordtype">int</span> btnHeight = 40;  <span class="comment">// 按钮高度（适合手指触摸）</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;setFixedSize(btnWidth, btnHeight);</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;setFixedSize(btnWidth, btnHeight);</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;setFixedSize(btnWidth, btnHeight);</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;setFixedSize(btnWidth, btnHeight);</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;setFixedSize(btnWidth, btnHeight);</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="comment">// 启用点击动画</span></div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#af7666840bc8f43dff3eedc6e64d008aa">enableClickAnimation</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#af7666840bc8f43dff3eedc6e64d008aa">enableClickAnimation</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#af7666840bc8f43dff3eedc6e64d008aa">enableClickAnimation</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#af7666840bc8f43dff3eedc6e64d008aa">enableClickAnimation</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#af7666840bc8f43dff3eedc6e64d008aa">enableClickAnimation</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span> </div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="comment">// 启用悬停动画</span></div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad7f2b4f8b8eefbbf01e5864bbd66fa72">enableHoverAnimation</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad7f2b4f8b8eefbbf01e5864bbd66fa72">enableHoverAnimation</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad7f2b4f8b8eefbbf01e5864bbd66fa72">enableHoverAnimation</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad7f2b4f8b8eefbbf01e5864bbd66fa72">enableHoverAnimation</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad7f2b4f8b8eefbbf01e5864bbd66fa72">enableHoverAnimation</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    <span class="comment">// 启用文字发光</span></div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a4c6ca026abd406645f3365f3af76274e">setTextGlow</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a4c6ca026abd406645f3365f3af76274e">setTextGlow</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a4c6ca026abd406645f3365f3af76274e">setTextGlow</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a4c6ca026abd406645f3365f3af76274e">setTextGlow</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a4c6ca026abd406645f3365f3af76274e">setTextGlow</a>(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    QHBoxLayout *topRow = <span class="keyword">new</span> QHBoxLayout();</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    topRow-&gt;setContentsMargins(0, 0, 0, 0);</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    topRow-&gt;setSpacing(10);</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    topRow-&gt;addWidget(<a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>);</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    topRow-&gt;addWidget(<a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>);</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    topRow-&gt;addWidget(<a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>);</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    QHBoxLayout *bottomRow = <span class="keyword">new</span> QHBoxLayout();</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    bottomRow-&gt;setContentsMargins(0, 0, 0, 0);</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    bottomRow-&gt;setSpacing(10);</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    bottomRow-&gt;addStretch();</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    bottomRow-&gt;addWidget(<a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>);</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    bottomRow-&gt;addWidget(<a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>);</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    bottomRow-&gt;addStretch();</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span> </div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a5ac9220d3b0bc451add2bba17b48d967">m_buttonLayout</a>-&gt;addLayout(topRow);</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a5ac9220d3b0bc451add2bba17b48d967">m_buttonLayout</a>-&gt;addLayout(bottomRow);</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span> </div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    <span class="comment">// 添加到主布局</span></div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a7132c46afaf1f811427f1c4ea2c7024d">m_mainLayout</a>-&gt;addLayout(<a class="code hl_variable" href="classSteeringModeSelector.html#a5ac9220d3b0bc451add2bba17b48d967">m_buttonLayout</a>);</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span> </div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    setMinimumSize(420, 130);</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    <span class="comment">// 连接信号槽</span></div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    connect(<a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>, &amp;TechPushButton::clicked, <span class="keyword">this</span>, &amp;<a class="code hl_slot" href="classSteeringModeSelector.html#afd1d25dc10c16829501b63f932101019">SteeringModeSelector::onFrontBackClicked</a>);</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    connect(<a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>, &amp;TechPushButton::clicked, <span class="keyword">this</span>, &amp;<a class="code hl_slot" href="classSteeringModeSelector.html#ae141fdf78d0ea744ad6fda01ee364b18">SteeringModeSelector::onFrontOnlyClicked</a>);</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    connect(<a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>, &amp;TechPushButton::clicked, <span class="keyword">this</span>, &amp;<a class="code hl_slot" href="classSteeringModeSelector.html#a5c402ca2d0da0858bfbda8e01c77cfe7">SteeringModeSelector::onParallelClicked</a>);</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    connect(<a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>, &amp;TechPushButton::clicked, <span class="keyword">this</span>, &amp;<a class="code hl_slot" href="classSteeringModeSelector.html#af8fbcf1562db74c6e4febac094c61813">SteeringModeSelector::onLateralClicked</a>);</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    connect(<a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>, &amp;TechPushButton::clicked, <span class="keyword">this</span>, &amp;<a class="code hl_slot" href="classSteeringModeSelector.html#af253646c008426ed2108383e4c01765e">SteeringModeSelector::onRotateClicked</a>);</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>}</div>
+</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span> </div>
+<div class="foldopen" id="foldopen00120" data-start="{" data-end="}">
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#a54ef17787394152a826937f0c020174d">  120</a></span>QString <a class="code hl_function" href="classSteeringModeSelector.html#a54ef17787394152a826937f0c020174d">SteeringModeSelector::modeText</a>(<a class="code hl_enumeration" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1">SteeringMode</a> mode)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span><span class="keyword"></span>{</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    <span class="keywordflow">switch</span>(mode) {</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1af60f81637cc4a95b7352405583a6d3bb">STEER_FRONT_BACK</a>: <span class="keywordflow">return</span> <span class="stringliteral">&quot;前后轮转向&quot;</span>;</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1a94cd615170ec52dbf9492f26ed055c5e">STEER_FRONT_ONLY</a>: <span class="keywordflow">return</span> <span class="stringliteral">&quot;前轮转向&quot;</span>;</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1aace0be0827725d6f64ba18ada531ce37">STEER_PARALLEL</a>:   <span class="keywordflow">return</span> <span class="stringliteral">&quot;平移模式&quot;</span>;</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1add17bc5458417db356ff7630bfafb333">STEER_LATERAL</a>:    <span class="keywordflow">return</span> <span class="stringliteral">&quot;横向移动&quot;</span>;</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1a27e0203756e852e9560e17f124030dd8">STEER_ROTATE</a>:     <span class="keywordflow">return</span> <span class="stringliteral">&quot;原地旋转&quot;</span>;</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    <span class="keywordflow">default</span>: <span class="keywordflow">return</span> <span class="stringliteral">&quot;未知模式&quot;</span>;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    }</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>}</div>
+</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span> </div>
+<div class="foldopen" id="foldopen00132" data-start="{" data-end="}">
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#a6e0af5754f389c38698b36de3473d1bb">  132</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="classSteeringModeSelector.html#a6e0af5754f389c38698b36de3473d1bb">SteeringModeSelector::modeModbusValue</a>(<a class="code hl_enumeration" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1">SteeringMode</a> mode)<span class="keyword"> const</span></div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span><span class="keyword"></span>{</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    <span class="keywordflow">switch</span>(mode) {</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1af60f81637cc4a95b7352405583a6d3bb">STEER_FRONT_BACK</a>: <span class="keywordflow">return</span> 0;</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1a94cd615170ec52dbf9492f26ed055c5e">STEER_FRONT_ONLY</a>: <span class="keywordflow">return</span> 1;</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1aace0be0827725d6f64ba18ada531ce37">STEER_PARALLEL</a>:   <span class="keywordflow">return</span> 2;</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1add17bc5458417db356ff7630bfafb333">STEER_LATERAL</a>:    <span class="keywordflow">return</span> 3;</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1a27e0203756e852e9560e17f124030dd8">STEER_ROTATE</a>:     <span class="keywordflow">return</span> 4;</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    <span class="keywordflow">default</span>: <span class="keywordflow">return</span> 0;</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>    }</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>}</div>
+</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span> </div>
+<div class="foldopen" id="foldopen00144" data-start="{" data-end="}">
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#a5faedbfed8e1c1bd33d7cc484a275cc5">  144</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classSteeringModeSelector.html#a5faedbfed8e1c1bd33d7cc484a275cc5">SteeringModeSelector::setButtonStyle</a>(<a class="code hl_enumeration" href="classTechPushButton.html#aab1f4461ed14315ecb1c0d315f2ce32b">TechPushButton::ButtonStyle</a> style)</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>{</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a9cefec01ac144cee09307d0d796a7bb2">m_buttonStyle</a> = style;</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span> </div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1">setButtonStyle</a>(style);</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1">setButtonStyle</a>(style);</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1">setButtonStyle</a>(style);</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1">setButtonStyle</a>(style);</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1">setButtonStyle</a>(style);</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span> </div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    <a class="code hl_function" href="classSteeringModeSelector.html#aaac9c2e4fd9567a08b7bf67ff3436aba">updateButtonStyles</a>();</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>}</div>
+</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span> </div>
+<div class="foldopen" id="foldopen00157" data-start="{" data-end="}">
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#a294f2b57c847b38efc8994c8e7c75e78">  157</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classSteeringModeSelector.html#a294f2b57c847b38efc8994c8e7c75e78">SteeringModeSelector::setCurrentMode</a>(<a class="code hl_enumeration" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1">SteeringMode</a> mode)</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>{</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="classSteeringModeSelector.html#a69e7e80b0ae37c3cfaafa64009eb6992">m_currentMode</a> == mode)</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>        <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span> </div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a69e7e80b0ae37c3cfaafa64009eb6992">m_currentMode</a> = mode;</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span> </div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>    <span class="comment">// 更新按钮样式</span></div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>    <a class="code hl_function" href="classSteeringModeSelector.html#aaac9c2e4fd9567a08b7bf67ff3436aba">updateButtonStyles</a>();</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span> </div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>    <span class="comment">// 发出信号，附带Modbus值</span></div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>    emit <a class="code hl_signal" href="classSteeringModeSelector.html#ae9f0e89a0933ac2a50028dcfe9a3bdf2">modeChanged</a>(mode, <a class="code hl_function" href="classSteeringModeSelector.html#a6e0af5754f389c38698b36de3473d1bb">modeModbusValue</a>(mode));</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>}</div>
+</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span> </div>
+<div class="foldopen" id="foldopen00171" data-start="{" data-end="}">
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#a83ba49f86df85c7a42426368517d5e60">  171</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classSteeringModeSelector.html#a83ba49f86df85c7a42426368517d5e60">SteeringModeSelector::setActiveColor</a>(<span class="keyword">const</span> QColor &amp;color)</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>{</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ae70feb5e4139a6d38e277a21c3e280f7">m_activeColor</a> = color;</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>    <a class="code hl_function" href="classSteeringModeSelector.html#aaac9c2e4fd9567a08b7bf67ff3436aba">updateButtonStyles</a>();</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>}</div>
+</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span> </div>
+<div class="foldopen" id="foldopen00177" data-start="{" data-end="}">
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#a275258715805f1d432aa39ebc6dfc80c">  177</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classSteeringModeSelector.html#a275258715805f1d432aa39ebc6dfc80c">SteeringModeSelector::setInactiveColor</a>(<span class="keyword">const</span> QColor &amp;color)</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>{</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a13e2fd8c43aa47651ecf048a51c138c9">m_inactiveColor</a> = color;</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>    <a class="code hl_function" href="classSteeringModeSelector.html#aaac9c2e4fd9567a08b7bf67ff3436aba">updateButtonStyles</a>();</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>}</div>
+</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span> </div>
+<div class="foldopen" id="foldopen00183" data-start="{" data-end="}">
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#a50d7cc43f08348546443dcdadbf87a30">  183</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classSteeringModeSelector.html#a50d7cc43f08348546443dcdadbf87a30">SteeringModeSelector::setTextColor</a>(<span class="keyword">const</span> QColor &amp;color)</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>{</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a74b670d0d246152ba4972991c9604046">m_textColor</a> = color;</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span> </div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(color);</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(color);</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(color);</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(color);</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(color);</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span> </div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>    <span class="comment">// 更新标题颜色</span></div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#af3ae41dc14c31dc82989c8445d5f0517">m_titleLabel</a>-&gt;setStyleSheet(QString(<span class="stringliteral">&quot;color: %1; font-size: 16px; font-weight: bold;&quot;</span>)</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>                                    .arg(color.name()));</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>}</div>
+</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span> </div>
+<div class="foldopen" id="foldopen00198" data-start="{" data-end="}">
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#aaac9c2e4fd9567a08b7bf67ff3436aba">  198</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classSteeringModeSelector.html#aaac9c2e4fd9567a08b7bf67ff3436aba">SteeringModeSelector::updateButtonStyles</a>()</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>{</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    <span class="comment">// 重置所有按钮为非激活状态</span></div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af">setPrimaryColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a13e2fd8c43aa47651ecf048a51c138c9">m_inactiveColor</a>);</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0">setGlowColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a13e2fd8c43aa47651ecf048a51c138c9">m_inactiveColor</a>);</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a74b670d0d246152ba4972991c9604046">m_textColor</a>);</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae97cfaec7f6319ddc26326c23af62870">enablePulseEffect</a>(<span class="keyword">false</span>);</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span> </div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af">setPrimaryColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a13e2fd8c43aa47651ecf048a51c138c9">m_inactiveColor</a>);</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0">setGlowColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a13e2fd8c43aa47651ecf048a51c138c9">m_inactiveColor</a>);</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a74b670d0d246152ba4972991c9604046">m_textColor</a>);</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae97cfaec7f6319ddc26326c23af62870">enablePulseEffect</a>(<span class="keyword">false</span>);</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span> </div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af">setPrimaryColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a13e2fd8c43aa47651ecf048a51c138c9">m_inactiveColor</a>);</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0">setGlowColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a13e2fd8c43aa47651ecf048a51c138c9">m_inactiveColor</a>);</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a74b670d0d246152ba4972991c9604046">m_textColor</a>);</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae97cfaec7f6319ddc26326c23af62870">enablePulseEffect</a>(<span class="keyword">false</span>);</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span> </div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af">setPrimaryColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a13e2fd8c43aa47651ecf048a51c138c9">m_inactiveColor</a>);</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0">setGlowColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a13e2fd8c43aa47651ecf048a51c138c9">m_inactiveColor</a>);</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a74b670d0d246152ba4972991c9604046">m_textColor</a>);</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae97cfaec7f6319ddc26326c23af62870">enablePulseEffect</a>(<span class="keyword">false</span>);</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span> </div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af">setPrimaryColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a13e2fd8c43aa47651ecf048a51c138c9">m_inactiveColor</a>);</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0">setGlowColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a13e2fd8c43aa47651ecf048a51c138c9">m_inactiveColor</a>);</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a74b670d0d246152ba4972991c9604046">m_textColor</a>);</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae97cfaec7f6319ddc26326c23af62870">enablePulseEffect</a>(<span class="keyword">false</span>);</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span> </div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>    <span class="comment">// 激活当前模式的按钮</span></div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>    <span class="keywordflow">switch</span>(<a class="code hl_variable" href="classSteeringModeSelector.html#a69e7e80b0ae37c3cfaafa64009eb6992">m_currentMode</a>) {</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1af60f81637cc4a95b7352405583a6d3bb">STEER_FRONT_BACK</a>:</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af">setPrimaryColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#ae70feb5e4139a6d38e277a21c3e280f7">m_activeColor</a>);</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0">setGlowColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#ae70feb5e4139a6d38e277a21c3e280f7">m_activeColor</a>.lighter(150));</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(Qt::white);</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>        <span class="comment">// m_btnFrontBack-&gt;enablePulseEffect(true);</span></div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span> </div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1a94cd615170ec52dbf9492f26ed055c5e">STEER_FRONT_ONLY</a>:</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af">setPrimaryColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#ae70feb5e4139a6d38e277a21c3e280f7">m_activeColor</a>);</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0">setGlowColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#ae70feb5e4139a6d38e277a21c3e280f7">m_activeColor</a>.lighter(150));</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(Qt::white);</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>        <span class="comment">// m_btnFrontOnly-&gt;enablePulseEffect(true);</span></div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span> </div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1aace0be0827725d6f64ba18ada531ce37">STEER_PARALLEL</a>:</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af">setPrimaryColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#ae70feb5e4139a6d38e277a21c3e280f7">m_activeColor</a>);</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0">setGlowColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#ae70feb5e4139a6d38e277a21c3e280f7">m_activeColor</a>.lighter(150));</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(Qt::white);</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>        <span class="comment">// m_btnParallel-&gt;enablePulseEffect(true);</span></div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span> </div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1add17bc5458417db356ff7630bfafb333">STEER_LATERAL</a>:</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af">setPrimaryColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#ae70feb5e4139a6d38e277a21c3e280f7">m_activeColor</a>);</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0">setGlowColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#ae70feb5e4139a6d38e277a21c3e280f7">m_activeColor</a>.lighter(150));</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(Qt::white);</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>        <span class="comment">// m_btnLateral-&gt;enablePulseEffect(true);</span></div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span> </div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1a27e0203756e852e9560e17f124030dd8">STEER_ROTATE</a>:</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af">setPrimaryColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#ae70feb5e4139a6d38e277a21c3e280f7">m_activeColor</a>);</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0">setGlowColor</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#ae70feb5e4139a6d38e277a21c3e280f7">m_activeColor</a>.lighter(150));</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>        <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">setTextColor</a>(Qt::white);</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>        <span class="comment">// m_btnRotate-&gt;enablePulseEffect(true);</span></div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>    }</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span> </div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    <span class="comment">// 设置按钮样式</span></div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1">setButtonStyle</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a9cefec01ac144cee09307d0d796a7bb2">m_buttonStyle</a>);</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1">setButtonStyle</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a9cefec01ac144cee09307d0d796a7bb2">m_buttonStyle</a>);</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1">setButtonStyle</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a9cefec01ac144cee09307d0d796a7bb2">m_buttonStyle</a>);</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1">setButtonStyle</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a9cefec01ac144cee09307d0d796a7bb2">m_buttonStyle</a>);</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;<a class="code hl_function" href="classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1">setButtonStyle</a>(<a class="code hl_variable" href="classSteeringModeSelector.html#a9cefec01ac144cee09307d0d796a7bb2">m_buttonStyle</a>);</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span> </div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>    <span class="comment">// 更新按钮</span></div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">m_btnFrontBack</a>-&gt;update();</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">m_btnFrontOnly</a>-&gt;update();</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">m_btnParallel</a>-&gt;update();</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">m_btnLateral</a>-&gt;update();</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>    <a class="code hl_variable" href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">m_btnRotate</a>-&gt;update();</div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>}</div>
+</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span> </div>
+<div class="foldopen" id="foldopen00279" data-start="{" data-end="}">
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#afd1d25dc10c16829501b63f932101019">  279</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classSteeringModeSelector.html#afd1d25dc10c16829501b63f932101019">SteeringModeSelector::onFrontBackClicked</a>()</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>{</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>    <a class="code hl_slot" href="classSteeringModeSelector.html#a294f2b57c847b38efc8994c8e7c75e78">setCurrentMode</a>(<a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1af60f81637cc4a95b7352405583a6d3bb">STEER_FRONT_BACK</a>);</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>}</div>
+</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span> </div>
+<div class="foldopen" id="foldopen00284" data-start="{" data-end="}">
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#ae141fdf78d0ea744ad6fda01ee364b18">  284</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classSteeringModeSelector.html#ae141fdf78d0ea744ad6fda01ee364b18">SteeringModeSelector::onFrontOnlyClicked</a>()</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>{</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>    <a class="code hl_slot" href="classSteeringModeSelector.html#a294f2b57c847b38efc8994c8e7c75e78">setCurrentMode</a>(<a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1a94cd615170ec52dbf9492f26ed055c5e">STEER_FRONT_ONLY</a>);</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>}</div>
+</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span> </div>
+<div class="foldopen" id="foldopen00289" data-start="{" data-end="}">
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#a5c402ca2d0da0858bfbda8e01c77cfe7">  289</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classSteeringModeSelector.html#a5c402ca2d0da0858bfbda8e01c77cfe7">SteeringModeSelector::onParallelClicked</a>()</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>{</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>    <a class="code hl_slot" href="classSteeringModeSelector.html#a294f2b57c847b38efc8994c8e7c75e78">setCurrentMode</a>(<a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1aace0be0827725d6f64ba18ada531ce37">STEER_PARALLEL</a>);</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>}</div>
+</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span> </div>
+<div class="foldopen" id="foldopen00294" data-start="{" data-end="}">
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#af8fbcf1562db74c6e4febac094c61813">  294</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classSteeringModeSelector.html#af8fbcf1562db74c6e4febac094c61813">SteeringModeSelector::onLateralClicked</a>()</div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>{</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>    <a class="code hl_slot" href="classSteeringModeSelector.html#a294f2b57c847b38efc8994c8e7c75e78">setCurrentMode</a>(<a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1add17bc5458417db356ff7630bfafb333">STEER_LATERAL</a>);</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>}</div>
+</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span> </div>
+<div class="foldopen" id="foldopen00299" data-start="{" data-end="}">
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno"><a class="line" href="classSteeringModeSelector.html#af253646c008426ed2108383e4c01765e">  299</a></span><span class="keywordtype">void</span> <a class="code hl_slot" href="classSteeringModeSelector.html#af253646c008426ed2108383e4c01765e">SteeringModeSelector::onRotateClicked</a>()</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>{</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>    <a class="code hl_slot" href="classSteeringModeSelector.html#a294f2b57c847b38efc8994c8e7c75e78">setCurrentMode</a>(<a class="code hl_enumvalue" href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1a27e0203756e852e9560e17f124030dd8">STEER_ROTATE</a>);</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>}</div>
+</div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a13e2fd8c43aa47651ecf048a51c138c9"><div class="ttname"><a href="classSteeringModeSelector.html#a13e2fd8c43aa47651ecf048a51c138c9">SteeringModeSelector::m_inactiveColor</a></div><div class="ttdeci">QColor m_inactiveColor</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00174">steeringmodeselector.h:174</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a275258715805f1d432aa39ebc6dfc80c"><div class="ttname"><a href="classSteeringModeSelector.html#a275258715805f1d432aa39ebc6dfc80c">SteeringModeSelector::setInactiveColor</a></div><div class="ttdeci">void setInactiveColor(const QColor &amp;color)</div><div class="ttdoc">设置未激活颜色</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00177">steeringmodeselector.cpp:177</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a294f2b57c847b38efc8994c8e7c75e78"><div class="ttname"><a href="classSteeringModeSelector.html#a294f2b57c847b38efc8994c8e7c75e78">SteeringModeSelector::setCurrentMode</a></div><div class="ttdeci">void setCurrentMode(SteeringMode mode)</div><div class="ttdoc">设置当前转向模式</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00157">steeringmodeselector.cpp:157</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a39a2c9c9ae078ffc67c6af00e2a7c8cc"><div class="ttname"><a href="classSteeringModeSelector.html#a39a2c9c9ae078ffc67c6af00e2a7c8cc">SteeringModeSelector::m_btnRotate</a></div><div class="ttdeci">TechPushButton * m_btnRotate</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00162">steeringmodeselector.h:162</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a50d7cc43f08348546443dcdadbf87a30"><div class="ttname"><a href="classSteeringModeSelector.html#a50d7cc43f08348546443dcdadbf87a30">SteeringModeSelector::setTextColor</a></div><div class="ttdeci">void setTextColor(const QColor &amp;color)</div><div class="ttdoc">设置文本颜色</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00183">steeringmodeselector.cpp:183</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a54e8508e60bbe527577101e7fe92c837"><div class="ttname"><a href="classSteeringModeSelector.html#a54e8508e60bbe527577101e7fe92c837">SteeringModeSelector::m_btnParallel</a></div><div class="ttdeci">TechPushButton * m_btnParallel</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00160">steeringmodeselector.h:160</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a54ef17787394152a826937f0c020174d"><div class="ttname"><a href="classSteeringModeSelector.html#a54ef17787394152a826937f0c020174d">SteeringModeSelector::modeText</a></div><div class="ttdeci">QString modeText(SteeringMode mode) const</div><div class="ttdoc">功能: 根据模式枚举返回可显示的文本描述。 如何使用: 在 UI 上显示模式名称或提示文案时调用。 如何修改: 若需多语言支持，可集成翻译系统。</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00120">steeringmodeselector.cpp:120</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a5ac9220d3b0bc451add2bba17b48d967"><div class="ttname"><a href="classSteeringModeSelector.html#a5ac9220d3b0bc451add2bba17b48d967">SteeringModeSelector::m_buttonLayout</a></div><div class="ttdeci">QVBoxLayout * m_buttonLayout</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00166">steeringmodeselector.h:166</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a5c402ca2d0da0858bfbda8e01c77cfe7"><div class="ttname"><a href="classSteeringModeSelector.html#a5c402ca2d0da0858bfbda8e01c77cfe7">SteeringModeSelector::onParallelClicked</a></div><div class="ttdeci">void onParallelClicked()</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00289">steeringmodeselector.cpp:289</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a5faedbfed8e1c1bd33d7cc484a275cc5"><div class="ttname"><a href="classSteeringModeSelector.html#a5faedbfed8e1c1bd33d7cc484a275cc5">SteeringModeSelector::setButtonStyle</a></div><div class="ttdeci">void setButtonStyle(TechPushButton::ButtonStyle style)</div><div class="ttdoc">功能: 设置内部按钮样式。 如何使用: 在创建后或运行时调用以改变视觉样式。 如何修改: 若增加新样式，扩展 TechPushButton::ButtonStyle 并在样式更新中处理。</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00144">steeringmodeselector.cpp:144</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a69e7e80b0ae37c3cfaafa64009eb6992"><div class="ttname"><a href="classSteeringModeSelector.html#a69e7e80b0ae37c3cfaafa64009eb6992">SteeringModeSelector::m_currentMode</a></div><div class="ttdeci">SteeringMode m_currentMode</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00155">steeringmodeselector.h:155</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a6e0af5754f389c38698b36de3473d1bb"><div class="ttname"><a href="classSteeringModeSelector.html#a6e0af5754f389c38698b36de3473d1bb">SteeringModeSelector::modeModbusValue</a></div><div class="ttdeci">int modeModbusValue(SteeringMode mode) const</div><div class="ttdoc">功能: 返回对应模式在 Modbus 中写入的数值（便于下发到 PLC）。 如何使用: 当模式切换需要写入 PLC 时，调用此函数获取写入值。 如何修改: 若映射关系可配置，请将映射数据外置并在此读取。</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00132">steeringmodeselector.cpp:132</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a7132c46afaf1f811427f1c4ea2c7024d"><div class="ttname"><a href="classSteeringModeSelector.html#a7132c46afaf1f811427f1c4ea2c7024d">SteeringModeSelector::m_mainLayout</a></div><div class="ttdeci">QVBoxLayout * m_mainLayout</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00165">steeringmodeselector.h:165</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a74b670d0d246152ba4972991c9604046"><div class="ttname"><a href="classSteeringModeSelector.html#a74b670d0d246152ba4972991c9604046">SteeringModeSelector::m_textColor</a></div><div class="ttdeci">QColor m_textColor</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00175">steeringmodeselector.h:175</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a775a933ec36e1096e6721607bf19eac8"><div class="ttname"><a href="classSteeringModeSelector.html#a775a933ec36e1096e6721607bf19eac8">SteeringModeSelector::m_btnFrontOnly</a></div><div class="ttdeci">TechPushButton * m_btnFrontOnly</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00159">steeringmodeselector.h:159</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a7aef4fb0a679593298cbbfa202a523bf"><div class="ttname"><a href="classSteeringModeSelector.html#a7aef4fb0a679593298cbbfa202a523bf">SteeringModeSelector::initUI</a></div><div class="ttdeci">void initUI()</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00024">steeringmodeselector.cpp:24</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a83ba49f86df85c7a42426368517d5e60"><div class="ttname"><a href="classSteeringModeSelector.html#a83ba49f86df85c7a42426368517d5e60">SteeringModeSelector::setActiveColor</a></div><div class="ttdeci">void setActiveColor(const QColor &amp;color)</div><div class="ttdoc">设置激活（选中）颜色</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00171">steeringmodeselector.cpp:171</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a974f951ff27fee043585eb4e747aa599"><div class="ttname"><a href="classSteeringModeSelector.html#a974f951ff27fee043585eb4e747aa599">SteeringModeSelector::SteeringModeSelector</a></div><div class="ttdeci">SteeringModeSelector(QWidget *parent=nullptr)</div><div class="ttdoc">功能: 构造函数，初始化转向模式选择器 UI。 如何使用: 在需要显示转向模式选择的界面创建并添加到布局。 如何修改: 若需支持更多转向模式或不同布局，在 initUI 中扩展并增加枚举项。</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00004">steeringmodeselector.cpp:4</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a99fb9e4569668629e3ff5e5fde50d824"><div class="ttname"><a href="classSteeringModeSelector.html#a99fb9e4569668629e3ff5e5fde50d824">SteeringModeSelector::~SteeringModeSelector</a></div><div class="ttdeci">~SteeringModeSelector()</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00020">steeringmodeselector.cpp:20</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_a9cefec01ac144cee09307d0d796a7bb2"><div class="ttname"><a href="classSteeringModeSelector.html#a9cefec01ac144cee09307d0d796a7bb2">SteeringModeSelector::m_buttonStyle</a></div><div class="ttdeci">TechPushButton::ButtonStyle m_buttonStyle</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00172">steeringmodeselector.h:172</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_aaac9c2e4fd9567a08b7bf67ff3436aba"><div class="ttname"><a href="classSteeringModeSelector.html#aaac9c2e4fd9567a08b7bf67ff3436aba">SteeringModeSelector::updateButtonStyles</a></div><div class="ttdeci">void updateButtonStyles()</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00198">steeringmodeselector.cpp:198</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_ad13edb91bf6ad3935d9d47096faed2e8"><div class="ttname"><a href="classSteeringModeSelector.html#ad13edb91bf6ad3935d9d47096faed2e8">SteeringModeSelector::m_btnLateral</a></div><div class="ttdeci">TechPushButton * m_btnLateral</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00161">steeringmodeselector.h:161</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_aded9644e266189e178a7fd29f623388b"><div class="ttname"><a href="classSteeringModeSelector.html#aded9644e266189e178a7fd29f623388b">SteeringModeSelector::m_btnFrontBack</a></div><div class="ttdeci">TechPushButton * m_btnFrontBack</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00158">steeringmodeselector.h:158</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_ae141fdf78d0ea744ad6fda01ee364b18"><div class="ttname"><a href="classSteeringModeSelector.html#ae141fdf78d0ea744ad6fda01ee364b18">SteeringModeSelector::onFrontOnlyClicked</a></div><div class="ttdeci">void onFrontOnlyClicked()</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00284">steeringmodeselector.cpp:284</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_ae70feb5e4139a6d38e277a21c3e280f7"><div class="ttname"><a href="classSteeringModeSelector.html#ae70feb5e4139a6d38e277a21c3e280f7">SteeringModeSelector::m_activeColor</a></div><div class="ttdeci">QColor m_activeColor</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00173">steeringmodeselector.h:173</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_ae9f0e89a0933ac2a50028dcfe9a3bdf2"><div class="ttname"><a href="classSteeringModeSelector.html#ae9f0e89a0933ac2a50028dcfe9a3bdf2">SteeringModeSelector::modeChanged</a></div><div class="ttdeci">void modeChanged(SteeringMode mode, int modbusValue)</div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_af253646c008426ed2108383e4c01765e"><div class="ttname"><a href="classSteeringModeSelector.html#af253646c008426ed2108383e4c01765e">SteeringModeSelector::onRotateClicked</a></div><div class="ttdeci">void onRotateClicked()</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00299">steeringmodeselector.cpp:299</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_af3ae41dc14c31dc82989c8445d5f0517"><div class="ttname"><a href="classSteeringModeSelector.html#af3ae41dc14c31dc82989c8445d5f0517">SteeringModeSelector::m_titleLabel</a></div><div class="ttdeci">QLabel * m_titleLabel</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00169">steeringmodeselector.h:169</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_af8fbcf1562db74c6e4febac094c61813"><div class="ttname"><a href="classSteeringModeSelector.html#af8fbcf1562db74c6e4febac094c61813">SteeringModeSelector::onLateralClicked</a></div><div class="ttdeci">void onLateralClicked()</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00294">steeringmodeselector.cpp:294</a></div></div>
+<div class="ttc" id="aclassSteeringModeSelector_html_afd1d25dc10c16829501b63f932101019"><div class="ttname"><a href="classSteeringModeSelector.html#afd1d25dc10c16829501b63f932101019">SteeringModeSelector::onFrontBackClicked</a></div><div class="ttdeci">void onFrontBackClicked()</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8cpp_source.html#l00279">steeringmodeselector.cpp:279</a></div></div>
+<div class="ttc" id="aclassTechPushButton_html"><div class="ttname"><a href="classTechPushButton.html">TechPushButton</a></div><div class="ttdef"><b>Definition</b> <a href="techpushbutton_8h_source.html#l00032">techpushbutton.h:33</a></div></div>
+<div class="ttc" id="aclassTechPushButton_html_a3763f24bc76735f1d51a4ed3be4422af"><div class="ttname"><a href="classTechPushButton.html#a3763f24bc76735f1d51a4ed3be4422af">TechPushButton::setPrimaryColor</a></div><div class="ttdeci">void setPrimaryColor(const QColor &amp;color)</div><div class="ttdoc">设置主色</div><div class="ttdef"><b>Definition</b> <a href="techpushbutton_8cpp_source.html#l00189">techpushbutton.cpp:189</a></div></div>
+<div class="ttc" id="aclassTechPushButton_html_a4c6ca026abd406645f3365f3af76274e"><div class="ttname"><a href="classTechPushButton.html#a4c6ca026abd406645f3365f3af76274e">TechPushButton::setTextGlow</a></div><div class="ttdeci">void setTextGlow(bool enable=true)</div><div class="ttdoc">启用/禁用文字发光</div><div class="ttdef"><b>Definition</b> <a href="techpushbutton_8cpp_source.html#l00308">techpushbutton.cpp:308</a></div></div>
+<div class="ttc" id="aclassTechPushButton_html_a773094d702fc0029ec76aa33e67dc1a1"><div class="ttname"><a href="classTechPushButton.html#a773094d702fc0029ec76aa33e67dc1a1">TechPushButton::setButtonStyle</a></div><div class="ttdeci">void setButtonStyle(ButtonStyle style)</div><div class="ttdoc">设置按钮风格</div><div class="ttdef"><b>Definition</b> <a href="techpushbutton_8cpp_source.html#l00149">techpushbutton.cpp:149</a></div></div>
+<div class="ttc" id="aclassTechPushButton_html_aab1f4461ed14315ecb1c0d315f2ce32b"><div class="ttname"><a href="classTechPushButton.html#aab1f4461ed14315ecb1c0d315f2ce32b">TechPushButton::ButtonStyle</a></div><div class="ttdeci">ButtonStyle</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="techpushbutton_8h_source.html#l00066">techpushbutton.h:66</a></div></div>
+<div class="ttc" id="aclassTechPushButton_html_ad1ed4dbb87b10fb3379598670b489ea0"><div class="ttname"><a href="classTechPushButton.html#ad1ed4dbb87b10fb3379598670b489ea0">TechPushButton::setGlowColor</a></div><div class="ttdeci">void setGlowColor(const QColor &amp;color)</div><div class="ttdoc">设置发光颜色</div><div class="ttdef"><b>Definition</b> <a href="techpushbutton_8cpp_source.html#l00209">techpushbutton.cpp:209</a></div></div>
+<div class="ttc" id="aclassTechPushButton_html_ad7f2b4f8b8eefbbf01e5864bbd66fa72"><div class="ttname"><a href="classTechPushButton.html#ad7f2b4f8b8eefbbf01e5864bbd66fa72">TechPushButton::enableHoverAnimation</a></div><div class="ttdeci">void enableHoverAnimation(bool enable=true)</div><div class="ttdoc">启用/禁用悬停动画</div><div class="ttdef"><b>Definition</b> <a href="techpushbutton_8cpp_source.html#l00231">techpushbutton.cpp:231</a></div></div>
+<div class="ttc" id="aclassTechPushButton_html_ae947d4ec52a074d3ae9a8cdb42f44013"><div class="ttname"><a href="classTechPushButton.html#ae947d4ec52a074d3ae9a8cdb42f44013">TechPushButton::setTextColor</a></div><div class="ttdeci">void setTextColor(const QColor &amp;color)</div><div class="ttdoc">设置文字颜色</div><div class="ttdef"><b>Definition</b> <a href="techpushbutton_8cpp_source.html#l00317">techpushbutton.cpp:317</a></div></div>
+<div class="ttc" id="aclassTechPushButton_html_ae97cfaec7f6319ddc26326c23af62870"><div class="ttname"><a href="classTechPushButton.html#ae97cfaec7f6319ddc26326c23af62870">TechPushButton::enablePulseEffect</a></div><div class="ttdeci">void enablePulseEffect(bool enable=true)</div><div class="ttdoc">启用/禁用脉冲效果</div><div class="ttdef"><b>Definition</b> <a href="techpushbutton_8cpp_source.html#l00243">techpushbutton.cpp:243</a></div></div>
+<div class="ttc" id="aclassTechPushButton_html_af7666840bc8f43dff3eedc6e64d008aa"><div class="ttname"><a href="classTechPushButton.html#af7666840bc8f43dff3eedc6e64d008aa">TechPushButton::enableClickAnimation</a></div><div class="ttdeci">void enableClickAnimation(bool enable=true)</div><div class="ttdoc">启用/禁用点击动画</div><div class="ttdef"><b>Definition</b> <a href="techpushbutton_8cpp_source.html#l00237">techpushbutton.cpp:237</a></div></div>
+<div class="ttc" id="asteeringmodeselector_8h_html"><div class="ttname"><a href="steeringmodeselector_8h.html">steeringmodeselector.h</a></div><div class="ttdoc">转向模式选择器的声明，封装了多种转向模式的 UI 与交互。</div></div>
+<div class="ttc" id="asteeringmodeselector_8h_html_a66eb73a29340d4cc921bd30fbf9b46b1"><div class="ttname"><a href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1">SteeringMode</a></div><div class="ttdeci">SteeringMode</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00024">steeringmodeselector.h:24</a></div></div>
+<div class="ttc" id="asteeringmodeselector_8h_html_a66eb73a29340d4cc921bd30fbf9b46b1a27e0203756e852e9560e17f124030dd8"><div class="ttname"><a href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1a27e0203756e852e9560e17f124030dd8">STEER_ROTATE</a></div><div class="ttdeci">@ STEER_ROTATE</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00030">steeringmodeselector.h:29</a></div></div>
+<div class="ttc" id="asteeringmodeselector_8h_html_a66eb73a29340d4cc921bd30fbf9b46b1a94cd615170ec52dbf9492f26ed055c5e"><div class="ttname"><a href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1a94cd615170ec52dbf9492f26ed055c5e">STEER_FRONT_ONLY</a></div><div class="ttdeci">@ STEER_FRONT_ONLY</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00026">steeringmodeselector.h:26</a></div></div>
+<div class="ttc" id="asteeringmodeselector_8h_html_a66eb73a29340d4cc921bd30fbf9b46b1aace0be0827725d6f64ba18ada531ce37"><div class="ttname"><a href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1aace0be0827725d6f64ba18ada531ce37">STEER_PARALLEL</a></div><div class="ttdeci">@ STEER_PARALLEL</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00027">steeringmodeselector.h:27</a></div></div>
+<div class="ttc" id="asteeringmodeselector_8h_html_a66eb73a29340d4cc921bd30fbf9b46b1add17bc5458417db356ff7630bfafb333"><div class="ttname"><a href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1add17bc5458417db356ff7630bfafb333">STEER_LATERAL</a></div><div class="ttdeci">@ STEER_LATERAL</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00028">steeringmodeselector.h:28</a></div></div>
+<div class="ttc" id="asteeringmodeselector_8h_html_a66eb73a29340d4cc921bd30fbf9b46b1af60f81637cc4a95b7352405583a6d3bb"><div class="ttname"><a href="steeringmodeselector_8h.html#a66eb73a29340d4cc921bd30fbf9b46b1af60f81637cc4a95b7352405583a6d3bb">STEER_FRONT_BACK</a></div><div class="ttdeci">@ STEER_FRONT_BACK</div><div class="ttdef"><b>Definition</b> <a href="steeringmodeselector_8h_source.html#l00025">steeringmodeselector.h:25</a></div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="steeringmodeselector_8cpp.html">steeringmodeselector.cpp</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

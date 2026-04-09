@@ -1,0 +1,295 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: MainModbusPoller类 参考</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('classMainModbusPoller.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-static-methods">静态 Public 成员函数</a> &#124;
+<a href="classMainModbusPoller-members.html">所有成员列表</a>  </div>
+  <div class="headertitle"><div class="title">MainModbusPoller类 参考</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>主设备 Modbus 轮询调度辅助类。  
+ <a href="classMainModbusPoller.html#details">更多...</a></p>
+
+<p><code>#include &lt;<a class="el" href="mainmodbuspoller_8h_source.html">mainmodbuspoller.h</a>&gt;</code></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
+静态 Public 成员函数</h2></td></tr>
+<tr class="memitem:aefbeece484db0dd132adccb0063c6b86" id="r_aefbeece484db0dd132adccb0063c6b86"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMainModbusPoller.html#aefbeece484db0dd132adccb0063c6b86">shouldSkipStart</a> (QTimer *pollTimer)</td></tr>
+<tr class="memdesc:aefbeece484db0dd132adccb0063c6b86"><td class="mdescLeft">&#160;</td><td class="mdescRight">轮询启动前的保护检查。  <br /></td></tr>
+<tr class="separator:aefbeece484db0dd132adccb0063c6b86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e0ed6050839d2bafaa550a68fbe49f0" id="r_a5e0ed6050839d2bafaa550a68fbe49f0"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMainModbusPoller.html#a5e0ed6050839d2bafaa550a68fbe49f0">shouldSkipPoll</a> ()</td></tr>
+<tr class="memdesc:a5e0ed6050839d2bafaa550a68fbe49f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">当前轮询周期是否应跳过。  <br /></td></tr>
+<tr class="separator:a5e0ed6050839d2bafaa550a68fbe49f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4b07dc78bfd848cdb7370eaeb4cfa32" id="r_ab4b07dc78bfd848cdb7370eaeb4cfa32"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classMainModbusPoller.html#ab4b07dc78bfd848cdb7370eaeb4cfa32">pollNextVariable</a> (<a class="el" href="classModbusThreadManager.html">ModbusThreadManager</a> *manager, <a class="el" href="classModbusVariables.html">ModbusVariables</a> *variables, int &amp;currentIndex)</td></tr>
+<tr class="memdesc:ab4b07dc78bfd848cdb7370eaeb4cfa32"><td class="mdescLeft">&#160;</td><td class="mdescRight">轮询下一条 Modbus 变量。  <br /></td></tr>
+<tr class="separator:ab4b07dc78bfd848cdb7370eaeb4cfa32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">详细描述</h2>
+<div class="textblock"><p>主设备 Modbus 轮询调度辅助类。 </p>
+<p>该类把“是否启动轮询”“是否跳过当前轮询”和“轮询下一条变量”这类 控制逻辑集中在一起，避免这些流程散落在主窗口里。 </p>
+
+<p class="definition">在文件 <a class="el" href="mainmodbuspoller_8h_source.html">mainmodbuspoller.h</a> 第 <a class="el" href="mainmodbuspoller_8h_source.html#l00014">14</a> 行定义.</p>
+</div><h2 class="groupheader">成员函数说明</h2>
+<a id="ab4b07dc78bfd848cdb7370eaeb4cfa32" name="ab4b07dc78bfd848cdb7370eaeb4cfa32"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab4b07dc78bfd848cdb7370eaeb4cfa32">&#9670;&#160;</a></span>pollNextVariable()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool MainModbusPoller::pollNextVariable </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classModbusThreadManager.html">ModbusThreadManager</a> *&#160;</td>
+          <td class="paramname"><em>manager</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classModbusVariables.html">ModbusVariables</a> *&#160;</td>
+          <td class="paramname"><em>variables</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int &amp;&#160;</td>
+          <td class="paramname"><em>currentIndex</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>轮询下一条 Modbus 变量。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">manager</td><td>Modbus 线程管理器。 </td></tr>
+    <tr><td class="paramname">variables</td><td>变量表。 </td></tr>
+    <tr><td class="paramname">currentIndex</td><td>当前轮询索引，成功后会自动递增并循环。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>成功发起轮询返回 true。</dd></dl>
+<p>使用示例: </p><div class="fragment"><div class="line"><span class="keywordtype">int</span> index = 0;</div>
+<div class="line"><a class="code hl_function" href="classMainModbusPoller.html#ab4b07dc78bfd848cdb7370eaeb4cfa32">MainModbusPoller::pollNextVariable</a>(<a class="code hl_function" href="classModbusThreadManager.html#a3d6b84fa0918dcfe29e6962041d44e53">ModbusThreadManager::instance</a>(),</div>
+<div class="line">                                  vars,</div>
+<div class="line">                                  index);</div>
+<div class="ttc" id="aclassMainModbusPoller_html_ab4b07dc78bfd848cdb7370eaeb4cfa32"><div class="ttname"><a href="classMainModbusPoller.html#ab4b07dc78bfd848cdb7370eaeb4cfa32">MainModbusPoller::pollNextVariable</a></div><div class="ttdeci">static bool pollNextVariable(ModbusThreadManager *manager, ModbusVariables *variables, int &amp;currentIndex)</div><div class="ttdoc">轮询下一条 Modbus 变量。</div><div class="ttdef"><b>Definition</b> <a href="mainmodbuspoller_8cpp_source.html#l00025">mainmodbuspoller.cpp:25</a></div></div>
+<div class="ttc" id="aclassModbusThreadManager_html_a3d6b84fa0918dcfe29e6962041d44e53"><div class="ttname"><a href="classModbusThreadManager.html#a3d6b84fa0918dcfe29e6962041d44e53">ModbusThreadManager::instance</a></div><div class="ttdeci">static ModbusThreadManager * instance()</div><div class="ttdoc">获取 ModbusThreadManager 单例实例</div><div class="ttdef"><b>Definition</b> <a href="modbusthreadmanager_8cpp_source.html#l00007">modbusthreadmanager.cpp:7</a></div></div>
+</div><!-- fragment --> 
+<p class="definition">在文件 <a class="el" href="mainmodbuspoller_8cpp_source.html">mainmodbuspoller.cpp</a> 第 <a class="el" href="mainmodbuspoller_8cpp_source.html#l00025">25</a> 行定义.</p>
+
+<p class="reference">引用了 <a class="el" href="modbusvariables_8h_source.html#l00032">ModbusVariable::address</a>, <a class="el" href="modbusvariables_8cpp_source.html#l00168">ModbusVariables::getAllVariables()</a>, <a class="el" href="maindevicemodbusapi_8cpp_source.html#l00005">MainDeviceModbusApi::isReady()</a>, <a class="el" href="modbusvariables_8cpp_source.html#l00108">ModbusVariables::parseAddress()</a> , 以及 <a class="el" href="maindevicemodbusapi_8cpp_source.html#l00038">MainDeviceModbusApi::readAndDebugAddress()</a>.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l03033">MainWindow::pollModbusVariables()</a>.</p>
+<div class="dynheader">
+函数调用图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classMainModbusPoller_ab4b07dc78bfd848cdb7370eaeb4cfa32_cgraph.svg" width="1552" height="232"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classMainModbusPoller_ab4b07dc78bfd848cdb7370eaeb4cfa32_icgraph.svg" width="799" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="a5e0ed6050839d2bafaa550a68fbe49f0" name="a5e0ed6050839d2bafaa550a68fbe49f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e0ed6050839d2bafaa550a68fbe49f0">&#9670;&#160;</a></span>shouldSkipPoll()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool MainModbusPoller::shouldSkipPoll </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>当前轮询周期是否应跳过。 </p>
+<dl class="section return"><dt>返回</dt><dd>始终返回 true。</dd></dl>
+<p>该函数作为轮询门控入口保留，便于未来按功能开关或运行状态 引入更复杂的跳过条件。 </p>
+
+<p class="definition">在文件 <a class="el" href="mainmodbuspoller_8cpp_source.html">mainmodbuspoller.cpp</a> 第 <a class="el" href="mainmodbuspoller_8cpp_source.html#l00016">16</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l03033">MainWindow::pollModbusVariables()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classMainModbusPoller_a5e0ed6050839d2bafaa550a68fbe49f0_icgraph.svg" width="787" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<a id="aefbeece484db0dd132adccb0063c6b86" name="aefbeece484db0dd132adccb0063c6b86"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aefbeece484db0dd132adccb0063c6b86">&#9670;&#160;</a></span>shouldSkipStart()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool MainModbusPoller::shouldSkipStart </td>
+          <td>(</td>
+          <td class="paramtype">QTimer *&#160;</td>
+          <td class="paramname"><em>pollTimer</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>轮询启动前的保护检查。 </p>
+<dl class="params"><dt>参数</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pollTimer</td><td>当前轮询定时器。 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>返回</dt><dd>始终返回 true；若定时器已激活则先停止它。</dd></dl>
+<p>该函数用于把“重新启动轮询前先停掉旧定时器”的逻辑集中封装。 </p>
+
+<p class="definition">在文件 <a class="el" href="mainmodbuspoller_8cpp_source.html">mainmodbuspoller.cpp</a> 第 <a class="el" href="mainmodbuspoller_8cpp_source.html#l00008">8</a> 行定义.</p>
+
+<p class="reference">被这些函数引用 <a class="el" href="mainwindow_8cpp_source.html#l02993">MainWindow::startModbusPolling()</a>.</p>
+<div class="dynheader">
+这是这个函数的调用关系图:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classMainModbusPoller_aefbeece484db0dd132adccb0063c6b86_icgraph.svg" width="491" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+
+</div>
+</div>
+<hr/>该类的文档由以下文件生成:<ul>
+<li><a class="el" href="mainmodbuspoller_8h_source.html">mainmodbuspoller.h</a></li>
+<li><a class="el" href="mainmodbuspoller_8cpp_source.html">mainmodbuspoller.cpp</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="classMainModbusPoller.html">MainModbusPoller</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<map id="mainmodbuspoller.cpp" name="mainmodbuspoller.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="209,5,380,31"/>
+<area shape="rect" id="Node000002" href="$mainmodbuspoller_8h.html" title=" " alt="" coords="5,79,160,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="261,33,131,77,129,72,260,28"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="185,79,255,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="285,33,244,71,240,67,281,29"/>
+<area shape="rect" id="Node000004" href="$maindevicemodbusapi_8h.html" title=" " alt="" coords="279,79,462,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="309,29,350,67,346,71,305,33"/>
+<area shape="rect" id="Node000007" href="$modbusvariables_8h.html" title="Modbus 变量定义与封装声明，便于统一管理寄存器/变量映射。" alt="" coords="487,79,633,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="338,28,504,72,503,78,337,33"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="427,152,498,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="387,102,439,141,435,146,384,106"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="325,152,403,177"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="372,105,369,139,364,138,367,104"/>
+<area shape="poly" id="edge9_Node000007_Node000005" title=" " alt="" coords="546,106,491,146,488,141,543,102"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="523,152,597,177"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="563,104,563,138,557,138,557,104"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="622,152,682,177"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="576,102,628,141,625,146,573,106"/>
+</map>

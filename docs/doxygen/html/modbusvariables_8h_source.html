@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: modbusvariables.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('modbusvariables_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">modbusvariables.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="modbusvariables_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef MODBUSVARIABLES_H</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="modbusvariables_8h.html#a7b9d904be726bd553265972a5f518fd8">   15</a></span><span class="preprocessor">#define MODBUSVARIABLES_H</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &lt;QObject&gt;</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &lt;QMap&gt;</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &lt;QString&gt;</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="comment">// 变量类型枚举</span></div>
+<div class="foldopen" id="foldopen00022" data-start="{" data-end="};">
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno"><a class="line" href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1">   22</a></span><span class="keyword">enum</span> <a class="code hl_enumeration" href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1">ModbusVarType</a> {</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1aa62c8a15c97014772a2fc578fadc45ef">   23</a></span>    <a class="code hl_enumvalue" href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1aa62c8a15c97014772a2fc578fadc45ef">VAR_BOOL</a>,    <span class="comment">// 位变量</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1adb5ba2a9a32328f0d562693a1f7b1d5e">   24</a></span>    <a class="code hl_enumvalue" href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1adb5ba2a9a32328f0d562693a1f7b1d5e">VAR_INT</a>,     <span class="comment">// 整型变量</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno"><a class="line" href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1afeb824d7fb5e35bc98f514635179f9a5">   25</a></span>    <a class="code hl_enumvalue" href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1afeb824d7fb5e35bc98f514635179f9a5">VAR_UINT</a>,    <span class="comment">// 无符号整型</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>    <a class="code hl_enumvalue" href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1a175c390e4349e695b7ebcf77fb9860ce">VAR_REAL</a>     <span class="comment">// 浮点型</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1a175c390e4349e695b7ebcf77fb9860ce">   27</a></span>};</div>
+</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="comment">// 变量信息结构体</span></div>
+<div class="foldopen" id="foldopen00030" data-start="{" data-end="};">
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno"><a class="line" href="structModbusVariable.html">   30</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structModbusVariable.html">ModbusVariable</a> {</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno"><a class="line" href="structModbusVariable.html#a22e517a381ac17c5a82e263aaad0fe6a">   31</a></span>    <a class="code hl_variable" href="structModbusVariable.html#a5e90a1eb1b9b3477f04e0d4d6a5ac80d">QString</a> <a class="code hl_variable" href="structModbusVariable.html#a22e517a381ac17c5a82e263aaad0fe6a">name</a>;           <span class="comment">// 变量名称</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno"><a class="line" href="structModbusVariable.html#a5e90a1eb1b9b3477f04e0d4d6a5ac80d">   32</a></span>    <a class="code hl_variable" href="structModbusVariable.html#a5e90a1eb1b9b3477f04e0d4d6a5ac80d">QString</a> <a class="code hl_variable" href="structModbusVariable.html#a5e90a1eb1b9b3477f04e0d4d6a5ac80d">address</a>;        <span class="comment">// PLC地址（如 %MX100.0）</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno"><a class="line" href="structModbusVariable.html#a92cc3f00f91b1e3fa601be4332097970">   33</a></span>    <a class="code hl_enumeration" href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1">ModbusVarType</a> <a class="code hl_variable" href="structModbusVariable.html#a92cc3f00f91b1e3fa601be4332097970">type</a>;     <span class="comment">// 数据类型</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="structModbusVariable.html#abb7e929ee7bf09469e9a7592f41e342b">   34</a></span>    <a class="code hl_variable" href="structModbusVariable.html#a5e90a1eb1b9b3477f04e0d4d6a5ac80d">QString</a> <a class="code hl_variable" href="structModbusVariable.html#abb7e929ee7bf09469e9a7592f41e342b">comment</a>;        <span class="comment">// 注释</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno"><a class="line" href="structModbusVariable.html#af4a5e9764916cdd41d7cfff02ad79f8a">   35</a></span>    <a class="code hl_variable" href="structModbusVariable.html#a5e90a1eb1b9b3477f04e0d4d6a5ac80d">QString</a> <a class="code hl_variable" href="structModbusVariable.html#af4a5e9764916cdd41d7cfff02ad79f8a">displayName</a>;    <span class="comment">// 显示名称</span></div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno"><a class="line" href="structModbusVariable.html#aede6f07ef8b60d478ee661cb9ac70720">   36</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="structModbusVariable.html#aede6f07ef8b60d478ee661cb9ac70720">modbusAddress</a>;      <span class="comment">// Modbus地址（计算后的）</span></div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="structModbusVariable.html#a0d4437f55600fbd22af231e1362938b1">   37</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="structModbusVariable.html#a0d4437f55600fbd22af231e1362938b1">bitPosition</a>;        <span class="comment">// 位位置（仅对BOOL类型）</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="structModbusVariable.html#a7c815502dbc6bb963b137543cf65e46e">   38</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="structModbusVariable.html#a7c815502dbc6bb963b137543cf65e46e">minValue</a>;           <span class="comment">// 最小值</span></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="structModbusVariable.html#a7bcf735132513d7a96a721e790fa8a25">   39</a></span>    <span class="keywordtype">int</span> <a class="code hl_variable" href="structModbusVariable.html#a7bcf735132513d7a96a721e790fa8a25">maxValue</a>;           <span class="comment">// 最大值</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno"><a class="line" href="structModbusVariable.html#aa5bf5695bd129c7fb7a74e60e3cafc73">   40</a></span>    <a class="code hl_variable" href="structModbusVariable.html#a5e90a1eb1b9b3477f04e0d4d6a5ac80d">QString</a> <a class="code hl_variable" href="structModbusVariable.html#aa5bf5695bd129c7fb7a74e60e3cafc73">unit</a>;           <span class="comment">// 单位</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>};</div>
+</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="foldopen" id="foldopen00043" data-start="{" data-end="};">
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno"><a class="line" href="classModbusVariables.html">   43</a></span><span class="keyword">class </span><a class="code hl_class" href="classModbusVariables.html">ModbusVariables</a> : <span class="keyword">public</span> QObject</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>{</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    Q_OBJECT</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classModbusVariables.html">ModbusVariables</a>(QObject *parent = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="comment">// 加载变量表</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusVariables.html#aa497ba8fd9bc060543e673e98549b235">loadFromExcel</a>(<span class="keyword">const</span> QString &amp;filePath);</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span> </div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    <span class="comment">// 根据PLC地址获取变量信息</span></div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <a class="code hl_struct" href="structModbusVariable.html">ModbusVariable</a> <a class="code hl_function" href="classModbusVariables.html#ae2ff2bbe2520386c5afbe142e38eca2f">getVariable</a>(<span class="keyword">const</span> QString &amp;plcAddress) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="comment">// 获取所有变量</span></div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    QList&lt;ModbusVariable&gt; <a class="code hl_function" href="classModbusVariables.html#aca5b5fdbc05b4720ecd8c3056da82ae7">getAllVariables</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span> </div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    <span class="comment">// 解析PLC地址为Modbus地址和位位置</span></div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="classModbusVariables.html#ac130b9582b881933824eeb94e7adea87">parseAddress</a>(<span class="keyword">const</span> QString &amp;plcAddress, <span class="keywordtype">int</span> &amp;modbusAddress, <span class="keywordtype">int</span> &amp;bitPos);</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span> </div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    <span class="comment">// 根据变量值获取显示文本</span></div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    <span class="keyword">static</span> QString <a class="code hl_function" href="classModbusVariables.html#a57b07f2e417b7bafedeb8699475e4b54">getDisplayText</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structModbusVariable.html">ModbusVariable</a> &amp;var, quint16 value);</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    <span class="comment">// 初始化发送变量表</span></div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusVariables.html#a0325a1b230238f402bfcb8d270b614c2">initSendVariables</a>();</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>    <span class="comment">// 添加变量的重载函数</span></div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusVariables.html#a1a73f503802a7511a4527f18e7c11afe">addVariable</a>(<span class="keyword">const</span> QString &amp;name, <span class="keyword">const</span> QString &amp;address, <a class="code hl_enumeration" href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1">ModbusVarType</a> type, <span class="keyword">const</span> QString &amp;comment = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classModbusVariables.html#a1a73f503802a7511a4527f18e7c11afe">addVariable</a>(<span class="keyword">const</span> QString &amp;name, <span class="keyword">const</span> QString &amp;address, <a class="code hl_enumeration" href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1">ModbusVarType</a> type, <span class="keywordtype">int</span> minValue, <span class="keywordtype">int</span> maxValue, <span class="keyword">const</span> QString &amp;unit = <span class="stringliteral">&quot;&quot;</span>, <span class="keyword">const</span> QString &amp;comment = <span class="stringliteral">&quot;&quot;</span>);</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span> </div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno"><a class="line" href="classModbusVariables.html#a91058e25bf1e2d2a70e2bfe85512c64f">  141</a></span>    QMap&lt;QString, ModbusVariable&gt; <a class="code hl_variable" href="classModbusVariables.html#a91058e25bf1e2d2a70e2bfe85512c64f">m_variables</a>;</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>};</div>
+</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span> </div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span><span class="preprocessor">#endif </span><span class="comment">// MODBUSVARIABLES_H</span></div>
+<div class="ttc" id="aclassModbusVariables_html"><div class="ttname"><a href="classModbusVariables.html">ModbusVariables</a></div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00043">modbusvariables.h:44</a></div></div>
+<div class="ttc" id="aclassModbusVariables_html_a0325a1b230238f402bfcb8d270b614c2"><div class="ttname"><a href="classModbusVariables.html#a0325a1b230238f402bfcb8d270b614c2">ModbusVariables::initSendVariables</a></div><div class="ttdeci">void initSendVariables()</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8cpp_source.html#l00065">modbusvariables.cpp:65</a></div></div>
+<div class="ttc" id="aclassModbusVariables_html_a1a73f503802a7511a4527f18e7c11afe"><div class="ttname"><a href="classModbusVariables.html#a1a73f503802a7511a4527f18e7c11afe">ModbusVariables::addVariable</a></div><div class="ttdeci">void addVariable(const QString &amp;name, const QString &amp;address, ModbusVarType type, const QString &amp;comment=&quot;&quot;)</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8cpp_source.html#l00012">modbusvariables.cpp:12</a></div></div>
+<div class="ttc" id="aclassModbusVariables_html_a57b07f2e417b7bafedeb8699475e4b54"><div class="ttname"><a href="classModbusVariables.html#a57b07f2e417b7bafedeb8699475e4b54">ModbusVariables::getDisplayText</a></div><div class="ttdeci">static QString getDisplayText(const ModbusVariable &amp;var, quint16 value)</div><div class="ttdoc">功能: 根据变量定义与原始寄存器值生成用户可读的显示文本（含单位/枚举映射）。 如何使用: 在显示值到 UI 前调用以得到格式化文本。 如何修改: 若需本地化或枚举映射，扩展该函数以使用外部映射表或翻译...</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8cpp_source.html#l00129">modbusvariables.cpp:129</a></div></div>
+<div class="ttc" id="aclassModbusVariables_html_a91058e25bf1e2d2a70e2bfe85512c64f"><div class="ttname"><a href="classModbusVariables.html#a91058e25bf1e2d2a70e2bfe85512c64f">ModbusVariables::m_variables</a></div><div class="ttdeci">QMap&lt; QString, ModbusVariable &gt; m_variables</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00141">modbusvariables.h:141</a></div></div>
+<div class="ttc" id="aclassModbusVariables_html_aa497ba8fd9bc060543e673e98549b235"><div class="ttname"><a href="classModbusVariables.html#aa497ba8fd9bc060543e673e98549b235">ModbusVariables::loadFromExcel</a></div><div class="ttdeci">bool loadFromExcel(const QString &amp;filePath)</div><div class="ttdoc">功能: 从 Excel 文件中加载变量定义表并构建内部映射。 如何使用: 提供 xlsx/csv 等已支持的文件路径，函数返回是否加载成功。 如何修改: 若需支持其他格式（JSON/数据库），在实现中增...</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8cpp_source.html#l00153">modbusvariables.cpp:153</a></div></div>
+<div class="ttc" id="aclassModbusVariables_html_ac130b9582b881933824eeb94e7adea87"><div class="ttname"><a href="classModbusVariables.html#ac130b9582b881933824eeb94e7adea87">ModbusVariables::parseAddress</a></div><div class="ttdeci">static bool parseAddress(const QString &amp;plcAddress, int &amp;modbusAddress, int &amp;bitPos)</div><div class="ttdoc">功能: 将 PLC 风格地址解析为 Modbus 数值地址与位位置（若为位变量）。 如何使用: 用于将配置中的 PLC 地址转换为底层 Modbus 操作地址。 如何修改: 若支持更多地址格式或厂商差异...</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8cpp_source.html#l00108">modbusvariables.cpp:108</a></div></div>
+<div class="ttc" id="aclassModbusVariables_html_aca5b5fdbc05b4720ecd8c3056da82ae7"><div class="ttname"><a href="classModbusVariables.html#aca5b5fdbc05b4720ecd8c3056da82ae7">ModbusVariables::getAllVariables</a></div><div class="ttdeci">QList&lt; ModbusVariable &gt; getAllVariables() const</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8cpp_source.html#l00168">modbusvariables.cpp:168</a></div></div>
+<div class="ttc" id="aclassModbusVariables_html_ae2ff2bbe2520386c5afbe142e38eca2f"><div class="ttname"><a href="classModbusVariables.html#ae2ff2bbe2520386c5afbe142e38eca2f">ModbusVariables::getVariable</a></div><div class="ttdeci">ModbusVariable getVariable(const QString &amp;plcAddress) const</div><div class="ttdoc">使用示例:</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8cpp_source.html#l00160">modbusvariables.cpp:160</a></div></div>
+<div class="ttc" id="amodbusvariables_8h_html_a5d16b11d5054365bdb56215c722f8ca1"><div class="ttname"><a href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1">ModbusVarType</a></div><div class="ttdeci">ModbusVarType</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00022">modbusvariables.h:22</a></div></div>
+<div class="ttc" id="amodbusvariables_8h_html_a5d16b11d5054365bdb56215c722f8ca1a175c390e4349e695b7ebcf77fb9860ce"><div class="ttname"><a href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1a175c390e4349e695b7ebcf77fb9860ce">VAR_REAL</a></div><div class="ttdeci">@ VAR_REAL</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00027">modbusvariables.h:26</a></div></div>
+<div class="ttc" id="amodbusvariables_8h_html_a5d16b11d5054365bdb56215c722f8ca1aa62c8a15c97014772a2fc578fadc45ef"><div class="ttname"><a href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1aa62c8a15c97014772a2fc578fadc45ef">VAR_BOOL</a></div><div class="ttdeci">@ VAR_BOOL</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00023">modbusvariables.h:23</a></div></div>
+<div class="ttc" id="amodbusvariables_8h_html_a5d16b11d5054365bdb56215c722f8ca1adb5ba2a9a32328f0d562693a1f7b1d5e"><div class="ttname"><a href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1adb5ba2a9a32328f0d562693a1f7b1d5e">VAR_INT</a></div><div class="ttdeci">@ VAR_INT</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00024">modbusvariables.h:24</a></div></div>
+<div class="ttc" id="amodbusvariables_8h_html_a5d16b11d5054365bdb56215c722f8ca1afeb824d7fb5e35bc98f514635179f9a5"><div class="ttname"><a href="modbusvariables_8h.html#a5d16b11d5054365bdb56215c722f8ca1afeb824d7fb5e35bc98f514635179f9a5">VAR_UINT</a></div><div class="ttdeci">@ VAR_UINT</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00025">modbusvariables.h:25</a></div></div>
+<div class="ttc" id="astructModbusVariable_html"><div class="ttname"><a href="structModbusVariable.html">ModbusVariable</a></div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00030">modbusvariables.h:30</a></div></div>
+<div class="ttc" id="astructModbusVariable_html_a0d4437f55600fbd22af231e1362938b1"><div class="ttname"><a href="structModbusVariable.html#a0d4437f55600fbd22af231e1362938b1">ModbusVariable::bitPosition</a></div><div class="ttdeci">int bitPosition</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00037">modbusvariables.h:37</a></div></div>
+<div class="ttc" id="astructModbusVariable_html_a22e517a381ac17c5a82e263aaad0fe6a"><div class="ttname"><a href="structModbusVariable.html#a22e517a381ac17c5a82e263aaad0fe6a">ModbusVariable::name</a></div><div class="ttdeci">QString name</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00031">modbusvariables.h:31</a></div></div>
+<div class="ttc" id="astructModbusVariable_html_a5e90a1eb1b9b3477f04e0d4d6a5ac80d"><div class="ttname"><a href="structModbusVariable.html#a5e90a1eb1b9b3477f04e0d4d6a5ac80d">ModbusVariable::address</a></div><div class="ttdeci">QString address</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00032">modbusvariables.h:32</a></div></div>
+<div class="ttc" id="astructModbusVariable_html_a7bcf735132513d7a96a721e790fa8a25"><div class="ttname"><a href="structModbusVariable.html#a7bcf735132513d7a96a721e790fa8a25">ModbusVariable::maxValue</a></div><div class="ttdeci">int maxValue</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00039">modbusvariables.h:39</a></div></div>
+<div class="ttc" id="astructModbusVariable_html_a7c815502dbc6bb963b137543cf65e46e"><div class="ttname"><a href="structModbusVariable.html#a7c815502dbc6bb963b137543cf65e46e">ModbusVariable::minValue</a></div><div class="ttdeci">int minValue</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00038">modbusvariables.h:38</a></div></div>
+<div class="ttc" id="astructModbusVariable_html_a92cc3f00f91b1e3fa601be4332097970"><div class="ttname"><a href="structModbusVariable.html#a92cc3f00f91b1e3fa601be4332097970">ModbusVariable::type</a></div><div class="ttdeci">ModbusVarType type</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00033">modbusvariables.h:33</a></div></div>
+<div class="ttc" id="astructModbusVariable_html_aa5bf5695bd129c7fb7a74e60e3cafc73"><div class="ttname"><a href="structModbusVariable.html#aa5bf5695bd129c7fb7a74e60e3cafc73">ModbusVariable::unit</a></div><div class="ttdeci">QString unit</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00040">modbusvariables.h:40</a></div></div>
+<div class="ttc" id="astructModbusVariable_html_abb7e929ee7bf09469e9a7592f41e342b"><div class="ttname"><a href="structModbusVariable.html#abb7e929ee7bf09469e9a7592f41e342b">ModbusVariable::comment</a></div><div class="ttdeci">QString comment</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00034">modbusvariables.h:34</a></div></div>
+<div class="ttc" id="astructModbusVariable_html_aede6f07ef8b60d478ee661cb9ac70720"><div class="ttname"><a href="structModbusVariable.html#aede6f07ef8b60d478ee661cb9ac70720">ModbusVariable::modbusAddress</a></div><div class="ttdeci">int modbusAddress</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00036">modbusvariables.h:36</a></div></div>
+<div class="ttc" id="astructModbusVariable_html_af4a5e9764916cdd41d7cfff02ad79f8a"><div class="ttname"><a href="structModbusVariable.html#af4a5e9764916cdd41d7cfff02ad79f8a">ModbusVariable::displayName</a></div><div class="ttdeci">QString displayName</div><div class="ttdef"><b>Definition</b> <a href="modbusvariables_8h_source.html#l00035">modbusvariables.h:35</a></div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="modbusvariables_8h.html">modbusvariables.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>180: 180_agv_app.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">180<span id="projectnumber">&#160;1.0</span>
+   </div>
+   <div id="projectbrief">AGV Qt project API documentation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.8 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function() { init_codefold(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('180__agv__app_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">载入中...</div>
+<div class="SRStatus" id="Searching">搜索中...</div>
+<div class="SRStatus" id="NoMatches">未找到</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">180_agv_app.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="180__agv__app_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef EIGHTY_AGV_APP_H</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define EIGHTY_AGV_APP_H</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;QObject&gt;</span></div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;QString&gt;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &lt;QVariant&gt;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="iinputdevice_8h.html">iinputdevice.h</a>&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="imodbusclient_8h.html">imodbusclient.h</a>&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="comment">// Forward declarations</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">class </span><a class="code hl_class" href="classOperationRecorder.html">OperationRecorder</a>;</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="keyword">class </span><a class="code hl_class" href="classMappingConfig.html">MappingConfig</a>;</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
+<div class="foldopen" id="foldopen00027" data-start="{" data-end="};">
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="classEightyAgvApp.html">   27</a></span><span class="keyword">class </span><a class="code hl_class" href="classEightyAgvApp.html">EightyAgvApp</a> : <span class="keyword">public</span> QObject</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>{</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    Q_OBJECT</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classEightyAgvApp.html">EightyAgvApp</a>(<a class="code hl_class" href="classIModbusClient.html">IModbusClient</a>* <a class="code hl_function" href="classEightyAgvApp.html#a3111674120de5b3cbfbe9a82f7986e1b">modbus</a>, <a class="code hl_class" href="classIInputDevice.html">IInputDevice</a>* <a class="code hl_function" href="classEightyAgvApp.html#a498d9a4884c01f5d1c1707eced1e13fe">keyboard</a>, <a class="code hl_class" href="classOperationRecorder.html">OperationRecorder</a>* <a class="code hl_function" href="classEightyAgvApp.html#a0dcefc7431418d04f08d8c7343ca1442">recorder</a>, <a class="code hl_class" href="classMappingConfig.html">MappingConfig</a>* <a class="code hl_function" href="classEightyAgvApp.html#a92162e652672f7fc91bf799e8c73da63">mapping</a>, QObject *parent = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span> </div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    <span class="keyword">virtual</span> <a class="code hl_function" href="classEightyAgvApp.html#a580c8125dd114b5a5097f2a677b1e31f">~EightyAgvApp</a>();</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno"><a class="line" href="classEightyAgvApp.html#a498d9a4884c01f5d1c1707eced1e13fe">   50</a></span>    <a class="code hl_class" href="classIInputDevice.html">IInputDevice</a>* <a class="code hl_function" href="classEightyAgvApp.html#a498d9a4884c01f5d1c1707eced1e13fe">keyboard</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classEightyAgvApp.html#a4d887501663f231a5859382a876bc31c">m_keyboard</a>; }</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno"><a class="line" href="classEightyAgvApp.html#a3111674120de5b3cbfbe9a82f7986e1b">   55</a></span>    <a class="code hl_class" href="classIModbusClient.html">IModbusClient</a>* <a class="code hl_function" href="classEightyAgvApp.html#a3111674120de5b3cbfbe9a82f7986e1b">modbus</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classEightyAgvApp.html#af98f386259c5aa4f430269e944a3ebd6">m_modbus</a>; }</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno"><a class="line" href="classEightyAgvApp.html#a0dcefc7431418d04f08d8c7343ca1442">   60</a></span>    <a class="code hl_class" href="classOperationRecorder.html">OperationRecorder</a>* <a class="code hl_function" href="classEightyAgvApp.html#a0dcefc7431418d04f08d8c7343ca1442">recorder</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classEightyAgvApp.html#a47a3655edbef56303a0c1fd7fb4bf1df">m_recorder</a>; }</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno"><a class="line" href="classEightyAgvApp.html#a92162e652672f7fc91bf799e8c73da63">   65</a></span>    <a class="code hl_class" href="classMappingConfig.html">MappingConfig</a>* <a class="code hl_function" href="classEightyAgvApp.html#a92162e652672f7fc91bf799e8c73da63">mapping</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> <a class="code hl_variable" href="classEightyAgvApp.html#aa431a347d4fbaae17b01cad5a04172a8">m_mapping</a>; }</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classEightyAgvApp.html#a4bbd89c69a4c02c05fb9423cbe9133a5">requestJog</a>(<span class="keywordtype">int</span> direction, <span class="keywordtype">bool</span> start);</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classEightyAgvApp.html#a6856d2412373a0b5ca9de7b364645377">connectToAgv</a>(<span class="keyword">const</span> QString&amp; ip, <span class="keywordtype">int</span> port);</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classEightyAgvApp.html#a62f475199c1346569c528bad6849e78b">disconnectAgv</a>();</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span> </div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="classEightyAgvApp.html#a453b02994567a812efe3770c585e07f8">isAgvConnected</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>signals:</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno"><a class="line" href="classEightyAgvApp.html#a5e158deb34b22d623d7e3ae937c8cd12">  104</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classEightyAgvApp.html#a5e158deb34b22d623d7e3ae937c8cd12">batteryUpdated</a>(<span class="keywordtype">int</span> battery1, <span class="keywordtype">int</span> battery2);</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno"><a class="line" href="classEightyAgvApp.html#a99c98348a41f61b97835ed9af30d4ee6">  110</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classEightyAgvApp.html#a99c98348a41f61b97835ed9af30d4ee6">speedUpdated</a>(<span class="keywordtype">int</span> speed);</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span> </div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno"><a class="line" href="classEightyAgvApp.html#a7e9777fbc105b73fbc7f06a5e24f9b17">  116</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classEightyAgvApp.html#a7e9777fbc105b73fbc7f06a5e24f9b17">alarmTriggered</a>(<span class="keyword">const</span> QString &amp;message);</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span> </div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno"><a class="line" href="classEightyAgvApp.html#a4c661588b9cb19432a5e1f5a4ec1a720">  122</a></span>    <span class="keywordtype">void</span> <a class="code hl_signal" href="classEightyAgvApp.html#a4c661588b9cb19432a5e1f5a4ec1a720">agvStateChanged</a>(<span class="keywordtype">bool</span> connected);</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span> </div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span><span class="keyword">private</span> slots:</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classEightyAgvApp.html#a94b02be1f47b714c3e7bfce0fe30c55d">onAgvConnected</a>();</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span> </div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classEightyAgvApp.html#a199360fa74adc48364fc8eac862dad79">onAgvDisconnected</a>();</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span> </div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classEightyAgvApp.html#a79b832709490bd648a50dfd28a971391">onAgvError</a>(<span class="keyword">const</span> QString&amp; error);</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span> </div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classEightyAgvApp.html#afd2643b899c2aa2b1a542a54ec56b1e4">onWordVariableChanged</a>(<span class="keywordtype">int</span> address, quint16 value);</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span> </div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    <span class="keywordtype">void</span> <a class="code hl_slot" href="classEightyAgvApp.html#a640503f7bdc9538ca3c34441246af9a9">onBitVariableChanged</a>(<span class="keywordtype">int</span> address, <span class="keywordtype">int</span> bitPosition, <span class="keywordtype">bool</span> value);</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span> </div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno"><a class="line" href="classEightyAgvApp.html#af98f386259c5aa4f430269e944a3ebd6">  157</a></span>    <a class="code hl_class" href="classIModbusClient.html">IModbusClient</a>* <a class="code hl_variable" href="classEightyAgvApp.html#af98f386259c5aa4f430269e944a3ebd6">m_modbus</a>;</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno"><a class="line" href="classEightyAgvApp.html#a4d887501663f231a5859382a876bc31c">  158</a></span>    <a class="code hl_class" href="classIInputDevice.html">IInputDevice</a>* <a class="code hl_variable" href="classEightyAgvApp.html#a4d887501663f231a5859382a876bc31c">m_keyboard</a>;</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno"><a class="line" href="classEightyAgvApp.html#a47a3655edbef56303a0c1fd7fb4bf1df">  159</a></span>    <a class="code hl_class" href="classOperationRecorder.html">OperationRecorder</a>* <a class="code hl_variable" href="classEightyAgvApp.html#a47a3655edbef56303a0c1fd7fb4bf1df">m_recorder</a>;</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno"><a class="line" href="classEightyAgvApp.html#aa431a347d4fbaae17b01cad5a04172a8">  160</a></span>    <a class="code hl_class" href="classMappingConfig.html">MappingConfig</a>* <a class="code hl_variable" href="classEightyAgvApp.html#aa431a347d4fbaae17b01cad5a04172a8">m_mapping</a>;</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>};</div>
+</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span> </div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span><span class="preprocessor">#endif </span><span class="comment">// EIGHTY_AGV_APP_H</span></div>
+<div class="ttc" id="aclassEightyAgvApp_html"><div class="ttname"><a href="classEightyAgvApp.html">EightyAgvApp</a></div><div class="ttdoc">80 系列 AGV 业务聚合入口。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8h_source.html#l00027">180_agv_app.h:28</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a0dcefc7431418d04f08d8c7343ca1442"><div class="ttname"><a href="classEightyAgvApp.html#a0dcefc7431418d04f08d8c7343ca1442">EightyAgvApp::recorder</a></div><div class="ttdeci">OperationRecorder * recorder() const</div><div class="ttdoc">获取操作记录器。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8h_source.html#l00060">180_agv_app.h:60</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a199360fa74adc48364fc8eac862dad79"><div class="ttname"><a href="classEightyAgvApp.html#a199360fa74adc48364fc8eac862dad79">EightyAgvApp::onAgvDisconnected</a></div><div class="ttdeci">void onAgvDisconnected()</div><div class="ttdoc">AGV 断开连接后的内部回调。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8cpp_source.html#l00064">180_agv_app.cpp:64</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a3111674120de5b3cbfbe9a82f7986e1b"><div class="ttname"><a href="classEightyAgvApp.html#a3111674120de5b3cbfbe9a82f7986e1b">EightyAgvApp::modbus</a></div><div class="ttdeci">IModbusClient * modbus() const</div><div class="ttdoc">获取 Modbus 接口。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8h_source.html#l00055">180_agv_app.h:55</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a453b02994567a812efe3770c585e07f8"><div class="ttname"><a href="classEightyAgvApp.html#a453b02994567a812efe3770c585e07f8">EightyAgvApp::isAgvConnected</a></div><div class="ttdeci">bool isAgvConnected() const</div><div class="ttdoc">查询 AGV 是否已连接。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8cpp_source.html#l00055">180_agv_app.cpp:55</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a47a3655edbef56303a0c1fd7fb4bf1df"><div class="ttname"><a href="classEightyAgvApp.html#a47a3655edbef56303a0c1fd7fb4bf1df">EightyAgvApp::m_recorder</a></div><div class="ttdeci">OperationRecorder * m_recorder</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8h_source.html#l00159">180_agv_app.h:159</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a498d9a4884c01f5d1c1707eced1e13fe"><div class="ttname"><a href="classEightyAgvApp.html#a498d9a4884c01f5d1c1707eced1e13fe">EightyAgvApp::keyboard</a></div><div class="ttdeci">IInputDevice * keyboard() const</div><div class="ttdoc">获取输入设备接口。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8h_source.html#l00050">180_agv_app.h:50</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a4bbd89c69a4c02c05fb9423cbe9133a5"><div class="ttname"><a href="classEightyAgvApp.html#a4bbd89c69a4c02c05fb9423cbe9133a5">EightyAgvApp::requestJog</a></div><div class="ttdeci">void requestJog(int direction, bool start)</div><div class="ttdoc">发送点动请求。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8cpp_source.html#l00029">180_agv_app.cpp:29</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a4c661588b9cb19432a5e1f5a4ec1a720"><div class="ttname"><a href="classEightyAgvApp.html#a4c661588b9cb19432a5e1f5a4ec1a720">EightyAgvApp::agvStateChanged</a></div><div class="ttdeci">void agvStateChanged(bool connected)</div><div class="ttdoc">AGV 连接状态变化信号。</div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a4d887501663f231a5859382a876bc31c"><div class="ttname"><a href="classEightyAgvApp.html#a4d887501663f231a5859382a876bc31c">EightyAgvApp::m_keyboard</a></div><div class="ttdeci">IInputDevice * m_keyboard</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8h_source.html#l00158">180_agv_app.h:158</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a580c8125dd114b5a5097f2a677b1e31f"><div class="ttname"><a href="classEightyAgvApp.html#a580c8125dd114b5a5097f2a677b1e31f">EightyAgvApp::~EightyAgvApp</a></div><div class="ttdeci">virtual ~EightyAgvApp()</div><div class="ttdoc">析构函数。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8cpp_source.html#l00025">180_agv_app.cpp:25</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a5e158deb34b22d623d7e3ae937c8cd12"><div class="ttname"><a href="classEightyAgvApp.html#a5e158deb34b22d623d7e3ae937c8cd12">EightyAgvApp::batteryUpdated</a></div><div class="ttdeci">void batteryUpdated(int battery1, int battery2)</div><div class="ttdoc">电池电量更新信号。</div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a62f475199c1346569c528bad6849e78b"><div class="ttname"><a href="classEightyAgvApp.html#a62f475199c1346569c528bad6849e78b">EightyAgvApp::disconnectAgv</a></div><div class="ttdeci">void disconnectAgv()</div><div class="ttdoc">断开 AGV 连接。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8cpp_source.html#l00048">180_agv_app.cpp:48</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a640503f7bdc9538ca3c34441246af9a9"><div class="ttname"><a href="classEightyAgvApp.html#a640503f7bdc9538ca3c34441246af9a9">EightyAgvApp::onBitVariableChanged</a></div><div class="ttdeci">void onBitVariableChanged(int address, int bitPosition, bool value)</div><div class="ttdoc">处理位变量变化。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8cpp_source.html#l00081">180_agv_app.cpp:81</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a6856d2412373a0b5ca9de7b364645377"><div class="ttname"><a href="classEightyAgvApp.html#a6856d2412373a0b5ca9de7b364645377">EightyAgvApp::connectToAgv</a></div><div class="ttdeci">void connectToAgv(const QString &amp;ip, int port)</div><div class="ttdoc">连接到 AGV 设备。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8cpp_source.html#l00041">180_agv_app.cpp:41</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a79b832709490bd648a50dfd28a971391"><div class="ttname"><a href="classEightyAgvApp.html#a79b832709490bd648a50dfd28a971391">EightyAgvApp::onAgvError</a></div><div class="ttdeci">void onAgvError(const QString &amp;error)</div><div class="ttdoc">AGV 通信错误后的内部回调。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8cpp_source.html#l00068">180_agv_app.cpp:68</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a7e9777fbc105b73fbc7f06a5e24f9b17"><div class="ttname"><a href="classEightyAgvApp.html#a7e9777fbc105b73fbc7f06a5e24f9b17">EightyAgvApp::alarmTriggered</a></div><div class="ttdeci">void alarmTriggered(const QString &amp;message)</div><div class="ttdoc">告警触发信号。</div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a92162e652672f7fc91bf799e8c73da63"><div class="ttname"><a href="classEightyAgvApp.html#a92162e652672f7fc91bf799e8c73da63">EightyAgvApp::mapping</a></div><div class="ttdeci">MappingConfig * mapping() const</div><div class="ttdoc">获取映射配置。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8h_source.html#l00065">180_agv_app.h:65</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a94b02be1f47b714c3e7bfce0fe30c55d"><div class="ttname"><a href="classEightyAgvApp.html#a94b02be1f47b714c3e7bfce0fe30c55d">EightyAgvApp::onAgvConnected</a></div><div class="ttdeci">void onAgvConnected()</div><div class="ttdoc">AGV 连接成功后的内部回调。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8cpp_source.html#l00060">180_agv_app.cpp:60</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_a99c98348a41f61b97835ed9af30d4ee6"><div class="ttname"><a href="classEightyAgvApp.html#a99c98348a41f61b97835ed9af30d4ee6">EightyAgvApp::speedUpdated</a></div><div class="ttdeci">void speedUpdated(int speed)</div><div class="ttdoc">速度更新信号。</div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_aa431a347d4fbaae17b01cad5a04172a8"><div class="ttname"><a href="classEightyAgvApp.html#aa431a347d4fbaae17b01cad5a04172a8">EightyAgvApp::m_mapping</a></div><div class="ttdeci">MappingConfig * m_mapping</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8h_source.html#l00160">180_agv_app.h:160</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_af98f386259c5aa4f430269e944a3ebd6"><div class="ttname"><a href="classEightyAgvApp.html#af98f386259c5aa4f430269e944a3ebd6">EightyAgvApp::m_modbus</a></div><div class="ttdeci">IModbusClient * m_modbus</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8h_source.html#l00157">180_agv_app.h:157</a></div></div>
+<div class="ttc" id="aclassEightyAgvApp_html_afd2643b899c2aa2b1a542a54ec56b1e4"><div class="ttname"><a href="classEightyAgvApp.html#afd2643b899c2aa2b1a542a54ec56b1e4">EightyAgvApp::onWordVariableChanged</a></div><div class="ttdeci">void onWordVariableChanged(int address, quint16 value)</div><div class="ttdoc">处理寄存器值变化。</div><div class="ttdef"><b>Definition</b> <a href="180__agv__app_8cpp_source.html#l00072">180_agv_app.cpp:72</a></div></div>
+<div class="ttc" id="aclassIInputDevice_html"><div class="ttname"><a href="classIInputDevice.html">IInputDevice</a></div><div class="ttdoc">输入设备统一接口。</div><div class="ttdef"><b>Definition</b> <a href="iinputdevice_8h_source.html#l00024">iinputdevice.h:24</a></div></div>
+<div class="ttc" id="aclassIModbusClient_html"><div class="ttname"><a href="classIModbusClient.html">IModbusClient</a></div><div class="ttdoc">Modbus 通信客户端接口。</div><div class="ttdef"><b>Definition</b> <a href="imodbusclient_8h_source.html#l00035">imodbusclient.h:35</a></div></div>
+<div class="ttc" id="aclassMappingConfig_html"><div class="ttname"><a href="classMappingConfig.html">MappingConfig</a></div><div class="ttdef"><b>Definition</b> <a href="mappingconfig_8h_source.html#l00021">mappingconfig.h:22</a></div></div>
+<div class="ttc" id="aclassOperationRecorder_html"><div class="ttname"><a href="classOperationRecorder.html">OperationRecorder</a></div><div class="ttdef"><b>Definition</b> <a href="operationrecorder_8h_source.html#l00088">operationrecorder.h:89</a></div></div>
+<div class="ttc" id="aiinputdevice_8h_html"><div class="ttname"><a href="iinputdevice_8h.html">iinputdevice.h</a></div><div class="ttdoc">输入设备抽象接口，统一键盘、按键板等输入源的生命周期控制。</div></div>
+<div class="ttc" id="aimodbusclient_8h_html"><div class="ttname"><a href="imodbusclient_8h.html">imodbusclient.h</a></div><div class="ttdoc">Modbus 客户端抽象接口，统一主设备和 AGV 设备的通信能力。</div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="180__agv__app_8h.html">180_agv_app.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
+  </ul>
+</div>
+</body>
+</html>
