@@ -1,7 +1,22 @@
 // file name: agvmodbusmanager.cpp
 #include "agvmodbusmanager.h"
+#include "featureswitchmanager.h"
 #include <QDebug>
 #include <QDateTime>
+
+namespace {
+bool isAgvReadLogEnabled()
+{
+    FeatureSwitchManager *featureSwitch = FeatureSwitchManager::instance();
+    return featureSwitch && featureSwitch->isFeatureEnabled("modbus_agv", "modbus_agv.read_logs");
+}
+
+bool isAgvWriteLogEnabled()
+{
+    FeatureSwitchManager *featureSwitch = FeatureSwitchManager::instance();
+    return featureSwitch && featureSwitch->isFeatureEnabled("modbus_agv", "modbus_agv.write_logs");
+}
+} // namespace
 
 AGVModbusManager::AGVModbusManager(QObject *parent)
     : QObject(parent)
@@ -303,6 +318,14 @@ void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
     quint16 requestId = m_transactionId - 1;  // 注意：createReadRequest中已经增加了m_transactionId
     m_requestTimestamps[requestId] = QDateTime::currentDateTime();
 
+    if (isAgvReadLogEnabled()) {
+        qInfo().noquote() << QString("[AGV Modbus TX] ReqID:%1 FC:0x03 Addr:%2 Count:%3 Hex:%4")
+                                 .arg(requestId)
+                                 .arg(startAddress)
+                                 .arg(count)
+                                 .arg(QString::fromLatin1(request.toHex(' ')));
+    }
+
     m_socket->write(request);
 }
 
@@ -384,6 +407,17 @@ bool AGVModbusManager::processSingleResponseFrame(const QByteArray &frame, quint
 
     quint8 functionCode = static_cast<quint8>(pdu[0]);
 
+    const bool isReadFrame = (functionCode == 0x03 || functionCode == 0x04);
+    const bool isWriteFrame = (functionCode == 0x05 || functionCode == 0x06 || functionCode == 0x10);
+    if ((isReadFrame && isAgvReadLogEnabled()) || (isWriteFrame && isAgvWriteLogEnabled())) {
+        qInfo().noquote() << QString("[AGV Modbus RX %1] ReqID:%2 FC:0x%3 Len:%4 Hex:%5")
+                                 .arg(isWriteFrame ? "WRITE" : "READ")
+                                 .arg(transactionId)
+                                 .arg(functionCode, 2, 16, QChar('0'))
+                                 .arg(frame.size())
+                                 .arg(QString::fromLatin1(frame.toHex(' ')));
+    }
+
     // 检查异常响应
     if (functionCode & 0x80) {
         quint8 errorCode = static_cast<quint8>(pdu[1]);
@@ -463,6 +497,13 @@ bool AGVModbusManager::processSingleResponseFrame(const QByteArray &frame, quint
             // 提取写入的值
             quint16 writtenValue = (static_cast<quint8>(pdu[3]) << 8) |
                                    static_cast<quint8>(pdu[4]);
+
+            if (isAgvWriteLogEnabled()) {
+                qInfo().noquote() << QString("[AGV Modbus ACK] ReqID:%1 FC:0x06 Addr:%2 Value:%3")
+                                         .arg(transactionId)
+                                         .arg(writtenAddress)
+                                         .arg(writtenValue);
+            }
 
             // 发出写入完成信号
             emit writeCompleted(writtenAddress, writtenValue, true);
@@ -803,6 +844,14 @@ bool AGVModbusManager::writeSingleRegister(int address, quint16 value)
     quint16 requestId = m_transactionId - 1;
     m_requestTimestamps[requestId] = QDateTime::currentDateTime();
 
+    if (isAgvWriteLogEnabled()) {
+        qInfo().noquote() << QString("[AGV Modbus TX] ReqID:%1 FC:0x06 Addr:%2 Value:%3 Hex:%4")
+                                 .arg(requestId)
+                                 .arg(address)
+                                 .arg(value)
+                                 .arg(QString::fromLatin1(request.toHex(' ')));
+    }
+
     m_socket->write(request);
 
     return true;
@@ -842,10 +891,6 @@ QByteArray AGVModbusManager::createWriteRequest(int address, quint16 value)
     // 寄存器值 (2字节)
     request.append(static_cast<char>((value >> 8) & 0xFF));
     request.append(static_cast<char>(value & 0xFF));
-
-    qDebug() << "AGV写入请求 - 地址:" << address
-             << "值:" << value
-             << "功能码: 0x06";
 
     return request;
 }

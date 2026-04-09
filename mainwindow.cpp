@@ -4970,35 +4970,45 @@ void MainWindow::setupAGVAngleControl()
 // AGV避障开关按钮点击槽函数
 void MainWindow::onAGVOABtnClicked()
 {
-    // 切换状态
-    m_agvOaEnabled = !m_agvOaEnabled;
+    const bool previousOaEnabled = m_agvOaEnabled;
+    const bool targetOaEnabled = !previousOaEnabled;
+    m_agvOaEnabled = targetOaEnabled;
 
-    if (m_agvOaEnabled) {
+    if (targetOaEnabled) {
         // 避障开启
         m_techBtnAGV_OA->setText("避障开启");
         m_techBtnAGV_OA->setPrimaryColor(QColor("#00C8FF"));
         m_techBtnAGV_OA->setGlowColor(QColor(0, 200, 255, 180));
-        // 地址0：保留其他位，仅更新bit1=1（语义反转后：1表示避障开启）
-        writeAGVRegisterBits(0,
-                             {
-                                 qMakePair(1, true),
-                             },
-                             "OA开启");
-
-        qCDebug(lcMainWindow) << "AGV避障开启，地址0写入192";
-        ui->statusBar->showMessage("AGV避障开启", 2000);
     } else {
         // 避障关闭
         m_techBtnAGV_OA->setText("避障关闭");
         m_techBtnAGV_OA->setPrimaryColor(QColor("#7F8C8D"));
         m_techBtnAGV_OA->setGlowColor(QColor(127, 140, 141, 100));
-        // 地址0：保留其他位，仅更新bit1=0（语义反转后：0表示避障关闭）
-        writeAGVRegisterBits(0,
-                             {
-                                 qMakePair(1, false),
-                             },
-                             "OA关闭");
-        qCDebug(lcMainWindow) << "AGV避障关闭，地址0写入194";
+    }
+
+    const bool writeOk = writeAGVRegisterBits(0,
+                                              {
+                                                  qMakePair(1, targetOaEnabled),
+                                              },
+                                              targetOaEnabled ? "OA开启" : "OA关闭");
+    if (!writeOk) {
+        m_agvOaEnabled = previousOaEnabled;
+        if (m_techBtnAGV_OA) {
+            m_techBtnAGV_OA->setText(previousOaEnabled ? "避障开启" : "避障关闭");
+            m_techBtnAGV_OA->setPrimaryColor(previousOaEnabled ? QColor("#00C8FF") : QColor("#7F8C8D"));
+            m_techBtnAGV_OA->setGlowColor(previousOaEnabled ? QColor(0, 200, 255, 180)
+                                                            : QColor(127, 140, 141, 100));
+        }
+        ui->statusBar->showMessage("AGV避障切换失败：写入未发送", 3000);
+        qWarning() << "AGV避障切换失败：地址0写入请求发送失败，目标bit1=" << (targetOaEnabled ? 1 : 0);
+        return;
+    }
+
+    if (targetOaEnabled) {
+        qCDebug(lcMainWindow) << "AGV避障开启，地址0按位更新(bit1=1)";
+        ui->statusBar->showMessage("AGV避障开启", 2000);
+    } else {
+        qCDebug(lcMainWindow) << "AGV避障关闭，地址0按位更新(bit1=0)";
         ui->statusBar->showMessage("AGV避障关闭", 2000);
     }
 
@@ -5019,6 +5029,44 @@ void MainWindow::onAGVOABtnClicked()
     record.oldValue = m_agvOaEnabled ? "避障关闭" : "避障开启";
     record.newValue = m_agvOaEnabled ? "避障开启" : "避障关闭";
     m_recorder->addRecord(record);
+
+    // 写后做一次回读确认，目标设备偶发丢响应时自动补发一次。
+    QTimer::singleShot(250, this, [this]() {
+        if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
+            m_agvModbusManager->readMultipleRegisters(0, 1);
+        }
+    });
+
+    QTimer::singleShot(650, this, [this, targetOaEnabled]() {
+        if (m_agvOaEnabled != targetOaEnabled) {
+            // 期间用户已再次操作，不做过期重试。
+            return;
+        }
+
+        const quint16 reg0 = m_agvRegisterShadow.value(0, 0);
+        const bool actualOaEnabled = (((reg0 >> 1) & 0x01) == 1);
+        if (actualOaEnabled == targetOaEnabled) {
+            return;
+        }
+
+        qWarning() << "OA回读不一致，准备自动重试。目标bit1=" << (targetOaEnabled ? 1 : 0)
+                   << "实际寄存器0=" << reg0;
+
+        const bool retryOk = writeAGVRegisterBits(0,
+                                                  {
+                                                      qMakePair(1, targetOaEnabled),
+                                                  },
+                                                  targetOaEnabled ? "OA开启自动重试" : "OA关闭自动重试");
+        if (!retryOk) {
+            qWarning() << "OA自动重试发送失败";
+            ui->statusBar->showMessage("AGV避障自动重试失败，请检查网络/控制器状态", 4000);
+            return;
+        }
+
+        if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
+            m_agvModbusManager->readMultipleRegisters(0, 1);
+        }
+    });
 }
 
 void MainWindow::onAGVParkBtnClicked()

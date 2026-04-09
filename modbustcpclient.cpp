@@ -1,9 +1,24 @@
 #include "modbustcpclient.h"
+#include "featureswitchmanager.h"
 #include <QDebug>
 #include <QLoggingCategory>
 Q_LOGGING_CATEGORY(lcModbusTCPClient, "app.modbustcpclient")
 #include <QHostAddress>
 #include <algorithm>
+
+namespace {
+bool isMainReadLogEnabled()
+{
+    FeatureSwitchManager *featureSwitch = FeatureSwitchManager::instance();
+    return featureSwitch && featureSwitch->isFeatureEnabled("modbus_main", "modbus_main.read_logs");
+}
+
+bool isMainWriteLogEnabled()
+{
+    FeatureSwitchManager *featureSwitch = FeatureSwitchManager::instance();
+    return featureSwitch && featureSwitch->isFeatureEnabled("modbus_main", "modbus_main.write_logs");
+}
+} // namespace
 
 ModbusTCPClient::ModbusTCPClient(QObject *parent)
     : QObject(parent)
@@ -217,6 +232,15 @@ bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 function
         return false;
     }
 
+    if (isMainReadLogEnabled()) {
+        qInfo().noquote() << QString("[Main Modbus TX] ReqID:%1 FC:0x%2 Addr:%3 Count:%4 Hex:%5")
+                                 .arg(requestId)
+                                 .arg(functionCode, 2, 16, QChar('0'))
+                                 .arg(startAddress)
+                                 .arg(count)
+                                 .arg(QString::fromLatin1(request.toHex(' ')));
+    }
+
     static int sendCount = 0;
     if (sendCount++ % 20 == 0) {
         // qWarning() << "[Modbus发送]"
@@ -247,11 +271,13 @@ bool ModbusTCPClient::writeSingleRegister(int address, quint16 value)
         return false;
     }
 
-    qDebug() << "[Modbus发送写请求]"
-               << "ReqID:" << (m_transactionId - 1)
-               << "FC: 0x06 地址:" << address
-               << "值:" << value
-               << "Hex:" << request.toHex(' ');
+    if (isMainWriteLogEnabled()) {
+        qInfo().noquote() << QString("[Main Modbus TX] ReqID:%1 FC:0x06 Addr:%2 Value:%3 Hex:%4")
+                                 .arg(m_transactionId - 1)
+                                 .arg(address)
+                                 .arg(value)
+                                 .arg(QString::fromLatin1(request.toHex(' ')));
+    }
 
     return true;
 }
@@ -263,6 +289,14 @@ bool ModbusTCPClient::writeMultipleRegisters(int startAddress, const QVector<qui
     }
 
     QByteArray request = createWriteMultipleRequest(startAddress, values);
+
+    if (isMainWriteLogEnabled()) {
+        qInfo().noquote() << QString("[Main Modbus TX] ReqID:%1 FC:0x10 Addr:%2 Count:%3 Hex:%4")
+                                 .arg(m_transactionId - 1)
+                                 .arg(startAddress)
+                                 .arg(values.size())
+                                 .arg(QString::fromLatin1(request.toHex(' ')));
+    }
 
     m_socket->write(request);
 
@@ -506,6 +540,18 @@ bool ModbusTCPClient::parseResponse(const QByteArray &data)
     quint8 functionCode = static_cast<quint8>(pdu[0]);
     qCDebug(lcModbusTCPClient) << "响应功能码: 0x" << QString::number(functionCode, 16).toUpper();
 
+    const quint8 baseFunctionCode = static_cast<quint8>(functionCode & 0x7F);
+    const bool isReadFrame = (baseFunctionCode == 0x03 || baseFunctionCode == 0x04);
+    const bool isWriteFrame = (baseFunctionCode == 0x05 || baseFunctionCode == 0x06 || baseFunctionCode == 0x10);
+    if ((isReadFrame && isMainReadLogEnabled()) || (isWriteFrame && isMainWriteLogEnabled())) {
+        qInfo().noquote() << QString("[Main Modbus RX %1] ReqID:%2 FC:0x%3 Len:%4 Hex:%5")
+                                 .arg(isWriteFrame ? "WRITE" : "READ")
+                                 .arg(transactionId)
+                                 .arg(baseFunctionCode, 2, 16, QChar('0'))
+                                 .arg(data.size())
+                                 .arg(QString::fromLatin1(data.toHex(' ')));
+    }
+
     // 检查异常响应
     if (functionCode & 0x80) {
         if (pdu.size() < 2) {
@@ -524,6 +570,22 @@ bool ModbusTCPClient::parseResponse(const QByteArray &data)
         
         // 对于写操作响应(0x05, 0x06, 0x10)，我们只从 Map 中移除事务并记录日志
         if (functionCode == 0x05 || functionCode == 0x06 || functionCode == 0x10) {
+            if (isMainWriteLogEnabled()) {
+                if (functionCode == 0x06 && pdu.size() >= 5) {
+                    const int writtenAddress = (static_cast<quint8>(pdu[1]) << 8) |
+                                               static_cast<quint8>(pdu[2]);
+                    const quint16 writtenValue = (static_cast<quint8>(pdu[3]) << 8) |
+                                                 static_cast<quint8>(pdu[4]);
+                    qInfo().noquote() << QString("[Main Modbus ACK] ReqID:%1 FC:0x06 Addr:%2 Value:%3")
+                                             .arg(transactionId)
+                                             .arg(writtenAddress)
+                                             .arg(writtenValue);
+                } else {
+                    qInfo().noquote() << QString("[Main Modbus ACK] ReqID:%1 FC:0x%2")
+                                             .arg(transactionId)
+                                             .arg(functionCode, 2, 16, QChar('0'));
+                }
+            }
             m_transactionAddressMap.remove(transactionId);
             // qCDebug(lcModbusTCPClient) << "收到写操作响应，功能码:" << QString::number(functionCode, 16);
             return true;
