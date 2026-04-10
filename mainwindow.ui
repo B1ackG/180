@@ -506,14 +506,14 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <string notr="true">background-color:</string>
       </property>
       <property name="currentIndex">
-       <number>6</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page_Robot">
        <widget class="QWidget" name="widget_test3" native="true">
         <property name="geometry">
          <rect>
-          <x>290</x>
-          <y>90</y>
+          <x>160</x>
+          <y>70</y>
           <width>131</width>
           <height>131</height>
          </rect>
@@ -522,8 +522,8 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <widget class="QWidget" name="widget_test4" native="true">
         <property name="geometry">
          <rect>
-          <x>470</x>
-          <y>40</y>
+          <x>10</x>
+          <y>130</y>
           <width>131</width>
           <height>131</height>
          </rect>
@@ -532,8 +532,8 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <widget class="QWidget" name="widget_test2" native="true">
         <property name="geometry">
          <rect>
-          <x>0</x>
-          <y>10</y>
+          <x>360</x>
+          <y>170</y>
           <width>131</width>
           <height>131</height>
          </rect>
@@ -542,7 +542,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <widget class="QWidget" name="widget_test1" native="true">
         <property name="geometry">
          <rect>
-          <x>230</x>
+          <x>510</x>
           <y>350</y>
           <width>131</width>
           <height>131</height>
@@ -555,7 +555,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
           <x>0</x>
           <y>10</y>
           <width>590</width>
-          <height>550</height>
+          <height>530</height>
          </rect>
         </property>
         <property name="sizePolicy">
@@ -574,7 +574,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="res.qrc">:/Picture/190overall6.png</pixmap>
+         <pixmap resource="res.qrc">:/Picture/190overall7_smalltest.png</pixmap>
         </property>
         <property name="scaledContents">
          <bool>true</bool>
@@ -599,8 +599,8 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <widget class="TechPushButton" name="techBtn_AGV_Park">
         <property name="geometry">
          <rect>
-          <x>30</x>
-          <y>480</y>
+          <x>200</x>
+          <y>270</y>
           <width>151</width>
           <height>51</height>
          </rect>
@@ -668,8 +668,8 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <widget class="TechSpeedGauge" name="AGV_speedGauge" native="true">
         <property name="geometry">
          <rect>
-          <x>420</x>
-          <y>320</y>
+          <x>90</x>
+          <y>330</y>
           <width>200</width>
           <height>220</height>
          </rect>
@@ -678,8 +678,8 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <widget class="TechPushButton" name="techBtn_AGV_OA">
         <property name="geometry">
          <rect>
-          <x>210</x>
-          <y>480</y>
+          <x>30</x>
+          <y>270</y>
           <width>151</width>
           <height>51</height>
          </rect>

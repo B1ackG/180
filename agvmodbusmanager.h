@@ -97,6 +97,10 @@ public:
      */
     explicit AGVModbusManager(QObject *parent = nullptr);
 
+    // 启停专用线程（对象自身会迁移到该线程中运行）
+    bool startWorkerThread();
+    void stopWorkerThread();
+
     /**
      * 功能: 析构函数，清理 socket、线程和计时器等资源。
      * 如何使用: 由 Qt 对象树自动销毁或手动 delete。
@@ -311,8 +315,8 @@ private:
 
 public:
     // 运行时控制写入开关
-    void setWritesEnabled(bool enabled) { m_writesEnabled = enabled; }
-    bool writesEnabled() const { return m_writesEnabled; }
+    void setWritesEnabled(bool enabled);
+    bool writesEnabled() const;
 };
 
 #endif // AGVMODBUSMANAGER_H

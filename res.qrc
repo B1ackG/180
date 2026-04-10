@@ -38,7 +38,6 @@
         <file>Picture/Vertical_supportsection.png</file>
         <file>Picture/Extend.png</file>
         <file>Picture/shrink_icon_237392.png</file>
-        <file>Picture/190overall.jpg</file>
         <file>Picture/background9.png</file>
         <file>Picture/direction_downblack.png</file>
         <file>Picture/direction_leftblack.png</file>
@@ -46,15 +45,13 @@
         <file>Picture/direction_upblack.png</file>
         <file>Picture/direction_LeftGrey.png</file>
         <file>Picture/ModeSwitch.png</file>
-        <file>Picture/190overall2.jpg</file>
-        <file>Picture/190overall3.jpg</file>
-        <file>Picture/190overall4.jpg</file>
-        <file>Picture/190overall5.png</file>
         <file>Picture/190overall6.png</file>
         <file>TechSpeedGauge.qml</file>
         <file>HistoryList.qml</file>
         <file>BatteryWidget.qml</file>
         <file>PoseDisplay.qml</file>
         <file>Picture/background10.jpg</file>
+        <file>Picture/190overall7_small.png</file>
+        <file>Picture/190overall7_smalltest.png</file>
     </qresource>
 </RCC>

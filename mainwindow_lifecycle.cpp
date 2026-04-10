@@ -74,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->StackedWidget->setCurrentIndex(0);
     ui->lab_Overall->setScaledContents(true);
-    ui->lab_Overall->setPixmap(QPixmap(":/Picture/190overall6.png"));
+    ui->lab_Overall->setPixmap(QPixmap(":/Picture/190overall7_smalltest.png"));
 
     qApp->installEventFilter(this);
     m_isSteeringAlarmActive = false;
@@ -139,7 +139,9 @@ MainWindow::~MainWindow()
 
     if (m_agvModbusManager) {
         m_agvModbusManager->disconnectFromDevice();
+        m_agvModbusManager->stopWorkerThread();
         delete m_agvModbusManager;
+        m_agvModbusManager = nullptr;
     }
 
     if (m_recorder) {

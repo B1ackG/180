@@ -3,6 +3,8 @@
 #include "featureswitchmanager.h"
 #include <QDebug>
 #include <QDateTime>
+#include <QCoreApplication>
+#include <QMetaObject>
 
 namespace {
 bool isAgvReadLogEnabled()
@@ -55,20 +57,67 @@ AGVModbusManager::AGVModbusManager(QObject *parent)
     qDebug() << "AGV Modbus管理器已创建";
 }
 
-AGVModbusManager::~AGVModbusManager()
+bool AGVModbusManager::startWorkerThread()
 {
-    disconnectFromDevice();
-
     if (m_networkThread && m_networkThread->isRunning()) {
+        return true;
+    }
+
+    if (parent()) {
+        qWarning() << "AGVModbusManager 有父对象，无法迁移到专用线程";
+        return false;
+    }
+
+    m_networkThread = new QThread();
+    moveToThread(m_networkThread);
+    m_networkThread->start();
+    qDebug() << "AGV Modbus管理器已迁移到专用线程:" << m_networkThread;
+    return true;
+}
+
+void AGVModbusManager::stopWorkerThread()
+{
+    if (!m_networkThread) {
+        return;
+    }
+
+    if (QThread::currentThread() != thread()) {
+        QMetaObject::invokeMethod(this, [this]() { disconnectFromDevice(); }, Qt::BlockingQueuedConnection);
+        QMetaObject::invokeMethod(this, [this]() {
+            if (QCoreApplication::instance()) {
+                moveToThread(QCoreApplication::instance()->thread());
+            }
+        }, Qt::BlockingQueuedConnection);
+    } else {
+        disconnectFromDevice();
+    }
+
+    if (m_networkThread->isRunning()) {
         m_networkThread->quit();
         m_networkThread->wait();
     }
+
+    delete m_networkThread;
+    m_networkThread = nullptr;
+}
+
+AGVModbusManager::~AGVModbusManager()
+{
+    stopWorkerThread();
 
     qDebug() << "AGV Modbus管理器已销毁";
 }
 
 bool AGVModbusManager::connectToDevice(const QString &host, quint16 port)
 {
+    if (QThread::currentThread() != thread()) {
+        bool ok = false;
+        QMetaObject::invokeMethod(this, [this, host, port, &ok]() {
+            ok = connectToDevice(host, port);
+        }, Qt::BlockingQueuedConnection);
+        return ok;
+    }
+
     QMutexLocker locker(&m_mutex);
 
     m_host = host;
@@ -85,6 +134,11 @@ bool AGVModbusManager::connectToDevice(const QString &host, quint16 port)
 
 void AGVModbusManager::disconnectFromDevice()
 {
+    if (QThread::currentThread() != thread()) {
+        QMetaObject::invokeMethod(this, [this]() { disconnectFromDevice(); }, Qt::BlockingQueuedConnection);
+        return;
+    }
+
     QMutexLocker locker(&m_mutex);
 
     if (m_pollTimer->isActive()) {
@@ -99,6 +153,14 @@ void AGVModbusManager::disconnectFromDevice()
 
 bool AGVModbusManager::isConnected() const
 {
+    if (QThread::currentThread() != thread()) {
+        bool connected = false;
+        QMetaObject::invokeMethod(const_cast<AGVModbusManager *>(this), [this, &connected]() {
+            connected = m_connectedState;
+        }, Qt::BlockingQueuedConnection);
+        return connected;
+    }
+
     return m_connectedState;
 }
 
@@ -183,6 +245,11 @@ void AGVModbusManager::tryReconnect()
 
 void AGVModbusManager::setPollInterval(int ms)
 {
+    if (QThread::currentThread() != thread()) {
+        QMetaObject::invokeMethod(this, [this, ms]() { setPollInterval(ms); }, Qt::QueuedConnection);
+        return;
+    }
+
     m_pollInterval = ms;
     if (m_pollTimer->isActive()) {
         m_pollTimer->setInterval(ms);
@@ -191,6 +258,13 @@ void AGVModbusManager::setPollInterval(int ms)
 
 void AGVModbusManager::setAutoReconnect(bool enable, int interval)
 {
+    if (QThread::currentThread() != thread()) {
+        QMetaObject::invokeMethod(this, [this, enable, interval]() {
+            setAutoReconnect(enable, interval);
+        }, Qt::QueuedConnection);
+        return;
+    }
+
     m_autoReconnect = enable;
     m_reconnectInterval = interval;
 
@@ -289,6 +363,13 @@ QByteArray AGVModbusManager::createReadRequest(int startAddress, int count)
 
 void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
 {
+    if (QThread::currentThread() != thread()) {
+        QMetaObject::invokeMethod(this, [this, startAddress, count]() {
+            readMultipleRegisters(startAddress, count);
+        }, Qt::QueuedConnection);
+        return;
+    }
+
     if (!isConnected() || count <= 0 || count > 125) {
         return;
     }
@@ -822,6 +903,14 @@ void AGVModbusManager::updateFaultCodesDisplay()
 // 添加写入函数
 bool AGVModbusManager::writeSingleRegister(int address, quint16 value)
 {
+    if (QThread::currentThread() != thread()) {
+        bool ok = false;
+        QMetaObject::invokeMethod(this, [this, address, value, &ok]() {
+            ok = writeSingleRegister(address, value);
+        }, Qt::BlockingQueuedConnection);
+        return ok;
+    }
+
     // 如果全局禁用了写操作，则直接阻止并返回失败（用于故障排查）
     if (!m_writesEnabled) {
         qWarning() << "AGV 写操作已被禁用，忽略写入请求 地址:" << address << "值:" << value;
@@ -855,6 +944,27 @@ bool AGVModbusManager::writeSingleRegister(int address, quint16 value)
     m_socket->write(request);
 
     return true;
+}
+
+void AGVModbusManager::setWritesEnabled(bool enabled)
+{
+    if (QThread::currentThread() != thread()) {
+        QMetaObject::invokeMethod(this, [this, enabled]() { setWritesEnabled(enabled); }, Qt::QueuedConnection);
+        return;
+    }
+    m_writesEnabled = enabled;
+}
+
+bool AGVModbusManager::writesEnabled() const
+{
+    if (QThread::currentThread() != thread()) {
+        bool enabled = false;
+        QMetaObject::invokeMethod(const_cast<AGVModbusManager *>(this), [this, &enabled]() {
+            enabled = m_writesEnabled;
+        }, Qt::BlockingQueuedConnection);
+        return enabled;
+    }
+    return m_writesEnabled;
 }
 
 QByteArray AGVModbusManager::createWriteRequest(int address, quint16 value)

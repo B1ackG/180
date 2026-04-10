@@ -487,6 +487,8 @@ private:
     bool m_forceLimitAlarm = false;
     bool m_emergencyStopColumnFlag = false;
     bool m_emergencyStopChassisFlag = false;
+    bool m_robotArmEmergency150Flag = false;
+    bool m_agvChassisEmergency51Bit5Flag = false;
     bool m_forceLimitFlag = false;
     bool m_isSteeringAlarmActive = false;
     bool m_isSwitchingSteeringMode = false;

@@ -3258,83 +3258,22 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             updateSliderLabelValue(labelName, static_cast<float>(value64));
         }
     }
-    // ============ 新增：检测报警地址 ============
-    if (address == 804) {
-        // 立柱急停地址
-        bool emergencyStop = (value == 1);
-        if (emergencyStop != m_emergencyStopColumnFlag) {
-            
-            // 记录历史
-            if (m_recorder) {
+    // ============ 仅保留主设备150急停报警源 ============
+    if (address == 150) {
+        const bool emergencyStop = (value == 1);
+        if (emergencyStop != m_robotArmEmergency150Flag) {
+            m_robotArmEmergency150Flag = emergencyStop;
+            if (emergencyStop && m_recorder) {
                 OperationRecord record;
                 record.timestamp = QDateTime::currentDateTime();
                 record.pageName = "报警系统";
-                record.controlName = "立柱急停(804)";
+                record.controlName = "急停报警";
                 record.controlType = "报警监控";
-                record.operation = emergencyStop ? "报警触发" : "报警恢复";
-                record.oldValue = m_emergencyStopColumnFlag ? "触发" : "正常";
-                record.newValue = emergencyStop ? "触发" : "正常";
+                record.operation = "报警触发";
+                record.oldValue = "";
+                record.newValue = "机械臂触发了急停报警";
                 m_recorder->addRecord(record);
             }
-
-            m_emergencyStopColumnFlag = emergencyStop;
-            qCDebug(lcMainWindow) << "立柱急停状态变化:" << (emergencyStop ? "触发" : "解除");
-
-            // 立即检查报警条件
-            QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
-        }
-    } else if (address == 805) {
-        // 底盘急停地址
-        bool emergencyStop = (value == 1);
-        if (emergencyStop != m_emergencyStopChassisFlag) {
-
-            // 记录历史
-            if (m_recorder) {
-                OperationRecord record;
-                record.timestamp = QDateTime::currentDateTime();
-                record.pageName = "报警系统";
-                record.controlName = "底盘急停(805)";
-                record.controlType = "报警监控";
-                record.operation = emergencyStop ? "报警触发" : "报警恢复";
-                record.oldValue = m_emergencyStopChassisFlag ? "触发" : "正常";
-                record.newValue = emergencyStop ? "触发" : "正常";
-                m_recorder->addRecord(record);
-            }
-
-            m_emergencyStopChassisFlag = emergencyStop;
-            qCDebug(lcMainWindow) << "底盘急停状态变化:" << (emergencyStop ? "触发" : "解除");
-
-            // 立即检查报警条件
-            QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
-        }
-    } else if (address == 403) {
-        // 力控超限地址
-        bool forceLimit = (value == 1);
-        if (forceLimit != m_forceLimitFlag) {
-
-            // 记录历史
-            if (m_recorder) {
-                OperationRecord record;
-                record.timestamp = QDateTime::currentDateTime();
-                record.pageName = "报警系统";
-                record.controlName = "力控超限(403)";
-                record.controlType = "报警监控";
-                record.operation = forceLimit ? "报警触发" : "报警恢复";
-                record.oldValue = m_forceLimitFlag ? "触发" : "正常";
-                record.newValue = forceLimit ? "触发" : "正常";
-                m_recorder->addRecord(record);
-            }
-
-            m_forceLimitFlag = forceLimit;
-            qCDebug(lcMainWindow) << "力控超限状态变化:" << (forceLimit ? "触发" : "解除");
-
-            // 新增：力控限位报警以后，自动执行一次力控关闭
-            if (forceLimit && m_forcecontrolMode) {
-                qCDebug(lcMainWindow) << "检测到力控超限报警且力控处于开启状态，自动执行关力控";
-                toggleForceControl();
-            }
-
-            // 立即检查报警条件
             QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
         }
     }
@@ -3797,8 +3736,11 @@ void MainWindow::setupAGVModbus()
         return;
     }
 
-    // 创建AGV Modbus管理器
-    m_agvModbusManager = new AGVModbusManager(this);
+    // 创建AGV Modbus管理器（无父对象，便于迁移到专用线程）
+    m_agvModbusManager = new AGVModbusManager(nullptr);
+    if (!m_agvModbusManager->startWorkerThread()) {
+        qWarning() << "AGV Modbus专用线程启动失败，回退为当前线程运行";
+    }
     qCDebug(lcMainWindow) << "创建AGV Modbus管理器完成";
 
     // 连接信号槽
@@ -3875,6 +3817,23 @@ void MainWindow::setupAGVModbus()
                 if (address == 51) {
                     const bool bit3 = (((value >> 3) & 0x01) == 1);
                     const bool bit4 = (((value >> 4) & 0x01) == 1);
+                    const bool bit5 = (((value >> 5) & 0x01) == 1);
+
+                    if (bit5 != m_agvChassisEmergency51Bit5Flag) {
+                        m_agvChassisEmergency51Bit5Flag = bit5;
+                        if (bit5 && m_recorder) {
+                            OperationRecord record;
+                            record.timestamp = QDateTime::currentDateTime();
+                            record.pageName = "报警系统";
+                            record.controlName = "急停报警";
+                            record.controlType = "报警监控";
+                            record.operation = "报警触发";
+                            record.oldValue = "";
+                            record.newValue = "AGV触发了急停报警";
+                            m_recorder->addRecord(record);
+                        }
+                        QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
+                    }
 
                     const bool parkingSwitchWaiting = property("parkingSwitchWaiting").toBool();
                     const int pendingBit = property("parkingTargetBit").toInt();
@@ -4418,6 +4377,11 @@ void MainWindow::setupEnableButton()
         return;
     }
 
+    if (m_enableButtonThread && m_enableButtonThread->isRunning()) {
+        qCDebug(lcMainWindow) << "使能按钮监控线程已在运行，跳过重复初始化";
+        return;
+    }
+
     qCDebug(lcMainWindow) << "初始化使能按钮...";
 
     // 检查设备文件是否存在
@@ -4439,28 +4403,29 @@ void MainWindow::setupEnableButton()
 
     qCDebug(lcMainWindow) << "使能按钮设备打开成功，文件描述符:" << m_enableButtonFd;
 
-    // 创建工作线程读取使能按钮
-
-    // 使用Qt的线程机制
-    QThread *enableThread = new QThread(this);
-
-    // 创建Worker对象
-    EnableButtonWorker *worker = new EnableButtonWorker(m_enableButtonFd);
-    worker->moveToThread(enableThread);
+    // 使用成员指针托管线程与 worker 生命周期，便于析构阶段可靠停止
+    m_enableButtonThread = new QThread(this);
+    m_enableButtonWorker = new EnableButtonWorker(m_enableButtonFd);
+    m_enableButtonWorker->moveToThread(m_enableButtonThread);
 
     // 连接信号槽
-    connect(enableThread, &QThread::started, worker, &EnableButtonWorker::startPolling);
-    connect(worker, &EnableButtonWorker::buttonStateChanged,
-            this, &MainWindow::onEnableButtonStateChanged);
-    connect(worker, &EnableButtonWorker::errorOccurred,
-            this, &MainWindow::onEnableButtonError);
+    connect(m_enableButtonThread, &QThread::started,
+            m_enableButtonWorker, &EnableButtonWorker::startPolling);
+    connect(m_enableButtonWorker, &EnableButtonWorker::buttonStateChanged,
+            this, &MainWindow::onEnableButtonStateChanged, Qt::QueuedConnection);
+    connect(m_enableButtonWorker, &EnableButtonWorker::errorOccurred,
+            this, &MainWindow::onEnableButtonError, Qt::QueuedConnection);
 
     // 线程结束时清理
-    connect(enableThread, &QThread::finished, worker, &EnableButtonWorker::deleteLater);
-    connect(enableThread, &QThread::finished, enableThread, &QThread::deleteLater);
+    connect(m_enableButtonThread, &QThread::finished,
+            m_enableButtonWorker, &EnableButtonWorker::deleteLater);
+    connect(m_enableButtonThread, &QThread::finished,
+            this, [this]() { m_enableButtonWorker = nullptr; });
+    connect(m_enableButtonThread, &QThread::finished,
+            this, [this]() { m_enableButtonThread = nullptr; });
 
     // 启动线程
-    enableThread->start();
+    m_enableButtonThread->start();
 
     qCDebug(lcMainWindow) << "使能按钮监控线程已启动";
     ui->statusBar->showMessage("使能按钮监控已启动", 3000);
@@ -4889,7 +4854,8 @@ void MainWindow::setupAGVOAControl()
 
         // 连接点击信号
         connect(m_techBtnAGV_OA, &TechPushButton::clicked,
-                this, &MainWindow::onAGVOABtnClicked);
+            this, &MainWindow::onAGVOABtnClicked,
+            Qt::UniqueConnection);
 
         qCDebug(lcMainWindow) << "AGV避障开关按钮初始化完成";
     } else {
@@ -4905,7 +4871,8 @@ void MainWindow::setupAGVOAControl()
         m_techBtnAGV_Park->setGlowColor(QColor(127, 140, 141, 100));
 
         connect(m_techBtnAGV_Park, &TechPushButton::clicked,
-                this, &MainWindow::onAGVParkBtnClicked);
+            this, &MainWindow::onAGVParkBtnClicked,
+            Qt::UniqueConnection);
 
         qCDebug(lcMainWindow) << "AGV驻车按钮初始化完成";
     } else {
@@ -4970,9 +4937,18 @@ void MainWindow::setupAGVAngleControl()
 // AGV避障开关按钮点击槽函数
 void MainWindow::onAGVOABtnClicked()
 {
+    if (property("oaSwitchBusy").toBool()) {
+        ui->statusBar->showMessage("避障切换进行中，请稍候...", 1500);
+        qWarning() << "OA切换请求被忽略：上一条指令仍在确认中";
+        return;
+    }
+
+    setProperty("oaSwitchBusy", true);
+
     const bool previousOaEnabled = m_agvOaEnabled;
     const bool targetOaEnabled = !previousOaEnabled;
     m_agvOaEnabled = targetOaEnabled;
+    setProperty("oaTargetEnabled", targetOaEnabled);
 
     if (targetOaEnabled) {
         // 避障开启
@@ -5001,6 +4977,7 @@ void MainWindow::onAGVOABtnClicked()
         }
         ui->statusBar->showMessage("AGV避障切换失败：写入未发送", 3000);
         qWarning() << "AGV避障切换失败：地址0写入请求发送失败，目标bit1=" << (targetOaEnabled ? 1 : 0);
+        setProperty("oaSwitchBusy", false);
         return;
     }
 
@@ -5038,14 +5015,15 @@ void MainWindow::onAGVOABtnClicked()
     });
 
     QTimer::singleShot(650, this, [this, targetOaEnabled]() {
-        if (m_agvOaEnabled != targetOaEnabled) {
-            // 期间用户已再次操作，不做过期重试。
+        if (property("oaTargetEnabled").toBool() != targetOaEnabled) {
+            // 已有更新的目标请求。
             return;
         }
 
         const quint16 reg0 = m_agvRegisterShadow.value(0, 0);
         const bool actualOaEnabled = (((reg0 >> 1) & 0x01) == 1);
         if (actualOaEnabled == targetOaEnabled) {
+            setProperty("oaSwitchBusy", false);
             return;
         }
 
@@ -5060,12 +5038,39 @@ void MainWindow::onAGVOABtnClicked()
         if (!retryOk) {
             qWarning() << "OA自动重试发送失败";
             ui->statusBar->showMessage("AGV避障自动重试失败，请检查网络/控制器状态", 4000);
+            setProperty("oaSwitchBusy", false);
             return;
         }
 
         if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
             m_agvModbusManager->readMultipleRegisters(0, 1);
         }
+
+        QTimer::singleShot(350, this, [this, targetOaEnabled]() {
+            if (property("oaTargetEnabled").toBool() != targetOaEnabled) {
+                return;
+            }
+            const quint16 reg0AfterRetry = m_agvRegisterShadow.value(0, 0);
+            const bool actualAfterRetry = (((reg0AfterRetry >> 1) & 0x01) == 1);
+            if (actualAfterRetry != targetOaEnabled) {
+                qWarning() << "OA自动重试后仍未达到目标。目标bit1=" << (targetOaEnabled ? 1 : 0)
+                           << "当前寄存器0=" << reg0AfterRetry;
+                ui->statusBar->showMessage("避障状态确认失败，请检查控制器侧地址0写保护/上位覆盖", 4500);
+            }
+            setProperty("oaSwitchBusy", false);
+        });
+    });
+
+    // 兜底超时，避免在极端网络条件下锁无法释放。
+    QTimer::singleShot(1500, this, [this, targetOaEnabled]() {
+        if (!property("oaSwitchBusy").toBool()) {
+            return;
+        }
+        if (property("oaTargetEnabled").toBool() != targetOaEnabled) {
+            return;
+        }
+        qWarning() << "OA切换确认超时，已自动释放在途锁";
+        setProperty("oaSwitchBusy", false);
     });
 }
 
@@ -6945,6 +6950,8 @@ void MainWindow::setupAlarmSystem()
     m_forceLimitAlarm = false;
     m_emergencyStopColumnFlag = false;
     m_emergencyStopChassisFlag = false;
+    m_robotArmEmergency150Flag = false;
+    m_agvChassisEmergency51Bit5Flag = false;
     m_forceLimitFlag = false;
 
     // 创建报警检测定时器
@@ -6965,20 +6972,25 @@ void MainWindow::checkAlarmConditions()
 
     const bool alarmStatusLogsEnabled = isFeatureEnabled("alarm_system", "alarm.status_logs");
 
+    // 确保主设备急停位(150)持续被读取，避免因轮询覆盖不全导致报警丢失。
+    if (isFeatureEnabled("alarm_system", "alarm.emergency_stop")
+        && MainDeviceModbusApi::isReady(m_modbusManager)) {
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
+    }
+
     // 调试输出当前报警状态
     if (alarmStatusLogsEnabled) {
         qCDebug(lcMainWindow) << "=== 检查报警条件 ===";
-        qCDebug(lcMainWindow) << "立柱急停标志:" << m_emergencyStopColumnFlag;
-        qCDebug(lcMainWindow) << "底盘急停标志:" << m_emergencyStopChassisFlag;
-        qCDebug(lcMainWindow) << "力控超限标志:" << m_forceLimitFlag;
+        qCDebug(lcMainWindow) << "机械臂急停标志(150):" << m_robotArmEmergency150Flag;
+        qCDebug(lcMainWindow) << "AGV急停标志(51.bit5):" << m_agvChassisEmergency51Bit5Flag;
         qCDebug(lcMainWindow) << "紧急停止报警:" << m_emergencyStopAlarm;
-        qCDebug(lcMainWindow) << "力控超限报警:" << m_forceLimitAlarm;
     }
 
-    // 1. 检查紧急停止报警（804/805地址）
+    // 1. 仅检查两条急停报警源：主设备150 + AGV 51.bit5
     bool newEstopState = false;
     if (isFeatureEnabled("alarm_system", "alarm.emergency_stop")) {
-        newEstopState = (m_emergencyStopColumnFlag || m_emergencyStopChassisFlag);
+        newEstopState = (m_robotArmEmergency150Flag
+                         || m_agvChassisEmergency51Bit5Flag);
     }
     if (newEstopState != m_emergencyStopAlarm) {
         if (newEstopState) {
@@ -6989,23 +7001,7 @@ void MainWindow::checkAlarmConditions()
         m_emergencyStopAlarm = newEstopState;
     }
 
-    // 2. 检查力控超限报警（403地址）
-    // 只要力控超限标志位为1就触发报警
-    bool newForceLimitState = false;
-    if (isFeatureEnabled("alarm_system", "alarm.force_limit")) {
-        newForceLimitState = m_forceLimitFlag;
-    }
-
-    if (newForceLimitState != m_forceLimitAlarm) {
-        if (m_forceLimitFlag) {
-            qCDebug(lcMainWindow) << "!!! 触发力控超限报警 !!!";
-        } else {
-            qCDebug(lcMainWindow) << "解除力控超限报警";
-        }
-        m_forceLimitAlarm = newForceLimitState;
-    }
-
-    // 3. 统一更新显示 (使用updateAlarmDisplay处理优先级和内容)
+    // 2. 统一更新显示
     updateAlarmDisplay();
 
     if (alarmStatusLogsEnabled) {
@@ -7135,17 +7131,17 @@ void MainWindow::updateAlarmDisplay()
 {
     // 如果有任何报警处于激活状态，显示相应的报警
     if (m_emergencyStopAlarm) {
+        const bool robotEmergency = m_robotArmEmergency150Flag;
+        const bool chassisEmergency = m_agvChassisEmergency51Bit5Flag;
         QString alarmMessage;
-        if (m_emergencyStopColumnFlag && m_emergencyStopChassisFlag) {
-            alarmMessage = "立柱触发急停报警\n底盘触发急停报警";
-        } else if (m_emergencyStopColumnFlag) {
-            alarmMessage = "立柱触发急停报警";
+        if (robotEmergency && chassisEmergency) {
+            alarmMessage = "机械臂触发急停，请解除急停。\n底盘触发急停，请解除急停。";
+        } else if (robotEmergency) {
+            alarmMessage = "机械臂触发急停，请解除急停。";
         } else {
-            alarmMessage = "底盘触发急停报警";
+            alarmMessage = "底盘触发急停，请解除急停。";
         }
-        showAlarm(alarmMessage, "#ff5555");
-    } else if (m_forceLimitAlarm) {
-        showAlarm("力控超限被触发，请手动移出超限位\n请手动移出超限位置", "#ff8800");
+        showAlarm(alarmMessage, "#ff5555", false);
     } else {
         // 没有报警时隐藏窗口
         // 只有在没有转向切换报警时才隐藏
