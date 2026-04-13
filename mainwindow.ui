@@ -120,53 +120,55 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
 </string>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="11">
-     <spacer name="horizontalSpacer_4">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+    <item row="2" column="1" colspan="4">
+     <widget class="QLabel" name="label_Home">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
       </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
+      <property name="font">
+       <font>
+        <pointsize>-1</pointsize>
+        <bold>true</bold>
+       </font>
       </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>150</width>
-        <height>20</height>
-       </size>
+      <property name="styleSheet">
+       <string notr="true">font-size: 22px;
+    letter-spacing: 1px;
+    line-height: 1.3;
+    
+    /* 白色文字配蓝色边框 */
+    color: #ffffff;
+    border-left: 5px solid qlineargradient(
+        x1: 0, y1: 0, x2: 0, y2: 1,
+        stop: 0 #00aaff,
+        stop: 1 #0066cc
+    );
+    
+    
+    /* 背景效果 */
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 0,
+        stop: 0 rgba(0, 60, 120, 0.2),
+        stop: 0.5 rgba(0, 40, 80, 0.1),
+        stop: 1 rgba(0, 60, 120, 0.2)
+    );
+    
+    /* 布局 */
+    padding: 2px 3px;
+    margin: 10px 0 6px 0;
+    border-radius: 0 6px 6px 0;
+    
+    /* 装饰性下划线 */
+    border-bottom: 1px solid rgba(0, 150, 255, 0.3);
+    </string>
       </property>
-     </spacer>
-    </item>
-    <item row="1" column="13">
-     <spacer name="horizontalSpacer_5">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+      <property name="text">
+       <string>悬臂式人机协同数字化装配系统</string>
       </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>50</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="1" column="1">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
+     </widget>
     </item>
     <item row="1" column="3" colspan="8">
      <widget class="QLabel" name="label_StatusTip">
@@ -187,61 +189,69 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
       </property>
      </widget>
     </item>
-    <item row="6" column="11" colspan="2">
-     <widget class="QGroupBox" name="groupBox_4">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>1</verstretch>
-       </sizepolicy>
+    <item row="1" column="11">
+     <spacer name="horizontalSpacer_4">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
-      <property name="title">
-       <string>安全开关</string>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
       </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>150</width>
+        <height>20</height>
+       </size>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QToolButton" name="TBtn_RemoveWarning">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>1</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>44</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>11</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>清除报错</string>
-         </property>
-         <property name="icon">
-          <iconset resource="res.qrc">
-           <normaloff>:/Picture/RemoveWarning.png</normaloff>:/Picture/RemoveWarning.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+     </spacer>
+    </item>
+    <item row="1" column="12">
+     <spacer name="horizontalSpacer_6">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="1" column="2">
+     <spacer name="horizontalSpacer_3">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>300</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="1" column="1">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
     </item>
     <item row="6" column="1" colspan="3">
      <widget class="QGroupBox" name="groupBox">
@@ -353,6 +363,94 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        </item>
       </layout>
      </widget>
+    </item>
+    <item row="6" column="11" colspan="2">
+     <widget class="QGroupBox" name="groupBox_4">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="title">
+       <string>安全开关</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QToolButton" name="TBtn_RemoveWarning">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>44</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>11</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>清除报错</string>
+         </property>
+         <property name="icon">
+          <iconset resource="res.qrc">
+           <normaloff>:/Picture/RemoveWarning.png</normaloff>:/Picture/RemoveWarning.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="1" column="13">
+     <spacer name="horizontalSpacer_5">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>50</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="1" column="0">
+     <spacer name="horizontalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>70</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
     </item>
     <item row="6" column="4" colspan="7">
      <widget class="QGroupBox" name="groupBox_2">
@@ -737,114 +835,11 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          </item>
         </layout>
        </widget>
-       <zorder>lab_Overall</zorder>
-       <zorder>widget_test3</zorder>
-       <zorder>widget_test4</zorder>
-       <zorder>widget_test2</zorder>
-       <zorder>widget_test1</zorder>
-       <zorder>TechSliderEdit_Robot_RobotSpeed</zorder>
-       <zorder>techBtn_AGV_Park</zorder>
-       <zorder>SEdit_AGV_Angle</zorder>
-       <zorder>SEdit_AGV_MoveSpeed</zorder>
-       <zorder>AGV_speedGauge</zorder>
-       <zorder>techBtn_AGV_OA</zorder>
-       <zorder>steeringModeSelector</zorder>
-       <zorder>widget_5</zorder>
-      </widget>
-      <widget class="QWidget" name="page_VeSupSec">
-       <widget class="TechSliderLabel" name="label_Value2_VeSupSec" native="true">
+       <widget class="QWidget" name="widget_31" native="true">
         <property name="geometry">
          <rect>
-          <x>1</x>
-          <y>80</y>
-          <width>520</width>
-          <height>80</height>
-         </rect>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>80</height>
-         </size>
-        </property>
-       </widget>
-       <widget class="TechSliderEdit" name="TechSliderEdit_VeSupSec_MoveSpeed" native="true">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>200</y>
-          <width>520</width>
-          <height>80</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>80</height>
-         </size>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label__VeSupSec_overall">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>10</y>
-          <width>331</width>
-          <height>60</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>-1</pointsize>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font-size: 22px;
-    letter-spacing: 1px;
-    line-height: 1.3;
-    
-    /* 白色文字配蓝色边框 */
-    color: #ffffff;
-    border-left: 5px solid qlineargradient(
-        x1: 0, y1: 0, x2: 0, y2: 1,
-        stop: 0 #00aaff,
-        stop: 1 #0066cc
-    );
-    
-    
-    /* 背景效果 */
-    background: qlineargradient(
-        x1: 0, y1: 0, x2: 1, y2: 0,
-        stop: 0 rgba(0, 60, 120, 0.2),
-        stop: 0.5 rgba(0, 40, 80, 0.1),
-        stop: 1 rgba(0, 60, 120, 0.2)
-    );
-    
-    /* 布局 */
-    padding: 10px 15px;
-    margin: 10px 0 6px 0;
-    border-radius: 0 6px 6px 0;
-    
-    /* 装饰性下划线 */
-    border-bottom: 1px solid rgba(0, 150, 255, 0.3);
-    </string>
-        </property>
-        <property name="text">
-         <string>升降组件运动控制</string>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_30" native="true">
-        <property name="geometry">
-         <rect>
-          <x>550</x>
-          <y>80</y>
+          <x>1040</x>
+          <y>60</y>
           <width>206</width>
           <height>90</height>
          </rect>
@@ -867,9 +862,9 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
           <height>16777215</height>
          </size>
         </property>
-        <layout class="QGridLayout" name="gridLayout_10">
+        <layout class="QGridLayout" name="gridLayout_11">
          <item row="1" column="0">
-          <widget class="QLineEdit" name="LEdit_VeSupSec_J2MoveStep">
+          <widget class="QLineEdit" name="LEdit_VeSupSec_J2MoveStep_2">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
              <horstretch>0</horstretch>
@@ -891,7 +886,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
           </widget>
          </item>
          <item row="0" column="0">
-          <widget class="QLabel" name="label_54">
+          <widget class="QLabel" name="label_55">
            <property name="minimumSize">
             <size>
              <width>80</width>
@@ -927,7 +922,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
           </widget>
          </item>
          <item row="1" column="1">
-          <widget class="QLabel" name="label_27">
+          <widget class="QLabel" name="label_28">
            <property name="maximumSize">
             <size>
              <width>30</width>
@@ -957,7 +952,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
           </widget>
          </item>
          <item row="1" column="2">
-          <widget class="QToolButton" name="TBtn_VeSupSec_Rise">
+          <widget class="QToolButton" name="TBtn_VeSupSec_Rise_2">
            <property name="minimumSize">
             <size>
              <width>30</width>
@@ -987,7 +982,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
           </widget>
          </item>
          <item row="1" column="3">
-          <widget class="QToolButton" name="TBtn_VeSupSec_Drop">
+          <widget class="QToolButton" name="TBtn_VeSupSec_Drop_2">
            <property name="minimumSize">
             <size>
              <width>30</width>
@@ -1018,814 +1013,20 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          </item>
         </layout>
        </widget>
-      </widget>
-      <widget class="QWidget" name="page_HoriSupSec">
-       <widget class="QLabel" name="label_HoriSupSec">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>10</y>
-          <width>331</width>
-          <height>60</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>-1</pointsize>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font-size: 22px;
-    letter-spacing: 1px;
-    line-height: 1.3;
-    
-    /* 白色文字配蓝色边框 */
-    color: #ffffff;
-    border-left: 5px solid qlineargradient(
-        x1: 0, y1: 0, x2: 0, y2: 1,
-        stop: 0 #00aaff,
-        stop: 1 #0066cc
-    );
-    
-    
-    /* 背景效果 */
-    background: qlineargradient(
-        x1: 0, y1: 0, x2: 1, y2: 0,
-        stop: 0 rgba(0, 60, 120, 0.2),
-        stop: 0.5 rgba(0, 40, 80, 0.1),
-        stop: 1 rgba(0, 60, 120, 0.2)
-    );
-    
-    /* 布局 */
-    padding: 10px 15px;
-    margin: 10px 0 6px 0;
-    border-radius: 0 6px 6px 0;
-    
-    /* 装饰性下划线 */
-    border-bottom: 1px solid rgba(0, 150, 255, 0.3);
-    </string>
-        </property>
-        <property name="text">
-         <string>悬臂组件运动控制</string>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_18" native="true">
-        <property name="geometry">
-         <rect>
-          <x>550</x>
-          <y>80</y>
-          <width>206</width>
-          <height>90</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>1</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>200</width>
-          <height>80</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>10000</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_8">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_52">
-           <property name="minimumSize">
-            <size>
-             <width>80</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>111111</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>-1</pointsize>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"> font-size: 12px;
-    color: #88ccff;
-    
-
-    
-    padding: 1px 0;
-    margin: 6px 0;
-    border: none;
-    background: transparent;</string>
-           </property>
-           <property name="text">
-            <string>伸缩步进长度</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLabel" name="label_20">
-           <property name="maximumSize">
-            <size>
-             <width>30</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>-1</pointsize>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"> font-size: 12px;
-    color: #88ccff;
-    
-
-    
-    padding: 1px 0;
-    margin: 6px 0;
-    border: none;
-    background: transparent;</string>
-           </property>
-           <property name="text">
-            <string>mm</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLineEdit" name="LEdit_HoriSupSec_J3MoveStep">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>70</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>70</width>
-             <height>16777215</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QToolButton" name="toolButton">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>30</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/Extend.png</normaloff>:/Picture/Extend.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>64</width>
-             <height>64</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="3">
-          <widget class="QToolButton" name="toolButton_2">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>30</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/shrink_icon_237392.png</normaloff>:/Picture/shrink_icon_237392.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>64</width>
-             <height>64</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="TechSliderLabel" name="label_Value1_HoriSupSec" native="true">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>320</y>
-          <width>520</width>
-          <height>80</height>
-         </rect>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>80</height>
-         </size>
-        </property>
-       </widget>
-       <widget class="TechSliderEdit" name="TechSliderEdit_HoriSupSec_RotationSpeed" native="true">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>440</y>
-          <width>520</width>
-          <height>80</height>
-         </rect>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>520</width>
-          <height>80</height>
-         </size>
-        </property>
-       </widget>
-       <widget class="TechSliderLabel" name="label_Value3_HoriSupSec" native="true">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>80</y>
-          <width>520</width>
-          <height>80</height>
-         </rect>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>500</width>
-          <height>70</height>
-         </size>
-        </property>
-       </widget>
-       <widget class="TechSliderEdit" name="TechSliderEdit_HoriSupSec_MoveSpeed" native="true">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>200</y>
-          <width>520</width>
-          <height>80</height>
-         </rect>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>500</width>
-          <height>70</height>
-         </size>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_29" native="true">
-        <property name="geometry">
-         <rect>
-          <x>550</x>
-          <y>160</y>
-          <width>206</width>
-          <height>90</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>1</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>200</width>
-          <height>80</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>10000</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_9">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_53">
-           <property name="minimumSize">
-            <size>
-             <width>80</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>111111</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>-1</pointsize>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"> font-size: 12px;
-    color: #88ccff;
-    
-
-    
-    padding: 1px 0;
-    margin: 6px 0;
-    border: none;
-    background: transparent;</string>
-           </property>
-           <property name="text">
-            <string>旋转步进长度</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLabel" name="label_26">
-           <property name="maximumSize">
-            <size>
-             <width>30</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>-1</pointsize>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"> font-size: 12px;
-    color: #88ccff;
-    
-
-    
-    padding: 1px 0;
-    margin: 6px 0;
-    border: none;
-    background: transparent;</string>
-           </property>
-           <property name="text">
-            <string>°</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QToolButton" name="TBtn_VeSupSec_RotLeft">
-           <property name="minimumSize">
-            <size>
-             <width>30</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color:#53F6FB;
-</string>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/Rotate_left_in_place.png</normaloff>:/Picture/Rotate_left_in_place.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>32</width>
-             <height>32</height>
-            </size>
-           </property>
-           <property name="arrowType">
-            <enum>Qt::NoArrow</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLineEdit" name="LEdit_HoriSupSec_J1MoveStep">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>70</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>70</width>
-             <height>16777215</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="3">
-          <widget class="QToolButton" name="TBtn_VeSupSec_RotRight">
-           <property name="minimumSize">
-            <size>
-             <width>30</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color:#53F6FB;</string>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/Rotate_right_in_place.png</normaloff>:/Picture/Rotate_right_in_place.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>32</width>
-             <height>32</height>
-            </size>
-           </property>
-           <property name="arrowType">
-            <enum>Qt::NoArrow</enum>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </widget>
-      <widget class="QWidget" name="page_EOAT">
-       <widget class="TechSliderLabel" name="label_Value4_EOAT" native="true">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>80</y>
-          <width>520</width>
-          <height>80</height>
-         </rect>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>520</width>
-          <height>80</height>
-         </size>
-        </property>
-       </widget>
-       <widget class="QLabel" name="label_EOAT">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>10</y>
-          <width>331</width>
-          <height>60</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>-1</pointsize>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font-size: 22px;
-    letter-spacing: 1px;
-    line-height: 1.3;
-    
-    /* 白色文字配蓝色边框 */
-    color: #ffffff;
-    border-left: 5px solid qlineargradient(
-        x1: 0, y1: 0, x2: 0, y2: 1,
-        stop: 0 #00aaff,
-        stop: 1 #0066cc
-    );
-    
-    
-    /* 背景效果 */
-    background: qlineargradient(
-        x1: 0, y1: 0, x2: 1, y2: 0,
-        stop: 0 rgba(0, 60, 120, 0.2),
-        stop: 0.5 rgba(0, 40, 80, 0.1),
-        stop: 1 rgba(0, 60, 120, 0.2)
-    );
-    
-    /* 布局 */
-    padding: 10px 15px;
-    margin: 10px 0 6px 0;
-    border-radius: 0 6px 6px 0;
-    
-    /* 装饰性下划线 */
-    border-bottom: 1px solid rgba(0, 150, 255, 0.3);
-    </string>
-        </property>
-        <property name="text">
-         <string>末端组件运动控制</string>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_28" native="true">
-        <property name="geometry">
-         <rect>
-          <x>550</x>
-          <y>80</y>
-          <width>206</width>
-          <height>90</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>1</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>200</width>
-          <height>80</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>10000</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_7">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_51">
-           <property name="minimumSize">
-            <size>
-             <width>80</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>111111</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>-1</pointsize>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"> font-size: 12px;
-    color: #88ccff;
-    
-
-    
-    padding: 1px 0;
-    margin: 6px 0;
-    border: none;
-    background: transparent;</string>
-           </property>
-           <property name="text">
-            <string>旋转步进长度</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLineEdit" name="LEdit_EOAT_J4MoveStep">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>70</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>70</width>
-             <height>16777215</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QToolButton" name="TBtn_VeSupSec_RotLeft_2">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>30</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color:#53F6FB;
-</string>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/Rotate_left_in_place.png</normaloff>:/Picture/Rotate_left_in_place.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>32</width>
-             <height>32</height>
-            </size>
-           </property>
-           <property name="arrowType">
-            <enum>Qt::NoArrow</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLabel" name="label_18">
-           <property name="maximumSize">
-            <size>
-             <width>30</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>-1</pointsize>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"> font-size: 12px;
-    color: #88ccff;
-    
-
-    
-    padding: 1px 0;
-    margin: 6px 0;
-    border: none;
-    background: transparent;</string>
-           </property>
-           <property name="text">
-            <string>°</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="3">
-          <widget class="QToolButton" name="TBtn_VeSupSec_RotRight_2">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>30</width>
-             <height>30</height>
-            </size>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color:#53F6FB;</string>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/Rotate_right_in_place.png</normaloff>:/Picture/Rotate_right_in_place.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>32</width>
-             <height>32</height>
-            </size>
-           </property>
-           <property name="arrowType">
-            <enum>Qt::NoArrow</enum>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QQuickWidget" name="sixAxisQuickWidget">
-        <property name="geometry">
-         <rect>
-          <x>140</x>
-          <y>360</y>
-          <width>300</width>
-          <height>200</height>
-         </rect>
-        </property>
-        <property name="resizeMode">
-         <enum>QQuickWidget::SizeRootObjectToView</enum>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="Btn_test">
-        <property name="geometry">
-         <rect>
-          <x>490</x>
-          <y>470</y>
-          <width>88</width>
-          <height>26</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>PushButton</string>
-        </property>
-       </widget>
-      </widget>
-      <widget class="QWidget" name="page_AGV">
-       <widget class="QLabel" name="label_AGV">
-        <property name="geometry">
-         <rect>
-          <x>550</x>
-          <y>320</y>
-          <width>270</width>
-          <height>65</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>-1</pointsize>
-          <bold>true</bold>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">font-size: 22px;
-    letter-spacing: 1px;
-    line-height: 1.3;
-    
-    /* 白色文字配蓝色边框 */
-    color: #ffffff;
-    border-left: 5px solid qlineargradient(
-        x1: 0, y1: 0, x2: 0, y2: 1,
-        stop: 0 #00aaff,
-        stop: 1 #0066cc
-    );
-    
-    
-    /* 背景效果 */
-    background: qlineargradient(
-        x1: 0, y1: 0, x2: 1, y2: 0,
-        stop: 0 rgba(0, 60, 120, 0.2),
-        stop: 0.5 rgba(0, 40, 80, 0.1),
-        stop: 1 rgba(0, 60, 120, 0.2)
-    );
-    
-    /* 布局 */
-    padding: 10px 15px;
-    margin: 10px 0 6px 0;
-    border-radius: 0 6px 6px 0;
-    
-    /* 装饰性下划线 */
-    border-bottom: 1px solid rgba(0, 150, 255, 0.3);
-    </string>
-        </property>
-        <property name="text">
-         <string>全向移动平台运动控制</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="Btn_SwitchAGV">
-        <property name="geometry">
-         <rect>
-          <x>600</x>
-          <y>550</y>
-          <width>321</width>
-          <height>151</height>
-         </rect>
-        </property>
-        <property name="styleSheet">
-         <string notr="true"/>
-        </property>
-        <property name="text">
-         <string>PushButton</string>
-        </property>
-       </widget>
+       <zorder>lab_Overall</zorder>
+       <zorder>widget_test3</zorder>
+       <zorder>widget_test4</zorder>
+       <zorder>widget_test2</zorder>
+       <zorder>widget_test1</zorder>
+       <zorder>TechSliderEdit_Robot_RobotSpeed</zorder>
+       <zorder>techBtn_AGV_Park</zorder>
+       <zorder>SEdit_AGV_Angle</zorder>
+       <zorder>SEdit_AGV_MoveSpeed</zorder>
+       <zorder>AGV_speedGauge</zorder>
+       <zorder>techBtn_AGV_OA</zorder>
+       <zorder>steeringModeSelector</zorder>
+       <zorder>widget_5</zorder>
+       <zorder>widget_31</zorder>
       </widget>
       <widget class="QWidget" name="page_HistoryRecord">
        <widget class="QQuickWidget" name="quickWidget_HistoryList">
@@ -1851,104 +1052,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         </property>
        </widget>
       </widget>
-     </widget>
-    </item>
-    <item row="1" column="2">
-     <spacer name="horizontalSpacer_3">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>300</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="1" column="0">
-     <spacer name="horizontalSpacer_2">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>70</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="1" column="12">
-     <spacer name="horizontalSpacer_6">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="2" column="1" colspan="4">
-     <widget class="QLabel" name="label_Home">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>1</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>-1</pointsize>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">font-size: 22px;
-    letter-spacing: 1px;
-    line-height: 1.3;
-    
-    /* 白色文字配蓝色边框 */
-    color: #ffffff;
-    border-left: 5px solid qlineargradient(
-        x1: 0, y1: 0, x2: 0, y2: 1,
-        stop: 0 #00aaff,
-        stop: 1 #0066cc
-    );
-    
-    
-    /* 背景效果 */
-    background: qlineargradient(
-        x1: 0, y1: 0, x2: 1, y2: 0,
-        stop: 0 rgba(0, 60, 120, 0.2),
-        stop: 0.5 rgba(0, 40, 80, 0.1),
-        stop: 1 rgba(0, 60, 120, 0.2)
-    );
-    
-    /* 布局 */
-    padding: 2px 3px;
-    margin: 10px 0 6px 0;
-    border-radius: 0 6px 6px 0;
-    
-    /* 装饰性下划线 */
-    border-bottom: 1px solid rgba(0, 150, 255, 0.3);
-    </string>
-      </property>
-      <property name="text">
-       <string>悬臂式人机协同数字化装配系统</string>
-      </property>
      </widget>
     </item>
    </layout>
@@ -1977,12 +1080,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
    <class>TechPushButton</class>
    <extends>QPushButton</extends>
    <header location="global">techpushbutton.h</header>
-  </customwidget>
-  <customwidget>
-   <class>TechSliderLabel</class>
-   <extends>QWidget</extends>
-   <header location="global">techsliderlabel.h</header>
-   <container>1</container>
   </customwidget>
   <customwidget>
    <class>SteeringModeSelector</class>

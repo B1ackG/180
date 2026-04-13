@@ -285,7 +285,7 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
     QGroupBox *limitGroup = new QGroupBox("参数范围自定义 (Parameter Limits)");
     QVBoxLayout *limitLayout = new QVBoxLayout(limitGroup);
 
-    // 与 MainWindow::setupSliderLabelConfigs 的 key 保持一致，确保修改可落地到运行态。
+    // 与 MainWindow::setupSliderLabelConfigs / m_arcGauges 的 key 保持一致。
     QStringList targetNames = {
         "robot_ArcGauge_J1Angle",
         "robot_ArcGauge_J2Height",
@@ -361,17 +361,10 @@ void FeatureSwitchWidget::savePollingState()
 void FeatureSwitchWidget::loadSliderLimitState()
 {
     const QMap<QString, QPair<double, double>> defaultRanges = {
-        {"robot_ArcGauge_J1Angle", qMakePair(-90.0, 90.0)},
+        {"robot_ArcGauge_J1Angle", qMakePair(-170.0, 170.0)},
         {"robot_ArcGauge_J2Height", qMakePair(-850.0, 1150.0)},
         {"robot_ArcGauge_J3Length", qMakePair(0.0, 1600.0)},
         {"robot_ArcGauge_J4Angle", qMakePair(-180.0, 180.0)}
-    };
-
-    const QMap<QString, QString> legacyKeyMap = {
-        {"robot_ArcGauge_J1Angle", "label_Value1"},
-        {"robot_ArcGauge_J2Height", "label_Value2"},
-        {"robot_ArcGauge_J3Length", "label_Value3"},
-        {"robot_ArcGauge_J4Angle", "label_Value4"}
     };
 
     QSettings settings("config.ini", QSettings::IniFormat);
@@ -384,17 +377,6 @@ void FeatureSwitchWidget::loadSliderLimitState()
 
         QVariant minVar = settings.value(keyMin);
         QVariant maxVar = settings.value(keyMax);
-        if (!minVar.isValid() || !maxVar.isValid()) {
-            const QString legacy = legacyKeyMap.value(it.key());
-            if (!legacy.isEmpty()) {
-                if (!minVar.isValid()) {
-                    minVar = settings.value(QString("%1_min").arg(legacy));
-                }
-                if (!maxVar.isValid()) {
-                    maxVar = settings.value(QString("%1_max").arg(legacy));
-                }
-            }
-        }
 
         const double minVal = minVar.isValid() ? minVar.toDouble() : range.first;
         const double maxVal = maxVar.isValid() ? maxVar.toDouble() : range.second;
@@ -410,13 +392,6 @@ void FeatureSwitchWidget::saveSliderLimitState()
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("SliderLabelLimits");
 
-    const QMap<QString, QString> legacyKeyMap = {
-        {"robot_ArcGauge_J1Angle", "label_Value1"},
-        {"robot_ArcGauge_J2Height", "label_Value2"},
-        {"robot_ArcGauge_J3Length", "label_Value3"},
-        {"robot_ArcGauge_J4Angle", "label_Value4"}
-    };
-
     for (auto it = m_limitEdits.begin(); it != m_limitEdits.end(); ++it) {
         QString keyMin = QString("%1_min").arg(it.key());
         QString keyMax = QString("%1_max").arg(it.key());
@@ -425,12 +400,6 @@ void FeatureSwitchWidget::saveSliderLimitState()
         const double maxVal = it.value().maxEdit->text().toDouble();
         settings.setValue(keyMin, minVal);
         settings.setValue(keyMax, maxVal);
-
-        const QString legacy = legacyKeyMap.value(it.key());
-        if (!legacy.isEmpty()) {
-            settings.setValue(QString("%1_min").arg(legacy), minVal);
-            settings.setValue(QString("%1_max").arg(legacy), maxVal);
-        }
     }
     settings.endGroup();
     settings.sync();

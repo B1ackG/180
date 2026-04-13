@@ -22,6 +22,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QComboBox>
 #include <QPlainTextEdit>
 #include <QMessageBox>
+#include <QDialog>
 #include <QFileDialog>
 #include <QSettings>
 #include <QToolTip>
@@ -217,10 +218,18 @@ void MainWindow::applySliderLabelRuntimeSettings()
     for (auto it = m_sliderLabelConfigs.begin(); it != m_sliderLabelConfigs.end(); ++it) {
         const QString& name = it.key();
         const SliderLabelConfig& config = it.value();
+        if (config.maxValue <= config.minValue) {
+            continue;
+        }
         
         // 首页实例
         if (m_sliderLabelInstances.contains(name)) {
             m_sliderLabelInstances[name]->setRange(config.minValue, config.maxValue);
+        }
+
+        // 环形仪表实例（widget_test1~4）
+        if (m_arcGauges.contains(name)) {
+            m_arcGauges[name]->setRange(config.minValue, config.maxValue);
         }
         
         // 副本页实例（在 m_pageSliders 中）
@@ -286,26 +295,7 @@ void MainWindow::setupNavigationConnections()
         updateNavButtonStyles(nullptr);
     });
 
-    /* connect(ui->Btn_SwitchVerticalSupport, &QPushButton::clicked, [=]() {
-        ui->StackedWidget->setCurrentIndex(1);
-        updateNavButtonStyles(ui->Btn_SwitchVerticalSupport);
-    });
-
-    connect(ui->Btn_SwitchHorizontalSupport, &QPushButton::clicked, [=]() {
-        ui->StackedWidget->setCurrentIndex(2);
-        updateNavButtonStyles(ui->Btn_SwitchHorizontalSupport);
-    });*/
-
-    connect(ui->Btn_SwitchAGV, &QPushButton::clicked, [=]() {
-        ui->StackedWidget->setCurrentIndex(4);
-        writeToAGVDevice(6, 2);
-        updateNavButtonStyles(ui->Btn_SwitchAGV);
-    });
-
-   /* connect(ui->Btn_SwitchEOAT, &QPushButton::clicked, [=]() {
-        ui->StackedWidget->setCurrentIndex(3);
-        updateNavButtonStyles(ui->Btn_SwitchEOAT);
-    }); */
+    // 旧模板按钮 Btn_Switch* 已移除，页面切换统一由左侧工具按钮负责。
 }
 
 void MainWindow::setupRecordAndPermissionConnections()
@@ -468,10 +458,6 @@ void MainWindow::setupStyles()
     //设定所有普通按钮的样式
 
 
-    //模式切换btn
-    // QList<QPushButton *>CommonBtns = {
-    //     ui->Btn_SwitchHorizontalSupport,ui->Btn_SwitchVerticalSupport,ui->Btn_SwitchEOAT,ui->Btn_SwitchAGV
-    // };
     //方向TBtn
     QList<QToolButton *>CommonTBtns = this->findChildren<QToolButton*>();
     //普通LineEdit
@@ -483,7 +469,6 @@ void MainWindow::setupStyles()
 
 
     // 应用样式
-    // applyPushButtonStyles(CommonBtns);
     applyToolButtonStyles(CommonTBtns);
     applyLineEditStyles(AllLEdits);
 
@@ -918,8 +903,24 @@ void MainWindow::initSpeedGaugeUI()
         {ui->widget_test4, "robot_ArcGauge_J4Angle", "末端角度", "°", -180, 180, 1}
     };
 
-    for (int i = 0; i < configs.size(); ++i) {
-        const auto& cfg = configs[i];
+    for (auto &cfg : configs) {
+        if (m_sliderLabelConfigs.contains(cfg.name)) {
+            const SliderLabelConfig &rangeCfg = m_sliderLabelConfigs[cfg.name];
+            if (rangeCfg.maxValue > rangeCfg.minValue) {
+                cfg.min = rangeCfg.minValue;
+                cfg.max = rangeCfg.maxValue;
+            }
+            if (!rangeCfg.labelText.isEmpty()) {
+                cfg.label = rangeCfg.labelText;
+            }
+            if (!rangeCfg.suffix.isEmpty()) {
+                cfg.suffix = rangeCfg.suffix;
+            }
+            cfg.precision = rangeCfg.precision;
+        }
+    }
+
+    for (const auto& cfg : configs) {
         if (cfg.placeholder) {
             TechArcGauge *arcGauge = new TechArcGauge(cfg.placeholder->parentWidget());
             arcGauge->setGeometry(cfg.placeholder->geometry());
@@ -2825,7 +2826,7 @@ void MainWindow::onModbusConnected()
 
     const bool startupFloatReadingEnabled = isFeatureEnabled("modbus_main", "modbus_main.float_reading");
     if (startupFloatReadingEnabled) {
-        // 延后批量浮点轮询，优先保障开机模式位读取（501/525）先完成，避免启动阶段请求拥塞。
+        // 延后批量浮点轮询，优先保障开机模式位读取（125/126）先完成，避免启动阶段请求拥塞。
         QTimer::singleShot(2500, this, [this]() {
             if (MainDeviceModbusApi::isReady(m_modbusManager)) {
                 setupModbusFloatReading();
@@ -2837,8 +2838,8 @@ void MainWindow::onModbusConnected()
         if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
             return;
         }
-        // 一次读取 501~525，减少请求数量并保证两个模式位在同一响应链路。
-        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 501, 25);
+        // 一次读取 125~126，减少请求数量并保证两个模式位在同一响应链路。
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 125, 2);
     };
 
     // 开机后主动读取模式寄存器，用于同步按钮文本状态（增强重试次数以提高首次命中率）
@@ -2853,16 +2854,16 @@ void MainWindow::onModbusConnected()
         }
     });
 
-    // 持续重试直到501/525都回包或20秒超时，避免开机窗口期漏读。
+    // 持续重试直到125/126都回包或20秒超时，避免开机窗口期漏读。
     auto *modeStartupRetryTimer = new QTimer(this);
     modeStartupRetryTimer->setInterval(400);
     const qint64 startupBeginMs = QDateTime::currentMSecsSinceEpoch();
     connect(modeStartupRetryTimer, &QTimer::timeout, this, [this, modeStartupRetryTimer, startupBeginMs, requestStartupModes]() {
         requestStartupModes();
 
-        const bool has501 = !m_stepModeUnknown;
-        const bool has525 = !m_moveModeUnknown;
-        if (has501 && has525) {
+        const bool has125 = !m_stepModeUnknown;
+        const bool has126 = !m_moveModeUnknown;
+        if (has125 && has126) {
             modeStartupRetryTimer->stop();
             modeStartupRetryTimer->deleteLater();
             return;
@@ -2878,7 +2879,7 @@ void MainWindow::onModbusConnected()
             timeoutRecord.controlName = "startup_mode_reader";
             timeoutRecord.controlType = "MainModbus";
             timeoutRecord.operation = "startup_mode_read_timeout";
-            timeoutRecord.oldValue = "等待读取501/525";
+            timeoutRecord.oldValue = "等待读取125/126";
             timeoutRecord.newValue = QString("20秒超时，步进=%1，运动=%2")
                                          .arg(ui && ui->TBtn_Stepmove ? ui->TBtn_Stepmove->text() : "未知")
                                          .arg(ui && ui->TBtn_MoveMode ? ui->TBtn_MoveMode->text() : "未知");
@@ -3120,7 +3121,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
     const bool allowUiStateSync = m_uiStateSyncEnabled;
 
-    if (allowUiStateSync && address == 501 && ui && ui->TBtn_Stepmove) {
+    if (allowUiStateSync && address == 125 && ui && ui->TBtn_Stepmove) {
         if (value == 2) {
             m_stepModeUnknown = false;
             m_stepModeEnabled = true;
@@ -3155,7 +3156,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         updateFunctionSwitchVisuals();
     }
 
-    if (allowUiStateSync && address == 525 && ui && ui->TBtn_MoveMode) {
+    if (allowUiStateSync && address == 126 && ui && ui->TBtn_MoveMode) {
         if (value == 2) {
             m_moveModeUnknown = false;
             m_isJointMode = true;
@@ -3185,6 +3186,14 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         }
 
         updateFunctionSwitchVisuals();
+    }
+
+    if (allowUiStateSync && address == 130) {
+        if (TechSliderEdit *robotSpeedSlider = findChild<TechSliderEdit*>("TechSliderEdit_Robot_RobotSpeed")) {
+            const QSignalBlocker blocker(robotSpeedSlider);
+            const double clamped = qBound(robotSpeedSlider->minimum(), static_cast<double>(value), robotSpeedSlider->maximum());
+            robotSpeedSlider->setValue(clamped);
+        }
     }
 
     const QStringList targetLabels = {
@@ -3536,9 +3545,12 @@ void MainWindow::readAllFloatRegisters()
         // qWarning() << "[轮询执行] 正在批量读取寄存器 (地址 0 - 71)...";
     }
 
-    // 改为一次性读取 0 到 71 号寄存器 (共 72 个)
+    // 一次读取 0 到 71 号寄存器 (共 72 个)
     // 这样涵盖了 J1-J4 (0,4,12,20) 以及后续可能的报警和状态位
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 0, 72);
+
+    // 额外读取 125~130：点动/步进、运动模式、机器人速度同步位。
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 125, 6);
 }
 // 配置所有TechSliderLabel的参数
 void MainWindow::setupSliderLabelConfigs()
@@ -3552,8 +3564,8 @@ void MainWindow::setupSliderLabelConfigs()
     m_sliderLabelConfigs["robot_ArcGauge_J1Angle"] = {
         "悬臂组件当前角度:",           // labelText
         "°",                  // unit
-        -90.0,               // minValue
-        90.0,                // maxValue
+        -170.0,              // minValue
+        170.0,               // maxValue
         60.0,                // defaultValue
         "°",                 // suffix
         0,                   // modbusAddress1
@@ -3585,7 +3597,7 @@ void MainWindow::setupSliderLabelConfigs()
         "悬臂组件当前长度:",           // labelText
         "mm",                // unit
         0.0,                 // minValue
-        1500.0,              // maxValue (修改最大值以容纳求和)
+        1600.0,              // maxValue
         560.0,               // defaultValue
         "mm",                // suffix
         12,                  // modbusAddress1
@@ -3776,7 +3788,7 @@ void MainWindow::setupAGVModbus()
             this, [this](int address, quint16 value) {
                 m_agvRegisterShadow[address] = value;
 
-                if (address == 500 && m_controlModeBtn) {
+                if (address == 100 && m_controlModeBtn) {
                     if (value == 1) {
                         m_controlMode = WIRELESS_MODE;
                         m_controlModeBtn->setText("无线控制");
@@ -3795,8 +3807,9 @@ void MainWindow::setupAGVModbus()
                     }
                 }
 
-                if (address == 0) {
-                    const bool oaEnabled = (((value >> 1) & 0x01) == 1);
+                if (address == 50) {
+                    // 约定：bit13=0 表示避障开启，bit13=1 表示避障关闭
+                    const bool oaEnabled = (((value >> 13) & 0x01) == 0);
                     m_agvOaEnabled = oaEnabled;
                     if (m_techBtnAGV_OA) {
                         m_techBtnAGV_OA->setText(oaEnabled ? "避障开启" : "避障关闭");
@@ -3812,6 +3825,18 @@ void MainWindow::setupAGVModbus()
                         oaLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
                                                    .arg(oaEnabled ? "#00C8FF" : "#7F8C8D"));
                     }
+                }
+
+                if (m_uiStateSyncEnabled && address == 153 && m_editAGV_MoveSpeed) {
+                    const QSignalBlocker blocker(m_editAGV_MoveSpeed);
+                    const double clamped = qBound(m_editAGV_MoveSpeed->minimum(), static_cast<double>(value), m_editAGV_MoveSpeed->maximum());
+                    m_editAGV_MoveSpeed->setValue(clamped);
+                }
+
+                if (m_uiStateSyncEnabled && address == 154 && m_editAGV_Angle) {
+                    const QSignalBlocker blocker(m_editAGV_Angle);
+                    const double clamped = qBound(m_editAGV_Angle->minimum(), static_cast<double>(value), m_editAGV_Angle->maximum());
+                    m_editAGV_Angle->setValue(clamped);
                 }
 
                 if (address == 51) {
@@ -4081,7 +4106,9 @@ void MainWindow::onAGVModbusConnected()
                 return;
             }
             m_agvModbusManager->readMultipleRegisters(2, 1);
+            m_agvModbusManager->readMultipleRegisters(50, 1);
             m_agvModbusManager->readMultipleRegisters(51, 1);
+            m_agvModbusManager->readMultipleRegisters(153, 2);
         });
     }
 }
@@ -4215,6 +4242,18 @@ void MainWindow::onAGVWordVariableChanged(int address, quint16 value)
         // 同时更新原来的label_speed（如果需要保持兼容）
         // 直接调用onAGVUpdateStatusLabel函数，而不是发射信号
         onAGVUpdateStatusLabel("label_speed", QString("%1 mm/s").arg(value));
+    }
+
+    if (m_uiStateSyncEnabled && address == 153 && m_editAGV_MoveSpeed) {
+        const QSignalBlocker blocker(m_editAGV_MoveSpeed);
+        const double clamped = qBound(m_editAGV_MoveSpeed->minimum(), static_cast<double>(value), m_editAGV_MoveSpeed->maximum());
+        m_editAGV_MoveSpeed->setValue(clamped);
+    }
+
+    if (m_uiStateSyncEnabled && address == 154 && m_editAGV_Angle) {
+        const QSignalBlocker blocker(m_editAGV_Angle);
+        const double clamped = qBound(m_editAGV_Angle->minimum(), static_cast<double>(value), m_editAGV_Angle->maximum());
+        m_editAGV_Angle->setValue(clamped);
     }
 }
 
@@ -4660,6 +4699,55 @@ void MainWindow::writeToAGVDevice(int address, int value)
 
     m_agvDisconnectedWarnedAddresses.remove(address);
 
+    if (m_controlMode == WIRELESS_MODE) {
+        QDialog warnDialog(this);
+        warnDialog.setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        warnDialog.setModal(true);
+
+        QVBoxLayout *layout = new QVBoxLayout(&warnDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        QLabel *msgLabel = new QLabel("当前处于无线模式", &warnDialog);
+        msgLabel->setAlignment(Qt::AlignCenter);
+        msgLabel->setWordWrap(true);
+        layout->addWidget(msgLabel);
+
+        QPushButton *confirmBtn = new QPushButton("确认", &warnDialog);
+        layout->addWidget(confirmBtn);
+        connect(confirmBtn, &QPushButton::clicked, &warnDialog, &QDialog::accept);
+
+        warnDialog.setStyleSheet(
+            "QDialog {"
+            "  background-color: rgba(30, 0, 0, 230);"
+            "  border: 3px solid #FFFF00;"
+            "  border-radius: 10px;"
+            "}"
+            "QLabel {"
+            "  color: #FFFF00;"
+            "  font-size: 18px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "QPushButton {"
+            "  background-color: #FFFF00;"
+            "  color: #202020;"
+            "  border: 2px solid #FFD65A;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 100px;"
+            "}"
+            "QPushButton:hover {"
+            "  background-color: #FFD65A;"
+            "  border-color: #FFFF00;"
+            "}");
+
+        warnDialog.setFixedSize(350, 120);
+        warnDialog.exec();
+    }
+
     if (isFeatureEnabled("modbus_agv", "modbus_agv.write_logs")) {
         qCDebug(lcMainWindow) << "[AGV] 写入地址:" << address << "值:" << value;
     }
@@ -4697,6 +4785,55 @@ bool MainWindow::writeAGVRegisterBits(int address,
     if (bitUpdates.isEmpty()) {
         qWarning() << "[AGV按位写入] 未提供任何位更新，已拒绝写入";
         return false;
+    }
+
+    if (m_controlMode == WIRELESS_MODE) {
+        QDialog warnDialog(this);
+        warnDialog.setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        warnDialog.setModal(true);
+
+        QVBoxLayout *layout = new QVBoxLayout(&warnDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        QLabel *msgLabel = new QLabel("当前处于无线模式", &warnDialog);
+        msgLabel->setAlignment(Qt::AlignCenter);
+        msgLabel->setWordWrap(true);
+        layout->addWidget(msgLabel);
+
+        QPushButton *confirmBtn = new QPushButton("确认", &warnDialog);
+        layout->addWidget(confirmBtn);
+        connect(confirmBtn, &QPushButton::clicked, &warnDialog, &QDialog::accept);
+
+        warnDialog.setStyleSheet(
+            "QDialog {"
+            "  background-color: rgba(30, 0, 0, 230);"
+            "  border: 3px solid #FFFF00;"
+            "  border-radius: 10px;"
+            "}"
+            "QLabel {"
+            "  color: #FFFF00;"
+            "  font-size: 18px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "QPushButton {"
+            "  background-color: #FFFF00;"
+            "  color: #202020;"
+            "  border: 2px solid #FFD65A;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 100px;"
+            "}"
+            "QPushButton:hover {"
+            "  background-color: #FFD65A;"
+            "  border-color: #FFFF00;"
+            "}");
+
+        warnDialog.setFixedSize(350, 120);
+        warnDialog.exec();
     }
 
     quint16 baseValue = m_agvRegisterShadow.value(address, 0);
@@ -6645,8 +6782,8 @@ void MainWindow::setupStepMoveControl()
 
         qCDebug(lcMainWindow) << "步进/点动模式按钮初始化完成";
 
-        if (g_registerCache.contains(501)) {
-            const quint16 value = g_registerCache.value(501);
+        if (g_registerCache.contains(125)) {
+            const quint16 value = g_registerCache.value(125);
             if (value == 2) {
                 m_stepModeUnknown = false;
                 m_stepModeEnabled = true;

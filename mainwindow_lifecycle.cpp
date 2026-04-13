@@ -6,6 +6,8 @@
 #include <QStackedWidget>
 #include <QDebug>
 #include <QMovie>
+#include <QQuickWidget>
+#include <QQmlContext>
 #include <unistd.h>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -67,9 +69,9 @@ MainWindow::MainWindow(QWidget *parent)
     initializeCorePagesAndUi();
     initializeCoreSubsystems();
 
-    if (ui->sixAxisQuickWidget) {
-        ui->sixAxisQuickWidget->rootContext()->setContextProperty("poseData", m_poseProvider);
-        ui->sixAxisQuickWidget->setSource(QUrl("qrc:/PoseDisplay.qml"));
+    if (auto *sixAxisQuickWidget = findChild<QQuickWidget*>("sixAxisQuickWidget")) {
+        sixAxisQuickWidget->rootContext()->setContextProperty("poseData", m_poseProvider);
+        sixAxisQuickWidget->setSource(QUrl("qrc:/PoseDisplay.qml"));
     }
 
     ui->StackedWidget->setCurrentIndex(0);
@@ -391,22 +393,7 @@ void MainWindow::initializeUI()
 
 void MainWindow::updateNavButtonStyles(QPushButton *activeBtn)
 {
-    /* QList<QPushButton *> navButtons = {
-        ui->Btn_SwitchVerticalSupport,
-        ui->Btn_SwitchHorizontalSupport,
-        ui->Btn_SwitchAGV,
-        ui->Btn_SwitchEOAT
-    }; */
-
-    const QString activeStyle = "QPushButton { border: 2px solid #00FFFF; background-color: transparent; border-radius: 10px; }";
-    const QString normalStyle = "QPushButton { border: none; background-color: transparent; }";
-
-    /* for (QPushButton *btn : navButtons) {
-        if (!btn) {
-            continue;
-        }
-        btn->setStyleSheet(btn == activeBtn ? activeStyle : normalStyle);
-    } */
+    // 旧模板导航按钮已删除，当前保留接口避免影响既有调用。
     Q_UNUSED(activeBtn);
 }
 
