@@ -912,7 +912,7 @@ void MainWindow::initSpeedGaugeUI()
     };
 
     QList<ArcConfig> configs = {
-        {ui->widget_test1, "robot_ArcGauge_J1Angle", "悬臂角度", "°", -90, 90, 1},
+        {ui->widget_test1, "robot_ArcGauge_J1Angle", "悬臂角度", "°", -170, 170, 1},
         {ui->widget_test2, "robot_ArcGauge_J2Height", "升降高度", "mm", -850, 1150, 0},
         {ui->widget_test3, "robot_ArcGauge_J3Length", "总伸展长度", "mm", 0, 1600, 0},
         {ui->widget_test4, "robot_ArcGauge_J4Angle", "末端角度", "°", -180, 180, 1}

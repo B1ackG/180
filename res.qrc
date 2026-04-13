@@ -53,5 +53,11 @@
         <file>Picture/background10.jpg</file>
         <file>Picture/190overall7_small.png</file>
         <file>Picture/190overall7_smalltest.png</file>
+        <file>Picture/home2.png</file>
+        <file>Picture/RemoveWarning.png</file>
+        <file>Picture/ControlMode.png</file>
+        <file>Picture/MoveMode.png</file>
+        <file>Picture/permission.png</file>
+        <file>Picture/history.png</file>
     </qresource>
 </RCC>

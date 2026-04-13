@@ -227,7 +227,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          </property>
          <property name="icon">
           <iconset resource="res.qrc">
-           <normaloff>:/Picture/ModeSwitch.png</normaloff>:/Picture/ModeSwitch.png</iconset>
+           <normaloff>:/Picture/RemoveWarning.png</normaloff>:/Picture/RemoveWarning.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -276,7 +276,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          </property>
          <property name="icon">
           <iconset resource="res.qrc">
-           <normaloff>:/Picture/home.png</normaloff>:/Picture/home.png</iconset>
+           <normaloff>:/Picture/home2.png</normaloff>:/Picture/home2.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -307,7 +307,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          </property>
          <property name="icon">
           <iconset resource="res.qrc">
-           <normaloff>:/Picture/home.png</normaloff>:/Picture/home.png</iconset>
+           <normaloff>:/Picture/permission.png</normaloff>:/Picture/permission.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -338,7 +338,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          </property>
          <property name="icon">
           <iconset resource="res.qrc">
-           <normaloff>:/Picture/History.png</normaloff>:/Picture/History.png</iconset>
+           <normaloff>:/Picture/history.png</normaloff>:/Picture/history.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -432,7 +432,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          </property>
          <property name="icon">
           <iconset resource="res.qrc">
-           <normaloff>:/Picture/ModeSwitch.png</normaloff>:/Picture/ModeSwitch.png</iconset>
+           <normaloff>:/Picture/MoveMode.png</normaloff>:/Picture/MoveMode.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -470,7 +470,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          </property>
          <property name="icon">
           <iconset resource="res.qrc">
-           <normaloff>:/Picture/ModeSwitch.png</normaloff>:/Picture/ModeSwitch.png</iconset>
+           <normaloff>:/Picture/ControlMode.png</normaloff>:/Picture/ControlMode.png</iconset>
          </property>
          <property name="iconSize">
           <size>
