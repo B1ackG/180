@@ -3200,72 +3200,71 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         "robot_ArcGauge_J1Angle", "robot_ArcGauge_J2Height", "robot_ArcGauge_J3Length", "robot_ArcGauge_J4Angle"
     };
 
-    if (allowUiStateSync) {
-        for (const QString &labelName : targetLabels) {
-            if (!m_sliderLabelConfigs.contains(labelName)) {
-                continue;
+    // J1~J4 数值显示应始终跟随主寄存器数据，不受“控件状态同步”开关影响。
+    for (const QString &labelName : targetLabels) {
+        if (!m_sliderLabelConfigs.contains(labelName)) {
+            continue;
+        }
+
+        const SliderLabelConfig &config = m_sliderLabelConfigs[labelName];
+        const QVector<int> regs = {
+            config.modbusAddress1,
+            config.modbusAddress2,
+            config.modbusAddress3,
+            config.modbusAddress4
+        };
+
+        if (!regs.contains(address)) {
+            continue;
+        }
+
+        bool ready = true;
+        for (int reg : regs) {
+            if (!g_registerCache.contains(reg)) {
+                ready = false;
+                break;
             }
+        }
 
-            const SliderLabelConfig &config = m_sliderLabelConfigs[labelName];
-            const QVector<int> regs = {
-                config.modbusAddress1,
-                config.modbusAddress2,
-                config.modbusAddress3,
-                config.modbusAddress4
-            };
+        if (!ready) {
+            continue;
+        }
 
-            if (!regs.contains(address)) {
-                continue;
-            }
+        const quint16 reg1 = g_registerCache[config.modbusAddress1];
+        const quint16 reg2 = g_registerCache[config.modbusAddress2];
+        const quint16 reg3 = g_registerCache[config.modbusAddress3];
+        const quint16 reg4 = g_registerCache[config.modbusAddress4];
+        double value64 = registersToDoubleDCBAFEHG(reg1, reg2, reg3, reg4);
 
-            bool ready = true;
-            for (int reg : regs) {
-                if (!g_registerCache.contains(reg)) {
-                    ready = false;
+        // 如果开启了求和模式 (用于 J3Length = 12-15 + 16-19)
+        if (config.isSumMode) {
+            bool sumReady = true;
+            for (int i = 0; i < 4; ++i) {
+                if (!g_registerCache.contains(config.sumAddress[i])) {
+                    sumReady = false;
                     break;
                 }
             }
 
-            if (!ready) {
-                continue;
+            if (sumReady) {
+                const double sumPart = registersToDoubleDCBAFEHG(
+                    g_registerCache[config.sumAddress[0]],
+                    g_registerCache[config.sumAddress[1]],
+                    g_registerCache[config.sumAddress[2]],
+                    g_registerCache[config.sumAddress[3]]
+                );
+                value64 += sumPart;
             }
-
-            const quint16 reg1 = g_registerCache[config.modbusAddress1];
-            const quint16 reg2 = g_registerCache[config.modbusAddress2];
-            const quint16 reg3 = g_registerCache[config.modbusAddress3];
-            const quint16 reg4 = g_registerCache[config.modbusAddress4];
-            double value64 = registersToDoubleDCBAFEHG(reg1, reg2, reg3, reg4);
-
-            // 如果开启了求和模式 (用于 J3Length = 12-15 + 16-19)
-            if (config.isSumMode) {
-                bool sumReady = true;
-                for (int i = 0; i < 4; ++i) {
-                    if (!g_registerCache.contains(config.sumAddress[i])) {
-                        sumReady = false;
-                        break;
-                    }
-                }
-
-                if (sumReady) {
-                    const double sumPart = registersToDoubleDCBAFEHG(
-                        g_registerCache[config.sumAddress[0]],
-                        g_registerCache[config.sumAddress[1]],
-                        g_registerCache[config.sumAddress[2]],
-                        g_registerCache[config.sumAddress[3]]
-                    );
-                    value64 += sumPart;
-                }
-            }
-
-            static QMap<QString, int> debugCounter;
-            if (debugCounter[labelName]++ % 8 == 0) {
-                // qWarning() << "[四控件读数]" << labelName
-                //          << (config.isSumMode ? " (求和模式)" : "")
-                //          << "解析值:" << value64;
-            }
-
-            updateSliderLabelValue(labelName, static_cast<float>(value64));
         }
+
+        static QMap<QString, int> debugCounter;
+        if (debugCounter[labelName]++ % 8 == 0) {
+            // qWarning() << "[四控件读数]" << labelName
+            //          << (config.isSumMode ? " (求和模式)" : "")
+            //          << "解析值:" << value64;
+        }
+
+        updateSliderLabelValue(labelName, static_cast<float>(value64));
     }
     // ============ 仅保留主设备150急停报警源 ============
     if (address == 150) {
@@ -3475,11 +3474,15 @@ double MainWindow::registersToDoubleDCBAFEHG(quint16 reg1, quint16 reg2, quint16
 
 void MainWindow::setupModbusFloatReading()
 {
-    // 创建读取定时器
-    m_modbusReadTimer = new QTimer(this);
-
-    // 连接到读取函数
-    connect(m_modbusReadTimer, &QTimer::timeout, this, &MainWindow::readAllFloatRegisters);
+    // 重连后复用同一个定时器，避免重复创建导致请求堆积。
+    if (!m_modbusReadTimer) {
+        m_modbusReadTimer = new QTimer(this);
+        connect(m_modbusReadTimer, &QTimer::timeout,
+                this, &MainWindow::readAllFloatRegisters,
+                Qt::UniqueConnection);
+    } else if (m_modbusReadTimer->isActive()) {
+        m_modbusReadTimer->stop();
+    }
 
     // 清空之前的列表
     m_floatLabels.clear();
@@ -3524,8 +3527,8 @@ void MainWindow::setupModbusFloatReading()
     // 立即读取一次
     readAllFloatRegisters();
 
-    // 每500毫秒读取一次
-    m_modbusReadTimer->start(500);
+    // 按运行时配置轮询，避免硬编码与配置不一致。
+    m_modbusReadTimer->start(m_mainUiPollIntervalMs);
 }
 
 void MainWindow::readAllFloatRegisters()
