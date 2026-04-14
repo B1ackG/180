@@ -55,6 +55,7 @@ bool MatrixKeyMonitor::startMonitoring()
     // m_keepAliveTimer->start();
 
     m_isRunning = true;
+    m_lastKeyState.clear();
     qDebug() << "键盘监控已启动，设备:" << m_devicePath;
     emit statusChanged(true);
 
@@ -89,6 +90,8 @@ void MatrixKeyMonitor::stopMonitoring()
         m_fd = -1;
     }
 
+    m_lastKeyState.clear();
+
     qDebug() << "键盘监控已停止";
     emit statusChanged(false);
 }
@@ -116,10 +119,21 @@ void MatrixKeyMonitor::onSocketActivated(int socket)
 
         // 只处理按键事件
         if (ev.type == EV_KEY) {
+            // Linux input: 0=release, 1=press, 2=auto-repeat。
+            // auto-repeat 不能当作释放，否则会错误触发 514 写 0。
+            if (ev.value != 0 && ev.value != 1) {
+                continue;
+            }
+
             int keyNumber = mapKeyCodeToButtonNumber(ev.code);
             bool pressed = (ev.value == 1);
 
             if (keyNumber >= 0) {
+                if (m_lastKeyState.contains(keyNumber) && m_lastKeyState.value(keyNumber) == pressed) {
+                    continue;
+                }
+                m_lastKeyState[keyNumber] = pressed;
+
                 qDebug() << "矩阵按键事件 - 键码:" << ev.code
                          << "-> 按钮" << keyNumber
                          << "状态:" << (pressed ? "按下" : "释放");

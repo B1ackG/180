@@ -20,6 +20,7 @@
 #include <linux/input.h>
 #include <QTimer>
 #include <QEventLoop>
+#include <QHash>
 
 class MatrixKeyMonitor : public QObject
 {
@@ -137,6 +138,7 @@ private:
     QString m_devicePath;
     QMutex m_mutex;
     bool m_isRunning;
+    QHash<int, bool> m_lastKeyState;
     // QTimer *m_keepAliveTimer;  // 保持线程活动的定时器
 };
 

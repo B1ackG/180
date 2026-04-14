@@ -2532,12 +2532,37 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 // 地址514逻辑：奇数按键写4，偶数按键写2
                 value514 = (keyNumber % 2 != 0) ? 4 : 2;
 
+                // 先写轴组(500)，再延时写方向(514)，提高PLC扫描窗口内命中率。
+                m_robotExternalKeyPressed[keyNumber] = true;
+                m_robotActiveKey = keyNumber;
+                const quint64 seq = ++m_robotExternalWriteSeq;
+
                 writeToMainDevice(500, value500);
-                writeToMainDevice(514, value514);
+
+                auto stagedWrite514 = [this, keyNumber, value514, seq]() {
+                    if (seq != m_robotExternalWriteSeq) {
+                        return;
+                    }
+                    if (m_robotActiveKey != keyNumber) {
+                        return;
+                    }
+                    if (!m_robotExternalKeyPressed.value(keyNumber, false)) {
+                        return;
+                    }
+                    writeToMainDevice(514, value514);
+                };
+
+                QTimer::singleShot(25, this, stagedWrite514);
+                QTimer::singleShot(90, this, stagedWrite514);
             } else {
                 // 松开时的逻辑：500寄存器不再写0，514寄存器写0
                 value500 = -1; // 用-1表示不操作
                 value514 = 0;
+                m_robotExternalKeyPressed[keyNumber] = false;
+                if (m_robotActiveKey == keyNumber) {
+                    m_robotActiveKey = -1;
+                }
+                ++m_robotExternalWriteSeq;
                 writeToMainDevice(514, 0);
             }
 

@@ -47,6 +47,7 @@
 #include <QQuickItem>
 #include <QQmlContext>
 #include <QSet>
+#include <QHash>
 #include "poseprovider.h"
 
 QT_BEGIN_NAMESPACE
@@ -558,6 +559,9 @@ private:
     bool m_isJointMode = true;
     bool m_moveModeUnknown = true;
     bool m_forcecontrolMode = false;
+    QHash<int, bool> m_robotExternalKeyPressed;
+    quint64 m_robotExternalWriteSeq = 0;
+    int m_robotActiveKey = -1;
 
     // ----- 通信轮询与重连参数（可持久化） -----
     int m_mainModbusPollIntervalMs = 500;
