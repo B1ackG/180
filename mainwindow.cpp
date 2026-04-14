@@ -5241,6 +5241,12 @@ void MainWindow::onAGVOABtnClicked()
 
 void MainWindow::onAGVParkBtnClicked()
 {
+    if (m_controlMode != WIRED_MODE) {
+        ui->statusBar->showMessage("当前为无线控制，驻车功能仅在有线控制模式下生效", 3000);
+        qWarning() << "驻车请求被拒绝：当前不是有线控制模式";
+        return;
+    }
+
     if (property("parkingSwitchWaiting").toBool()) {
         ui->statusBar->showMessage("驻车切换进行中，请等待完成", 2000);
         return;
