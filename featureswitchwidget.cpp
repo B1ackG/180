@@ -273,6 +273,11 @@ void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
 
     addPollItem("主控 Modbus 轮询 (ms):", m_editMainModbusPoll);
     addPollItem("控件状态同步轮询 (ms):", m_editMainUiPoll);
+    addPollItem("设备状态轮询间隔 (ms, 0~71):", m_editMainDeviceStatusPoll);
+    addPollItem("设备状态轮询起始地址 (192.168.1.13):", m_editMainDeviceStatusStart);
+    addPollItem("设备状态轮询数量 (0~71默认72):", m_editMainDeviceStatusCount);
+    addPollItem("模式同步轮询起始地址 (如125):", m_editMainControlSyncStart);
+    addPollItem("模式同步轮询数量 (如6):", m_editMainControlSyncCount);
     addPollItem("主控 重连间隔 (ms):", m_editMainReconnect);
     addPollItem("AGV Modbus 轮询 (ms):", m_editAgvPoll);
     addPollItem("AGV 重连间隔 (ms):", m_editAgvReconnect);
@@ -338,6 +343,11 @@ void FeatureSwitchWidget::loadPollingState()
     m_cbUiStateSync->setChecked(settings.value("ui_state_sync_enabled", true).toBool());
     m_editMainModbusPoll->setText(settings.value("main_modbus_poll_ms", 500).toString());
     m_editMainUiPoll->setText(settings.value("main_ui_poll_ms", 200).toString());
+    m_editMainDeviceStatusPoll->setText(settings.value("main_device_status_poll_ms", 2000).toString());
+    m_editMainDeviceStatusStart->setText(settings.value("main_device_status_start", 0).toString());
+    m_editMainDeviceStatusCount->setText(settings.value("main_device_status_count", 72).toString());
+    m_editMainControlSyncStart->setText(settings.value("main_control_sync_start", 125).toString());
+    m_editMainControlSyncCount->setText(settings.value("main_control_sync_count", 6).toString());
     m_editMainReconnect->setText(settings.value("main_reconnect_ms", 5000).toString());
     m_editAgvPoll->setText(settings.value("agv_poll_ms", 200).toString());
     m_editAgvReconnect->setText(settings.value("agv_reconnect_ms", 5000).toString());
@@ -351,6 +361,11 @@ void FeatureSwitchWidget::savePollingState()
     settings.setValue("ui_state_sync_enabled", m_cbUiStateSync->isChecked());
     settings.setValue("main_modbus_poll_ms", m_editMainModbusPoll->text().toInt());
     settings.setValue("main_ui_poll_ms", m_editMainUiPoll->text().toInt());
+    settings.setValue("main_device_status_poll_ms", m_editMainDeviceStatusPoll->text().toInt());
+    settings.setValue("main_device_status_start", m_editMainDeviceStatusStart->text().toInt());
+    settings.setValue("main_device_status_count", m_editMainDeviceStatusCount->text().toInt());
+    settings.setValue("main_control_sync_start", m_editMainControlSyncStart->text().toInt());
+    settings.setValue("main_control_sync_count", m_editMainControlSyncCount->text().toInt());
     settings.setValue("main_reconnect_ms", m_editMainReconnect->text().toInt());
     settings.setValue("agv_poll_ms", m_editAgvPoll->text().toInt());
     settings.setValue("agv_reconnect_ms", m_editAgvReconnect->text().toInt());

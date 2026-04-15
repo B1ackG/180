@@ -48,6 +48,11 @@ private:
     // 轮询参数输入框
     QLineEdit *m_editMainModbusPoll;
     QLineEdit *m_editMainUiPoll;
+    QLineEdit *m_editMainDeviceStatusPoll;
+    QLineEdit *m_editMainDeviceStatusStart;
+    QLineEdit *m_editMainDeviceStatusCount;
+    QLineEdit *m_editMainControlSyncStart;
+    QLineEdit *m_editMainControlSyncCount;
     QLineEdit *m_editMainReconnect;
     QLineEdit *m_editAgvPoll;
     QLineEdit *m_editAgvReconnect;

@@ -33,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_modbusVariables(new ModbusVariables(this))
     , m_modbusPollTimer(new QTimer(this))
     , m_modbusReadTimer(nullptr)
+    , m_mainControlSyncTimer(nullptr)
     , m_floatRegisters()
     , m_floatLabels()
     , m_agvModbusManager(nullptr)
@@ -137,6 +138,11 @@ MainWindow::~MainWindow()
     if (m_modbusReadTimer) {
         m_modbusReadTimer->stop();
         delete m_modbusReadTimer;
+    }
+
+    if (m_mainControlSyncTimer) {
+        m_mainControlSyncTimer->stop();
+        delete m_mainControlSyncTimer;
     }
 
     if (m_agvModbusManager) {

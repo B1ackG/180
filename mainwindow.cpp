@@ -124,6 +124,11 @@ void MainWindow::loadPollingRuntimeSettings()
     m_uiStateSyncEnabled = settings.value("ui_state_sync_enabled", true).toBool();
     m_mainModbusPollIntervalMs = settings.value("main_modbus_poll_ms", 500).toInt();
     m_mainUiPollIntervalMs = settings.value("main_ui_poll_ms", 200).toInt();
+    m_mainDeviceStatusPollIntervalMs = settings.value("main_device_status_poll_ms", 2000).toInt();
+    m_mainDeviceStatusStart = settings.value("main_device_status_start", 0).toInt();
+    m_mainDeviceStatusCount = settings.value("main_device_status_count", 72).toInt();
+    m_mainControlSyncStart = settings.value("main_control_sync_start", 125).toInt();
+    m_mainControlSyncCount = settings.value("main_control_sync_count", 6).toInt();
     m_mainReconnectIntervalMs = settings.value("main_reconnect_ms", 5000).toInt();
     m_agvPollIntervalMs = settings.value("agv_poll_ms", 200).toInt();
     m_agvReconnectIntervalMs = settings.value("agv_reconnect_ms", 5000).toInt();
@@ -137,6 +142,11 @@ void MainWindow::loadPollingRuntimeSettings()
 
     m_mainModbusPollIntervalMs = qBound(50, m_mainModbusPollIntervalMs, 60000);
     m_mainUiPollIntervalMs = qBound(50, m_mainUiPollIntervalMs, 60000);
+    m_mainDeviceStatusPollIntervalMs = qBound(50, m_mainDeviceStatusPollIntervalMs, 60000);
+    m_mainDeviceStatusStart = qBound(0, m_mainDeviceStatusStart, 65535);
+    m_mainDeviceStatusCount = qBound(1, m_mainDeviceStatusCount, 125);
+    m_mainControlSyncStart = qBound(0, m_mainControlSyncStart, 65535);
+    m_mainControlSyncCount = qBound(1, m_mainControlSyncCount, 125);
     m_mainReconnectIntervalMs = qBound(500, m_mainReconnectIntervalMs, 120000);
     m_agvPollIntervalMs = qBound(50, m_agvPollIntervalMs, 60000);
     m_agvReconnectIntervalMs = qBound(500, m_agvReconnectIntervalMs, 120000);
@@ -150,6 +160,11 @@ void MainWindow::savePollingRuntimeSettings() const
     settings.setValue("ui_state_sync_enabled", m_uiStateSyncEnabled);
     settings.setValue("main_modbus_poll_ms", m_mainModbusPollIntervalMs);
     settings.setValue("main_ui_poll_ms", m_mainUiPollIntervalMs);
+    settings.setValue("main_device_status_poll_ms", m_mainDeviceStatusPollIntervalMs);
+    settings.setValue("main_device_status_start", m_mainDeviceStatusStart);
+    settings.setValue("main_device_status_count", m_mainDeviceStatusCount);
+    settings.setValue("main_control_sync_start", m_mainControlSyncStart);
+    settings.setValue("main_control_sync_count", m_mainControlSyncCount);
     settings.setValue("main_reconnect_ms", m_mainReconnectIntervalMs);
     settings.setValue("agv_poll_ms", m_agvPollIntervalMs);
     settings.setValue("agv_reconnect_ms", m_agvReconnectIntervalMs);
@@ -172,6 +187,20 @@ void MainWindow::applyPollingRuntimeSettings()
     if (m_modbusPollTimer && m_modbusPollTimer->isActive()) {
         m_modbusPollTimer->setInterval(m_mainUiPollIntervalMs);
     }
+
+    if (m_modbusReadTimer && m_modbusReadTimer->isActive()) {
+        m_modbusReadTimer->setInterval(m_mainDeviceStatusPollIntervalMs);
+    }
+
+    if (m_mainControlSyncTimer && m_mainControlSyncTimer->isActive()) {
+        m_mainControlSyncTimer->setInterval(m_mainUiPollIntervalMs);
+    }
+
+    m_mainDeviceStatusPollIntervalMs = qBound(50, m_mainDeviceStatusPollIntervalMs, 60000);
+    m_mainDeviceStatusStart = qBound(0, m_mainDeviceStatusStart, 65535);
+    m_mainDeviceStatusCount = qBound(1, m_mainDeviceStatusCount, 125);
+    m_mainControlSyncStart = qBound(0, m_mainControlSyncStart, 65535);
+    m_mainControlSyncCount = qBound(1, m_mainControlSyncCount, 125);
 
     if (m_agvModbusManager) {
         m_agvModbusManager->setPollInterval(m_agvPollIntervalMs);
@@ -3499,7 +3528,7 @@ double MainWindow::registersToDoubleDCBAFEHG(quint16 reg1, quint16 reg2, quint16
 
 void MainWindow::setupModbusFloatReading()
 {
-    // 重连后复用同一个定时器，避免重复创建导致请求堆积。
+    // 设备状态组定时器：0~71（默认）独立节拍。
     if (!m_modbusReadTimer) {
         m_modbusReadTimer = new QTimer(this);
         connect(m_modbusReadTimer, &QTimer::timeout,
@@ -3507,6 +3536,16 @@ void MainWindow::setupModbusFloatReading()
                 Qt::UniqueConnection);
     } else if (m_modbusReadTimer->isActive()) {
         m_modbusReadTimer->stop();
+    }
+
+    // 控制同步组定时器：默认125~130，独立于设备状态组节拍。
+    if (!m_mainControlSyncTimer) {
+        m_mainControlSyncTimer = new QTimer(this);
+        connect(m_mainControlSyncTimer, &QTimer::timeout,
+                this, &MainWindow::readMainControlSyncRegisters,
+                Qt::UniqueConnection);
+    } else if (m_mainControlSyncTimer->isActive()) {
+        m_mainControlSyncTimer->stop();
     }
 
     // 清空之前的列表
@@ -3551,9 +3590,11 @@ void MainWindow::setupModbusFloatReading()
 
     // 立即读取一次
     readAllFloatRegisters();
+    readMainControlSyncRegisters();
 
     // 按运行时配置轮询，避免硬编码与配置不一致。
-    m_modbusReadTimer->start(m_mainUiPollIntervalMs);
+    m_modbusReadTimer->start(m_mainDeviceStatusPollIntervalMs);
+    m_mainControlSyncTimer->start(m_mainUiPollIntervalMs);
 }
 
 void MainWindow::readAllFloatRegisters()
@@ -3567,18 +3608,31 @@ void MainWindow::readAllFloatRegisters()
         return;
     }
 
-    // [调试日志] 
+    // [调试日志]
     static int timerExecCount = 0;
     if (timerExecCount++ % 20 == 0) {
-        // qWarning() << "[轮询执行] 正在批量读取寄存器 (地址 0 - 71)...";
+        // qWarning() << "[轮询执行] 正在轮询设备状态组" << m_mainDeviceStatusStart
+        //            << "数量" << m_mainDeviceStatusCount;
     }
 
-    // 一次读取 0 到 71 号寄存器 (共 72 个)
-    // 这样涵盖了 J1-J4 (0,4,12,20) 以及后续可能的报警和状态位
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 0, 72);
+    // 设备状态组（默认 192.168.1.13 的 0~71）独立轮询。
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager,
+                                              m_mainDeviceStatusStart,
+                                              m_mainDeviceStatusCount);
 
-    // 额外读取 125~130：点动/步进、运动模式、机器人速度同步位。
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 125, 6);
+    // 设备状态组由本函数独立负责；控制同步组由 readMainControlSyncRegisters 负责。
+}
+
+void MainWindow::readMainControlSyncRegisters()
+{
+    if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
+        return;
+    }
+
+    // 控制同步组（默认 125~130）：点动/步进、运动模式、机器人速度同步位。
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager,
+                                              m_mainControlSyncStart,
+                                              m_mainControlSyncCount);
 }
 // 配置所有TechSliderLabel的参数
 void MainWindow::setupSliderLabelConfigs()

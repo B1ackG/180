@@ -221,6 +221,8 @@ public:
     void setupModbusFloatReading();
     /** @brief 读取所有浮点寄存器缓存 */
     void readAllFloatRegisters();
+    /** @brief 读取主设备控制同步寄存器组（模式位等） */
+    void readMainControlSyncRegisters();
     /** @brief 将两个寄存器转换为 float */
     float registersToFloat(quint16 high, quint16 low);
     /** @brief 按 DCBA FEHG 字节顺序将4个寄存器转换为 double */
@@ -501,6 +503,7 @@ private:
     QMap<int, QLabel*> m_modbusLabels;
     QTimer *m_modbusPollTimer;
     QTimer *m_modbusReadTimer;
+    QTimer *m_mainControlSyncTimer;
     QMap<QPair<int, int>, QPair<quint16, quint16>> m_floatRegisters;
     QVector<TechSliderLabel*> m_floatLabels;
 
@@ -566,6 +569,11 @@ private:
     // ----- 通信轮询与重连参数（可持久化） -----
     int m_mainModbusPollIntervalMs = 500;
     int m_mainUiPollIntervalMs = 200;
+    int m_mainDeviceStatusPollIntervalMs = 2000;
+    int m_mainDeviceStatusStart = 0;
+    int m_mainDeviceStatusCount = 72;
+    int m_mainControlSyncStart = 125;
+    int m_mainControlSyncCount = 6;
     bool m_uiStateSyncEnabled = true;
     int m_mainReconnectIntervalMs = 5000;
     int m_agvPollIntervalMs = 200;
