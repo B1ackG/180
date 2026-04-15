@@ -39,11 +39,13 @@ namespace {
 SteeringMode steeringModeFromRegisterValue(quint16 value)
 {
     switch (value) {
+    case 1: return STEER_FRONT_BACK;
+    case 2: return STEER_FRONT_ONLY;
+    case 3: return STEER_PARALLEL;
+    case 4: return STEER_LATERAL;
+    case 5: return STEER_ROTATE;
+    // 兼容旧控制器枚举（0~4）
     case 0: return STEER_FRONT_BACK;
-    case 1: return STEER_FRONT_ONLY;
-    case 2: return STEER_PARALLEL;
-    case 3: return STEER_LATERAL;
-    case 4: return STEER_ROTATE;
     default: return STEER_FRONT_BACK;
     }
 }
@@ -3953,8 +3955,9 @@ void MainWindow::setupAGVModbus()
                         return;
                     }
 
-                    if (bit3 || bit4) {
-                        const bool parkingEnabled = bit3;
+                    // 驻车状态同步：bit3=1 表示开启，bit4=1 表示关闭。
+                    if (bit3 != bit4) {
+                        const bool parkingEnabled = bit3 && !bit4;
                         m_agvParkingEnabled = parkingEnabled;
                         if (m_techBtnAGV_Park) {
                             m_techBtnAGV_Park->setText(parkingEnabled ? "驻车开启" : "驻车关闭");
@@ -3973,7 +3976,7 @@ void MainWindow::setupAGVModbus()
                     }
                 }
 
-                if (address == 2 && m_steeringModeSelector) {
+                if (address == 155 && m_steeringModeSelector) {
                     const SteeringMode mode = steeringModeFromRegisterValue(value);
                     const QSignalBlocker blocker(m_steeringModeSelector);
                     m_steeringModeSelector->setCurrentMode(mode);
@@ -4187,7 +4190,7 @@ void MainWindow::onAGVModbusConnected()
             if (!m_agvModbusManager || !m_agvModbusManager->isConnected()) {
                 return;
             }
-            m_agvModbusManager->readMultipleRegisters(2, 1);
+            m_agvModbusManager->readMultipleRegisters(155, 1);
             m_agvModbusManager->readMultipleRegisters(50, 1);
             m_agvModbusManager->readMultipleRegisters(51, 1);
             m_agvModbusManager->readMultipleRegisters(153, 2);
@@ -5524,7 +5527,7 @@ QString MainWindow::currentSteeringModeText() const
         return m_steeringModeSelector->modeText(m_steeringModeSelector->currentMode());
     }
 
-    switch (steeringModeFromRegisterValue(m_agvRegisterShadow.value(2, 0))) {
+    switch (steeringModeFromRegisterValue(m_agvRegisterShadow.value(155, 1))) {
     case STEER_FRONT_BACK: return "前后轮转向";
     case STEER_FRONT_ONLY: return "前轮转向";
     case STEER_PARALLEL: return "平移模式";

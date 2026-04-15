@@ -281,7 +281,7 @@ void AGVModbusManager::pollRegisters()
 
     // 分组轮询，避免一次读取过大导致阻塞，同时保证所有AGV UI所需地址都能被覆盖。
     // 组0: 0    (OA/驻车相关控制位)
-    // 组1: 2    (底盘切换模式值)
+    // 组1: 155  (底盘转向模式状态值：1~5)
     // 组2: 50-51 (触边/避障/心跳位状态 + 驻车状态位)
     // 组3: 102-105 (电池1、电池2、速度、点动位移)
     // 组4: 110-113 (故障码1-4)
@@ -295,7 +295,7 @@ void AGVModbusManager::pollRegisters()
         readMultipleRegisters(0, 1);
         break;
     case 1:
-        readMultipleRegisters(2, 1);
+        readMultipleRegisters(155, 1);
         break;
     case 2:
         readMultipleRegisters(50, 2);
