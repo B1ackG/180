@@ -2281,6 +2281,18 @@ QString MainWindow::getControlIcon(const QString &controlType)
 // 获取TechSliderLabel的值
 double MainWindow::getSliderLabelValue(const QString &labelName)
 {
+    static const QMap<QString, QString> aliasToArcGauge = {
+        {"label_Value1", "robot_ArcGauge_J1Angle"},
+        {"label_Value2", "robot_ArcGauge_J2Height"},
+        {"label_Value3", "robot_ArcGauge_J3Length"},
+        {"label_Value4", "robot_ArcGauge_J4Angle"}
+    };
+
+    const QString gaugeKey = aliasToArcGauge.value(labelName, labelName);
+    if (m_arcGauges.contains(gaugeKey) && m_arcGauges[gaugeKey]) {
+        return m_arcGauges[gaugeKey]->value();
+    }
+
     // 从首页查找对应的label
     if (m_sliderLabelInstances.contains(labelName)) {
         return m_sliderLabelInstances[labelName]->value();  // 修改这里：使用 value() 而不是 currentValue()
