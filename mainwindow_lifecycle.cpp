@@ -326,6 +326,7 @@ void MainWindow::initUI()
     initSliderLabelUI();
     initTechButtons();
     initSpeedGaugeUI();
+    initRobotTotalPowerCard();
 
     if (isFeatureEnabled("ui_navigation", "ui.virtual_keyboard")) {
         setupVirtualKeyboard();

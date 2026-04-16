@@ -319,6 +319,8 @@ public:
     // ==========================================
     /** @brief 初始化速度仪表 UI */
     void initSpeedGaugeUI();
+    /** @brief 初始化机器人总功率 QML 卡片 */
+    void initRobotTotalPowerCard();
     /**
      * @brief 更新速度显示
      * @param newSpeed 新速度值
@@ -330,6 +332,8 @@ public:
      * @endcode
      */
     void updateSpeed(qreal newSpeed);
+    /** @brief 更新机器人总功率显示（寄存器134） */
+    void updateRobotTotalPower(quint16 powerValue);
     /** @brief 初始化滑块编辑 UI */
     void initSliderEditUI();
 
@@ -440,6 +444,12 @@ private slots:
     void onAGVClearFaultCodes();
     /** @brief 收到 AGV 心跳 */
     void onAGVHeartbeatReceived();
+
+    /** @brief 根据寄存器51同步驻车按钮与状态栏 */
+    void syncAGVParkingStateFromRegister51(quint16 value);
+
+    /** @brief 根据寄存器155同步转向模式按钮与状态栏 */
+    void syncAGVSteeringModeFromRegister155(quint16 value);
 
     /** @brief 更新状态栏时间和日期 */
     void updateStatusBarTime();
@@ -589,6 +599,7 @@ private:
     SpeedModeSelector *m_speedModeSelector;
     QQuickWidget *m_speedGaugeQml = nullptr;  // 使用 QML 版本的速度仪表
     QQuickWidget *m_historyListQml = nullptr;  // 使用 QML 版本操作记录列表
+    QQuickWidget *m_robotTotalPowerQml = nullptr;  // 使用 QML 版本总功率卡片
     QMovie* m_verticalMovie;
     QPixmap m_backgroundPixmap;
     bool m_backgroundLoaded = false;
@@ -661,6 +672,15 @@ private:
 
     /** @brief 连接构造阶段公共信号 */
     void connectConstructorSignals();
+
+    /** @brief 获取指定轴在历史记录中的当前值 */
+    double getAxisCurrentValue(int axisIndex) const;
+
+    /** @brief 获取指定轴在历史记录中的显示名称 */
+    QString getAxisHistoryName(int axisIndex) const;
+
+    /** @brief 获取指定轴在历史记录中的单位 */
+    QString getAxisHistoryUnit(int axisIndex) const;
 
 public:
     /** @brief 从配置文件加载通信轮询参数 */

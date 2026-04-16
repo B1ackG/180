@@ -386,7 +386,6 @@ void MainWindow::setupRecordAndPermissionConnections()
 
         updateFunctionSwitchVisuals();
     });
-
     connect(ui->TBtn_PermissionPage, &QPushButton::clicked, [this]() {
         if (ui->page_Permission) {
             ui->StackedWidget->setCurrentWidget(ui->page_Permission);
@@ -1022,6 +1021,43 @@ void MainWindow::updateSpeed(qreal newSpeed)
     if (m_speedGaugeQml && m_speedGaugeQml->rootObject()) {
         m_speedGaugeQml->rootObject()->setProperty("currentValue", newSpeed);
     }
+}
+
+void MainWindow::initRobotTotalPowerCard()
+{
+    m_robotTotalPowerQml = findChild<QQuickWidget*>("quickWidget_RobotTotalPower");
+    if (!m_robotTotalPowerQml) {
+        qCWarning(lcMainWindow) << "未找到 quickWidget_RobotTotalPower，跳过总功率卡片初始化";
+        return;
+    }
+
+    m_robotTotalPowerQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    m_robotTotalPowerQml->setClearColor(Qt::transparent);
+    connect(m_robotTotalPowerQml, &QQuickWidget::statusChanged, this,
+            [this](QQuickWidget::Status status) {
+                if (status == QQuickWidget::Error && m_robotTotalPowerQml) {
+                    const auto errs = m_robotTotalPowerQml->errors();
+                    for (const auto &err : errs) {
+                        qWarning() << "RobotTotalPower QML error:" << err.toString();
+                    }
+                }
+            }, Qt::UniqueConnection);
+    m_robotTotalPowerQml->setSource(QUrl("qrc:/RobotTotalPowerCard.qml"));
+
+    if (QQuickItem *root = m_robotTotalPowerQml->rootObject()) {
+        root->setProperty("title", QStringLiteral("总功率"));
+        root->setProperty("unit", QStringLiteral("W"));
+        root->setProperty("currentPower", 0.0);
+    }
+}
+
+void MainWindow::updateRobotTotalPower(quint16 powerValue)
+{
+    if (!(m_robotTotalPowerQml && m_robotTotalPowerQml->rootObject())) {
+        return;
+    }
+
+    m_robotTotalPowerQml->rootObject()->setProperty("currentPower", static_cast<qreal>(powerValue));
 }
 
 //模拟速度
@@ -2320,13 +2356,59 @@ double MainWindow::getSliderEditValue(const QString &sliderName)
     return 0.0;
 }
 
+double MainWindow::getAxisCurrentValue(int axisIndex) const
+{
+    const QString gaugeName = QStringLiteral("robot_ArcGauge_J%1%2")
+                                  .arg(axisIndex)
+                                  .arg(axisIndex == 2 ? QStringLiteral("Height")
+                                                      : (axisIndex == 3 ? QStringLiteral("Length")
+                                                                        : QStringLiteral("Angle")));
+
+    if (TechArcGauge *gauge = m_arcGauges.value(gaugeName, nullptr)) {
+        return gauge->value();
+    }
+
+    switch (axisIndex) {
+    case 1: return const_cast<MainWindow *>(this)->getSliderLabelValue("label_Value1");
+    case 2: return const_cast<MainWindow *>(this)->getSliderLabelValue("label_Value2");
+    case 3: return const_cast<MainWindow *>(this)->getSliderLabelValue("label_Value3");
+    case 4: return const_cast<MainWindow *>(this)->getSliderLabelValue("label_Value4");
+    default: return 0.0;
+    }
+}
+
+QString MainWindow::getAxisHistoryName(int axisIndex) const
+{
+    switch (axisIndex) {
+    case 1: return QStringLiteral("悬臂组件(J1)");
+    case 2: return QStringLiteral("升降组件(J2)");
+    case 3: return QStringLiteral("伸缩臂(J3)");
+    case 4: return QStringLiteral("柔顺组件(J4)");
+    default: return QStringLiteral("未知轴");
+    }
+}
+
+QString MainWindow::getAxisHistoryUnit(int axisIndex) const
+{
+    switch (axisIndex) {
+    case 2:
+    case 3:
+        return QStringLiteral("mm");
+    case 1:
+    case 4:
+        return QStringLiteral("°");
+    default:
+        return QString();
+    }
+}
+
 // 记录回转升降页面的操作
 void MainWindow::recordVerticalSupportAction(int keyNumber, bool pressed)
 {
     QString pageName = "回转升降";
 
-    // 获取当前高度（label_Value2）
-    double currentHeight = getSliderLabelValue("label_Value2");
+    // 获取当前高度（J2）
+    double currentHeight = getAxisCurrentValue(2);
     // 获取移动速度
     double moveSpeed = getSliderEditValue("TechSliderEdit_VeSupSec_MoveSpeed");
 
@@ -2367,8 +2449,8 @@ void MainWindow::recordHorizontalSupportAction(int keyNumber, bool pressed)
 {
     QString pageName = "伸缩臂";
 
-    // 获取当前角度（label_Value1）
-    double currentAngle = getSliderLabelValue("label_Value1");
+    // 获取当前角度（J1）
+    double currentAngle = getAxisCurrentValue(1);
     // 获取旋转速度
     double rotationSpeed = getSliderEditValue("TechSliderEdit_HoriSupSec_RotationSpeed");
 
@@ -2408,8 +2490,8 @@ void MainWindow::recordHorizontalSupportMoveAction(int keyNumber, bool pressed)
 {
     QString pageName = "伸缩臂";
 
-    // 获取当前长度（label_Value3）
-    double currentLength = getSliderLabelValue("label_Value3");
+    // 获取当前长度（J3）
+    double currentLength = getAxisCurrentValue(3);
     // 获取移动速度
     double moveSpeed = getSliderEditValue("TechSliderEdit_HoriSupSec_MoveSpeed");
 
@@ -2496,7 +2578,6 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             const bool isOddKey = (key % 2) == 1;
 
             QString componentName;
-            QString labelName;
             QString unit;
             QString oddAction;
             QString evenAction;
@@ -2504,28 +2585,24 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             switch (axisIndex) {
             case 0:
                 componentName = "悬臂角度";
-                labelName = "label_Value1";
                 unit = "°";
                 oddAction = "减小";
                 evenAction = "增大";
                 break;
             case 1:
                 componentName = "升降高度";
-                labelName = "label_Value2";
                 unit = "mm";
                 oddAction = "下降";
                 evenAction = "上升";
                 break;
             case 2:
                 componentName = "悬臂长度";
-                labelName = "label_Value3";
                 unit = "mm";
                 oddAction = "缩短";
                 evenAction = "伸长";
                 break;
             case 3:
                 componentName = "柔顺角度";
-                labelName = "label_Value4";
                 unit = "°";
                 oddAction = "负向旋转";
                 evenAction = "正向旋转";
@@ -2534,7 +2611,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 return;
             }
 
-            const double currentValue = getSliderLabelValue(labelName);
+            const double currentValue = getAxisCurrentValue(axisIndex + 1);
             double globalSpeedPercent = getSliderEditValue("TechSliderEdit_Robot_RobotSpeed");
             if (globalSpeedPercent <= 0.0) {
                 globalSpeedPercent = getSliderEditValue("TechSliderEdit_EOAT_RotationSpeed");
@@ -3264,6 +3341,10 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         }
     }
 
+    if (address == 134) {
+        updateRobotTotalPower(value);
+    }
+
     const QStringList targetLabels = {
         "robot_ArcGauge_J1Angle", "robot_ArcGauge_J2Height", "robot_ArcGauge_J3Length", "robot_ArcGauge_J4Angle"
     };
@@ -3647,6 +3728,9 @@ void MainWindow::readMainControlSyncRegisters()
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager,
                                               m_mainControlSyncStart,
                                               m_mainControlSyncCount);
+
+    // 机器人总功率：192.168.1.13 的 134 寄存器
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 134, 1);
 }
 // 配置所有TechSliderLabel的参数
 void MainWindow::setupSliderLabelConfigs()
@@ -3936,8 +4020,6 @@ void MainWindow::setupAGVModbus()
                 }
 
                 if (address == 51) {
-                    const bool bit3 = (((value >> 3) & 0x01) == 1);
-                    const bool bit4 = (((value >> 4) & 0x01) == 1);
                     const bool bit5 = (((value >> 5) & 0x01) == 1);
 
                     if (bit5 != m_agvChassisEmergency51Bit5Flag) {
@@ -3956,50 +4038,11 @@ void MainWindow::setupAGVModbus()
                         QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
                     }
 
-                    const bool parkingSwitchWaiting = property("parkingSwitchWaiting").toBool();
-                    const int pendingBit = property("parkingTargetBit").toInt();
-                    const bool pendingTargetReached = (pendingBit >= 0 && pendingBit <= 15)
-                                                          ? ((((value >> pendingBit) & 0x01) == 1))
-                                                          : false;
-
-                    if (parkingSwitchWaiting && !pendingTargetReached) {
-                        // 切换过程中忽略中间态，避免按钮文本在“旧状态/新状态”间来回跳变。
-                        return;
-                    }
-
-                    // 驻车状态同步：bit3=1 表示开启，bit4=1 表示关闭。
-                    if (bit3 != bit4) {
-                        const bool parkingEnabled = bit3 && !bit4;
-                        m_agvParkingEnabled = parkingEnabled;
-                        if (m_techBtnAGV_Park) {
-                            m_techBtnAGV_Park->setText(parkingEnabled ? "驻车开启" : "驻车关闭");
-                            m_techBtnAGV_Park->setPrimaryColor(parkingEnabled ? QColor("#00C8FF") : QColor("#7F8C8D"));
-                            m_techBtnAGV_Park->setGlowColor(parkingEnabled ? QColor(0, 200, 255, 180) : QColor(127, 140, 141, 100));
-                        }
-
-                        QLabel *parkLabel = ui && ui->statusBar
-                                                 ? ui->statusBar->findChild<QLabel*>("statusBarParkLabel")
-                                                 : nullptr;
-                        if (parkLabel) {
-                            parkLabel->setText(parkingEnabled ? "驻车开" : "驻车关");
-                            parkLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
-                                                         .arg(parkingEnabled ? "#00C8FF" : "#7F8C8D"));
-                        }
-                    }
+                    syncAGVParkingStateFromRegister51(value);
                 }
 
-                if (address == 155 && m_steeringModeSelector) {
-                    const SteeringMode mode = steeringModeFromRegisterValue(value);
-                    const QSignalBlocker blocker(m_steeringModeSelector);
-                    m_steeringModeSelector->setCurrentMode(mode);
-
-                    QLabel *steeringLabel = ui && ui->statusBar
-                                                 ? ui->statusBar->findChild<QLabel*>("statusBarSteeringLabel")
-                                                 : nullptr;
-                    if (steeringLabel) {
-                        steeringLabel->setText(QString("转向:%1").arg(m_steeringModeSelector->modeText(mode)));
-                        steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
-                    }
+                if (address == 155) {
+                    syncAGVSteeringModeFromRegister155(value);
                 }
 
                 if (isFeatureEnabled("modbus_agv", "modbus_agv.read_logs")) {
@@ -4565,6 +4608,60 @@ void MainWindow::setupEnableButton()
 
     qCDebug(lcMainWindow) << "使能按钮监控线程已启动";
     ui->statusBar->showMessage("使能按钮监控已启动", 3000);
+}
+
+void MainWindow::syncAGVParkingStateFromRegister51(quint16 value)
+{
+    const bool bit3 = (((value >> 3) & 0x01) == 1);
+    const bool bit4 = (((value >> 4) & 0x01) == 1);
+
+    const bool parkingSwitchWaiting = property("parkingSwitchWaiting").toBool();
+    const int pendingBit = property("parkingTargetBit").toInt();
+    const bool pendingTargetReached = (pendingBit >= 0 && pendingBit <= 15)
+                                          ? ((((value >> pendingBit) & 0x01) == 1))
+                                          : false;
+
+    if (parkingSwitchWaiting && !pendingTargetReached) {
+        return;
+    }
+
+    if (bit3 != bit4) {
+        const bool parkingEnabled = bit3 && !bit4;
+        m_agvParkingEnabled = parkingEnabled;
+        if (m_techBtnAGV_Park) {
+            m_techBtnAGV_Park->setText(parkingEnabled ? "驻车开启" : "驻车关闭");
+            m_techBtnAGV_Park->setPrimaryColor(parkingEnabled ? QColor("#00C8FF") : QColor("#7F8C8D"));
+            m_techBtnAGV_Park->setGlowColor(parkingEnabled ? QColor(0, 200, 255, 180) : QColor(127, 140, 141, 100));
+        }
+
+        QLabel *parkLabel = ui && ui->statusBar
+                                 ? ui->statusBar->findChild<QLabel*>("statusBarParkLabel")
+                                 : nullptr;
+        if (parkLabel) {
+            parkLabel->setText(parkingEnabled ? "驻车开" : "驻车关");
+            parkLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+                                         .arg(parkingEnabled ? "#00C8FF" : "#7F8C8D"));
+        }
+    }
+}
+
+void MainWindow::syncAGVSteeringModeFromRegister155(quint16 value)
+{
+    if (!m_steeringModeSelector) {
+        return;
+    }
+
+    const SteeringMode mode = steeringModeFromRegisterValue(value);
+    const QSignalBlocker blocker(m_steeringModeSelector);
+    m_steeringModeSelector->setCurrentMode(mode);
+
+    QLabel *steeringLabel = ui && ui->statusBar
+                                 ? ui->statusBar->findChild<QLabel*>("statusBarSteeringLabel")
+                                 : nullptr;
+    if (steeringLabel) {
+        steeringLabel->setText(QString("转向:%1").arg(m_steeringModeSelector->modeText(mode)));
+        steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
+    }
 }
 
 void MainWindow::pollEnableButton()
