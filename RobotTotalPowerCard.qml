@@ -9,8 +9,8 @@ Item {
     property var samples: []
     property real maxDisplayPower: 1000
 
-    implicitWidth: 260
-    implicitHeight: 170
+    implicitWidth: 240
+    implicitHeight: 90
 
     function appendSample(v) {
         var next = Math.max(0, Number(v))
@@ -48,24 +48,12 @@ Item {
         id: valueText
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: 18
+        anchors.topMargin: 8
         text: Math.round(root.currentPower) + " " + root.unit
         color: "#111111"
         font.family: "Noto Sans CJK SC"
-        font.pixelSize: Math.min(root.width * 0.2, 44)
+        font.pixelSize: Math.min(Math.max(22, root.width * 0.14), 34)
         font.bold: true
-        renderType: Text.NativeRendering
-    }
-
-    Text {
-        id: titleText
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: valueText.bottom
-        anchors.topMargin: 3
-        text: root.title
-        color: "#5F6B76"
-        font.family: "Noto Sans CJK SC"
-        font.pixelSize: 14
         renderType: Text.NativeRendering
     }
 
@@ -74,11 +62,11 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 12
-        anchors.top: titleText.bottom
-        anchors.topMargin: 8
-        anchors.leftMargin: 14
-        anchors.rightMargin: 14
+        anchors.bottomMargin: 6
+        anchors.top: parent.verticalCenter
+        anchors.topMargin: 2
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
         antialiasing: true
 
         onPaint: {
