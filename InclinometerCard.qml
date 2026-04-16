@@ -11,10 +11,19 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 14
-        color: "#EFFFFFFF"
+        color: "#2A0E2F4D"
         border.width: 1
-        border.color: "#66FFFFFF"
+        border.color: "#6637B8FF"
         antialiasing: true
+
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 1
+            radius: 13
+            color: "transparent"
+            border.width: 1
+            border.color: "#2A9FE7FF"
+        }
     }
 
     Text {
@@ -23,7 +32,7 @@ Item {
         anchors.top: parent.top
         anchors.topMargin: 10
         text: Number(root.tiltValue).toFixed(2) + "°"
-        color: "#111111"
+        color: "#EAF7FF"
         font.family: "Noto Sans CJK SC"
         font.pixelSize: 25
         font.bold: true
@@ -35,7 +44,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 10
         text: root.axisLabel
-        color: "#5F6B76"
+        color: "#A6D8FF"
         font.family: "Noto Sans CJK SC"
         font.pixelSize: 13
         renderType: Text.NativeRendering

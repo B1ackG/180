@@ -49,23 +49,13 @@ Item {
     function isControlRecord(controlType, op) {
         var ct = controlType || ""
         var opText = (op || "").toLowerCase()
-        if (ct === "TechPushButton" ||
-            ct === "TechSliderEdit" ||
-            ct === "QToolButton" ||
-            ct === "MatrixKey" ||
-            ct === "SteeringModeSelector" ||
-            ct === "SpeedModeSelector" ||
-            ct === "EnableButton" ||
-            ct === "ForceClear") {
+        if (ct === "EnableButton" || ct === "MatrixKey") {
             return true
         }
 
-        return opText.indexOf("clicked") >= 0 ||
-               opText.indexOf("toggled") >= 0 ||
-               opText.indexOf("pressed") >= 0 ||
-               opText.indexOf("released") >= 0 ||
-               opText.indexOf("changed") >= 0 ||
-               opText.indexOf("mode_") >= 0
+        return opText.indexOf("external") >= 0 ||
+               opText.indexOf("enable") >= 0 ||
+               opText.indexOf("使能") >= 0
     }
 
     function matchesCategory(controlType, op, page, control) {

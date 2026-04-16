@@ -38,10 +38,19 @@ Item {
         id: card
         anchors.fill: parent
         radius: 18
-        color: "#EFFFFFFF"
-        border.color: "#66FFFFFF"
+        color: "#2A0E2F4D"
+        border.color: "#6637B8FF"
         border.width: 1
         antialiasing: true
+
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 1
+            radius: 17
+            color: "transparent"
+            border.width: 1
+            border.color: "#2A9FE7FF"
+        }
     }
 
     Text {
@@ -50,7 +59,7 @@ Item {
         anchors.top: parent.top
         anchors.topMargin: 8
         text: Math.round(root.currentPower) + " " + root.unit
-        color: "#111111"
+        color: "#EAF7FF"
         font.family: "Noto Sans CJK SC"
         font.pixelSize: Math.min(Math.max(22, root.width * 0.14), 34)
         font.bold: true
@@ -86,7 +95,7 @@ Item {
             var innerW = w - leftPad - rightPad
             var innerH = h - topPad - bottomPad
 
-            ctx.strokeStyle = "#D5DCE3"
+            ctx.strokeStyle = "#5A9FC4E8"
             ctx.lineWidth = 1
             ctx.setLineDash([4, 4])
             for (var g = 0; g < 4; ++g) {
@@ -117,8 +126,8 @@ Item {
             }
 
             var grad = ctx.createLinearGradient(0, topPad, 0, topPad + innerH)
-            grad.addColorStop(0.0, "#664A90E2")
-            grad.addColorStop(1.0, "#084A90E2")
+            grad.addColorStop(0.0, "#6A47B3FF")
+            grad.addColorStop(1.0, "#0847B3FF")
             ctx.fillStyle = grad
             ctx.beginPath()
             ctx.moveTo(pts[0].x, topPad + innerH)
@@ -129,7 +138,7 @@ Item {
             ctx.closePath()
             ctx.fill()
 
-            ctx.strokeStyle = "#2E7DD8"
+            ctx.strokeStyle = "#53BEFF"
             ctx.lineWidth = 2
             ctx.beginPath()
             ctx.moveTo(pts[0].x, pts[0].y)
