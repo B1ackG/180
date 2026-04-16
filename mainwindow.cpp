@@ -1064,6 +1064,41 @@ void MainWindow::updateRobotTotalPower(quint16 powerValue)
     QMetaObject::invokeMethod(root, "appendSample", Q_ARG(QVariant, numericPower));
 }
 
+void MainWindow::initInclinometerCards()
+{
+    m_inclinometerXQml = findChild<QQuickWidget*>("quickWidget_Inclinometer_X");
+    m_inclinometerYQml = findChild<QQuickWidget*>("quickWidget_Inclinometer_Y");
+
+    auto initOne = [this](QQuickWidget *widget, const QString &axisTitle) {
+        if (!widget) {
+            return;
+        }
+
+        widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
+        widget->setClearColor(Qt::transparent);
+        widget->setSource(QUrl("qrc:/InclinometerCard.qml"));
+
+        if (QQuickItem *root = widget->rootObject()) {
+            root->setProperty("axisLabel", axisTitle);
+            root->setProperty("tiltValue", 0.0);
+        }
+    };
+
+    initOne(m_inclinometerXQml, QStringLiteral("X轴倾角"));
+    initOne(m_inclinometerYQml, QStringLiteral("Y轴倾角"));
+}
+
+void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
+{
+    QQuickWidget *target = isXAxis ? m_inclinometerXQml : m_inclinometerYQml;
+    if (!(target && target->rootObject())) {
+        return;
+    }
+
+    const qreal degree = static_cast<qreal>(rawValue) / 100.0;
+    target->rootObject()->setProperty("tiltValue", degree);
+}
+
 //模拟速度
 void MainWindow::setupDataSimulation()
 {
@@ -4015,6 +4050,14 @@ void MainWindow::setupAGVModbus()
                     const QSignalBlocker blocker(m_editAGV_MoveSpeed);
                     const double clamped = qBound(m_editAGV_MoveSpeed->minimum(), static_cast<double>(value), m_editAGV_MoveSpeed->maximum());
                     m_editAGV_MoveSpeed->setValue(clamped);
+                }
+
+                if (address == 151) {
+                    updateInclinometerValue(true, value);
+                }
+
+                if (address == 152) {
+                    updateInclinometerValue(false, value);
                 }
 
                 if (m_uiStateSyncEnabled && address == 154 && m_editAGV_Angle) {

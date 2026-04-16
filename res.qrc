@@ -48,6 +48,7 @@
         <file>Picture/190overall6.png</file>
         <file>TechSpeedGauge.qml</file>
         <file>RobotTotalPowerCard.qml</file>
+        <file>InclinometerCard.qml</file>
         <file>HistoryList.qml</file>
         <file>BatteryWidget.qml</file>
         <file>PoseDisplay.qml</file>

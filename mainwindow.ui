@@ -4,10 +4,10 @@
  <widget class="QMainWindow" name="MainWindow">
   <property name="geometry">
    <rect>
-          <x>180</x>
-          <y>220</y>
-          <width>240</width>
-          <height>90</height>
+    <x>0</x>
+    <y>0</y>
+    <width>1280</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -19,13 +19,13 @@
   <property name="minimumSize">
    <size>
     <width>1280</width>
-    <height>440</height>
+    <height>800</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>1280</width>
-    <height>1051</height>
+    <height>800</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -790,7 +790,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
         <property name="geometry">
          <rect>
           <x>680</x>
-          <y>380</y>
+          <y>340</y>
           <width>460</width>
           <height>110</height>
          </rect>
@@ -848,6 +848,32 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          <enum>QQuickWidget::SizeRootObjectToView</enum>
         </property>
        </widget>
+       <widget class="QQuickWidget" name="quickWidget_Inclinometer_Y">
+        <property name="geometry">
+         <rect>
+          <x>670</x>
+          <y>459</y>
+          <width>130</width>
+          <height>91</height>
+         </rect>
+        </property>
+        <property name="resizeMode">
+         <enum>QQuickWidget::SizeRootObjectToView</enum>
+        </property>
+       </widget>
+       <widget class="QQuickWidget" name="quickWidget_Inclinometer_X">
+        <property name="geometry">
+         <rect>
+          <x>1020</x>
+          <y>460</y>
+          <width>130</width>
+          <height>91</height>
+         </rect>
+        </property>
+        <property name="resizeMode">
+         <enum>QQuickWidget::SizeRootObjectToView</enum>
+        </property>
+       </widget>
        <zorder>lab_Overall</zorder>
        <zorder>widget_test3</zorder>
        <zorder>widget_test4</zorder>
@@ -862,6 +888,8 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <zorder>steeringModeSelector</zorder>
        <zorder>widget_5</zorder>
        <zorder>quickWidget_RobotTotalPower</zorder>
+       <zorder>quickWidget_Inclinometer_Y</zorder>
+       <zorder>quickWidget_Inclinometer_X</zorder>
       </widget>
       <widget class="QWidget" name="page_HistoryRecord">
        <widget class="QQuickWidget" name="quickWidget_HistoryList">

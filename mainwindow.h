@@ -321,6 +321,8 @@ public:
     void initSpeedGaugeUI();
     /** @brief 初始化机器人总功率 QML 卡片 */
     void initRobotTotalPowerCard();
+    /** @brief 初始化 X/Y 倾角 QML 卡片 */
+    void initInclinometerCards();
     /**
      * @brief 更新速度显示
      * @param newSpeed 新速度值
@@ -334,6 +336,8 @@ public:
     void updateSpeed(qreal newSpeed);
     /** @brief 更新机器人总功率显示（寄存器134） */
     void updateRobotTotalPower(quint16 powerValue);
+    /** @brief 更新倾角显示（AGV 151/152，寄存器值÷100） */
+    void updateInclinometerValue(bool isXAxis, quint16 rawValue);
     /** @brief 初始化滑块编辑 UI */
     void initSliderEditUI();
 
@@ -600,6 +604,8 @@ private:
     QQuickWidget *m_speedGaugeQml = nullptr;  // 使用 QML 版本的速度仪表
     QQuickWidget *m_historyListQml = nullptr;  // 使用 QML 版本操作记录列表
     QQuickWidget *m_robotTotalPowerQml = nullptr;  // 使用 QML 版本总功率卡片
+    QQuickWidget *m_inclinometerXQml = nullptr;  // 使用 QML 版本 X 轴倾角卡片
+    QQuickWidget *m_inclinometerYQml = nullptr;  // 使用 QML 版本 Y 轴倾角卡片
     QMovie* m_verticalMovie;
     QPixmap m_backgroundPixmap;
     bool m_backgroundLoaded = false;
