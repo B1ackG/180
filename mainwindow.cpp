@@ -1577,7 +1577,8 @@ void MainWindow::setupRecordUI()
                 Q_ARG(QVariant, record.controlName),
                 Q_ARG(QVariant, record.operation),
                 Q_ARG(QVariant, record.oldValue.toString()),
-                Q_ARG(QVariant, record.newValue.toString()));
+                Q_ARG(QVariant, record.newValue.toString()),
+                Q_ARG(QVariant, record.controlType));
         }
     });
 

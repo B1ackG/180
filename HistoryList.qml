@@ -4,6 +4,7 @@ Item {
     id: root
     width: 800
     height: 600
+    property string currentCategory: "全部"
 
     // 计算滚动条位置和比例
     property real scrollPos: listView.visibleArea.yPosition
@@ -15,20 +16,98 @@ Item {
     }
 
     // 公开接口供 C++ 调用
-    function addRecord(time, page, control, op, oldVal, newVal) {
+    function addRecord(time, page, control, op, oldVal, newVal, controlType) {
         historyModel.insert(0, {
             "time": time,
             "page": page,
             "control": control,
             "op": op,
             "oldVal": oldVal,
-            "newVal": newVal
+            "newVal": newVal,
+            "controlType": controlType
         })
         if (historyModel.count > 500) historyModel.remove(500)
     }
 
     function clearRecords() {
         historyModel.clear()
+    }
+
+    function isAlarmRecord(controlType, op, page, control) {
+        var t = (controlType || "") + " " + (op || "") + " " + (page || "") + " " + (control || "")
+        t = t.toLowerCase()
+        return t.indexOf("报警") >= 0 ||
+               t.indexOf("急停") >= 0 ||
+               t.indexOf("告警") >= 0 ||
+               t.indexOf("超限") >= 0 ||
+               t.indexOf("fault") >= 0 ||
+               t.indexOf("error") >= 0 ||
+               t.indexOf("warning") >= 0 ||
+               t.indexOf("alarm") >= 0
+    }
+
+    function isControlRecord(controlType, op) {
+        var ct = controlType || ""
+        var opText = (op || "").toLowerCase()
+        if (ct === "TechPushButton" ||
+            ct === "TechSliderEdit" ||
+            ct === "QToolButton" ||
+            ct === "MatrixKey" ||
+            ct === "SteeringModeSelector" ||
+            ct === "SpeedModeSelector" ||
+            ct === "EnableButton" ||
+            ct === "ForceClear") {
+            return true
+        }
+
+        return opText.indexOf("clicked") >= 0 ||
+               opText.indexOf("toggled") >= 0 ||
+               opText.indexOf("pressed") >= 0 ||
+               opText.indexOf("released") >= 0 ||
+               opText.indexOf("changed") >= 0 ||
+               opText.indexOf("mode_") >= 0
+    }
+
+    function matchesCategory(controlType, op, page, control) {
+        if (currentCategory === "全部") {
+            return true
+        }
+
+        if (currentCategory === "警报") {
+            return isAlarmRecord(controlType, op, page, control)
+        }
+
+        if (currentCategory === "操控设备") {
+            return !isAlarmRecord(controlType, op, page, control) && isControlRecord(controlType, op)
+        }
+
+        if (currentCategory === "常规运行") {
+            return !isAlarmRecord(controlType, op, page, control) && !isControlRecord(controlType, op)
+        }
+
+        return true
+    }
+
+    function categoryButtonColor(category) {
+        return currentCategory === category ? "#2E7DD8" : "#24456B"
+    }
+
+    function categoryButtonBorder(category) {
+        return currentCategory === category ? "#89C3FF" : "#3F678D"
+    }
+
+    function categoryTextColor(category) {
+        return currentCategory === category ? "#F7FBFF" : "#BFD9F2"
+    }
+
+    function hasVisibleRecords() {
+        for (var i = 0; i < historyModel.count; ++i) {
+            var r = historyModel.get(i)
+            if (matchesCategory(r.controlType, r.op, r.page, r.control)) {
+                return true
+            }
+        }
+        return false
     }
 
     // 渐变标题背景
@@ -57,25 +136,70 @@ Item {
         }
     }
 
+    Rectangle {
+        id: categoryBar
+        anchors.top: header.bottom
+        anchors.topMargin: 8
+        width: parent.width
+        height: 36
+        color: "transparent"
+
+        Row {
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: parent.left
+            anchors.leftMargin: 8
+            spacing: 8
+
+            Repeater {
+                model: ["全部", "警报", "常规运行", "操控设备"]
+                delegate: Rectangle {
+                    width: modelData === "操控设备" ? 92 : 74
+                    height: 28
+                    radius: 14
+                    color: root.categoryButtonColor(modelData)
+                    border.width: 1
+                    border.color: root.categoryButtonBorder(modelData)
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: modelData
+                        color: root.categoryTextColor(modelData)
+                        font.pixelSize: 12
+                        font.bold: true
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: root.currentCategory = modelData
+                    }
+                }
+            }
+        }
+    }
+
     // 滚动列表 - 移除对 ScrollBar (QtQuick.Controls) 的直接依赖
     ListView {
         id: listView
-        anchors.top: header.bottom
-        anchors.topMargin: 8
+        anchors.top: categoryBar.bottom
+        anchors.topMargin: 6
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         model: historyModel
         clip: true
-        spacing: 6
+        spacing: 0
 
         delegate: Item {
+            property bool rowVisible: root.matchesCategory(model.controlType, model.op, model.page, model.control)
             width: listView.width
-            height: 52
+            height: rowVisible ? 58 : 0
+            visible: rowVisible
 
             // 背景层：外阴影感
             Rectangle {
                 anchors.fill: parent
+                anchors.topMargin: 3
+                anchors.bottomMargin: 3
                 color: "#1a5fb4"
                 opacity: 0.1
                 radius: 4
@@ -84,6 +208,8 @@ Item {
             // 主体层
             Rectangle {
                 anchors.fill: parent
+                anchors.topMargin: 4
+                anchors.bottomMargin: 4
                 anchors.margins: 1
                 color: index % 2 === 0 ? "#254a8a" : "#1e3c78"
                 opacity: 0.6  // 提升透明度，让颜色更亮
@@ -155,6 +281,15 @@ Item {
             opacity: 0.3
             font.pixelSize: 18
             visible: historyModel.count === 0
+        }
+
+        Text {
+            anchors.centerIn: parent
+            text: "当前分类下暂无记录"
+            color: "#cfe6ff"
+            opacity: 0.45
+            font.pixelSize: 16
+            visible: historyModel.count > 0 && !root.hasVisibleRecords()
         }
     }
 
