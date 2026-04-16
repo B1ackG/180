@@ -85,7 +85,7 @@ Item {
             var ctx = getContext("2d")
             var w = width
             var h = height
-            ctx.reset()
+            ctx.clearRect(0, 0, w, h)
 
             if (w <= 1 || h <= 1) {
                 return
@@ -110,7 +110,7 @@ Item {
             }
             ctx.setLineDash([])
 
-            if (!root.samples || root.samples.length < 2) {
+            if (!root.samples || root.samples.length < 1) {
                 return
             }
 
@@ -122,6 +122,10 @@ Item {
                 var yNorm = Math.min(1, Math.max(0, root.samples[i] / root.maxDisplayPower))
                 var y = topPad + innerH * (1 - yNorm)
                 pts.push({x: x, y: y})
+            }
+
+            if (pts.length === 1) {
+                pts.push({x: leftPad + innerW, y: pts[0].y})
             }
 
             var grad = ctx.createLinearGradient(0, topPad, 0, topPad + innerH)

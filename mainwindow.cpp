@@ -1057,7 +1057,11 @@ void MainWindow::updateRobotTotalPower(quint16 powerValue)
         return;
     }
 
-    m_robotTotalPowerQml->rootObject()->setProperty("currentPower", static_cast<qreal>(powerValue));
+    QQuickItem *root = m_robotTotalPowerQml->rootObject();
+    const qreal numericPower = static_cast<qreal>(powerValue);
+    root->setProperty("currentPower", numericPower);
+    // 即使值不变也追加样本，保证趋势图持续可见。
+    QMetaObject::invokeMethod(root, "appendSample", Q_ARG(QVariant, numericPower));
 }
 
 //模拟速度

@@ -838,10 +838,10 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <widget class="QQuickWidget" name="quickWidget_RobotTotalPower">
         <property name="geometry">
          <rect>
-          <x>190</x>
-          <y>220</y>
-          <width>201</width>
-          <height>81</height>
+            <x>160</x>
+            <y>210</y>
+            <width>260</width>
+            <height>170</height>
          </rect>
         </property>
         <property name="resizeMode">
