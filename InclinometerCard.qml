@@ -11,7 +11,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 14
-        color: "#2A0E2F4D"
+        color: "transparent"
         border.width: 1
         border.color: "#6637B8FF"
         antialiasing: true

@@ -38,7 +38,7 @@ Item {
         id: card
         anchors.fill: parent
         radius: 18
-        color: "#2A0E2F4D"
+        color: "transparent"
         border.color: "#6637B8FF"
         border.width: 1
         antialiasing: true
@@ -57,12 +57,23 @@ Item {
         id: valueText
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
-        anchors.topMargin: 8
+        anchors.topMargin: 4
         text: Math.round(root.currentPower) + " " + root.unit
         color: "#EAF7FF"
         font.family: "Noto Sans CJK SC"
         font.pixelSize: Math.min(Math.max(22, root.width * 0.14), 34)
         font.bold: true
+        renderType: Text.NativeRendering
+    }
+
+    Text {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: valueText.bottom
+        anchors.topMargin: 0
+        text: "当前机器人总功率"
+        color: "#A6D8FF"
+        font.family: "Noto Sans CJK SC"
+        font.pixelSize: 11
         renderType: Text.NativeRendering
     }
 
@@ -73,7 +84,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 6
         anchors.top: parent.verticalCenter
-        anchors.topMargin: 2
+        anchors.topMargin: 0
         anchors.leftMargin: 10
         anchors.rightMargin: 10
         antialiasing: true

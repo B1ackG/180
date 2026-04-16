@@ -851,8 +851,8 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <widget class="QQuickWidget" name="quickWidget_Inclinometer_Y">
         <property name="geometry">
          <rect>
-          <x>670</x>
-          <y>459</y>
+          <x>660</x>
+          <y>460</y>
           <width>130</width>
           <height>91</height>
          </rect>
@@ -864,8 +864,8 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <widget class="QQuickWidget" name="quickWidget_Inclinometer_X">
         <property name="geometry">
          <rect>
-          <x>1020</x>
-          <y>460</y>
+          <x>1030</x>
+          <y>470</y>
           <width>130</width>
           <height>91</height>
          </rect>
