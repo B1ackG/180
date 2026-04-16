@@ -1095,7 +1095,8 @@ void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
         return;
     }
 
-    const qreal degree = static_cast<qreal>(rawValue) / 100.0;
+    const qint16 signedRaw = static_cast<qint16>(rawValue);
+    const qreal degree = static_cast<qreal>(signedRaw) / 100.0;
     target->rootObject()->setProperty("tiltValue", degree);
 }
 

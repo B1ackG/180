@@ -288,6 +288,7 @@ void AGVModbusManager::pollRegisters()
     // 组5: 114-117 (故障码5-8)
     // 组6: 100  (有线/无线控制模式)
     // 组7: 153-154 (运动速度/转向角度同步)
+    // 组8: 151-152 (X/Y 倾角)
     static int pollGroup = 0;
 
     switch (pollGroup) {
@@ -315,11 +316,14 @@ void AGVModbusManager::pollRegisters()
     case 7:
         readMultipleRegisters(153, 2);
         break;
+    case 8:
+        readMultipleRegisters(151, 2);
+        break;
     default:
         break;
     }
 
-    pollGroup = (pollGroup + 1) % 8;
+    pollGroup = (pollGroup + 1) % 9;
 }
 
 
