@@ -35,45 +35,57 @@ Item {
     Component.onCompleted: appendSample(currentPower)
 
     Rectangle {
-        id: card
         anchors.fill: parent
         radius: 18
-        color: "transparent"
-        border.color: "#6637B8FF"
+        color: "#1A5FB4"
+        border.color: "#4FAFE8"
         border.width: 1
         antialiasing: true
+    }
 
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: 1
-            radius: 17
-            color: "transparent"
-            border.width: 1
-            border.color: "#2A9FE7FF"
-        }
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: 2
+        radius: 16
+        color: "transparent"
+        border.width: 1
+        border.color: "#2A9FE7AA"
+    }
+
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: 10
+        height: 1
+        color: "#67C5F6"
+        opacity: 0.45
     }
 
     Text {
-        id: valueText
-        anchors.horizontalCenter: parent.horizontalCenter
+        id: titleText
+        anchors.left: parent.left
         anchors.top: parent.top
-        anchors.topMargin: 4
-        text: Math.round(root.currentPower) + " " + root.unit
-        color: "#EAF7FF"
+        anchors.leftMargin: 12
+        anchors.topMargin: 8
+        text: "机器人当前总功率"
+        color: "#A6D8FF"
         font.family: "Noto Sans CJK SC"
-        font.pixelSize: Math.min(Math.max(22, root.width * 0.14), 34)
-        font.bold: true
+        font.pixelSize: 12
         renderType: Text.NativeRendering
     }
 
     Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.top: valueText.bottom
+        id: valueText
+        anchors.left: parent.left
+        anchors.top: titleText.bottom
+        anchors.leftMargin: 12
         anchors.topMargin: 0
-        text: "当前机器人总功率"
-        color: "#A6D8FF"
+        text: Math.round(root.currentPower) + " " + root.unit
+        color: "#EAF7FF"
         font.family: "Noto Sans CJK SC"
-        font.pixelSize: 11
+        font.pixelSize: 24
+        font.bold: true
         renderType: Text.NativeRendering
     }
 
@@ -82,11 +94,11 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 6
-        anchors.top: parent.verticalCenter
-        anchors.topMargin: 0
-        anchors.leftMargin: 10
-        anchors.rightMargin: 10
+        anchors.bottomMargin: 8
+        anchors.top: valueText.bottom
+        anchors.topMargin: 2
+        anchors.leftMargin: 12
+        anchors.rightMargin: 12
         antialiasing: true
 
         onPaint: {
@@ -99,14 +111,14 @@ Item {
                 return
             }
 
-            var topPad = 6
-            var bottomPad = 6
+            var topPad = 4
+            var bottomPad = 2
             var leftPad = 0
             var rightPad = 0
             var innerW = w - leftPad - rightPad
             var innerH = h - topPad - bottomPad
 
-            ctx.strokeStyle = "#5A9FC4E8"
+            ctx.strokeStyle = "#4A95C9CC"
             ctx.lineWidth = 1
             ctx.setLineDash([4, 4])
             for (var g = 0; g < 4; ++g) {
@@ -137,8 +149,8 @@ Item {
             }
 
             var grad = ctx.createLinearGradient(0, topPad, 0, topPad + innerH)
-            grad.addColorStop(0.0, "#6A47B3FF")
-            grad.addColorStop(1.0, "#0847B3FF")
+            grad.addColorStop(0.0, "#3D8FE08A")
+            grad.addColorStop(1.0, "#0A2F5C14")
             ctx.fillStyle = grad
             ctx.beginPath()
             ctx.moveTo(pts[0].x, topPad + innerH)
@@ -149,7 +161,7 @@ Item {
             ctx.closePath()
             ctx.fill()
 
-            ctx.strokeStyle = "#53BEFF"
+            ctx.strokeStyle = "#69D0FF"
             ctx.lineWidth = 2
             ctx.beginPath()
             ctx.moveTo(pts[0].x, pts[0].y)

@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <QLoggingCategory>
 #include <QQuickWidget>
+#include <QQuickWindow>
 #include <QQmlContext>
 #include <QQuickItem>
 Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
@@ -72,6 +73,20 @@ bool resolveSteeringModeFromStatus50(quint16 value, SteeringMode *mode, QString 
         return true;
     }
     return false;
+}
+
+void applyTransparentQuickWidgetBackground(QQuickWidget *widget)
+{
+    if (!widget) {
+        return;
+    }
+
+    const QColor panelBlue(26, 95, 180);
+    widget->setStyleSheet(QStringLiteral("background-color: rgb(26, 95, 180); border: 0px;"));
+    widget->setClearColor(panelBlue);
+    if (widget->quickWindow()) {
+        widget->quickWindow()->setColor(panelBlue);
+    }
 }
 }
 
@@ -1032,7 +1047,7 @@ void MainWindow::initRobotTotalPowerCard()
     }
 
     m_robotTotalPowerQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    m_robotTotalPowerQml->setClearColor(Qt::transparent);
+    applyTransparentQuickWidgetBackground(m_robotTotalPowerQml);
     connect(m_robotTotalPowerQml, &QQuickWidget::statusChanged, this,
             [this](QQuickWidget::Status status) {
                 if (status == QQuickWidget::Error && m_robotTotalPowerQml) {
@@ -1075,7 +1090,7 @@ void MainWindow::initInclinometerCards()
         }
 
         widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-        widget->setClearColor(Qt::transparent);
+        applyTransparentQuickWidgetBackground(widget);
         widget->setSource(QUrl("qrc:/InclinometerCard.qml"));
 
         if (QQuickItem *root = widget->rootObject()) {
