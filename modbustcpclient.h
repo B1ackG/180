@@ -292,6 +292,7 @@ private:
 
     bool parseReadResponse(const QByteArray &data, int startAddress, QVector<quint16> &values);
     bool parseWriteResponse(const QByteArray &data, int expectedAddress);
+    void enterWritePriorityWindow();
 
     // 线程安全操作
     void updateRegisterValue(int address, quint16 value);
@@ -312,6 +313,9 @@ private:
     bool m_polling;
     int m_pollInterval;
     QTimer *m_pollTimer;
+    qint64 m_pollSuspendUntilMs = 0;
+    int m_writePriorityWindowMs = 140;
+    int m_maxPendingTransactions = 64;
 
     QMap<int, ModbusRegister> m_registers;
     QMap<int, QString> m_registerNames;

@@ -27,9 +27,11 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QFileDialog>
 #include <QSettings>
 #include <QToolTip>
+#include <QButtonGroup>
 #include <QGuiApplication>
 #include <QSignalBlocker>
 #include <QtMath>
+#include <array>
 #include <fcntl.h>
 #include <unistd.h>
 #include <cerrno>
@@ -87,6 +89,28 @@ void applyTransparentQuickWidgetBackground(QQuickWidget *widget)
     if (widget->quickWindow()) {
         widget->quickWindow()->setColor(panelBlue);
     }
+}
+
+std::array<quint16, 4> doubleToRegistersGHEFCDAB(double value)
+{
+    quint64 raw = 0;
+    memcpy(&raw, &value, sizeof(double));
+
+    const quint8 A = static_cast<quint8>((raw >> 56) & 0xFF);
+    const quint8 B = static_cast<quint8>((raw >> 48) & 0xFF);
+    const quint8 C = static_cast<quint8>((raw >> 40) & 0xFF);
+    const quint8 D = static_cast<quint8>((raw >> 32) & 0xFF);
+    const quint8 E = static_cast<quint8>((raw >> 24) & 0xFF);
+    const quint8 F = static_cast<quint8>((raw >> 16) & 0xFF);
+    const quint8 G = static_cast<quint8>((raw >> 8) & 0xFF);
+    const quint8 H = static_cast<quint8>(raw & 0xFF);
+
+    return {
+        static_cast<quint16>((static_cast<quint16>(G) << 8) | H),
+        static_cast<quint16>((static_cast<quint16>(E) << 8) | F),
+        static_cast<quint16>((static_cast<quint16>(C) << 8) | D),
+        static_cast<quint16>((static_cast<quint16>(A) << 8) | B)
+    };
 }
 }
 
@@ -2605,10 +2629,12 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     int currentPage = ui->StackedWidget->currentIndex();
     QString pageName = m_pageNames.value(currentPage, "未知");
 
-    // 外部按钮逻辑统一门禁：仅允许在[点动 + 关节]模式下执行。
-    // 但释放事件仍要继续处理，避免切模后因拦截导致寄存器保持在按下态。
-    if ((m_stepModeEnabled || !m_isJointMode) && pressed) {
-        qCDebug(lcMainWindow) << "外部按键忽略：当前未处于[点动+关节]模式，按键○" << keyNumber
+    // 外部按钮逻辑门禁：
+    // - 点动模式：仅允许在[关节]模式下执行；
+    // - 步进模式：允许执行（由按键映射与目标选择进一步约束）。
+    // 释放事件仍继续处理，避免切模后寄存器保持在按下态。
+    if ((!m_stepModeEnabled && !m_isJointMode) && pressed) {
+        qCDebug(lcMainWindow) << "外部按键忽略：当前未处于可执行模式，按键○" << keyNumber
                  << (pressed ? "按下" : "释放");
         return;
     }
@@ -2699,6 +2725,89 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         };
 
         if (keyNumber >= 1 && keyNumber <= 8) {
+            if (m_stepModeEnabled) {
+                const int axisIndex = (keyNumber - 1) / 2;   // 0~3
+                const bool isOddKey = (keyNumber % 2) == 1;  // 奇数键为反向
+                const int keyMappedTargetReg = 500 + axisIndex;
+
+                if (!pressed) {
+                    // 需求：步进模式由外部键按下触发，释放不再回写514。
+                    m_robotExternalKeyPressed[keyNumber] = false;
+                    return;
+                }
+
+                // 同一按键长按/抖动导致的重复按下信号直接忽略，避免重复写入风暴。
+                if (m_robotExternalKeyPressed.value(keyNumber, false)) {
+                    qCDebug(lcMainWindow) << "步进外部按键去重：按键○" << keyNumber << "重复按下已忽略";
+                    return;
+                }
+
+                // 步进模式下：仅当外部按键与当前选中目标轴匹配时触发。
+                if (selectedStepTargetRegister() != keyMappedTargetReg) {
+                    qCDebug(lcMainWindow) << "步进外部按键忽略：按键○" << keyNumber
+                                          << "与当前目标" << selectedStepTargetName() << "不匹配";
+                    return;
+                }
+
+                if (!m_stepValueEdit) {
+                    qCDebug(lcMainWindow) << "步进外部按键忽略：未找到lineEdit_StepValue";
+                    return;
+                }
+
+                bool ok = false;
+                double stepValue = m_stepValueEdit->text().toDouble(&ok);
+                if (!ok) {
+                    qCDebug(lcMainWindow) << "步进外部按键忽略：步进值无效" << m_stepValueEdit->text();
+                    return;
+                }
+
+                // 奇数外部按键：先取相反数再写入。
+                if (isOddKey) {
+                    stepValue = -stepValue;
+                }
+
+                m_robotExternalKeyPressed[keyNumber] = true;
+                const quint64 seq = ++m_robotExternalWriteSeq;
+
+                const int targetCode = axisIndex + 1; // 轴1~4 -> 1~4
+                writeToMainDevice(500, targetCode);
+                writeStepValueDoubleToMainDevice(stepValue);
+
+                auto stagedWrite514 = [this, seq]() {
+                    if (seq != m_robotExternalWriteSeq) {
+                        return;
+                    }
+                    writeToMainDevice(514, 1);
+                };
+
+                // 先给502~505留出采样窗口，再触发514，降低“值未落稳就触发”的概率。
+                QTimer::singleShot(35, this, stagedWrite514);
+                QTimer::singleShot(90, this, stagedWrite514);
+                QTimer::singleShot(150, this, stagedWrite514);
+
+                qCDebug(lcMainWindow) << "page_Robot (步进) 按键○" << keyNumber
+                                      << "目标500=" << targetCode
+                                      << "步进值=" << stepValue
+                                      << "514=1";
+
+                const QString targetName = selectedStepTargetName();
+                double currentValue = 0.0;
+                if (keyMappedTargetReg == 500) currentValue = getSliderLabelValue("label_Value1");
+                else if (keyMappedTargetReg == 501) currentValue = getSliderLabelValue("label_Value2");
+                else if (keyMappedTargetReg == 502) currentValue = getSliderLabelValue("label_Value3");
+                else if (keyMappedTargetReg == 503) currentValue = getSliderLabelValue("label_Value4");
+
+                recordStepMoveAction(targetName, currentValue,
+                                     QString::number(stepValue, 'f', 3), true);
+                ui->statusBar->showMessage(
+                    QString("步进触发：按键○%1，目标%2，步进值%3")
+                        .arg(keyNumber)
+                        .arg(targetName)
+                        .arg(stepValue, 0, 'f', 3),
+                    2000);
+                return;
+            }
+
             int value500 = 0;
             int value514 = 0;
             if (pressed) {
@@ -5195,6 +5304,17 @@ void MainWindow::onControlModeClicked()
     }
 
     updateFunctionSwitchVisuals();
+    updateStepTargetButtonsState();
+
+    if (!m_stepModeUnknown && m_stepModeEnabled) {
+        int targetCode = 1;
+        const int targetReg = selectedStepTargetRegister();
+        if (targetReg == 501) targetCode = 2;
+        else if (targetReg == 502) targetCode = 3;
+        else if (targetReg == 503) targetCode = 4;
+        else if (targetReg == 504) targetCode = 5;
+        writeToMainDevice(500, targetCode);
+    }
 
     // 记录操作
     OperationRecord record;
@@ -6923,6 +7043,7 @@ void MainWindow::onStepMoveButtonClicked()
     }
 
     updateFunctionSwitchVisuals();
+    updateStepTargetButtonsState();
 
     // 记录操作
     OperationRecord record;
@@ -6941,12 +7062,25 @@ void MainWindow::onEnableButtonPressedStepMode()
 {
     qCDebug(lcMainWindow) << "步进模式下使能按钮按下";
 
-    // 给192.168.1.13设备的19地址写1，10地址写1
-    // writeToMainDevice(19, 1);
-    writeToMainDevice(10, 1);
+    // 需求变更：步进模式下使能按钮不再触发514或步进值写入，改由外部按键触发。
 
-    // 写入步进值到寄存器
-    writeStepMoveRegisters();
+    if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
+        const int targetReg = selectedStepTargetRegister();
+        const QString stepValue = m_stepValueEdit->text();
+        const QString targetName = selectedStepTargetName();
+
+        double currentValue = 0.0;
+        if (targetReg == 500) currentValue = getSliderLabelValue("label_Value1");
+        else if (targetReg == 501) currentValue = getSliderLabelValue("label_Value2");
+        else if (targetReg == 502) currentValue = getSliderLabelValue("label_Value3");
+        else if (targetReg == 503) currentValue = getSliderLabelValue("label_Value4");
+        else if (targetReg == 504 && m_editAGV_MoveSpeed) currentValue = m_editAGV_MoveSpeed->value();
+
+        recordStepMoveAction(targetName, currentValue, stepValue, true);
+        ui->statusBar->showMessage(QString("步进模式：目标%1，步进值%2")
+                                       .arg(targetName, stepValue), 2000);
+        return;
+    }
 
     // 检查各个输入框是否有内容，有则记录历史记录
     if (m_editJ1MoveStep && !m_editJ1MoveStep->text().isEmpty()) {
@@ -6973,7 +7107,7 @@ void MainWindow::onEnableButtonPressedStepMode()
         recordStepMoveAction("柔顺组件(J4)", currentAngle, stepValue, true);
     }
 
-    ui->statusBar->showMessage("步进模式：使能按钮按下，开始步进运动", 2000);
+    ui->statusBar->showMessage("步进模式：使能按钮按下（等待外部按键触发）", 2000);
 }
 
 // 步进模式下使能按钮释放
@@ -6981,12 +7115,23 @@ void MainWindow::onEnableButtonReleasedStepMode()
 {
     qCDebug(lcMainWindow) << "步进模式下使能按钮释放";
 
-    // 给192.168.1.13设备的19地址写0，10地址写0，500-503地址写0
-    // writeToMainDevice(19, 0);
-    writeToMainDevice(10, 0);
+    // 需求变更：步进模式下使能按钮释放不再写514，且不清空步进值输入。
 
-    // 清空步进寄存器
-    clearStepMoveRegisters();
+    if (m_stepValueEdit) {
+        const int targetReg = selectedStepTargetRegister();
+        const QString targetName = selectedStepTargetName();
+
+        double currentValue = 0.0;
+        if (targetReg == 500) currentValue = getSliderLabelValue("label_Value1");
+        else if (targetReg == 501) currentValue = getSliderLabelValue("label_Value2");
+        else if (targetReg == 502) currentValue = getSliderLabelValue("label_Value3");
+        else if (targetReg == 503) currentValue = getSliderLabelValue("label_Value4");
+        else if (targetReg == 504 && m_editAGV_MoveSpeed) currentValue = m_editAGV_MoveSpeed->value();
+
+        recordStepMoveEnd(targetName, currentValue);
+        ui->statusBar->showMessage(QString("步进模式：目标%1，步进结束").arg(targetName), 2000);
+        return;
+    }
 
     // 检查各个输入框是否有内容，有则记录历史记录
     if (m_editJ1MoveStep && !m_editJ1MoveStep->text().isEmpty()) {
@@ -7009,7 +7154,72 @@ void MainWindow::onEnableButtonReleasedStepMode()
         recordStepMoveEnd("柔顺组件(J4)", currentAngle);
     }
 
-    ui->statusBar->showMessage("步进模式：使能按钮释放，步进结束", 2000);
+    ui->statusBar->showMessage("步进模式：使能按钮释放", 2000);
+}
+
+int MainWindow::selectedStepTargetRegister() const
+{
+    if (!m_stepTargetGroup || !m_stepTargetGroup->checkedButton()) {
+        return 500;
+    }
+
+    const QString name = m_stepTargetGroup->checkedButton()->objectName();
+    if (name == "btnStepTargetAxis1") return 500;
+    if (name == "btnStepTargetAxis2") return 501;
+    if (name == "btnStepTargetAxis3") return 502;
+    if (name == "btnStepTargetAxis4") return 503;
+    if (name == "btnStepTargetAgv") return 504;
+    return 500;
+}
+
+QString MainWindow::selectedStepTargetName() const
+{
+    const int reg = selectedStepTargetRegister();
+    switch (reg) {
+    case 500: return "悬臂组件(J1)";
+    case 501: return "升降组件(J2)";
+    case 502: return "伸缩臂(J3)";
+    case 503: return "柔顺组件(J4)";
+    case 504: return "底盘(AGV)";
+    default: return "悬臂组件(J1)";
+    }
+}
+
+void MainWindow::updateStepTargetButtonsState()
+{
+    if (!m_stepTargetGroup) {
+        return;
+    }
+
+    const auto btns = m_stepTargetGroup->buttons();
+
+    if (!m_stepModeUnknown && m_stepModeEnabled) {
+        m_stepTargetGroup->setExclusive(true);
+        if (!m_stepTargetGroup->checkedButton()) {
+            for (QAbstractButton *btn : btns) {
+                if (btn && btn->objectName() == "btnStepTargetAxis1") {
+                    btn->setChecked(true);
+                    break;
+                }
+            }
+        }
+        for (QAbstractButton *btn : btns) {
+            if (btn) {
+                btn->setEnabled(true);
+            }
+        }
+        return;
+    }
+
+    // 点动/未选择模式：按钮保持亮显可见，不做互斥
+    m_stepTargetGroup->setExclusive(false);
+    for (QAbstractButton *btn : btns) {
+        if (!btn) {
+            continue;
+        }
+        btn->setEnabled(true);
+        btn->setChecked(false);
+    }
 }
 
 // 设置步进模式控制
@@ -7020,6 +7230,69 @@ void MainWindow::setupStepMoveControl()
     }
 
     m_btnStepMove = findChild<QToolButton*>("TBtn_Stepmove");
+
+    QToolButton *axis1Btn = findChild<QToolButton*>("btnStepTargetAxis1");
+    QToolButton *axis2Btn = findChild<QToolButton*>("btnStepTargetAxis2");
+    QToolButton *axis3Btn = findChild<QToolButton*>("btnStepTargetAxis3");
+    QToolButton *axis4Btn = findChild<QToolButton*>("btnStepTargetAxis4");
+    QToolButton *agvBtn = findChild<QToolButton*>("btnStepTargetAgv");
+
+    if (!m_stepTargetGroup) {
+        m_stepTargetGroup = new QButtonGroup(this);
+        m_stepTargetGroup->setExclusive(true);
+    }
+
+    for (QAbstractButton *btn : m_stepTargetGroup->buttons()) {
+        m_stepTargetGroup->removeButton(btn);
+    }
+
+    const QList<QToolButton*> stepTargetButtons = {axis1Btn, axis2Btn, axis3Btn, axis4Btn, agvBtn};
+    for (QToolButton *btn : stepTargetButtons) {
+        if (!btn) {
+            continue;
+        }
+        btn->setCheckable(true);
+        btn->setStyleSheet(
+            "QToolButton {"
+            "    background-color: #6f7f8f;"
+            "    color: #eaf3ff;"
+            "    border: 1px solid #8698ab;"
+            "    border-radius: 8px;"
+            "    font-weight: bold;"
+            "}"
+            "QToolButton:hover {"
+            "    border: 1px solid #b6c9de;"
+            "}"
+            "QToolButton:checked {"
+            "    background-color: #00a8ff;"
+            "    color: #ffffff;"
+            "    border: 1px solid #7fd8ff;"
+            "}");
+        m_stepTargetGroup->addButton(btn);
+
+        connect(btn, &QToolButton::clicked, this, [this, btn]() {
+            if (!m_stepModeEnabled || m_stepModeUnknown || !btn || !btn->isChecked()) {
+                return;
+            }
+
+            int targetCode = 1;
+            const QString n = btn->objectName();
+            if (n == "btnStepTargetAxis1") targetCode = 1;
+            else if (n == "btnStepTargetAxis2") targetCode = 2;
+            else if (n == "btnStepTargetAxis3") targetCode = 3;
+            else if (n == "btnStepTargetAxis4") targetCode = 4;
+            else if (n == "btnStepTargetAgv") targetCode = 5;
+
+            writeToMainDevice(500, targetCode);
+            ui->statusBar->showMessage(QString("步进目标切换：%1 (500=%2)")
+                                           .arg(btn->text()).arg(targetCode), 1500);
+        }, Qt::UniqueConnection);
+    }
+
+    if (axis1Btn && !m_stepTargetGroup->checkedButton()) {
+        axis1Btn->setChecked(true);
+    }
+
     if (m_btnStepMove) {
         // 启动时先显示未选择，随后由寄存器值回填
         m_btnStepMove->setText("未选择模式");
@@ -7064,6 +7337,8 @@ void MainWindow::setupStepMoveControl()
                 m_btnStepMove->setToolTip("当前模式：未选择模式");
             }
         }
+
+        updateStepTargetButtonsState();
     } else {
         qWarning() << "未找到TBtn_Stepmove按钮";
     }
@@ -7076,15 +7351,38 @@ void MainWindow::setupStepMoveLineEdits()
         return;
     }
 
+    // 新版UI：统一步进输入框 + 轴/AGV互斥目标按钮
+    m_stepValueEdit = findChild<QLineEdit*>("lineEdit_StepValue");
+
+    QRegularExpression regExp("^-?\\d+(\\.\\d+)?$");  // 匹配整数/小数，可正可负
+    QRegularExpressionValidator *validator = new QRegularExpressionValidator(regExp, this);
+
+    if (m_stepValueEdit) {
+        m_stepValueEdit->setValidator(validator);
+        m_stepValueEdit->setPlaceholderText("输入步进值(小数)");
+
+        connect(m_stepValueEdit, &QLineEdit::textChanged, this,
+                [this](const QString &text) {
+            if (text.isEmpty()) {
+                return;
+            }
+            bool ok = false;
+            const double value = text.toDouble(&ok);
+            if (!ok) {
+                return;
+            }
+            writeStepValueDoubleToMainDevice(value);
+        }, Qt::UniqueConnection);
+
+        qCDebug(lcMainWindow) << "统一步进值输入框初始化完成";
+        return;
+    }
+
     // 查找四个步进值输入框
     m_editJ1MoveStep = findChild<QLineEdit*>("LEdit_HoriSupSec_J1MoveStep");
     m_editJ2MoveStep = findChild<QLineEdit*>("LEdit_VeSupSec_J2MoveStep");
     m_editJ3MoveStep = findChild<QLineEdit*>("LEdit_HoriSupSec_J3MoveStep");
     m_editJ4MoveStep = findChild<QLineEdit*>("LEdit_EOAT_J4MoveStep");
-
-    // 设置验证器，允许整数（可正可负）
-    QRegularExpression regExp("^-?\\d+$");  // 匹配整数，可正可负
-    QRegularExpressionValidator *validator = new QRegularExpressionValidator(regExp, this);
 
     if (m_editJ1MoveStep) {
         m_editJ1MoveStep->setValidator(validator);
@@ -7173,9 +7471,49 @@ void MainWindow::onJ4MoveStepChanged(const QString &text)
     }
 }
 
+void MainWindow::writeStepValueDoubleToMainDevice(double value)
+{
+    const auto regs = doubleToRegistersGHEFCDAB(value);
+
+    QVector<quint16> values;
+    values.reserve(4);
+    values << regs[0] << regs[1] << regs[2] << regs[3];
+
+    const bool batchOk = MainDeviceModbusApi::writeRegisters(m_modbusManager, 502, values);
+    if (!batchOk) {
+        // 兼容回退：若批量写失败，则保持原有逐寄存器写行为。
+        writeToMainDevice(502, static_cast<int>(regs[0]));
+        writeToMainDevice(503, static_cast<int>(regs[1]));
+        writeToMainDevice(504, static_cast<int>(regs[2]));
+        writeToMainDevice(505, static_cast<int>(regs[3]));
+    }
+
+    qCDebug(lcMainWindow) << "步进值(double, GH EF CD AB)写入502~505:" << value
+                          << "=>" << regs[0] << regs[1] << regs[2] << regs[3]
+                          << "批量写=" << batchOk;
+}
+
 // 写入步进寄存器
 void MainWindow::writeStepMoveRegisters()
 {
+    if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
+        bool ok = false;
+        const double value = m_stepValueEdit->text().toDouble(&ok);
+        if (!ok) {
+            return;
+        }
+
+        const int targetRegister = selectedStepTargetRegister();
+        if (targetRegister != 504) {
+            writeStepValueDoubleToMainDevice(value);
+            qCDebug(lcMainWindow) << "步进目标:" << selectedStepTargetName()
+                                  << "步进值(double):" << value;
+        } else {
+            qCDebug(lcMainWindow) << "当前为AGV目标，跳过502~505双浮点写入";
+        }
+        return;
+    }
+
     // 将当前输入框的值写入对应的寄存器
     if (m_editJ1MoveStep && !m_editJ1MoveStep->text().isEmpty()) {
         bool ok;
@@ -7213,18 +7551,19 @@ void MainWindow::writeStepMoveRegisters()
 // 清空步进寄存器
 void MainWindow::clearStepMoveRegisters()
 {
-    // 清空500-503地址
-    for (int i = 500; i <= 503; i++) {
+    // 清空502-505地址（步进值双浮点区）
+    for (int i = 502; i <= 505; i++) {
         writeToMainDevice(i, 0);
     }
 
     // 清空输入框内容
+    if (m_stepValueEdit) m_stepValueEdit->clear();
     if (m_editJ1MoveStep) m_editJ1MoveStep->clear();
     if (m_editJ2MoveStep) m_editJ2MoveStep->clear();
     if (m_editJ3MoveStep) m_editJ3MoveStep->clear();
     if (m_editJ4MoveStep) m_editJ4MoveStep->clear();
 
-    qCDebug(lcMainWindow) << "已清空步进寄存器(500-503)和输入框内容";
+    qCDebug(lcMainWindow) << "已清空步进寄存器(502-505)和输入框内容";
 }
 
 // 记录步进动作开始

@@ -200,6 +200,14 @@ public:
      */
     bool writeSingleRegister(int address, quint16 value);  // 新增：写入单个寄存器
 
+    /**
+     * @brief 写多个连续寄存器（功能码 0x10）
+     * @param startAddress 起始地址
+     * @param values 连续寄存器值
+     * @return 是否成功发出写请求
+     */
+    bool writeMultipleRegisters(int startAddress, const QVector<quint16> &values);
+
 signals:
     void connected();
     void disconnected();

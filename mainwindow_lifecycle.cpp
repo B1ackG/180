@@ -100,7 +100,7 @@ MainWindow::~MainWindow()
 
     qDebug() << "停止使能按钮监控线程...";
     if (m_enableButtonWorker) {
-        m_enableButtonWorker->stopPolling();
+        QMetaObject::invokeMethod(m_enableButtonWorker, "stopPolling", Qt::BlockingQueuedConnection);
     }
 
     if (m_enableButtonThread) {

@@ -35,8 +35,6 @@ bool MatrixKeyThreadManager::start(const QString &device)
 
         // 连接线程相关信号
         connect(m_workerThread, &QThread::started, m_monitor, &MatrixKeyMonitor::startMonitoring);
-        connect(m_workerThread, &QThread::finished, m_monitor, &QObject::deleteLater);
-        connect(m_workerThread, &QThread::finished, m_workerThread, &QObject::deleteLater);
 
         // 连接键盘信号到主线程
         connect(m_monitor, &MatrixKeyMonitor::keyPressed,
@@ -77,20 +75,25 @@ void MatrixKeyThreadManager::stop()
 
         // 等待线程结束（最多2秒）
         if (!m_workerThread->wait(2000)) {
-            qWarning() << "线程无法正常退出，强制终止";
-            m_workerThread->terminate();
-            m_workerThread->wait();
+            qWarning() << "线程未在2秒内退出，发起中断并再次等待";
+            m_workerThread->requestInterruption();
+            m_workerThread->quit();
+            if (!m_workerThread->wait(1000)) {
+                qWarning() << "线程仍未退出，执行最后手段 terminate";
+                m_workerThread->terminate();
+                m_workerThread->wait(1000);
+            }
         }
     }
 
     // 清理资源
     if (m_monitor) {
-        m_monitor->deleteLater();
+        delete m_monitor;
         m_monitor = nullptr;
     }
 
     if (m_workerThread) {
-        m_workerThread->deleteLater();
+        delete m_workerThread;
         m_workerThread = nullptr;
     }
 

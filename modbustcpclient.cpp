@@ -22,6 +22,7 @@ bool isMainWriteLogEnabled()
 
 ModbusTCPClient::ModbusTCPClient(QObject *parent)
     : QObject(parent)
+    , m_maxTimeoutMs(3000) // 默认3秒超时
     , m_socket(nullptr)
     , m_networkThread(nullptr)
     , m_port(502)  // Modbus TCP默认端口
@@ -33,7 +34,6 @@ ModbusTCPClient::ModbusTCPClient(QObject *parent)
     , m_pollInterval(1000)  // 默认1秒轮询
     , m_pollTimer(nullptr)
     , m_transactionId(0)
-    , m_maxTimeoutMs(3000) // 默认3秒超时
 {
     // 保持socket与当前对象在同一线程，避免跨线程访问
     m_socket = new QTcpSocket(this);
@@ -199,14 +199,12 @@ bool ModbusTCPClient::readInputRegisters(int startAddress, int count)
 // 通用读取方法
 bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 functionCode)
 {
-    constexpr int kMaxPendingRequests = 16;
-
     if (!isConnected() || count <= 0 || count > 125) {
         return false;
     }
 
     // 如果待处理请求过多，说明异步响应没回来，直接清理旧请求
-    if (m_transactionAddressMap.size() >= kMaxPendingRequests) {
+    if (m_transactionAddressMap.size() >= m_maxPendingTransactions) {
         static int dropCount = 0;
         if (dropCount++ % 10 == 0) {
             qDebug() << "[Modbus阻塞] 待处理请求:" << m_transactionAddressMap.size()
@@ -262,6 +260,7 @@ bool ModbusTCPClient::writeSingleRegister(int address, quint16 value)
     }
 
     QByteArray request = createWriteSingleRequest(address, value);
+    enterWritePriorityWindow();
 
     const qint64 bytesWritten = m_socket->write(request);
     m_socket->flush(); // 强制立即发出报文
@@ -289,6 +288,7 @@ bool ModbusTCPClient::writeMultipleRegisters(int startAddress, const QVector<qui
     }
 
     QByteArray request = createWriteMultipleRequest(startAddress, values);
+    enterWritePriorityWindow();
 
     if (isMainWriteLogEnabled()) {
         qInfo().noquote() << QString("[Main Modbus TX] ReqID:%1 FC:0x10 Addr:%2 Count:%3 Hex:%4")
@@ -301,6 +301,15 @@ bool ModbusTCPClient::writeMultipleRegisters(int startAddress, const QVector<qui
     m_socket->write(request);
 
     return true;
+}
+
+void ModbusTCPClient::enterWritePriorityWindow()
+{
+    const qint64 now = QDateTime::currentMSecsSinceEpoch();
+    const qint64 suspendUntil = now + m_writePriorityWindowMs;
+    if (suspendUntil > m_pollSuspendUntilMs) {
+        m_pollSuspendUntilMs = suspendUntil;
+    }
 }
 
 QByteArray ModbusTCPClient::createReadRequest(int startAddress, int count, quint8 functionCode)
@@ -777,6 +786,15 @@ void ModbusTCPClient::stopPolling()
 
 void ModbusTCPClient::pollRegisters()
 {
+    const qint64 now = QDateTime::currentMSecsSinceEpoch();
+    if (now < m_pollSuspendUntilMs) {
+        return;
+    }
+
+    if (m_transactionAddressMap.size() >= m_maxPendingTransactions) {
+        return;
+    }
+
     QList<int> pollListSnapshot;
     {
         QMutexLocker locker(&m_mutex);
@@ -795,6 +813,9 @@ void ModbusTCPClient::pollRegisters()
     int previousAddress = rangeStart;
 
     auto flushRange = [this](int start, int end) {
+        if (m_transactionAddressMap.size() >= m_maxPendingTransactions) {
+            return;
+        }
         int count = end - start + 1;
         if (count > 0) {
             readHoldingRegisters(start, count);

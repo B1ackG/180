@@ -21,6 +21,26 @@ bool MainDeviceModbusApi::writeRegister(ModbusThreadManager *manager,
     return manager->writeSingleRegister(address, static_cast<quint16>(value));
 }
 
+bool MainDeviceModbusApi::writeRegisters(ModbusThreadManager *manager,
+                                         int startAddress,
+                                         const QVector<quint16> &values,
+                                         QString *errorMessage)
+{
+    if (!isReady(manager)) {
+        if (errorMessage) {
+            *errorMessage = QStringLiteral("主Modbus未连接");
+        }
+        return false;
+    }
+    if (values.isEmpty()) {
+        if (errorMessage) {
+            *errorMessage = QStringLiteral("写入值为空");
+        }
+        return false;
+    }
+    return manager->writeMultipleRegisters(startAddress, values);
+}
+
 bool MainDeviceModbusApi::readHoldingRegisters(ModbusThreadManager *manager,
                                                int startAddress,
                                                int count,

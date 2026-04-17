@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QtGlobal>
+#include <QVector>
 
 class ModbusThreadManager;
 
@@ -40,6 +41,19 @@ public:
                               int address,
                               int value,
                               QString *errorMessage = nullptr);
+
+    /**
+     * @brief 写入多个连续寄存器。
+     * @param manager 线程管理器。
+     * @param startAddress 起始寄存器地址。
+     * @param values 连续寄存器值。
+     * @param errorMessage 可选输出参数，用于返回失败原因。
+     * @return 写入请求是否成功发起。
+     */
+    static bool writeRegisters(ModbusThreadManager *manager,
+                               int startAddress,
+                               const QVector<quint16> &values,
+                               QString *errorMessage = nullptr);
 
     /**
      * @brief 读取保持寄存器。

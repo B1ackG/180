@@ -419,6 +419,43 @@ bool ModbusThreadManager::writeSingleRegister(int address, quint16 value)
     return result;
 }
 
+bool ModbusThreadManager::writeMultipleRegisters(int startAddress, const QVector<quint16> &values)
+{
+    if (QThread::currentThread() != thread()) {
+        bool ok = false;
+        QMetaObject::invokeMethod(this, [this, startAddress, values, &ok]() {
+            ok = writeMultipleRegisters(startAddress, values);
+        }, Qt::BlockingQueuedConnection);
+        return ok;
+    }
+
+    if (!m_modbusClient || !m_modbusClient->isConnected()) {
+        qWarning() << "Modbus客户端未连接，无法批量写入地址" << startAddress;
+        emit writeOperationComplete(false, QString("Modbus未连接"));
+        return false;
+    }
+
+    if (values.isEmpty()) {
+        qWarning() << "批量写入值为空，已忽略，起始地址" << startAddress;
+        return false;
+    }
+
+    const bool result = m_modbusClient->writeMultipleRegisters(startAddress, values);
+    if (result) {
+        for (int i = 0; i < values.size(); ++i) {
+            emit registerWritten(startAddress + i, values.at(i));
+        }
+        emit writeOperationComplete(true,
+                                    QString("批量写入地址%1~%2成功")
+                                        .arg(startAddress)
+                                        .arg(startAddress + values.size() - 1));
+    } else {
+        emit writeOperationComplete(false,
+                                    QString("批量写入地址%1失败").arg(startAddress));
+    }
+    return result;
+}
+
 bool ModbusThreadManager::readHoldingRegisters(int startAddress, int count)
 {
     if (QThread::currentThread() != thread()) {

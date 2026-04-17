@@ -37,6 +37,7 @@
 
 #include <QPushButton>
 #include <QToolButton>
+#include <QButtonGroup>
 #include <QLineEdit>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator> // 验证器需要这个
@@ -291,6 +292,14 @@ public:
     void setupStepMoveControl();
     /** @brief 配置步进移动行编辑 */
     void setupStepMoveLineEdits();
+    /** @brief 获取当前选中的步进目标寄存器（500~504） */
+    int selectedStepTargetRegister() const;
+    /** @brief 获取当前选中的步进目标名称 */
+    QString selectedStepTargetName() const;
+    /** @brief 根据模式启用或禁用步进目标按钮 */
+    void updateStepTargetButtonsState();
+    /** @brief 将步进值按双字浮点格式写入 502~505 */
+    void writeStepValueDoubleToMainDevice(double value);
     /** @brief 将步进设置写入寄存器 */
     void writeStepMoveRegisters();
     /** @brief 清除步进寄存器 */
@@ -621,6 +630,8 @@ private:
     QMap<QString, TechArcGauge*> m_arcGauges;
     QMap<QString, QVector<TechSliderLabel*>> m_pageSliders;
     QToolButton *m_btnStepMove = nullptr;
+    QButtonGroup *m_stepTargetGroup = nullptr;
+    QLineEdit *m_stepValueEdit = nullptr;
     QLineEdit *m_editJ1MoveStep = nullptr;
     QLineEdit *m_editJ2MoveStep = nullptr;
     QLineEdit *m_editJ3MoveStep = nullptr;
