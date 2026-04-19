@@ -226,6 +226,8 @@ public:
     void readMainControlSyncRegisters();
     /** @brief 将两个寄存器转换为 float */
     float registersToFloat(quint16 high, quint16 low);
+    /** @brief 按 CDAB 字节顺序将两个寄存器转换为 float */
+    float registersToFloatCDAB(quint16 regA, quint16 regB);
     /** @brief 按 DCBA FEHG 字节顺序将4个寄存器转换为 double */
     double registersToDoubleDCBAFEHG(quint16 reg1, quint16 reg2, quint16 reg3, quint16 reg4);
 

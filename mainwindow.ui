@@ -510,6 +510,37 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QToolButton" name="TBtn_SixAxies">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>六自由度</string>
+         </property>
+         <property name="icon">
+          <iconset resource="res.qrc">
+           <normaloff>:/Picture/home2.png</normaloff>:/Picture/home2.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>22</width>
+           <height>22</height>
+          </size>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>
@@ -1041,6 +1072,68 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
           <y>0</y>
           <width>560</width>
           <height>530</height>
+         </rect>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="page_SixAxies">
+       <widget class="QWidget" name="widget_SixAxies_2" native="true">
+        <property name="geometry">
+         <rect>
+          <x>770</x>
+          <y>100</y>
+          <width>150</width>
+          <height>150</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QWidget" name="widget_SixAxies_3" native="true">
+        <property name="geometry">
+         <rect>
+          <x>770</x>
+          <y>270</y>
+          <width>150</width>
+          <height>150</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QWidget" name="widget_SixAxies_4" native="true">
+        <property name="geometry">
+         <rect>
+          <x>580</x>
+          <y>100</y>
+          <width>150</width>
+          <height>150</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QWidget" name="widget_SixAxies_5" native="true">
+        <property name="geometry">
+         <rect>
+          <x>580</x>
+          <y>270</y>
+          <width>150</width>
+          <height>150</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QWidget" name="widget_SixAxies_6" native="true">
+        <property name="geometry">
+         <rect>
+          <x>390</x>
+          <y>100</y>
+          <width>150</width>
+          <height>150</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QWidget" name="widget_SixAxies_1" native="true">
+        <property name="geometry">
+         <rect>
+          <x>390</x>
+          <y>270</y>
+          <width>150</width>
+          <height>150</height>
          </rect>
         </property>
        </widget>

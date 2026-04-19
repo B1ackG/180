@@ -346,7 +346,8 @@ void MainWindow::setupNavigationConnections()
     const QList<QToolButton*> navButtons = {
         ui->TBtn_HomePage,
         ui->TBtn_PermissionPage,
-        ui->TBtn_HistoryRecord
+        ui->TBtn_HistoryRecord,
+        ui->TBtn_SixAxies
     };
     for (QToolButton *btn : navButtons) {
         if (!btn) {
@@ -363,6 +364,13 @@ void MainWindow::setupNavigationConnections()
         ui->StackedWidget->setCurrentIndex(0);
         ui->TBtn_HomePage->setChecked(true);
         updateNavButtonStyles(nullptr);
+    });
+
+    connect(ui->TBtn_SixAxies, &QPushButton::clicked, [this]() {
+        if (ui->page_SixAxies) {
+            ui->StackedWidget->setCurrentWidget(ui->page_SixAxies);
+        }
+        ui->TBtn_SixAxies->setChecked(true);
     });
 
     // 旧模板按钮 Btn_Switch* 已移除，页面切换统一由左侧工具按钮负责。
@@ -721,7 +729,7 @@ void MainWindow::applyToolButtonStyles(const QList<QToolButton*> &buttons)
             if (name == "TBtn_Stepmove" || name == "TBtn_MoveMode" ||
                 name == "TBtn_ControlMode" || name == "TBtn_RemoveWarning" ||
                 name == "TBtn_HomePage" || name == "TBtn_PermissionPage" ||
-                name == "TBtn_HistoryRecord") {
+                name == "TBtn_HistoryRecord" || name == "TBtn_SixAxies") {
                 continue;
             }
             btn->setStyleSheet(style);
@@ -953,8 +961,8 @@ void MainWindow::initTechButtons() {
 
 void MainWindow::initSpeedGaugeUI()
 {
-    // 初始化 4 个环形仪表 (TechArcGauge)
-    // 映射关系：widget_test1 -> arcGauge_1, widget_test2 -> arcGauge_2, ...
+    // 初始化环形仪表 (TechArcGauge)
+    // 映射关系：占位控件 -> 运行时创建的 TechArcGauge
     struct ArcConfig {
         QWidget* placeholder;
         QString name;
@@ -969,7 +977,13 @@ void MainWindow::initSpeedGaugeUI()
         {ui->widget_test1, "robot_ArcGauge_J1Angle", "悬臂角度", "°", -170, 170, 1},
         {ui->widget_test2, "robot_ArcGauge_J2Height", "升降高度", "mm", -850, 1150, 0},
         {ui->widget_test3, "robot_ArcGauge_J3Length", "总伸展长度", "mm", 0, 1600, 0},
-        {ui->widget_test4, "robot_ArcGauge_J4Angle", "末端角度", "°", -180, 180, 1}
+        {ui->widget_test4, "robot_ArcGauge_J4Angle", "末端角度", "°", -180, 180, 1},
+        {ui->widget_SixAxies_1, "robot_ArcGauge_SixAxis1", "六轴 1", "°", -15, 15, 2},
+        {ui->widget_SixAxies_2, "robot_ArcGauge_SixAxis2", "六轴 2", "°", -15, 15, 2},
+        {ui->widget_SixAxies_3, "robot_ArcGauge_SixAxis3", "六轴 3", "°", -12, 12, 2},
+        {ui->widget_SixAxies_4, "robot_ArcGauge_SixAxis4", "六轴 4", "mm", -110, 110, 2},
+        {ui->widget_SixAxies_5, "robot_ArcGauge_SixAxis5", "六轴 5", "mm", -110, 110, 2},
+        {ui->widget_SixAxies_6, "robot_ArcGauge_SixAxis6", "六轴 6", "mm", -90, 90, 2}
     };
 
     for (auto &cfg : configs) {
@@ -2628,6 +2642,8 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     // 获取当前页面
     int currentPage = ui->StackedWidget->currentIndex();
     QString pageName = m_pageNames.value(currentPage, "未知");
+    const bool isRobotPage = (currentPage == 0 || pageName == "机械臂" || pageName == "page_Robot");
+    const bool isSixAxisPage = (currentPage == 3 || pageName == "六自由度" || pageName == "page_SixAxies");
 
     // 外部按钮逻辑门禁：
     // - 点动模式：仅允许在[关节]模式下执行；
@@ -2639,8 +2655,42 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         return;
     }
 
+    // 六自由度页面（第4页）外部键逻辑：仅在点动模式下生效，按键○1~○12映射到613写入±1~±6。
+    if (isSixAxisPage) {
+        if (m_stepModeUnknown || m_stepModeEnabled) {
+            if (pressed) {
+                qCDebug(lcMainWindow) << "六自由度外部按键忽略：当前非点动模式，按键○" << keyNumber;
+            }
+            return;
+        }
+
+        if (keyNumber < 1 || keyNumber > 12) {
+            return;
+        }
+
+        if (!pressed) {
+            writeToMainDevice(613, 0);
+            return;
+        }
+
+        const int groupIndex = (keyNumber + 1) / 2;       // ○1/2->1 ... ○11/12->6
+        const int signedCommand = (keyNumber % 2 == 1) ? -groupIndex : groupIndex;
+        const quint16 encoded = static_cast<quint16>(signedCommand); // 负数按补码写入
+        writeToMainDevice(613, static_cast<int>(encoded));
+
+        qCDebug(lcMainWindow) << "六自由度外部按键○" << keyNumber
+                              << "-> 地址613写入" << signedCommand
+                              << "(补码:" << encoded << ")";
+        return;
+    }
+
+    // 除第1页（机械臂）与第4页（六自由度）外，其他页面外部按键统一不响应。
+    if (!isRobotPage) {
+        return;
+    }
+
     // 特殊处理：如果是机械臂页面（索引为0），执行唯一的 500/514 寄存器逻辑并直接返回
-    if (currentPage == 0 || pageName == "机械臂" || pageName == "page_Robot") {
+    if (isRobotPage) {
         // 将原AGV页面的○1/○2动作迁移为首页上的○9/○10。
         if (keyNumber == 9) {
             handleAGVKeyAction(keyNumber, pressed);
@@ -3580,6 +3630,37 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
         updateSliderLabelValue(labelName, static_cast<float>(value64));
     }
+
+    // SixAxies：192.168.1.13 的 73~84，两个寄存器一组，按 CDAB 转 float。
+    if (address >= 73 && address <= 84) {
+        static const struct {
+            int highAddr;
+            int lowAddr;
+            const char* gaugeName;
+        } sixAxisRegPairs[] = {
+            {73, 74, "robot_ArcGauge_SixAxis1"},
+            {75, 76, "robot_ArcGauge_SixAxis2"},
+            {77, 78, "robot_ArcGauge_SixAxis3"},
+            {79, 80, "robot_ArcGauge_SixAxis4"},
+            {81, 82, "robot_ArcGauge_SixAxis5"},
+            {83, 84, "robot_ArcGauge_SixAxis6"}
+        };
+
+        for (const auto &pair : sixAxisRegPairs) {
+            if (address != pair.highAddr && address != pair.lowAddr) {
+                continue;
+            }
+            if (!g_registerCache.contains(pair.highAddr) || !g_registerCache.contains(pair.lowAddr)) {
+                continue;
+            }
+
+            const quint16 regA = g_registerCache[pair.highAddr];
+            const quint16 regB = g_registerCache[pair.lowAddr];
+            const float axisValue = registersToFloatCDAB(regA, regB);
+            updateSliderLabelValue(QString::fromLatin1(pair.gaugeName), axisValue);
+        }
+    }
+
     // ============ 仅保留主设备150急停报警源 ============
     if (address == 150) {
         const bool emergencyStop = (value == 1);
@@ -3741,6 +3822,23 @@ float MainWindow::registersToFloat(quint16 high, quint16 low)
     return result;
 }
 
+float MainWindow::registersToFloatCDAB(quint16 regA, quint16 regB)
+{
+    const quint8 A = static_cast<quint8>((regA >> 8) & 0xFF);
+    const quint8 B = static_cast<quint8>(regA & 0xFF);
+    const quint8 C = static_cast<quint8>((regB >> 8) & 0xFF);
+    const quint8 D = static_cast<quint8>(regB & 0xFF);
+
+    const uint32_t combined = (static_cast<uint32_t>(C) << 24)
+                            | (static_cast<uint32_t>(D) << 16)
+                            | (static_cast<uint32_t>(A) << 8)
+                            | static_cast<uint32_t>(B);
+
+    float result = 0.0f;
+    memcpy(&result, &combined, sizeof(float));
+    return result;
+}
+
 double MainWindow::registersToDoubleDCBAFEHG(quint16 reg1, quint16 reg2, quint16 reg3, quint16 reg4)
 {
     // 修改：根据 64位大端 IEEE754 与 BADC FEHG 顺序转换
@@ -3879,6 +3977,9 @@ void MainWindow::readAllFloatRegisters()
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager,
                                               m_mainDeviceStatusStart,
                                               m_mainDeviceStatusCount);
+
+    // SixAxies 浮点数据：73~84（两寄存器一组）。
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 73, 12);
 
     // 设备状态组由本函数独立负责；控制同步组由 readMainControlSyncRegisters 负责。
 }
@@ -7012,8 +7113,9 @@ void MainWindow::onStepMoveButtonClicked()
 
         // 给501寄存器写入2
         writeToMainDevice(501, 2);
+        writeToMainDevice(600, 2);
 
-        qCDebug(lcMainWindow) << "切换到步进模式，地址501写入2";
+        qCDebug(lcMainWindow) << "切换到步进模式，地址501/600写入2";
         ui->statusBar->showMessage("已切换到步进模式", 2000);
 
         // 更新状态栏显示
@@ -7037,8 +7139,9 @@ void MainWindow::onStepMoveButtonClicked()
 
         // 给501寄存器写入1
         writeToMainDevice(501, 1);
+        writeToMainDevice(600, 1);
 
-        qCDebug(lcMainWindow) << "切换到点动模式，地址501写入1";
+        qCDebug(lcMainWindow) << "切换到点动模式，地址501/600写入1";
         ui->statusBar->showMessage("已切换到点动模式", 2000);
     }
 

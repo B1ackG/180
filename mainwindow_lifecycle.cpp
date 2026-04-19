@@ -202,13 +202,11 @@ void MainWindow::startAlarmSystem()
 
 void MainWindow::initializePageNames()
 {
-    m_pageNames[0] = "软件参数";
-    m_pageNames[1] = "回转升降";
-    m_pageNames[2] = "伸缩臂";
-    m_pageNames[3] = "EOAT控制";
-    m_pageNames[4] = "AGV控制";
-    m_pageNames[5] = "管理员验证";
-    m_pageNames[6] = "操作记录";
+    m_pageNames.clear();
+    m_pageNames[0] = "机械臂";
+    m_pageNames[1] = "操作记录";
+    m_pageNames[2] = "管理员验证";
+    m_pageNames[3] = "六自由度";
 }
 
 void MainWindow::initializeCorePagesAndUi()
