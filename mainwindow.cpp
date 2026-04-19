@@ -167,7 +167,7 @@ void MainWindow::loadPollingRuntimeSettings()
     m_mainUiPollIntervalMs = settings.value("main_ui_poll_ms", 200).toInt();
     m_mainDeviceStatusPollIntervalMs = settings.value("main_device_status_poll_ms", 2000).toInt();
     m_mainDeviceStatusStart = settings.value("main_device_status_start", 0).toInt();
-    m_mainDeviceStatusCount = settings.value("main_device_status_count", 72).toInt();
+    m_mainDeviceStatusCount = settings.value("main_device_status_count", 85).toInt();
     m_mainControlSyncStart = settings.value("main_control_sync_start", 125).toInt();
     m_mainControlSyncCount = settings.value("main_control_sync_count", 6).toInt();
     m_mainReconnectIntervalMs = settings.value("main_reconnect_ms", 5000).toInt();
@@ -3886,7 +3886,7 @@ double MainWindow::registersToDoubleDCBAFEHG(quint16 reg1, quint16 reg2, quint16
 
 void MainWindow::setupModbusFloatReading()
 {
-    // 设备状态组定时器：0~71（默认）独立节拍。
+    // 设备状态组定时器：0~84（默认）独立节拍。
     if (!m_modbusReadTimer) {
         m_modbusReadTimer = new QTimer(this);
         connect(m_modbusReadTimer, &QTimer::timeout,
@@ -3973,13 +3973,17 @@ void MainWindow::readAllFloatRegisters()
         //            << "数量" << m_mainDeviceStatusCount;
     }
 
-    // 设备状态组（默认 192.168.1.13 的 0~71）独立轮询。
+    // 设备状态组（默认 192.168.1.13 的 0~84）独立轮询。
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager,
                                               m_mainDeviceStatusStart,
                                               m_mainDeviceStatusCount);
 
-    // SixAxies 浮点数据：73~84（两寄存器一组）。
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 73, 12);
+    // 兼容旧配置：若当前轮询组未覆盖 73~84，则补读一次该区间，确保 SixAxies 数据可用。
+    const int statusEnd = m_mainDeviceStatusStart + m_mainDeviceStatusCount - 1;
+    const bool coversSixAxisRange = (m_mainDeviceStatusStart <= 73) && (statusEnd >= 84);
+    if (!coversSixAxisRange) {
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 73, 12);
+    }
 
     // 设备状态组由本函数独立负责；控制同步组由 readMainControlSyncRegisters 负责。
 }

@@ -596,7 +596,7 @@ private:
     int m_mainUiPollIntervalMs = 200;
     int m_mainDeviceStatusPollIntervalMs = 2000;
     int m_mainDeviceStatusStart = 0;
-    int m_mainDeviceStatusCount = 72;
+    int m_mainDeviceStatusCount = 85;
     int m_mainControlSyncStart = 125;
     int m_mainControlSyncCount = 6;
     bool m_uiStateSyncEnabled = true;

@@ -273,9 +273,9 @@ void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
 
     addPollItem("主控 Modbus 轮询 (ms):", m_editMainModbusPoll);
     addPollItem("控件状态同步轮询 (ms):", m_editMainUiPoll);
-    addPollItem("设备状态轮询间隔 (ms, 0~71):", m_editMainDeviceStatusPoll);
+    addPollItem("设备状态轮询间隔 (ms, 0~84):", m_editMainDeviceStatusPoll);
     addPollItem("设备状态轮询起始地址 (192.168.1.13):", m_editMainDeviceStatusStart);
-    addPollItem("设备状态轮询数量 (0~71默认72):", m_editMainDeviceStatusCount);
+    addPollItem("设备状态轮询数量 (0~84默认85):", m_editMainDeviceStatusCount);
     addPollItem("模式同步轮询起始地址 (如125):", m_editMainControlSyncStart);
     addPollItem("模式同步轮询数量 (如6):", m_editMainControlSyncCount);
     addPollItem("主控 重连间隔 (ms):", m_editMainReconnect);
@@ -345,7 +345,7 @@ void FeatureSwitchWidget::loadPollingState()
     m_editMainUiPoll->setText(settings.value("main_ui_poll_ms", 200).toString());
     m_editMainDeviceStatusPoll->setText(settings.value("main_device_status_poll_ms", 2000).toString());
     m_editMainDeviceStatusStart->setText(settings.value("main_device_status_start", 0).toString());
-    m_editMainDeviceStatusCount->setText(settings.value("main_device_status_count", 72).toString());
+    m_editMainDeviceStatusCount->setText(settings.value("main_device_status_count", 85).toString());
     m_editMainControlSyncStart->setText(settings.value("main_control_sync_start", 125).toString());
     m_editMainControlSyncCount->setText(settings.value("main_control_sync_count", 6).toString());
     m_editMainReconnect->setText(settings.value("main_reconnect_ms", 5000).toString());
