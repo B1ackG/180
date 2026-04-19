@@ -298,6 +298,8 @@ public:
     int selectedStepTargetRegister() const;
     /** @brief 获取当前选中的步进目标名称 */
     QString selectedStepTargetName() const;
+    /** @brief 根据模式与当前页刷新步进控制分组可用态 */
+    void updateStepMoveGroupBoxState();
     /** @brief 根据模式启用或禁用步进目标按钮 */
     void updateStepTargetButtonsState();
     /** @brief 将步进值按双字浮点格式写入 502~505 */

@@ -479,6 +479,8 @@ void MainWindow::setupControlConnections()
                     qCDebug(lcMainWindow) << "当前页面有" << m_pageSliders[pageName].size()
                              << "个TechSliderLabel控件";
                 }
+
+                updateStepTargetButtonsState();
             });
 
     connect(ui->TBtn_Stepmove, &QToolButton::clicked,
@@ -3514,6 +3516,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         }
 
         updateFunctionSwitchVisuals();
+        updateStepTargetButtonsState();
     }
 
     if (allowUiStateSync && address == 126 && ui && ui->TBtn_MoveMode) {
@@ -7222,7 +7225,12 @@ void MainWindow::onEnableButtonReleasedStepMode()
 {
     qCDebug(lcMainWindow) << "步进模式下使能按钮释放";
 
-    // 需求变更：步进模式下使能按钮释放不再写514，且不清空步进值输入。
+    // 需求：仅在首页(索引0)且步进模式时，释放使能键后清空统一步进输入框。
+    if (ui && ui->StackedWidget && m_stepModeEnabled && ui->StackedWidget->currentIndex() == 0 && m_stepValueEdit) {
+        m_stepValueEdit->clear();
+    }
+
+    // 步进模式下使能按钮释放：不写514；统一输入框是否清空由上面的首页条件控制。
 
     if (m_stepValueEdit) {
         const int targetReg = selectedStepTargetRegister();
@@ -7292,8 +7300,26 @@ QString MainWindow::selectedStepTargetName() const
     }
 }
 
+void MainWindow::updateStepMoveGroupBoxState()
+{
+    if (!ui || !ui->groupBox_StepMove) {
+        return;
+    }
+
+    bool isStepMode = (!m_stepModeUnknown && m_stepModeEnabled);
+    if (!isStepMode && ui->TBtn_Stepmove) {
+        isStepMode = (ui->TBtn_Stepmove->text().trimmed() == "步进模式");
+    }
+
+    const bool isFirstPage = ui->StackedWidget && ui->StackedWidget->currentIndex() == 0;
+    const bool shouldDisable = (!isStepMode && isFirstPage);
+    ui->groupBox_StepMove->setEnabled(!shouldDisable);
+}
+
 void MainWindow::updateStepTargetButtonsState()
 {
+    updateStepMoveGroupBoxState();
+
     if (!m_stepTargetGroup) {
         return;
     }
@@ -7466,7 +7492,7 @@ void MainWindow::setupStepMoveLineEdits()
 
     if (m_stepValueEdit) {
         m_stepValueEdit->setValidator(validator);
-        m_stepValueEdit->setPlaceholderText("输入步进值(小数)");
+        m_stepValueEdit->setPlaceholderText("...");
 
         connect(m_stepValueEdit, &QLineEdit::textChanged, this,
                 [this](const QString &text) {
