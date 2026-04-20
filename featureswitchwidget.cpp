@@ -295,13 +295,25 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
         "robot_ArcGauge_J1Angle",
         "robot_ArcGauge_J2Height",
         "robot_ArcGauge_J3Length",
-        "robot_ArcGauge_J4Angle"
+        "robot_ArcGauge_J4Angle",
+        "robot_ArcGauge_SixAxis1",
+        "robot_ArcGauge_SixAxis2",
+        "robot_ArcGauge_SixAxis3",
+        "robot_ArcGauge_SixAxis4",
+        "robot_ArcGauge_SixAxis5",
+        "robot_ArcGauge_SixAxis6"
     };
     QMap<QString, QString> itemLabels;
     itemLabels["robot_ArcGauge_J1Angle"] = "悬臂角度 (J1)";
     itemLabels["robot_ArcGauge_J2Height"] = "升降高度 (J2)";
     itemLabels["robot_ArcGauge_J3Length"] = "总伸展长度 (J3)";
     itemLabels["robot_ArcGauge_J4Angle"] = "末端角度 (J4)";
+    itemLabels["robot_ArcGauge_SixAxis1"] = "六轴 1";
+    itemLabels["robot_ArcGauge_SixAxis2"] = "六轴 2";
+    itemLabels["robot_ArcGauge_SixAxis3"] = "六轴 3";
+    itemLabels["robot_ArcGauge_SixAxis4"] = "六轴 4";
+    itemLabels["robot_ArcGauge_SixAxis5"] = "六轴 5";
+    itemLabels["robot_ArcGauge_SixAxis6"] = "六轴 6";
 
     for (const QString &name : targetNames) {
         QHBoxLayout *row = new QHBoxLayout();
@@ -379,7 +391,13 @@ void FeatureSwitchWidget::loadSliderLimitState()
         {"robot_ArcGauge_J1Angle", qMakePair(-170.0, 170.0)},
         {"robot_ArcGauge_J2Height", qMakePair(-850.0, 1150.0)},
         {"robot_ArcGauge_J3Length", qMakePair(0.0, 1600.0)},
-        {"robot_ArcGauge_J4Angle", qMakePair(-180.0, 180.0)}
+        {"robot_ArcGauge_J4Angle", qMakePair(-180.0, 180.0)},
+        {"robot_ArcGauge_SixAxis1", qMakePair(-15.0, 15.0)},
+        {"robot_ArcGauge_SixAxis2", qMakePair(-15.0, 15.0)},
+        {"robot_ArcGauge_SixAxis3", qMakePair(-12.0, 12.0)},
+        {"robot_ArcGauge_SixAxis4", qMakePair(-110.0, 110.0)},
+        {"robot_ArcGauge_SixAxis5", qMakePair(-110.0, 110.0)},
+        {"robot_ArcGauge_SixAxis6", qMakePair(-90.0, 90.0)}
     };
 
     QSettings settings("config.ini", QSettings::IniFormat);

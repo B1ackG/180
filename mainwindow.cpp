@@ -30,6 +30,8 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QButtonGroup>
 #include <QGuiApplication>
 #include <QSignalBlocker>
+#include <QVBoxLayout>
+#include <QLabel>
 #include <QtMath>
 #include <array>
 #include <fcntl.h>
@@ -1121,38 +1123,68 @@ void MainWindow::updateRobotTotalPower(quint16 powerValue)
 
 void MainWindow::initInclinometerCards()
 {
-    m_inclinometerXQml = findChild<QQuickWidget*>("quickWidget_Inclinometer_X");
-    m_inclinometerYQml = findChild<QQuickWidget*>("quickWidget_Inclinometer_Y");
+    m_inclinometerXCard = findChild<QWidget*>("quickWidget_Inclinometer_X");
+    m_inclinometerYCard = findChild<QWidget*>("quickWidget_Inclinometer_Y");
 
-    auto initOne = [this](QQuickWidget *widget, const QString &axisTitle) {
+    auto initOne = [](QWidget *widget, const QString &axisTitle, QLabel *&valueLabel) {
         if (!widget) {
             return;
         }
 
-        widget->setResizeMode(QQuickWidget::SizeRootObjectToView);
-        applyTransparentQuickWidgetBackground(widget);
-        widget->setSource(QUrl("qrc:/InclinometerCard.qml"));
+        widget->setStyleSheet(QStringLiteral(
+            "background-color: #1A5FB4;"
+            "border: 1px solid #4FAFE8;"
+            "border-radius: 14px;"));
 
-        if (QQuickItem *root = widget->rootObject()) {
-            root->setProperty("axisLabel", axisTitle);
-            root->setProperty("tiltValue", 0.0);
+        if (QLayout *oldLayout = widget->layout()) {
+            QLayoutItem *item = nullptr;
+            while ((item = oldLayout->takeAt(0)) != nullptr) {
+                if (item->widget()) {
+                    item->widget()->deleteLater();
+                }
+                delete item;
+            }
+            delete oldLayout;
         }
+
+        auto *layout = new QVBoxLayout(widget);
+        layout->setContentsMargins(6, 8, 6, 8);
+        layout->setSpacing(0);
+
+        valueLabel = new QLabel(QStringLiteral("0.00°"), widget);
+        valueLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+        valueLabel->setStyleSheet(QStringLiteral(
+            "color: #EAF7FF;"
+            "font: 700 28px 'Noto Sans CJK SC';"
+            "border: none;"
+            "background: transparent;"));
+
+        auto *axisLabel = new QLabel(axisTitle, widget);
+        axisLabel->setAlignment(Qt::AlignHCenter | Qt::AlignBottom);
+        axisLabel->setStyleSheet(QStringLiteral(
+            "color: #A8DAFF;"
+            "font: 700 14px 'Noto Sans CJK SC';"
+            "border: none;"
+            "background: transparent;"));
+
+        layout->addWidget(valueLabel, 1);
+        layout->addWidget(axisLabel, 0);
     };
 
-    initOne(m_inclinometerXQml, QStringLiteral("X轴倾角"));
-    initOne(m_inclinometerYQml, QStringLiteral("Y轴倾角"));
+    initOne(m_inclinometerXCard, QStringLiteral("X轴倾角"), m_inclinometerXValueLabel);
+    initOne(m_inclinometerYCard, QStringLiteral("Y轴倾角"), m_inclinometerYValueLabel);
 }
 
 void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
 {
-    QQuickWidget *target = isXAxis ? m_inclinometerXQml : m_inclinometerYQml;
-    if (!(target && target->rootObject())) {
+    QLabel *targetLabel = isXAxis ? m_inclinometerXValueLabel : m_inclinometerYValueLabel;
+    if (!targetLabel) {
         return;
     }
 
     const qint16 signedRaw = static_cast<qint16>(rawValue);
     const qreal degree = static_cast<qreal>(signedRaw) / 100.0;
-    target->rootObject()->setProperty("tiltValue", degree);
+    targetLabel->setText(QString::number(degree, 'f', 2) + QStringLiteral("°"));
 }
 
 //模拟速度
@@ -2647,6 +2679,24 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     const bool isRobotPage = (currentPage == 0 || pageName == "机械臂" || pageName == "page_Robot");
     const bool isSixAxisPage = (currentPage == 3 || pageName == "六自由度" || pageName == "page_SixAxies");
 
+    // 首页外部按键提示：
+    // ○1/○2 检查主设备地址150的bit1；○3/○4 检查bit2。
+    if (isRobotPage && pressed && keyNumber >= 1 && keyNumber <= 4) {
+        if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
+            MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
+        }
+
+        const quint16 status150 = m_mainRegister150Shadow;
+        if ((keyNumber == 1 || keyNumber == 2) && (((status150 >> 1) & 0x01) == 1)) {
+            showRobotOperationHintDialog("请降低高度后操作");
+            return;
+        }
+        if (keyNumber == 4 && (((status150 >> 2) & 0x01) == 1)) {
+            showRobotOperationHintDialog("请缩小长度后操作");
+            return;
+        }
+    }
+
     // 外部按钮逻辑门禁：
     // - 点动模式：仅允许在[关节]模式下执行；
     // - 步进模式：允许执行（由按键映射与目标选择进一步约束）。
@@ -3666,6 +3716,8 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
     // ============ 仅保留主设备150急停报警源 ============
     if (address == 150) {
+        m_mainRegister150Shadow = value;
+        m_mainRegister150Valid = true;
         const bool emergencyStop = (value == 1);
         if (emergencyStop != m_robotArmEmergency150Flag) {
             m_robotArmEmergency150Flag = emergencyStop;
@@ -4318,6 +4370,8 @@ void MainWindow::setupAGVModbus()
                         }
                         QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
                     }
+
+                    handleAGVRegister51Alerts(value);
 
                     syncAGVParkingStateFromRegister51(value);
                 }
@@ -7825,6 +7879,12 @@ void MainWindow::setupAlarmSystem()
     m_emergencyStopChassisFlag = false;
     m_robotArmEmergency150Flag = false;
     m_agvChassisEmergency51Bit5Flag = false;
+    m_agvStationOffline51Bit1Flag = false;
+    m_agvDriveFault51Bit2Flag = false;
+    m_agvBatteryLow51Bit0Flag = false;
+    m_agvBatteryLowAcked = false;
+    m_mainRegister150Valid = false;
+    m_mainRegister150Shadow = 0;
     m_forceLimitFlag = false;
 
     // 创建报警检测定时器
@@ -8021,6 +8081,278 @@ void MainWindow::updateAlarmDisplay()
         if (!m_isSteeringAlarmActive) {
             hideAlarm();
         }
+    }
+}
+
+void MainWindow::handleAGVRegister51Alerts(quint16 value)
+{
+    const bool stationOffline = (((value >> 1) & 0x01) == 1);
+    if (stationOffline != m_agvStationOffline51Bit1Flag) {
+        m_agvStationOffline51Bit1Flag = stationOffline;
+        if (stationOffline) {
+            showAgvStationOfflineAlarm();
+        } else {
+            hideAgvStationOfflineAlarm();
+        }
+    }
+
+    const bool driveFault = (((value >> 2) & 0x01) == 1);
+    if (driveFault != m_agvDriveFault51Bit2Flag) {
+        m_agvDriveFault51Bit2Flag = driveFault;
+        if (driveFault) {
+            showAgvDriveFaultAlarm();
+        } else {
+            hideAgvDriveFaultAlarm();
+        }
+    }
+
+    const bool batteryLow = ((value & 0x01) == 1);
+    if (batteryLow != m_agvBatteryLow51Bit0Flag) {
+        m_agvBatteryLow51Bit0Flag = batteryLow;
+        if (batteryLow) {
+            if (!m_agvBatteryLowAcked) {
+                showAgvBatteryLowDialog();
+            }
+        } else {
+            m_agvBatteryLowAcked = false;
+            hideAgvBatteryLowDialog();
+        }
+    }
+}
+
+void MainWindow::showAgvStationOfflineAlarm()
+{
+    if (!m_agvStationOfflineAlarmWidget) {
+        m_agvStationOfflineAlarmWidget = new QWidget(nullptr);
+        m_agvStationOfflineAlarmWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
+                                                       Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_agvStationOfflineAlarmWidget->setObjectName("agvStationOfflineAlarmWidget");
+
+        QVBoxLayout *layout = new QVBoxLayout(m_agvStationOfflineAlarmWidget);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(8);
+
+        m_agvStationOfflineAlarmLabel = new QLabel(m_agvStationOfflineAlarmWidget);
+        m_agvStationOfflineAlarmLabel->setAlignment(Qt::AlignCenter);
+        m_agvStationOfflineAlarmLabel->setWordWrap(true);
+        m_agvStationOfflineAlarmLabel->setText("检测到有站掉线");
+        layout->addWidget(m_agvStationOfflineAlarmLabel);
+
+        m_agvStationOfflineAlarmWidget->setFixedSize(360, 120);
+        m_agvStationOfflineAlarmWidget->setStyleSheet(
+            "#agvStationOfflineAlarmWidget {"
+            "  background-color: rgba(45, 0, 0, 232);"
+            "  border: 3px solid #ff5555;"
+            "  border-radius: 10px;"
+            "}"
+            "QLabel {"
+            "  color: #ff5555;"
+            "  font-size: 22px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}");
+    }
+
+    if (m_agvStationOfflineAlarmLabel) {
+        m_agvStationOfflineAlarmLabel->setText("检测到有站掉线");
+    }
+
+    QScreen *screen = QGuiApplication::primaryScreen();
+    const QRect screenGeometry = screen->availableGeometry();
+    const int x = screenGeometry.width() - m_agvStationOfflineAlarmWidget->width() - 40;
+    const int y = 60;
+    m_agvStationOfflineAlarmWidget->move(x, y);
+    m_agvStationOfflineAlarmWidget->show();
+    m_agvStationOfflineAlarmWidget->raise();
+}
+
+void MainWindow::hideAgvStationOfflineAlarm()
+{
+    if (m_agvStationOfflineAlarmWidget && m_agvStationOfflineAlarmWidget->isVisible()) {
+        m_agvStationOfflineAlarmWidget->hide();
+    }
+}
+
+void MainWindow::showAgvDriveFaultAlarm()
+{
+    if (!m_agvDriveFaultAlarmWidget) {
+        m_agvDriveFaultAlarmWidget = new QWidget(nullptr);
+        m_agvDriveFaultAlarmWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
+                                                   Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_agvDriveFaultAlarmWidget->setObjectName("agvDriveFaultAlarmWidget");
+
+        QVBoxLayout *layout = new QVBoxLayout(m_agvDriveFaultAlarmWidget);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(8);
+
+        m_agvDriveFaultAlarmLabel = new QLabel(m_agvDriveFaultAlarmWidget);
+        m_agvDriveFaultAlarmLabel->setAlignment(Qt::AlignCenter);
+        m_agvDriveFaultAlarmLabel->setWordWrap(true);
+        m_agvDriveFaultAlarmLabel->setText("检测到驱动故障");
+        layout->addWidget(m_agvDriveFaultAlarmLabel);
+
+        m_agvDriveFaultAlarmWidget->setFixedSize(360, 120);
+        m_agvDriveFaultAlarmWidget->setStyleSheet(
+            "#agvDriveFaultAlarmWidget {"
+            "  background-color: rgba(45, 10, 0, 232);"
+            "  border: 3px solid #ff7f50;"
+            "  border-radius: 10px;"
+            "}"
+            "QLabel {"
+            "  color: #ff7f50;"
+            "  font-size: 22px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}");
+    }
+
+    if (m_agvDriveFaultAlarmLabel) {
+        m_agvDriveFaultAlarmLabel->setText("检测到驱动故障");
+    }
+
+    QScreen *screen = QGuiApplication::primaryScreen();
+    const QRect screenGeometry = screen->availableGeometry();
+    const int x = screenGeometry.width() - m_agvDriveFaultAlarmWidget->width() - 40;
+    const int y = 200;
+    m_agvDriveFaultAlarmWidget->move(x, y);
+    m_agvDriveFaultAlarmWidget->show();
+    m_agvDriveFaultAlarmWidget->raise();
+}
+
+void MainWindow::hideAgvDriveFaultAlarm()
+{
+    if (m_agvDriveFaultAlarmWidget && m_agvDriveFaultAlarmWidget->isVisible()) {
+        m_agvDriveFaultAlarmWidget->hide();
+    }
+}
+
+void MainWindow::showAgvBatteryLowDialog()
+{
+    if (!m_agvBatteryLowDialog) {
+        m_agvBatteryLowDialog = new QDialog(this);
+        m_agvBatteryLowDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_agvBatteryLowDialog->setModal(false);
+        m_agvBatteryLowDialog->setObjectName("agvBatteryLowDialog");
+
+        QVBoxLayout *layout = new QVBoxLayout(m_agvBatteryLowDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        QLabel *msgLabel = new QLabel("电池电量低，请充电", m_agvBatteryLowDialog);
+        msgLabel->setAlignment(Qt::AlignCenter);
+        msgLabel->setWordWrap(true);
+        layout->addWidget(msgLabel);
+
+        QPushButton *confirmBtn = new QPushButton("确认", m_agvBatteryLowDialog);
+        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
+        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
+            m_agvBatteryLowAcked = true;
+            hideAgvBatteryLowDialog();
+        });
+
+        m_agvBatteryLowDialog->setFixedSize(360, 150);
+        m_agvBatteryLowDialog->setStyleSheet(
+            "#agvBatteryLowDialog {"
+            "  background-color: rgba(50, 35, 0, 235);"
+            "  border: 3px solid #ffb000;"
+            "  border-radius: 10px;"
+            "}"
+            "QLabel {"
+            "  color: #ffcc33;"
+            "  font-size: 20px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "QPushButton {"
+            "  background-color: #ffb000;"
+            "  color: #1f1f1f;"
+            "  border: 2px solid #ffd166;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 90px;"
+            "}"
+            "QPushButton:hover {"
+            "  background-color: #ffd166;"
+            "}");
+    }
+
+    m_agvBatteryLowDialog->show();
+    m_agvBatteryLowDialog->raise();
+    m_agvBatteryLowDialog->activateWindow();
+}
+
+void MainWindow::hideAgvBatteryLowDialog()
+{
+    if (m_agvBatteryLowDialog && m_agvBatteryLowDialog->isVisible()) {
+        m_agvBatteryLowDialog->hide();
+    }
+}
+
+void MainWindow::showRobotOperationHintDialog(const QString &message)
+{
+    if (!m_robotOperationHintDialog) {
+        m_robotOperationHintDialog = new QDialog(this);
+        m_robotOperationHintDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_robotOperationHintDialog->setModal(false);
+        m_robotOperationHintDialog->setObjectName("robotOperationHintDialog");
+
+        QVBoxLayout *layout = new QVBoxLayout(m_robotOperationHintDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        QLabel *msgLabel = new QLabel(m_robotOperationHintDialog);
+        msgLabel->setObjectName("robotOperationHintLabel");
+        msgLabel->setAlignment(Qt::AlignCenter);
+        msgLabel->setWordWrap(true);
+        layout->addWidget(msgLabel);
+
+        QPushButton *confirmBtn = new QPushButton("确定", m_robotOperationHintDialog);
+        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
+        connect(confirmBtn, &QPushButton::clicked, this, &MainWindow::hideRobotOperationHintDialog);
+
+        m_robotOperationHintDialog->setFixedSize(380, 150);
+        m_robotOperationHintDialog->setStyleSheet(
+            "#robotOperationHintDialog {"
+            "  background-color: rgba(20, 30, 50, 235);"
+            "  border: 3px solid #4da3ff;"
+            "  border-radius: 10px;"
+            "}"
+            "#robotOperationHintLabel {"
+            "  color: #8ec5ff;"
+            "  font-size: 20px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "QPushButton {"
+            "  background-color: #4da3ff;"
+            "  color: #102030;"
+            "  border: 2px solid #8ec5ff;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 90px;"
+            "}"
+            "QPushButton:hover {"
+            "  background-color: #8ec5ff;"
+            "}");
+    }
+
+    if (QLabel *msgLabel = m_robotOperationHintDialog->findChild<QLabel*>("robotOperationHintLabel")) {
+        msgLabel->setText(message);
+    }
+
+    m_robotOperationHintDialog->show();
+    m_robotOperationHintDialog->raise();
+    m_robotOperationHintDialog->activateWindow();
+}
+
+void MainWindow::hideRobotOperationHintDialog()
+{
+    if (m_robotOperationHintDialog && m_robotOperationHintDialog->isVisible()) {
+        m_robotOperationHintDialog->hide();
     }
 }
 

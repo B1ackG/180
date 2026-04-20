@@ -186,6 +186,24 @@ public:
     void hideAlarm();
     /** @brief 刷新报警显示 */
     void updateAlarmDisplay();
+    /** @brief 处理 AGV 51 地址提示/报警位（bit0/bit1） */
+    void handleAGVRegister51Alerts(quint16 value);
+    /** @brief 显示站掉线报警窗（51.bit1=1） */
+    void showAgvStationOfflineAlarm();
+    /** @brief 隐藏站掉线报警窗 */
+    void hideAgvStationOfflineAlarm();
+    /** @brief 显示驱动故障报警窗（51.bit2=1） */
+    void showAgvDriveFaultAlarm();
+    /** @brief 隐藏驱动故障报警窗 */
+    void hideAgvDriveFaultAlarm();
+    /** @brief 显示低电量提示窗（51.bit0=1） */
+    void showAgvBatteryLowDialog();
+    /** @brief 隐藏低电量提示窗 */
+    void hideAgvBatteryLowDialog();
+    /** @brief 外部按键触发的首页操作提示窗 */
+    void showRobotOperationHintDialog(const QString &message);
+    /** @brief 隐藏首页操作提示窗 */
+    void hideRobotOperationHintDialog();
 
     // 提示信息系统
     /** @brief 更新提示内容标签 */
@@ -334,7 +352,7 @@ public:
     void initSpeedGaugeUI();
     /** @brief 初始化机器人总功率 QML 卡片 */
     void initRobotTotalPowerCard();
-    /** @brief 初始化 X/Y 倾角 QML 卡片 */
+    /** @brief 初始化 X/Y 倾角卡片（QWidget 版本） */
     void initInclinometerCards();
     /**
      * @brief 更新速度显示
@@ -523,6 +541,16 @@ private:
     bool m_isSteeringAlarmActive = false;
     bool m_isSwitchingSteeringMode = false;
     int m_targetSteeringWaitBit = -1;
+    bool m_agvStationOffline51Bit1Flag = false;
+    bool m_agvDriveFault51Bit2Flag = false;
+    bool m_agvBatteryLow51Bit0Flag = false;
+    bool m_agvBatteryLowAcked = false;
+    QWidget *m_agvStationOfflineAlarmWidget = nullptr;
+    QLabel *m_agvStationOfflineAlarmLabel = nullptr;
+    QWidget *m_agvDriveFaultAlarmWidget = nullptr;
+    QLabel *m_agvDriveFaultAlarmLabel = nullptr;
+    QDialog *m_agvBatteryLowDialog = nullptr;
+    QDialog *m_robotOperationHintDialog = nullptr;
 
     // ----- Modbus & 通信 (Main) -----
     ModbusThreadManager *m_modbusManager;
@@ -542,6 +570,8 @@ private:
     bool m_agvOaEnabled = true;
     bool m_agvParkingEnabled = false;
     QMap<int, quint16> m_agvRegisterShadow;
+    bool m_mainRegister150Valid = false;
+    quint16 m_mainRegister150Shadow = 0;
 
     // ----- 六维力 -----
     ForceDisplayMode m_forceDisplayMode = ForceDisplayBig;
@@ -617,8 +647,10 @@ private:
     QQuickWidget *m_speedGaugeQml = nullptr;  // 使用 QML 版本的速度仪表
     QQuickWidget *m_historyListQml = nullptr;  // 使用 QML 版本操作记录列表
     QQuickWidget *m_robotTotalPowerQml = nullptr;  // 使用 QML 版本总功率卡片
-    QQuickWidget *m_inclinometerXQml = nullptr;  // 使用 QML 版本 X 轴倾角卡片
-    QQuickWidget *m_inclinometerYQml = nullptr;  // 使用 QML 版本 Y 轴倾角卡片
+    QWidget *m_inclinometerXCard = nullptr;  // QWidget 版本 X 轴倾角卡片容器
+    QWidget *m_inclinometerYCard = nullptr;  // QWidget 版本 Y 轴倾角卡片容器
+    QLabel *m_inclinometerXValueLabel = nullptr;
+    QLabel *m_inclinometerYValueLabel = nullptr;
     QMovie* m_verticalMovie;
     QPixmap m_backgroundPixmap;
     bool m_backgroundLoaded = false;

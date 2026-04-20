@@ -824,7 +824,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          <enum>QQuickWidget::SizeRootObjectToView</enum>
         </property>
        </widget>
-       <widget class="QQuickWidget" name="quickWidget_Inclinometer_Y">
+       <widget class="QWidget" name="quickWidget_Inclinometer_Y" native="true">
         <property name="geometry">
          <rect>
           <x>670</x>
@@ -833,11 +833,8 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
           <height>91</height>
          </rect>
         </property>
-        <property name="resizeMode">
-         <enum>QQuickWidget::SizeRootObjectToView</enum>
-        </property>
        </widget>
-       <widget class="QQuickWidget" name="quickWidget_Inclinometer_X">
+       <widget class="QWidget" name="quickWidget_Inclinometer_X" native="true">
         <property name="geometry">
          <rect>
           <x>1050</x>
@@ -845,9 +842,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
           <width>130</width>
           <height>91</height>
          </rect>
-        </property>
-        <property name="resizeMode">
-         <enum>QQuickWidget::SizeRootObjectToView</enum>
         </property>
        </widget>
        <widget class="QGroupBox" name="groupBox_StepMove">
@@ -1100,8 +1094,8 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <widget class="QWidget" name="widget_SixAxies_4" native="true">
         <property name="geometry">
          <rect>
-          <x>580</x>
-          <y>100</y>
+          <x>1060</x>
+          <y>80</y>
           <width>150</width>
           <height>150</height>
          </rect>
@@ -1120,8 +1114,8 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <widget class="QWidget" name="widget_SixAxies_6" native="true">
         <property name="geometry">
          <rect>
-          <x>390</x>
-          <y>100</y>
+          <x>400</x>
+          <y>90</y>
           <width>150</width>
           <height>150</height>
          </rect>
@@ -1135,6 +1129,37 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
           <width>150</width>
           <height>150</height>
          </rect>
+        </property>
+       </widget>
+       <widget class="QLabel" name="lab_Overall_2">
+        <property name="geometry">
+         <rect>
+          <x>51</x>
+          <y>80</y>
+          <width>241</width>
+          <height>441</height>
+         </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>630</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="res.qrc">:/Picture/sixAxiesOverAll.png</pixmap>
+        </property>
+        <property name="scaledContents">
+         <bool>true</bool>
         </property>
        </widget>
       </widget>

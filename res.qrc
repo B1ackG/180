@@ -61,5 +61,6 @@
         <file>Picture/MoveMode.png</file>
         <file>Picture/permission.png</file>
         <file>Picture/history.png</file>
+        <file>Picture/sixAxiesOverAll.png</file>
     </qresource>
 </RCC>
