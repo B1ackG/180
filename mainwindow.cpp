@@ -2707,16 +2707,103 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         return;
     }
 
-    // 六自由度页面（第4页）外部键逻辑：仅在点动模式下生效，按键○1~○12映射到613写入±1~±6。
+    // 六自由度页面（第4页）外部键逻辑：
+    // - 点动模式：按键○1~○12映射到613写入±1~±6；
+    // - 步进模式：按键○1~○12映射轴1~6，写614轴号、601步进值（奇数键写相反数），再写615触发。
     if (isSixAxisPage) {
-        if (m_stepModeUnknown || m_stepModeEnabled) {
-            if (pressed) {
-                qCDebug(lcMainWindow) << "六自由度外部按键忽略：当前非点动模式，按键○" << keyNumber;
-            }
+        if (keyNumber < 1 || keyNumber > 12) {
             return;
         }
 
-        if (keyNumber < 1 || keyNumber > 12) {
+        if (!m_stepModeUnknown && m_stepModeEnabled) {
+            if (!pressed) {
+                m_sixAxisExternalKeyPressed[keyNumber] = false;
+                if (m_sixAxisActiveKey == keyNumber) {
+                    m_sixAxisActiveKey = -1;
+                }
+                ++m_sixAxisExternalWriteSeq;
+                writeToMainDevice(601, 0);
+                writeToMainDevice(615, 0);
+                QTimer::singleShot(35, this, [this]() {
+                    writeToMainDevice(601, 0);
+                    writeToMainDevice(615, 0);
+                });
+                return;
+            }
+
+            if (m_sixAxisExternalKeyPressed.value(keyNumber, false)) {
+                qCDebug(lcMainWindow) << "六轴步进外部按键去重：按键○" << keyNumber << "重复按下已忽略";
+                return;
+            }
+
+            QLineEdit *sixStepValueEdit = findChild<QLineEdit*>("lineEdit_SixAxies_StepValue");
+            if (!sixStepValueEdit) {
+                qCDebug(lcMainWindow) << "六轴步进外部按键忽略：未找到lineEdit_SixAxies_StepValue";
+                return;
+            }
+
+            bool ok = false;
+            double rawStepValue = sixStepValueEdit->text().toDouble(&ok);
+            if (!ok) {
+                qCDebug(lcMainWindow) << "六轴步进外部按键忽略：步进值无效" << sixStepValueEdit->text();
+                return;
+            }
+
+            const int axisIndex = (keyNumber + 1) / 2;       // ○1/2->1 ... ○11/12->6
+            const bool isOddKey = ((keyNumber % 2) == 1);    // 奇数键写相反数
+            if (isOddKey) {
+                rawStepValue = -rawStepValue;
+            }
+
+            const int stepValueInt = static_cast<int>(rawStepValue);
+            m_sixAxisExternalKeyPressed[keyNumber] = true;
+            m_sixAxisActiveKey = keyNumber;
+            const quint64 seq = ++m_sixAxisExternalWriteSeq;
+
+            writeToMainDevice(614, axisIndex);
+
+            auto stagedWrite601 = [this, seq, keyNumber, stepValueInt]() {
+                if (seq != m_sixAxisExternalWriteSeq) {
+                    return;
+                }
+                if (m_sixAxisActiveKey != keyNumber) {
+                    return;
+                }
+                if (!m_sixAxisExternalKeyPressed.value(keyNumber, false)) {
+                    return;
+                }
+                writeToMainDevice(601, stepValueInt);
+            };
+
+            auto stagedWrite615 = [this, seq, keyNumber]() {
+                if (seq != m_sixAxisExternalWriteSeq) {
+                    return;
+                }
+                if (m_sixAxisActiveKey != keyNumber) {
+                    return;
+                }
+                if (!m_sixAxisExternalKeyPressed.value(keyNumber, false)) {
+                    return;
+                }
+                writeToMainDevice(615, 1);
+            };
+
+            QTimer::singleShot(20, this, stagedWrite601);
+            QTimer::singleShot(70, this, stagedWrite601);
+            QTimer::singleShot(120, this, stagedWrite615);
+            QTimer::singleShot(180, this, stagedWrite615);
+
+            qCDebug(lcMainWindow) << "六轴步进外部按键○" << keyNumber
+                                  << "-> 614=" << axisIndex
+                                  << "601=" << stepValueInt
+                                  << "615=1";
+            return;
+        }
+
+        if (m_stepModeUnknown) {
+            if (pressed) {
+                qCDebug(lcMainWindow) << "六自由度外部按键忽略：当前模式未确定，按键○" << keyNumber;
+            }
             return;
         }
 
@@ -3712,11 +3799,11 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             float axisValue = registersToFloatCDAB(regA, regB);
             const QString gaugeName = QString::fromLatin1(pair.gaugeName);
 
-            // 需求：SixAxis4~6 的显示值放大 100 倍。
+            // 需求：SixAxis4~6 的显示值放大 1000 倍。
             if (gaugeName == "robot_ArcGauge_SixAxis4"
                 || gaugeName == "robot_ArcGauge_SixAxis5"
                 || gaugeName == "robot_ArcGauge_SixAxis6") {
-                axisValue *= 100.0f;
+                axisValue *= 1000.0f;
             }
             updateSliderLabelValue(gaugeName, axisValue);
         }
@@ -7364,7 +7451,7 @@ QString MainWindow::selectedStepTargetName() const
 
 void MainWindow::updateStepMoveGroupBoxState()
 {
-    if (!ui || !ui->groupBox_StepMove) {
+    if (!ui) {
         return;
     }
 
@@ -7375,46 +7462,60 @@ void MainWindow::updateStepMoveGroupBoxState()
 
     const bool isFirstPage = ui->StackedWidget && ui->StackedWidget->currentIndex() == 0;
     const bool shouldDisable = (!isStepMode && isFirstPage);
-    ui->groupBox_StepMove->setEnabled(!shouldDisable);
+    if (ui->groupBox_StepMove) {
+        ui->groupBox_StepMove->setEnabled(!shouldDisable);
+    }
+
+    QGroupBox *sixAxisGroup = findChild<QGroupBox*>("groupBox_SixAxies_StepMove");
+    if (sixAxisGroup) {
+        const bool isSixAxisPage = ui->StackedWidget && ui->StackedWidget->currentIndex() == 3;
+        const bool sixAxisShouldDisable = (!isStepMode && isSixAxisPage);
+        sixAxisGroup->setEnabled(!sixAxisShouldDisable);
+    }
 }
 
 void MainWindow::updateStepTargetButtonsState()
 {
     updateStepMoveGroupBoxState();
 
-    if (!m_stepTargetGroup) {
-        return;
-    }
+    auto updateGroupState = [this](QButtonGroup *group, const QString &defaultButtonName) {
+        if (!group) {
+            return;
+        }
 
-    const auto btns = m_stepTargetGroup->buttons();
+        const auto btns = group->buttons();
 
-    if (!m_stepModeUnknown && m_stepModeEnabled) {
-        m_stepTargetGroup->setExclusive(true);
-        if (!m_stepTargetGroup->checkedButton()) {
-            for (QAbstractButton *btn : btns) {
-                if (btn && btn->objectName() == "btnStepTargetAxis1") {
-                    btn->setChecked(true);
-                    break;
+        if (!m_stepModeUnknown && m_stepModeEnabled) {
+            group->setExclusive(true);
+            if (!group->checkedButton()) {
+                for (QAbstractButton *btn : btns) {
+                    if (btn && btn->objectName() == defaultButtonName) {
+                        btn->setChecked(true);
+                        break;
+                    }
                 }
             }
-        }
-        for (QAbstractButton *btn : btns) {
-            if (btn) {
-                btn->setEnabled(true);
+            for (QAbstractButton *btn : btns) {
+                if (btn) {
+                    btn->setEnabled(true);
+                }
             }
+            return;
         }
-        return;
-    }
 
-    // 点动/未选择模式：按钮保持亮显可见，不做互斥
-    m_stepTargetGroup->setExclusive(false);
-    for (QAbstractButton *btn : btns) {
-        if (!btn) {
-            continue;
+        // 点动/未选择模式：按钮保持亮显可见，不做互斥
+        group->setExclusive(false);
+        for (QAbstractButton *btn : btns) {
+            if (!btn) {
+                continue;
+            }
+            btn->setEnabled(true);
+            btn->setChecked(false);
         }
-        btn->setEnabled(true);
-        btn->setChecked(false);
-    }
+    };
+
+    updateGroupState(m_stepTargetGroup, "btnStepTargetAxis1");
+    updateGroupState(m_sixAxisStepTargetGroup, "btnStepTargetSixAxis1");
 }
 
 // 设置步进模式控制
@@ -7484,6 +7585,88 @@ void MainWindow::setupStepMoveControl()
         }, Qt::UniqueConnection);
     }
 
+    QToolButton *axis1Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis1");
+    QToolButton *axis2Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis2");
+    QToolButton *axis3Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis3");
+    QToolButton *axis4Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis4");
+    QToolButton *axis5Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis5");
+    QLineEdit *sixStepValueEdit = findChild<QLineEdit*>("lineEdit_SixAxies_StepValue");
+
+    if (axis5Btn2) {
+        axis5Btn2->setText("轴5");
+    }
+
+    QToolButton *axis6Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis6");
+    if (!axis6Btn2) {
+        QWidget *stepTargetList2 = findChild<QWidget*>("widget_SixAxies_StepTargetList");
+        QVBoxLayout *stepTargetLayout2 = findChild<QVBoxLayout*>("verticalLayout_SixAxies_StepTargetList");
+        if (stepTargetList2 && stepTargetLayout2) {
+            axis6Btn2 = new QToolButton(stepTargetList2);
+            axis6Btn2->setObjectName("btnStepTargetSixAxis6");
+            axis6Btn2->setText("轴6");
+            axis6Btn2->setCheckable(true);
+            stepTargetLayout2->addWidget(axis6Btn2);
+        }
+    }
+
+    if (sixStepValueEdit) {
+        QRegularExpression regExp("^-?\\d+(\\.\\d+)?$");
+        sixStepValueEdit->setValidator(new QRegularExpressionValidator(regExp, sixStepValueEdit));
+        connect(sixStepValueEdit, &QLineEdit::editingFinished, this,
+                [this, sixStepValueEdit]() {
+            const QString text = sixStepValueEdit ? sixStepValueEdit->text().trimmed() : QString();
+            if (text.isEmpty()) {
+                return;
+            }
+            bool ok = false;
+            const int value = text.toInt(&ok);
+            if (!ok) {
+                return;
+            }
+            writeToMainDevice(601, value);
+        }, Qt::UniqueConnection);
+    }
+
+    if (!m_sixAxisStepTargetGroup) {
+        m_sixAxisStepTargetGroup = new QButtonGroup(this);
+        m_sixAxisStepTargetGroup->setExclusive(true);
+    }
+    for (QAbstractButton *btn : m_sixAxisStepTargetGroup->buttons()) {
+        m_sixAxisStepTargetGroup->removeButton(btn);
+    }
+
+    const QList<QToolButton*> sixAxisButtons = {axis1Btn2, axis2Btn2, axis3Btn2, axis4Btn2, axis5Btn2, axis6Btn2};
+    for (QToolButton *btn : sixAxisButtons) {
+        if (!btn) {
+            continue;
+        }
+        btn->setCheckable(true);
+        m_sixAxisStepTargetGroup->addButton(btn);
+
+        connect(btn, &QToolButton::clicked, this, [this, btn]() {
+            if (!m_stepModeEnabled || m_stepModeUnknown || !btn || !btn->isChecked()) {
+                return;
+            }
+
+            int targetCode = 1;
+            const QString n = btn->objectName();
+            if (n == "btnStepTargetSixAxis1") targetCode = 1;
+            else if (n == "btnStepTargetSixAxis2") targetCode = 2;
+            else if (n == "btnStepTargetSixAxis3") targetCode = 3;
+            else if (n == "btnStepTargetSixAxis4") targetCode = 4;
+            else if (n == "btnStepTargetSixAxis5") targetCode = 5;
+            else if (n == "btnStepTargetSixAxis6") targetCode = 6;
+
+            writeToMainDevice(614, targetCode);
+            ui->statusBar->showMessage(QString("六轴步进目标切换：%1 (614=%2)")
+                                           .arg(btn->text()).arg(targetCode), 1500);
+        }, Qt::UniqueConnection);
+    }
+
+    if (axis1Btn2 && !m_sixAxisStepTargetGroup->checkedButton()) {
+        axis1Btn2->setChecked(true);
+    }
+
     if (axis1Btn && !m_stepTargetGroup->checkedButton()) {
         axis1Btn->setChecked(true);
     }
@@ -7537,6 +7720,8 @@ void MainWindow::setupStepMoveControl()
     } else {
         qWarning() << "未找到TBtn_Stepmove按钮";
     }
+
+    updateStepTargetButtonsState();
 }
 
 // 设置步进值输入框
@@ -8097,6 +8282,17 @@ void MainWindow::handleAGVRegister51Alerts(quint16 value)
     const bool stationOffline = (((value >> 1) & 0x01) == 1);
     if (stationOffline != m_agvStationOffline51Bit1Flag) {
         m_agvStationOffline51Bit1Flag = stationOffline;
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = "报警系统";
+            record.controlName = "站掉线报警";
+            record.controlType = "报警监控";
+            record.operation = stationOffline ? "报警触发" : "报警解除";
+            record.oldValue = "";
+            record.newValue = stationOffline ? "检测到有站掉线" : "站掉线报警已解除";
+            m_recorder->addRecord(record);
+        }
         if (stationOffline) {
             showAgvStationOfflineAlarm();
         } else {
@@ -8107,6 +8303,17 @@ void MainWindow::handleAGVRegister51Alerts(quint16 value)
     const bool driveFault = (((value >> 2) & 0x01) == 1);
     if (driveFault != m_agvDriveFault51Bit2Flag) {
         m_agvDriveFault51Bit2Flag = driveFault;
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = "报警系统";
+            record.controlName = "驱动故障报警";
+            record.controlType = "报警监控";
+            record.operation = driveFault ? "报警触发" : "报警解除";
+            record.oldValue = "";
+            record.newValue = driveFault ? "检测到驱动故障" : "驱动故障报警已解除";
+            m_recorder->addRecord(record);
+        }
         if (driveFault) {
             showAgvDriveFaultAlarm();
         } else {
@@ -8117,6 +8324,17 @@ void MainWindow::handleAGVRegister51Alerts(quint16 value)
     const bool batteryLow = ((value & 0x01) == 1);
     if (batteryLow != m_agvBatteryLow51Bit0Flag) {
         m_agvBatteryLow51Bit0Flag = batteryLow;
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = "提示系统";
+            record.controlName = "低电量提示";
+            record.controlType = "提示窗口";
+            record.operation = batteryLow ? "提示触发" : "提示解除";
+            record.oldValue = "";
+            record.newValue = batteryLow ? "电池电量低，请充电" : "低电量提示已解除";
+            m_recorder->addRecord(record);
+        }
         if (batteryLow) {
             if (!m_agvBatteryLowAcked) {
                 showAgvBatteryLowDialog();
@@ -8254,6 +8472,17 @@ void MainWindow::showAgvBatteryLowDialog()
         QPushButton *confirmBtn = new QPushButton("确认", m_agvBatteryLowDialog);
         layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
         connect(confirmBtn, &QPushButton::clicked, this, [this]() {
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = "提示系统";
+                record.controlName = "低电量提示";
+                record.controlType = "提示窗口";
+                record.operation = "用户确认";
+                record.oldValue = "电池电量低，请充电";
+                record.newValue = "用户点击确认，窗口隐藏";
+                m_recorder->addRecord(record);
+            }
             m_agvBatteryLowAcked = true;
             hideAgvBatteryLowDialog();
         });
@@ -8300,6 +8529,18 @@ void MainWindow::hideAgvBatteryLowDialog()
 
 void MainWindow::showRobotOperationHintDialog(const QString &message)
 {
+    if (m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = "提示系统";
+        record.controlName = "外部按键操作提示";
+        record.controlType = "提示窗口";
+        record.operation = "提示触发";
+        record.oldValue = "";
+        record.newValue = message;
+        m_recorder->addRecord(record);
+    }
+
     if (!m_robotOperationHintDialog) {
         m_robotOperationHintDialog = new QDialog(this);
         m_robotOperationHintDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
@@ -8318,7 +8559,20 @@ void MainWindow::showRobotOperationHintDialog(const QString &message)
 
         QPushButton *confirmBtn = new QPushButton("确定", m_robotOperationHintDialog);
         layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
-        connect(confirmBtn, &QPushButton::clicked, this, &MainWindow::hideRobotOperationHintDialog);
+        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = "提示系统";
+                record.controlName = "外部按键操作提示";
+                record.controlType = "提示窗口";
+                record.operation = "用户确认";
+                record.oldValue = "";
+                record.newValue = "用户点击确定，提示窗口隐藏";
+                m_recorder->addRecord(record);
+            }
+            hideRobotOperationHintDialog();
+        });
 
         m_robotOperationHintDialog->setFixedSize(380, 150);
         m_robotOperationHintDialog->setStyleSheet(

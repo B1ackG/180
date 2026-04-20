@@ -622,6 +622,9 @@ private:
     QHash<int, bool> m_robotExternalKeyPressed;
     quint64 m_robotExternalWriteSeq = 0;
     int m_robotActiveKey = -1;
+    QHash<int, bool> m_sixAxisExternalKeyPressed;
+    quint64 m_sixAxisExternalWriteSeq = 0;
+    int m_sixAxisActiveKey = -1;
 
     // ----- 通信轮询与重连参数（可持久化） -----
     int m_mainModbusPollIntervalMs = 500;
@@ -667,6 +670,7 @@ private:
     QMap<QString, QVector<TechSliderLabel*>> m_pageSliders;
     QToolButton *m_btnStepMove = nullptr;
     QButtonGroup *m_stepTargetGroup = nullptr;
+    QButtonGroup *m_sixAxisStepTargetGroup = nullptr;
     QLineEdit *m_stepValueEdit = nullptr;
     QLineEdit *m_editJ1MoveStep = nullptr;
     QLineEdit *m_editJ2MoveStep = nullptr;

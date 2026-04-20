@@ -50,7 +50,7 @@ QMainWindow &gt; QWidget {
   <widget class="QWidget" name="centralwidget">
    <property name="styleSheet">
     <string notr="true">
-QGroupBox#groupBox_2, QGroupBox#groupBox, QGroupBox#groupBox_StepMove, QGroupBox#groupBox_4 {
+QGroupBox#groupBox_2, QGroupBox#groupBox, QGroupBox#groupBox_StepMove, QGroupBox#groupBox_SixAxies_StepMove, QGroupBox#groupBox_4 {
   border-radius: 10px;
   margin-top: 14px;
 }
@@ -72,14 +72,14 @@ QGroupBox#groupBox_4 {
                               stop:0 rgba(76, 18, 18, 0.70),
                               stop:1 rgba(56, 16, 16, 0.62));
 }
-QGroupBox#groupBox_StepMove {
+QGroupBox#groupBox_StepMove, QGroupBox#groupBox_SixAxies_StepMove {
   border: 1px solid rgba(0, 220, 255, 0.52);
   background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                               stop:0 rgba(12, 36, 64, 0.82),
                               stop:1 rgba(8, 26, 48, 0.70));
 }
 
-QGroupBox#groupBox_2::title, QGroupBox#groupBox::title, QGroupBox#groupBox_StepMove::title, QGroupBox#groupBox_4::title {
+QGroupBox#groupBox_2::title, QGroupBox#groupBox::title, QGroupBox#groupBox_StepMove::title, QGroupBox#groupBox_SixAxies_StepMove::title, QGroupBox#groupBox_4::title {
   subcontrol-origin: margin;
   subcontrol-position: top center;
   padding: 1px 12px;
@@ -89,17 +89,20 @@ QGroupBox#groupBox_2::title, QGroupBox#groupBox::title, QGroupBox#groupBox_StepM
 }
 QGroupBox#groupBox_2::title { color: #9fe7ff; background: rgba(8, 24, 42, 0.92); border-bottom: 1px solid rgba(0, 200, 255, 0.52); }
 QGroupBox#groupBox::title { color: #c0e8ff; background: rgba(10, 28, 48, 0.92); border-bottom: 1px solid rgba(0, 170, 255, 0.42); }
-QGroupBox#groupBox_StepMove::title { color: #9ff4ff; background: rgba(8, 30, 50, 0.95); border-bottom: 1px solid rgba(0, 220, 255, 0.58); }
+QGroupBox#groupBox_StepMove::title, QGroupBox#groupBox_SixAxies_StepMove::title { color: #9ff4ff; background: rgba(8, 30, 50, 0.95); border-bottom: 1px solid rgba(0, 220, 255, 0.58); }
 QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92); border-bottom: 1px solid rgba(255, 120, 120, 0.62); }
 
-#groupBox_StepMove QLabel {
+#groupBox_StepMove QLabel,
+#groupBox_SixAxies_StepMove QLabel {
   color: #d8f6ff;
   font-weight: 600;
   font-size: 13px;
 }
 
 #groupBox_StepMove QToolButton,
-#groupBox_StepMove QLineEdit {
+#groupBox_SixAxies_StepMove QToolButton,
+#groupBox_StepMove QLineEdit,
+#groupBox_SixAxies_StepMove QLineEdit {
   color: #ffffff;
   background: rgba(3, 18, 34, 0.84);
   border: 1px solid rgba(0, 198, 255, 0.55);
@@ -108,7 +111,8 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
   min-height: 34px;
 }
 
-#groupBox_StepMove QToolButton {
+#groupBox_StepMove QToolButton,
+#groupBox_SixAxies_StepMove QToolButton {
   text-align: left;
   padding-left: 10px;
   font-size: 13px;
@@ -116,24 +120,29 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
 }
 
 #groupBox_StepMove QToolButton:hover,
-#groupBox_StepMove QLineEdit:hover {
+#groupBox_SixAxies_StepMove QToolButton:hover,
+#groupBox_StepMove QLineEdit:hover,
+#groupBox_SixAxies_StepMove QLineEdit:hover {
   border: 1px solid #6fe7ff;
   background: rgba(5, 24, 44, 0.92);
 }
 
-#groupBox_StepMove QToolButton:checked {
+#groupBox_StepMove QToolButton:checked,
+#groupBox_SixAxies_StepMove QToolButton:checked {
   background: rgba(0, 130, 200, 0.95);
   border: 1px solid #9fe7ff;
   color: #ffffff;
 }
 
-#groupBox_StepMove QLineEdit {
+#groupBox_StepMove QLineEdit,
+#groupBox_SixAxies_StepMove QLineEdit {
   font-family: &quot;Consolas&quot;;
   font-size: 14px;
   font-weight: 700;
 }
 
-#groupBox_StepMove QLineEdit:focus {
+#groupBox_StepMove QLineEdit:focus,
+#groupBox_SixAxies_StepMove QLineEdit:focus {
   border: 1px solid #9ff4ff;
 }
 
@@ -580,7 +589,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <string notr="true">background-color:</string>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page_Robot">
        <widget class="QWidget" name="widget_test3" native="true">
@@ -1161,6 +1170,190 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         <property name="scaledContents">
          <bool>true</bool>
         </property>
+       </widget>
+       <widget class="QGroupBox" name="groupBox_SixAxies_StepMove">
+        <property name="geometry">
+         <rect>
+          <x>1160</x>
+          <y>20</y>
+          <width>91</width>
+          <height>441</height>
+         </rect>
+        </property>
+        <property name="title">
+         <string>步进控制</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_SixAxies_StepMove">
+         <item>
+          <widget class="QWidget" name="widget_SixAxies_StepTargetList" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>1</verstretch>
+            </sizepolicy>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_SixAxies_StepTargetList">
+            <property name="spacing">
+             <number>8</number>
+            </property>
+            <property name="leftMargin">
+             <number>4</number>
+            </property>
+            <property name="topMargin">
+             <number>2</number>
+            </property>
+            <property name="rightMargin">
+             <number>4</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QToolButton" name="btnStepTargetSixAxis1">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>4</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>轴1</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnStepTargetSixAxis2">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>4</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>轴2</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnStepTargetSixAxis3">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>4</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>轴3</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnStepTargetSixAxis4">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>4</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>轴4</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnStepTargetSixAxis5">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>4</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>轴5</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_SixAxies_StepValue">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>步进值</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_SixAxies_StepValueInput" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_SixAxies_StepValueInput">
+            <property name="spacing">
+             <number>6</number>
+            </property>
+            <property name="leftMargin">
+             <number>4</number>
+            </property>
+            <property name="topMargin">
+             <number>2</number>
+            </property>
+            <property name="rightMargin">
+             <number>4</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_SixAxies_StepValue">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>4</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>64</width>
+                <height>44</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>1</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="placeholderText">
+               <string>输入步进值</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </widget>
      </widget>
