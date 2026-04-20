@@ -3709,8 +3709,16 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
             const quint16 regA = g_registerCache[pair.highAddr];
             const quint16 regB = g_registerCache[pair.lowAddr];
-            const float axisValue = registersToFloatCDAB(regA, regB);
-            updateSliderLabelValue(QString::fromLatin1(pair.gaugeName), axisValue);
+            float axisValue = registersToFloatCDAB(regA, regB);
+            const QString gaugeName = QString::fromLatin1(pair.gaugeName);
+
+            // 需求：SixAxis4~6 的显示值放大 100 倍。
+            if (gaugeName == "robot_ArcGauge_SixAxis4"
+                || gaugeName == "robot_ArcGauge_SixAxis5"
+                || gaugeName == "robot_ArcGauge_SixAxis6") {
+                axisValue *= 100.0f;
+            }
+            updateSliderLabelValue(gaugeName, axisValue);
         }
     }
 
