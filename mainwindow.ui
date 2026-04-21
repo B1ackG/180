@@ -375,7 +375,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
           </font>
          </property>
          <property name="text">
-          <string>有线控制</string>
+          <string>示教器控制</string>
          </property>
          <property name="icon">
           <iconset resource="res.qrc">

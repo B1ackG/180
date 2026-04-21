@@ -330,8 +330,8 @@ void TechSliderEdit::onPresetButtonClicked()
 
     double ratio = 0.0;
     if (btn == m_lowBtn) ratio = 0.1;
-    else if (btn == m_midBtn) ratio = 0.4;
-    else if (btn == m_highBtn) ratio = 0.8;
+    else if (btn == m_midBtn) ratio = 0.5;
+    else if (btn == m_highBtn) ratio = 1.0;
 
     double newValue = m_maximum * ratio;
     

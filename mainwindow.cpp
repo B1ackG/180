@@ -1186,7 +1186,7 @@ void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
     }
 
     const qint16 signedRaw = static_cast<qint16>(rawValue);
-    const qreal degree = static_cast<qreal>(signedRaw) / 100.0;
+    const qreal degree = qBound(-1.0, static_cast<qreal>(signedRaw) / 100.0, 1.0);
     targetLabel->setText(QString::number(degree, 'f', 2) + QStringLiteral("°"));
 }
 
@@ -1210,10 +1210,8 @@ void MainWindow::setupDataSimulation()
 
     // 临时测试：使用 pushButton_5 (工艺页) 手动触发力控报警
     // 因为 Btn_Test 在当前UI中不存在
-    // if (ui->pushButton_5) {
     //     ui->pushButton_5->setText("测试报警");
     //     connect(ui->pushButton_5, &QPushButton::clicked, this, [this]() {
-    //         qCDebug(lcMainWindow) << "测试按钮点击：手动触发力控超限报警";
     //         showAlarm("力控超限警报触发\n请点击下方按钮清除报警\n请手动移出超限位置", "#ff8800");
     //     });
     // }
@@ -1361,7 +1359,7 @@ void MainWindow::initSliderEditUI()
  * @param allNonAGVSliders 页面内所有非 AGV 的滑块列表（用于联动计算）
  */
 void MainWindow::onNonAGVSliderEditChanged(TechSliderEdit *changedSlider, double newValue,
-                                           const QList<TechSliderEdit*> &allNonAGVSliders)
+                                            const QList<TechSliderEdit*>& allNonAGVSliders)
 {
     qCDebug(lcMainWindow) << "非AGV TechSliderEdit值变化：" << changedSlider->objectName()
              << "新值:" << newValue;
@@ -1495,7 +1493,6 @@ void MainWindow::setupVirtualKeyboard()
 }
 
 
-
 /*********************************历史记录**********************/
 
 void MainWindow::connectRecordSignals()
@@ -1503,7 +1500,6 @@ void MainWindow::connectRecordSignals()
     /**
      * @brief 连接界面控件到操作记录器的记录信号
      *
-     * 遍历页面中的滑块、按钮、工具按钮等控件，连接其产生的用户操作信号
      * 到 `OperationRecorder` 的记录函数，从而实现全局操作记录与审计。
      */
     // 连接所有TechSliderEdit的记录信号
@@ -1512,8 +1508,6 @@ void MainWindow::connectRecordSignals()
         // 获取控件所在的页面
         QWidget *page = qobject_cast<QWidget*>(slider->parent());
         int pageIndex = -1;
-
-        // 查找控件属于哪个StackedWidget页面
         while (page && page != this) {
             QStackedWidget *stack = qobject_cast<QStackedWidget*>(page->parent());
             if (stack) {
@@ -1869,13 +1863,10 @@ void MainWindow::setupAdminPasswordPage()
         "background-color: #55007f; color: #ffaa00; font-weight: bold; border: 2px solid #ffaa00;"
     );
     featureButton->setVisible(false);
-
-    // 注销按钮
     QPushButton *logoutButton = new QPushButton("注销 (返回操作员)", container);
     logoutButton->setObjectName("logoutButton");
     logoutButton->setVisible(false); // 默认隐藏，登录后显示
 
-    // 网络配置 (左右排布：WIN7_IP 和 远程模拟器)
     QWidget *netConfigSection = new QWidget(container);
     netConfigSection->setObjectName("netConfigSection");
     QVBoxLayout *netMainLayout = new QVBoxLayout(netConfigSection);
@@ -4394,17 +4385,17 @@ void MainWindow::setupAGVModbus()
                 if (address == 100 && m_controlModeBtn) {
                     if (value == 1) {
                         m_controlMode = WIRELESS_MODE;
-                        m_controlModeBtn->setText("无线控制");
+                        m_controlModeBtn->setText("遥控器控制");
                     } else if (value == 2) {
                         m_controlMode = WIRED_MODE;
-                        m_controlModeBtn->setText("有线控制");
+                        m_controlModeBtn->setText("示教器控制");
                     }
 
                     QLabel *controlModeLabel = ui && ui->statusBar
                                                     ? ui->statusBar->findChild<QLabel*>("statusBarControlModeLabel")
                                                     : nullptr;
                     if (controlModeLabel) {
-                        controlModeLabel->setText(m_controlMode == WIRED_MODE ? "有线控制" : "无线控制");
+                        controlModeLabel->setText(m_controlMode == WIRED_MODE ? "示教器控制" : "遥控器控制");
                         controlModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
                                                             .arg(m_controlMode == WIRED_MODE ? "#ffffff" : "#ffff00"));
                     }
@@ -5529,36 +5520,36 @@ void MainWindow::onControlModeClicked()
     // 切换控制模式
     if (m_controlMode == WIRED_MODE) {
         m_controlMode = WIRELESS_MODE;
-        m_controlModeBtn->setText("无线控制");
+        m_controlModeBtn->setText("遥控器控制");
 
-        // 无线控制 -> AGV设备500写1
+        // 遥控器控制 -> AGV设备500写1
         writeToAGVDevice(500, 1);
 
-        qCDebug(lcMainWindow) << "切换到无线控制模式";
-        ui->statusBar->showMessage("已切换到无线控制模式", 2000);
+        qCDebug(lcMainWindow) << "切换到遥控器控制模式";
+        ui->statusBar->showMessage("已切换到遥控器控制模式", 2000);
 
         // 更新状态栏显示
         QLabel *controlModeLabel = ui->statusBar->findChild<QLabel*>("statusBarControlModeLabel");
         if (controlModeLabel) {
-            controlModeLabel->setText("无线控制");
+            controlModeLabel->setText("遥控器控制");
             controlModeLabel->setStyleSheet("color: #ffff00; font-weight: bold; font-size: 11px;");
         }
     } else {
         m_controlMode = WIRED_MODE;
-        m_controlModeBtn->setText("有线控制");
+        m_controlModeBtn->setText("示教器控制");
 
-        // 有线控制 -> AGV设备500写2
+        // 示教器控制 -> AGV设备500写2
         writeToAGVDevice(500, 2);
 
         // ... 省略逻辑 ...
         
-        qCDebug(lcMainWindow) << "切换到有线控制模式";
-        ui->statusBar->showMessage("已切换到有线控制模式", 2000);
+        qCDebug(lcMainWindow) << "切换到示教器控制模式";
+        ui->statusBar->showMessage("已切换到示教器控制模式", 2000);
 
         // 更新状态栏显示
         QLabel *controlModeLabel = ui->statusBar->findChild<QLabel*>("statusBarControlModeLabel");
         if (controlModeLabel) {
-            controlModeLabel->setText("有线控制");
+            controlModeLabel->setText("示教器控制");
             controlModeLabel->setStyleSheet("color: #ffffff; font-weight: bold; font-size: 11px;");
         }
     }
@@ -5583,8 +5574,8 @@ void MainWindow::onControlModeClicked()
     record.controlName = "TBtn_ControlMode";
     record.controlType = "QToolButton";
     record.operation = "mode_switch";
-    record.oldValue = (m_controlMode == WIRED_MODE) ? "无线控制" : "有线控制";
-    record.newValue = (m_controlMode == WIRED_MODE) ? "有线控制" : "无线控制";
+    record.oldValue = (m_controlMode == WIRED_MODE) ? "遥控器控制" : "示教器控制";
+    record.newValue = (m_controlMode == WIRED_MODE) ? "示教器控制" : "遥控器控制";
     m_recorder->addRecord(record);
 }
 // void MainWindow::onEnableButtonPressed()
@@ -5852,8 +5843,8 @@ void MainWindow::onAGVOABtnClicked()
 void MainWindow::onAGVParkBtnClicked()
 {
     if (m_controlMode != WIRED_MODE) {
-        ui->statusBar->showMessage("当前为无线控制，驻车功能仅在有线控制模式下生效", 3000);
-        qWarning() << "驻车请求被拒绝：当前不是有线控制模式";
+        ui->statusBar->showMessage("当前为遥控器控制，驻车功能仅在示教器控制模式下生效", 3000);
+        qWarning() << "驻车请求被拒绝：当前不是示教器控制模式";
         return;
     }
 
@@ -6210,6 +6201,13 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         return;
     }
 
+    if (m_controlMode == WIRELESS_MODE) {
+        m_isSteeringAlarmActive = false;
+        hideAlarm();
+        qCDebug(lcMainWindow) << "遥控器控制模式下切换底盘模式，不弹出提示窗口";
+        return;
+    }
+
     // 其余切换都弹窗并持续等待位信号
     m_isSteeringAlarmActive = true;
     showAlarm("正在更换底盘模式", "#FFFF00", false);
@@ -6359,8 +6357,8 @@ void MainWindow::setupTcpTransmissionUI()
         moveModeLabel->setFixedHeight(12);
         centerLayout->addWidget(moveModeLabel);
         
-        // 控制模式 (有线/无线)
-        QLabel *controlModeLabel = new QLabel(m_controlMode == WIRED_MODE ? "有线控制" : "无线控制", centerWidget);
+        // 控制模式 (示教器/遥控器)
+        QLabel *controlModeLabel = new QLabel(m_controlMode == WIRED_MODE ? "示教器控制" : "遥控器控制", centerWidget);
         controlModeLabel->setObjectName("statusBarControlModeLabel");
         controlModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
                                         .arg(m_controlMode == WIRED_MODE ? "#ffffff" : "#ffff00"));
