@@ -733,7 +733,10 @@ void MainWindow::applyToolButtonStyles(const QList<QToolButton*> &buttons)
             if (name == "TBtn_Stepmove" || name == "TBtn_MoveMode" ||
                 name == "TBtn_ControlMode" || name == "TBtn_RemoveWarning" ||
                 name == "TBtn_HomePage" || name == "TBtn_PermissionPage" ||
-                name == "TBtn_HistoryRecord" || name == "TBtn_SixAxies") {
+                name == "TBtn_HistoryRecord" || name == "TBtn_SixAxies" ||
+                name.startsWith("btnStepTargetAxis") ||
+                name.startsWith("btnStepTargetSixAxis") ||
+                name == "btnStepTargetAgv") {
                 continue;
             }
             btn->setStyleSheet(style);
@@ -7589,7 +7592,10 @@ void MainWindow::setupStepMoveControl()
     QToolButton *axis2Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis2");
     QToolButton *axis3Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis3");
     QToolButton *axis4Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis4");
-    QToolButton *axis5Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis5");
+    QToolButton *axis5Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis5_2");
+    if (!axis5Btn2) {
+        axis5Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis5");
+    }
     QLineEdit *sixStepValueEdit = findChild<QLineEdit*>("lineEdit_SixAxies_StepValue");
 
     if (axis5Btn2) {
@@ -7640,6 +7646,8 @@ void MainWindow::setupStepMoveControl()
         if (!btn) {
             continue;
         }
+        // 清理可能被通用样式写入的内联样式，恢复 .ui 中 groupBox 的统一样式与 checked 高亮。
+        btn->setStyleSheet(QString());
         btn->setCheckable(true);
         m_sixAxisStepTargetGroup->addButton(btn);
 
@@ -7654,7 +7662,7 @@ void MainWindow::setupStepMoveControl()
             else if (n == "btnStepTargetSixAxis2") targetCode = 2;
             else if (n == "btnStepTargetSixAxis3") targetCode = 3;
             else if (n == "btnStepTargetSixAxis4") targetCode = 4;
-            else if (n == "btnStepTargetSixAxis5") targetCode = 5;
+            else if (n == "btnStepTargetSixAxis5" || n == "btnStepTargetSixAxis5_2") targetCode = 5;
             else if (n == "btnStepTargetSixAxis6") targetCode = 6;
 
             writeToMainDevice(614, targetCode);
