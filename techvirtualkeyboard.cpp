@@ -19,11 +19,9 @@ TechVirtualKeyboard::TechVirtualKeyboard(QWidget *parent)
     , m_glowDirection(true)
     , m_isEditing(false)
 {
-    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    setWindowModality(Qt::ApplicationModal);
     setAttribute(Qt::WA_TranslucentBackground);
-
-    // 安装事件过滤器，用于检测点击外部关闭
-    qApp->installEventFilter(this);
 
     setupUI();
     setupConnections();
@@ -39,7 +37,6 @@ TechVirtualKeyboard::TechVirtualKeyboard(QWidget *parent)
 TechVirtualKeyboard::~TechVirtualKeyboard()
 {
     AnimationManager::instance()->unregisterWidget(this);
-    qApp->removeEventFilter(this);
 }
 
 void TechVirtualKeyboard::setupUI()
@@ -325,6 +322,13 @@ void TechVirtualKeyboard::showAtWidget(QWidget *targetWidget)
 {
     if (!targetWidget) return;
 
+    // 同一目标重复点击时不重复 show/activate，避免 Wayland 下窗口序列异常。
+    if (isVisible() && m_targetLineEdit && targetWidget == m_targetLineEdit) {
+        m_currentText = m_targetLineEdit->text();
+        updatePreview();
+        return;
+    }
+
     // 计算显示位置（目标控件下方）
     QPoint globalPos = targetWidget->mapToGlobal(QPoint(0, targetWidget->height() + 5));
 
@@ -350,7 +354,10 @@ void TechVirtualKeyboard::showAtWidget(QWidget *targetWidget)
     move(globalPos);
     show();
     raise();
-    activateWindow();
+    const QString platform = QGuiApplication::platformName().toLower();
+    if (!platform.contains("wayland")) {
+        activateWindow();
+    }
 
     // 清空预览框内容
     if (m_targetLineEdit) {
@@ -365,6 +372,11 @@ bool TechVirtualKeyboard::eventFilter(QObject *watched, QEvent *event)
 {
     // 处理鼠标按下事件
     if (event->type() == QEvent::MouseButtonPress) {
+        QWidget *watchedWidget = qobject_cast<QWidget*>(watched);
+        if (watchedWidget && m_targetLineEdit && (watchedWidget == m_targetLineEdit || m_targetLineEdit->isAncestorOf(watchedWidget))) {
+            return QWidget::eventFilter(watched, event);
+        }
+
         QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(event);
         QPoint globalPos = mouseEvent->globalPos();
 

@@ -16,6 +16,7 @@
 #include <QDebug>
 #include <QModelIndex>
 #include <QTcpSocket>
+#include <QFont>
 #include "debug.h"
 
 // 全局定义（在 debug.h 中声明）
@@ -479,6 +480,11 @@ int main(int argc, char *argv[])
                                          Qt::SmoothTransformation);
 
     QSplashScreen splash(scaledPixmap);
+
+    QFont splashFont = splash.font();
+    splashFont.setPointSize(20);
+    splashFont.setBold(true);
+    splash.setFont(splashFont);
 
     // 设置全屏显示
     splash.setWindowFlags(Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
