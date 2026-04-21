@@ -987,7 +987,7 @@ void MainWindow::initSpeedGaugeUI()
         {ui->widget_test4, "robot_ArcGauge_J4Angle", "末端角度", "°", -180, 180, 1},
         {ui->widget_SixAxies_1, "robot_ArcGauge_SixAxis1", "六轴 1", "°", -15, 15, 2},
         {ui->widget_SixAxies_2, "robot_ArcGauge_SixAxis2", "六轴 2", "°", -15, 15, 2},
-        {ui->widget_SixAxies_3, "robot_ArcGauge_SixAxis3", "六轴 3", "°", -12, 12, 2},
+        {ui->widget_SixAxies_3, "robot_ArcGauge_SixAxis3", "六轴 3", "°", -17, 17, 2},
         {ui->widget_SixAxies_4, "robot_ArcGauge_SixAxis4", "六轴 4", "mm", -110, 110, 2},
         {ui->widget_SixAxies_5, "robot_ArcGauge_SixAxis5", "六轴 5", "mm", -110, 110, 2},
         {ui->widget_SixAxies_6, "robot_ArcGauge_SixAxis6", "六轴 6", "mm", -90, 90, 2}
