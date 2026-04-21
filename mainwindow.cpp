@@ -31,6 +31,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QGuiApplication>
 #include <QSignalBlocker>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QtMath>
 #include <array>
@@ -1119,9 +1120,18 @@ void MainWindow::updateRobotTotalPower(quint16 powerValue)
 
     QQuickItem *root = m_robotTotalPowerQml->rootObject();
     const qreal numericPower = static_cast<qreal>(powerValue);
-    root->setProperty("currentPower", numericPower);
-    // 即使值不变也追加样本，保证趋势图持续可见。
-    QMetaObject::invokeMethod(root, "appendSample", Q_ARG(QVariant, numericPower));
+    const QVariant currentPowerProp = root->property("currentPower");
+    const bool powerChanged = !currentPowerProp.isValid()
+                              || !qFuzzyCompare(currentPowerProp.toReal() + 1.0,
+                                                numericPower + 1.0);
+
+    if (powerChanged) {
+        // 值变化时仅通过属性变更触发一次采样，避免重复点导致趋势图抖动。
+        root->setProperty("currentPower", numericPower);
+    } else {
+        // 值不变时手动补点，保证趋势线持续前进。
+        QMetaObject::invokeMethod(root, "appendSample", Q_ARG(QVariant, numericPower));
+    }
 }
 
 void MainWindow::initInclinometerCards()
@@ -1151,27 +1161,60 @@ void MainWindow::initInclinometerCards()
         }
 
         auto *layout = new QVBoxLayout(widget);
-        layout->setContentsMargins(6, 8, 6, 8);
-        layout->setSpacing(0);
+        layout->setContentsMargins(8, 5, 8, 5);
+        layout->setSpacing(2);
 
-        valueLabel = new QLabel(QStringLiteral("0.00°"), widget);
-        valueLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-        valueLabel->setStyleSheet(QStringLiteral(
-            "color: #EAF7FF;"
-            "font: 700 28px 'Noto Sans CJK SC';"
-            "border: none;"
-            "background: transparent;"));
+        auto *headRow = new QHBoxLayout();
+        headRow->setContentsMargins(0, 0, 0, 0);
+        headRow->setSpacing(6);
 
         auto *axisLabel = new QLabel(axisTitle, widget);
-        axisLabel->setAlignment(Qt::AlignHCenter | Qt::AlignBottom);
+        axisLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         axisLabel->setStyleSheet(QStringLiteral(
             "color: #A8DAFF;"
-            "font: 700 14px 'Noto Sans CJK SC';"
+            "font: 700 11px 'Noto Sans CJK SC';"
             "border: none;"
             "background: transparent;"));
 
-        layout->addWidget(valueLabel, 1);
-        layout->addWidget(axisLabel, 0);
+        auto *thresholdLabel = new QLabel(QStringLiteral("阈值: 1.00°"), widget);
+        thresholdLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        thresholdLabel->setStyleSheet(QStringLiteral(
+            "color: #89D1FF;"
+            "font: 600 10px 'Noto Sans CJK SC';"
+            "border: none;"
+            "background: transparent;"));
+
+        headRow->addWidget(axisLabel, 1);
+        headRow->addWidget(thresholdLabel, 0);
+
+        auto *valueRow = new QHBoxLayout();
+        valueRow->setContentsMargins(0, 0, 0, 0);
+        valueRow->setSpacing(6);
+
+        valueLabel = new QLabel(QStringLiteral("0.00°"), widget);
+        valueLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        valueLabel->setProperty("normalColor", QStringLiteral("#EAF7FF"));
+        valueLabel->setProperty("alarmColor", QStringLiteral("#FFB366"));
+        valueLabel->setStyleSheet(QStringLiteral(
+            "color: #EAF7FF;"
+            "font: 800 24px 'Noto Sans CJK SC';"
+            "border: none;"
+            "background: transparent;"));
+
+        auto *statusLabel = new QLabel(QStringLiteral("状态: 正常"), widget);
+        statusLabel->setObjectName(QStringLiteral("label_threshold_state"));
+        statusLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        statusLabel->setStyleSheet(QStringLiteral(
+            "color: #7CFFBE;"
+            "font: 700 11px 'Noto Sans CJK SC';"
+            "border: none;"
+            "background: transparent;"));
+
+        valueRow->addWidget(valueLabel, 1);
+        valueRow->addWidget(statusLabel, 0);
+
+        layout->addLayout(headRow, 0);
+        layout->addLayout(valueRow, 1);
     };
 
     initOne(m_inclinometerXCard, QStringLiteral("X轴倾角"), m_inclinometerXValueLabel);
@@ -1186,8 +1229,31 @@ void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
     }
 
     const qint16 signedRaw = static_cast<qint16>(rawValue);
-    const qreal degree = qBound(-1.0, static_cast<qreal>(signedRaw) / 100.0, 1.0);
+    const qreal degree = static_cast<qreal>(signedRaw) / 100.0;
+    const bool isOverThreshold = qAbs(degree) >= 1.0;
+
     targetLabel->setText(QString::number(degree, 'f', 2) + QStringLiteral("°"));
+    const QString valueColor = isOverThreshold
+                               ? targetLabel->property("alarmColor").toString()
+                               : targetLabel->property("normalColor").toString();
+    targetLabel->setStyleSheet(QStringLiteral(
+        "color: %1;"
+        "font: 800 24px 'Noto Sans CJK SC';"
+        "border: none;"
+        "background: transparent;").arg(valueColor));
+
+    if (QWidget *card = targetLabel->parentWidget()) {
+        if (QLabel *statusLabel = card->findChild<QLabel*>(QStringLiteral("label_threshold_state"))) {
+            statusLabel->setText(isOverThreshold ? QStringLiteral("状态: 超限") : QStringLiteral("状态: 正常"));
+            statusLabel->setStyleSheet(QStringLiteral(
+                "color: %1;"
+                "font: 700 12px 'Noto Sans CJK SC';"
+                "border: none;"
+                "background: transparent;")
+                                           .arg(isOverThreshold ? QStringLiteral("#FFB366")
+                                                                : QStringLiteral("#7CFFBE")));
+        }
+    }
 }
 
 //模拟速度

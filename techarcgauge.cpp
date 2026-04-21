@@ -214,22 +214,6 @@ void TechArcGauge::paintEvent(QPaintEvent *)
     painter.setFont(font);
     painter.drawText(rect.adjusted(0, size/8, 0, size/8), Qt::AlignCenter, m_suffix);
 
-    // 绘制第二数值文字（速度）
-    if (!m_secondSuffix.isEmpty() || m_secondValue != 0) {
-        font.setPixelSize(size / 13); // 增大字体由 18 变为 15 (数值越小字体越大)
-        font.setBold(true);           // 设置为加粗增加辨识度
-        painter.setFont(font);
-        painter.setPen(QColor(255, 120, 0)); // 科技感橙色
-        QString secondStr = QString("V: %1 %2").arg(QString::number(m_secondValue, 'f', 1)).arg(m_secondSuffix);
-        painter.drawText(rect.adjusted(0, size/3.8, 0, size/3.8), Qt::AlignCenter, secondStr); // 稍微下移位置以避免拥挤
-    }
-
-    // 参数名称 (在顶部)
-    font.setPixelSize(size / 10);
-    painter.setPen(Qt::white);
-    painter.setFont(font);
-    painter.drawText(rect.adjusted(0, -size/3.5, 0, -size/3.5), Qt::AlignCenter, m_labelText);
-    
     // Min / Max
     font.setPixelSize(size / 12); // 增大字体由 20 变为 15
     painter.setFont(font);
@@ -248,6 +232,31 @@ void TechArcGauge::paintEvent(QPaintEvent *)
     // 终点 (Max)
     float maxRad = qDegreesToRadians(-45.0f); // -(45)
     QPointF maxPos(centerX + rText * cos(maxRad), centerY + rText * sin(maxRad));
+
+    // 绘制第二数值文字（速度）：放在最小值和最大值中间上方
+    if (!m_secondSuffix.isEmpty() || m_secondValue != 0) {
+        font.setPixelSize(size / 13);
+        font.setBold(true);
+        painter.setFont(font);
+        painter.setPen(QColor(255, 120, 0));
+        const QString secondStr = QString("V: %1 %2")
+                                      .arg(QString::number(m_secondValue, 'f', 1))
+                                      .arg(m_secondSuffix);
+        const qreal midX = (minPos.x() + maxPos.x()) * 0.5;
+        const qreal midY = (minPos.y() + maxPos.y()) * 0.5 - size / 14.0;
+        painter.drawText(QRectF(midX - size / 4.0, midY - size / 18.0, size / 2.0, size / 9.0),
+                         Qt::AlignCenter,
+                         secondStr);
+    }
+
+    // 参数名称：若存在速度副数值，移到下方避免与速度文字重叠
+    font.setPixelSize(size / 10);
+    font.setBold(false);
+    painter.setPen(Qt::white);
+    painter.setFont(font);
+    const bool hasSecondValueDisplay = (!m_secondSuffix.isEmpty() || m_secondValue != 0);
+    const qreal labelOffset = hasSecondValueDisplay ? (size / 2.9) : (-size / 3.5);
+    painter.drawText(rect.adjusted(0, labelOffset, 0, labelOffset), Qt::AlignCenter, m_labelText);
 
     // 绘制文本，稍微偏移以避免覆盖圆弧
     painter.drawText(QRectF(minPos.x() - 40, minPos.y() - 20, 40, 20), Qt::AlignRight | Qt::AlignVCenter, QString::number(m_minimum));
