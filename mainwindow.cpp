@@ -2738,6 +2738,10 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     QString pageName = m_pageNames.value(currentPage, "未知");
     const bool isRobotPage = (currentPage == 0 || pageName == "机械臂" || pageName == "page_Robot");
     const bool isSixAxisPage = (currentPage == 3 || pageName == "六自由度" || pageName == "page_SixAxies");
+    const bool isJointModeByUiText = (ui && ui->TBtn_MoveMode
+                                      && ui->TBtn_MoveMode->text().trimmed() == "关节模式");
+    const bool isJointModeForExternal = (m_isJointMode || isJointModeByUiText);
+    const bool isSixAxisSpecialKey = (isSixAxisPage && (keyNumber == 13 || keyNumber == 14));
 
     // 首页外部按键提示：
     // ○1/○2 检查主设备地址150的bit1；○3/○4 检查bit2。
@@ -2761,7 +2765,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     // - 点动模式：仅允许在[关节]模式下执行；
     // - 步进模式：允许执行（由按键映射与目标选择进一步约束）。
     // 释放事件仍继续处理，避免切模后寄存器保持在按下态。
-    if ((!m_stepModeEnabled && !m_isJointMode) && pressed) {
+    if ((!m_stepModeEnabled && !isJointModeForExternal) && pressed && !isSixAxisSpecialKey) {
         qCDebug(lcMainWindow) << "外部按键忽略：当前未处于可执行模式，按键○" << keyNumber
                  << (pressed ? "按下" : "释放");
         return;
@@ -2771,6 +2775,69 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     // - 点动模式：按键○1~○12映射到613写入±1~±6；
     // - 步进模式：按键○1~○12映射轴1~6，写614轴号、601步进值（奇数键写相反数），再写615触发。
     if (isSixAxisPage) {
+        // 第4页补充：点动+关节模式时，外部按键○13/○14固定走500/514链路。
+        // - 按下：先写500=5，再写514（○13->2，○14->4）
+        // - 松开：写514=0
+        if (keyNumber == 13 || keyNumber == 14) {
+            if (m_stepModeUnknown) {
+                if (pressed) {
+                    qCDebug(lcMainWindow) << "六自由度外部按键忽略：当前模式未确定，按键○" << keyNumber;
+                }
+                return;
+            }
+
+            // 仅在点动模式且关节模式下允许执行。
+            if (m_stepModeEnabled || !isJointModeForExternal) {
+                if (pressed) {
+                    qCDebug(lcMainWindow) << "六自由度外部按键忽略：按键○" << keyNumber
+                                          << "仅支持点动+关节模式";
+                }
+                return;
+            }
+
+            if (!pressed) {
+                m_sixAxisExternalKeyPressed[keyNumber] = false;
+                if (m_sixAxisActiveKey == keyNumber) {
+                    m_sixAxisActiveKey = -1;
+                }
+                ++m_sixAxisExternalWriteSeq;
+                writeToMainDevice(514, 0);
+                return;
+            }
+
+            if (m_sixAxisExternalKeyPressed.value(keyNumber, false)) {
+                qCDebug(lcMainWindow) << "六自由度外部按键去重：按键○" << keyNumber << "重复按下已忽略";
+                return;
+            }
+
+            const int value514 = (keyNumber == 13) ? 2 : 4;
+            m_sixAxisExternalKeyPressed[keyNumber] = true;
+            m_sixAxisActiveKey = keyNumber;
+            const quint64 seq = ++m_sixAxisExternalWriteSeq;
+
+            writeToMainDevice(500, 5);
+
+            auto stagedWrite514 = [this, seq, keyNumber, value514]() {
+                if (seq != m_sixAxisExternalWriteSeq) {
+                    return;
+                }
+                if (m_sixAxisActiveKey != keyNumber) {
+                    return;
+                }
+                if (!m_sixAxisExternalKeyPressed.value(keyNumber, false)) {
+                    return;
+                }
+                writeToMainDevice(514, value514);
+            };
+
+            QTimer::singleShot(25, this, stagedWrite514);
+            QTimer::singleShot(90, this, stagedWrite514);
+
+            qCDebug(lcMainWindow) << "六自由度点动/关节按键○" << keyNumber
+                                  << "-> 500=5, 514=" << value514;
+            return;
+        }
+
         if (keyNumber < 1 || keyNumber > 12) {
             return;
         }

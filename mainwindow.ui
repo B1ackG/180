@@ -704,7 +704,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          <rect>
           <x>130</x>
           <y>60</y>
-          <width>150</width>
+          <width>160</width>
           <height>150</height>
          </rect>
         </property>
@@ -724,7 +724,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          <rect>
           <x>280</x>
           <y>180</y>
-          <width>150</width>
+          <width>160</width>
           <height>150</height>
          </rect>
         </property>
@@ -732,7 +732,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <widget class="QWidget" name="widget_test1" native="true">
         <property name="geometry">
          <rect>
-          <x>510</x>
+          <x>520</x>
           <y>350</y>
           <width>150</width>
           <height>150</height>
@@ -943,7 +943,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <widget class="QWidget" name="quickWidget_Inclinometer_Y" native="true">
         <property name="geometry">
          <rect>
-          <x>660</x>
+          <x>1010</x>
           <y>490</y>
           <width>170</width>
           <height>60</height>
@@ -953,7 +953,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <widget class="QWidget" name="quickWidget_Inclinometer_X" native="true">
         <property name="geometry">
          <rect>
-          <x>1010</x>
+          <x>660</x>
           <y>490</y>
           <width>170</width>
           <height>60</height>
