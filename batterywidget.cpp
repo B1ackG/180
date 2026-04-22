@@ -123,6 +123,28 @@ void BatteryWidget::paintEvent(QPaintEvent *event)
         painter.drawRoundedRect(inner, 1.5, 1.5);
     }
 
+    // 充电态叠加闪电图标，保证在明亮背景下也清晰可见。
+    if (m_charging) {
+        const qreal iconSize = qMax<qreal>(8.0, qMin(bodyRect.width(), bodyRect.height()) * 0.55);
+        const qreal iconX = bodyRect.left() + bodyRect.width() * 0.16;
+        const qreal iconY = bodyRect.center().y() - iconSize * 0.5;
+        const QRectF iconRect(iconX, iconY, iconSize, iconSize);
+
+        QPolygonF bolt;
+        bolt << QPointF(iconRect.left() + iconRect.width() * 0.55, iconRect.top())
+             << QPointF(iconRect.left() + iconRect.width() * 0.28, iconRect.top() + iconRect.height() * 0.45)
+             << QPointF(iconRect.left() + iconRect.width() * 0.54, iconRect.top() + iconRect.height() * 0.45)
+             << QPointF(iconRect.left() + iconRect.width() * 0.35, iconRect.bottom())
+             << QPointF(iconRect.left() + iconRect.width() * 0.72, iconRect.top() + iconRect.height() * 0.56)
+             << QPointF(iconRect.left() + iconRect.width() * 0.46, iconRect.top() + iconRect.height() * 0.56);
+
+        QColor boltFill("#ffd84d");
+        boltFill.setAlphaF(0.55 + 0.45 * m_pulseOpacity);
+        painter.setPen(QPen(QColor("#fff3a8"), 1.0));
+        painter.setBrush(boltFill);
+        painter.drawPolygon(bolt);
+    }
+
     if (width() >= 48) {
         QString txt = QString::number(qRound(m_level)) + "%";
         QColor textColor = (m_level > 50.0) ? QColor("#003344") : QColor("#ffffff");

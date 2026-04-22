@@ -3258,6 +3258,34 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         return;
     }
 
+    const bool agvStepJointMode = (!m_stepModeUnknown
+                                   && m_stepModeEnabled
+                                   && m_isJointMode
+                                   && selectedStepTargetRegister() == 504);
+    if (agvStepJointMode) {
+        if (!pressed) {
+            return;
+        }
+
+        writeAGVRegisterBits(0,
+                             {
+                                 qMakePair(5, true),
+                             },
+                             "○9步进触发(bit5=1)");
+
+        if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
+            bool stepOk = false;
+            double stepValue = m_stepValueEdit->text().toDouble(&stepOk);
+            if (stepOk) {
+                stepValue = -stepValue;
+                writeToAGVDevice(5, static_cast<int>(qRound(stepValue)));
+            }
+        }
+
+        appendAgvExternalKeyRecord(keyNumber, true);
+        return;
+    }
+
     writeAGVRegisterBits(0,
                          {
                              qMakePair(3, pressed),
@@ -4927,6 +4955,18 @@ void MainWindow::onAGVWordVariableChanged(int address, quint16 value)
     } else if (address == 103) {
         int batteryPercent = qMin(static_cast<int>(value), 100);
         onAGVUpdateStatusLabel("label_battery2_text", QString("%1%").arg(batteryPercent));
+    } else if (address == 156) {
+        const bool isCharging = (value == 1);
+
+        QObject *root = ui->StackedWidget;
+        BatteryWidget *bw = root ? root->findChild<BatteryWidget*>("progressBar_battery1", Qt::FindChildrenRecursively) : nullptr;
+        if (!bw) {
+            bw = this->findChild<BatteryWidget*>("progressBar_battery1", Qt::FindChildrenRecursively);
+        }
+
+        if (bw) {
+            bw->setCharging(isCharging);
+        }
     }
 
     // 特别处理行驶速度（地址104）
@@ -6187,6 +6227,33 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
     }
 
     if (keyNumber != 10) {
+        return;
+    }
+
+    const bool agvStepJointMode = (!m_stepModeUnknown
+                                   && m_stepModeEnabled
+                                   && m_isJointMode
+                                   && selectedStepTargetRegister() == 504);
+    if (agvStepJointMode) {
+        if (!pressed) {
+            return;
+        }
+
+        writeAGVRegisterBits(0,
+                             {
+                                 qMakePair(5, true),
+                             },
+                             "○10步进触发(bit5=1)");
+
+        if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
+            bool stepOk = false;
+            const double stepValue = m_stepValueEdit->text().toDouble(&stepOk);
+            if (stepOk) {
+                writeToAGVDevice(5, static_cast<int>(qRound(stepValue)));
+            }
+        }
+
+        appendAgvExternalKeyRecord(keyNumber, true);
         return;
     }
 
@@ -7716,6 +7783,26 @@ void MainWindow::setupStepMoveControl()
             writeToMainDevice(500, targetCode);
             ui->statusBar->showMessage(QString("步进目标切换：%1 (500=%2)")
                                            .arg(btn->text()).arg(targetCode), 1500);
+
+            // 首页 + 步进 + 关节 + AGV目标：同步触发 AGV 步进入口。
+            if (ui && ui->StackedWidget
+                && ui->StackedWidget->currentIndex() == 0
+                && m_isJointMode
+                && n == "btnStepTargetAgv") {
+                writeAGVRegisterBits(0,
+                                     {
+                                         qMakePair(4, true),
+                                     },
+                                     "AGV步进目标选中(bit4=1)");
+
+                if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
+                    bool stepOk = false;
+                    const double stepValue = m_stepValueEdit->text().toDouble(&stepOk);
+                    if (stepOk) {
+                        writeToAGVDevice(5, static_cast<int>(qRound(stepValue)));
+                    }
+                }
+            }
         }, Qt::UniqueConnection);
     }
 
@@ -7891,6 +7978,14 @@ void MainWindow::setupStepMoveLineEdits()
                 return;
             }
             writeStepValueDoubleToMainDevice(value);
+
+            // 首页 + 步进 + 关节 + AGV目标时，步进输入同步写 AGV 地址5。
+            if (ui && ui->StackedWidget
+                && ui->StackedWidget->currentIndex() == 0
+                && m_isJointMode
+                && selectedStepTargetRegister() == 504) {
+                writeToAGVDevice(5, static_cast<int>(qRound(value)));
+            }
         }, Qt::UniqueConnection);
 
         qCDebug(lcMainWindow) << "统一步进值输入框初始化完成";
