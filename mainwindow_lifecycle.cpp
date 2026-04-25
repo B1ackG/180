@@ -246,6 +246,11 @@ void MainWindow::initializeCoreSubsystems()
         connectRecordSignals();
     }
 
+    // TCP日志上报在开机阶段即尝试建立连接，不依赖Modbus连接状态。
+    if (isBigFeatureEnabled("tcp_transmission")) {
+        enableTcpTransmission(true);
+    }
+
     if (isFeatureEnabled("ui_navigation", "ui.styles")) {
         setupStyles();
     }

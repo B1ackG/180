@@ -8,10 +8,6 @@
 #include <QCryptographicHash>
 #include <QMessageAuthenticationCode>
 #include <QFile>
-#ifndef QT_NO_SSL
-#include <QSslConfiguration>
-#include <QSslCertificate>
-#endif
 
 namespace {
 QStringList parseCsvList(const QString &raw)
@@ -36,12 +32,8 @@ OperationRecorder::OperationRecorder(QObject *parent)
     , m_tcpServerPort(WIN7_PORT)
     , m_reconnectTimer(nullptr)
 {
-    // 初始化TCP传输
-#ifndef QT_NO_SSL
-    m_tcpSocket = new QSslSocket(this);
-#else
+    // 初始化TCP传输（仅明文TCP）
     m_tcpSocket = new QTcpSocket(this);
-#endif
     loadSecuritySettings();
 
     // 连接TCP信号
@@ -62,14 +54,6 @@ void OperationRecorder::loadSecuritySettings()
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("OperationLogTransport");
 
-    const QByteArray tlsEnv = qgetenv("AGV_LOG_TLS");
-    if (!tlsEnv.isEmpty()) {
-        const QByteArray normalized = tlsEnv.trimmed().toLower();
-        m_tcpUseTls = (normalized == "1" || normalized == "true" || normalized == "on");
-    } else {
-        m_tcpUseTls = settings.value("tls_enabled", true).toBool();
-    }
-
     const QByteArray allowedHostsEnv = qgetenv("AGV_LOG_ALLOWED_HOSTS");
     if (!allowedHostsEnv.isEmpty()) {
         m_allowedHosts = parseCsvList(QString::fromUtf8(allowedHostsEnv));
@@ -83,59 +67,14 @@ void OperationRecorder::loadSecuritySettings()
     } else {
         m_signingKey = settings.value("signing_key", "").toByteArray();
     }
-
-#ifndef QT_NO_SSL
-    if (QSslSocket *sslSocket = qobject_cast<QSslSocket *>(m_tcpSocket)) {
-        QSslConfiguration sslConfig = sslSocket->sslConfiguration();
-        sslConfig.setPeerVerifyMode(QSslSocket::VerifyPeer);
-
-        const QByteArray caEnv = qgetenv("AGV_LOG_TLS_CA_FILE");
-        const QString caPath = caEnv.isEmpty()
-            ? settings.value("tls_ca_file", "").toString()
-            : QString::fromUtf8(caEnv);
-        if (!caPath.trimmed().isEmpty()) {
-            QFile caFile(caPath.trimmed());
-            if (caFile.open(QIODevice::ReadOnly)) {
-                const QList<QSslCertificate> certs = QSslCertificate::fromData(caFile.readAll(), QSsl::Pem);
-                if (!certs.isEmpty()) {
-                    sslConfig.setCaCertificates(certs);
-                }
-            }
-        }
-
-        sslSocket->setSslConfiguration(sslConfig);
-    } else {
-        // 理论上仅在运行时SSL类型不匹配时触发，回退纯TCP保证可用性。
-        m_tcpUseTls = false;
-    }
-#else
-    // 目标Qt未启用SSL时，自动回退纯TCP。
-    m_tcpUseTls = false;
-#endif
     settings.endGroup();
 }
 
 bool OperationRecorder::validateTransportPolicy(QString *reason) const
 {
-    constexpr int kMinSigningKeyLength = 16;
-
     if (!m_allowedHosts.isEmpty() && !m_allowedHosts.contains(m_tcpServerIp)) {
         if (reason) {
             *reason = QString("目标主机不在白名单中: %1").arg(m_tcpServerIp);
-        }
-        return false;
-    }
-
-    if (!m_tcpUseTls && m_signingKey.isEmpty()) {
-        if (reason) {
-            *reason = QStringLiteral("TLS关闭时必须配置签名密钥(AGV_LOG_SIGNING_KEY)");
-        }
-        return false;
-    }
-
-    if (!m_tcpUseTls && m_signingKey.size() < kMinSigningKeyLength) {
-        if (reason) {
-            *reason = QStringLiteral("签名密钥长度过短，至少需要16字节");
         }
         return false;
     }
@@ -186,9 +125,15 @@ void OperationRecorder::addRecord(const OperationRecord &record)
     m_records.append(record);
     emit recordAdded(record);
 
-    // 如果TCP传输已启用，发送记录到服务器
+    // 如果TCP传输已启用，将记录纳入发送队列并触发发送/重连。
     if (m_tcpEnabled) {
-        sendRecordToServer(record);
+        if (enqueueRecordIfPossible(record)) {
+            if (isTcpConnected()) {
+                sendQueuedRecords();
+            } else {
+                connectTcpSocket();
+            }
+        }
     }
 
     //qDebug() << "记录操作:" << record.toString();
@@ -359,49 +304,47 @@ void OperationRecorder::sendRecordToServer(const OperationRecord &record)
         return;
     }
 
-    if (!isTcpConnected()) {
-        // 如果未连接，尝试连接
-        connectTcpSocket();
-
-        // 传输策略阻断时不再累积离线队列，避免UI长期运行后卡顿。
-        if (m_transportPolicyBlocked) {
-            return;
-        }
-
-        // 将记录添加到队列，等待连接成功后再发送
-        enqueueRecordIfPossible(record);
+    if (!enqueueRecordIfPossible(record)) {
         return;
     }
 
-    const QByteArray data = buildSignedPayload(record);
-
-    // 发送数据
-    qint64 bytesWritten = m_tcpSocket->write(data);
-
-    if (bytesWritten == -1) {
-        qWarning() << "发送数据失败:" << m_tcpSocket->errorString();
-        // 添加到队列等待重试
-        enqueueRecordIfPossible(record);
+    if (isTcpConnected()) {
+        sendQueuedRecords();
     } else {
-        qDebug() << "发送记录到服务器:" << record.controlName << "操作:" << record.operation;
+        connectTcpSocket();
     }
 }
 
 void OperationRecorder::sendQueuedRecords()
 {
-    if (m_tcpSendQueue.isEmpty() || !isTcpConnected()) {
+    if (m_tcpSendQueue.isEmpty()) {
         if (m_tcpSendQueue.isEmpty()) {
             emit tcpTransmissionComplete();
         }
         return;
     }
 
-    // 每次发送最多10条记录，避免阻塞
-    int sendCount = qMin(10, m_tcpSendQueue.size());
+    if (!isTcpConnected()) {
+        connectTcpSocket();
+        return;
+    }
 
+    // 每次发送最多10条记录，避免阻塞UI线程。
+    int sendCount = qMin(10, m_tcpSendQueue.size());
     for (int i = 0; i < sendCount; ++i) {
-        OperationRecord record = m_tcpSendQueue.takeFirst();
-        sendRecordToServer(record);
+        const OperationRecord &record = m_tcpSendQueue.first();
+        const QByteArray data = buildSignedPayload(record);
+        const qint64 bytesWritten = m_tcpSocket->write(data);
+        if (bytesWritten != data.size()) {
+            qWarning() << "发送数据失败:" << m_tcpSocket->errorString()
+                       << "期望字节:" << data.size()
+                       << "实际写入:" << bytesWritten;
+            connectTcpSocket();
+            break;
+        }
+
+        qDebug() << "发送记录到服务器:" << record.controlName << "操作:" << record.operation;
+        m_tcpSendQueue.removeFirst();
     }
 
     // 继续发送剩余记录
@@ -440,16 +383,7 @@ void OperationRecorder::connectTcpSocket()
 
     m_transportPolicyBlocked = false;
 
-    qDebug() << "连接日志服务器:" << m_tcpServerIp << ":" << m_tcpServerPort << "TLS:" << m_tcpUseTls;
-#ifndef QT_NO_SSL
-    if (m_tcpUseTls) {
-        QSslSocket *sslSocket = qobject_cast<QSslSocket*>(m_tcpSocket);
-        if (sslSocket) {
-            sslSocket->connectToHostEncrypted(m_tcpServerIp, m_tcpServerPort);
-            return;
-        }
-    }
-#endif
+    qDebug() << "连接日志服务器:" << m_tcpServerIp << ":" << m_tcpServerPort;
     m_tcpSocket->connectToHost(m_tcpServerIp, m_tcpServerPort);
 }
 

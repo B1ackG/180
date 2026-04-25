@@ -3258,12 +3258,15 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         return;
     }
 
-    const bool agvStepJointMode = (!m_stepModeUnknown
-                                   && m_stepModeEnabled
-                                   && m_isJointMode
-                                   && selectedStepTargetRegister() == 504);
+    const bool agvStepJointMode = isHomeStepJointAgvTargetActive();
     if (agvStepJointMode) {
         if (!pressed) {
+            writeAGVRegisterBits(0,
+                                 {
+                                     qMakePair(5, false),
+                                 },
+                                 "○9步进释放(bit5=0)");
+            appendAgvExternalKeyRecord(keyNumber, false);
             return;
         }
 
@@ -3273,13 +3276,10 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
                              },
                              "○9步进触发(bit5=1)");
 
-        if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
-            bool stepOk = false;
-            double stepValue = m_stepValueEdit->text().toDouble(&stepOk);
-            if (stepOk) {
-                stepValue = -stepValue;
-                writeToAGVDevice(5, static_cast<int>(qRound(stepValue)));
-            }
+        double stepValue = 0.0;
+        if (readUnifiedStepValue(stepValue)) {
+            stepValue = -stepValue;
+            writeToAGVDevice(5, static_cast<int>(qRound(stepValue)));
         }
 
         appendAgvExternalKeyRecord(keyNumber, true);
@@ -3541,10 +3541,6 @@ void MainWindow::onModbusConnected()
         }
     });
     modeStartupRetryTimer->start();
-
-    if (isBigFeatureEnabled("tcp_transmission")) {
-        enableTcpTransmission(true);
-    }
 
     MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Connected);
 }
@@ -5537,6 +5533,7 @@ void MainWindow::writeToAGVDevice(int address, int value)
 
         warnDialog.setFixedSize(350, 120);
         warnDialog.exec();
+        return;
     }
 
     if (isFeatureEnabled("modbus_agv", "modbus_agv.write_logs")) {
@@ -5625,6 +5622,7 @@ bool MainWindow::writeAGVRegisterBits(int address,
 
         warnDialog.setFixedSize(350, 120);
         warnDialog.exec();
+        return false;
     }
 
     quint16 baseValue = m_agvRegisterShadow.value(address, 0);
@@ -6230,12 +6228,15 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         return;
     }
 
-    const bool agvStepJointMode = (!m_stepModeUnknown
-                                   && m_stepModeEnabled
-                                   && m_isJointMode
-                                   && selectedStepTargetRegister() == 504);
+    const bool agvStepJointMode = isHomeStepJointAgvTargetActive();
     if (agvStepJointMode) {
         if (!pressed) {
+            writeAGVRegisterBits(0,
+                                 {
+                                     qMakePair(5, false),
+                                 },
+                                 "○10步进释放(bit5=0)");
+            appendAgvExternalKeyRecord(keyNumber, false);
             return;
         }
 
@@ -6245,12 +6246,9 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
                              },
                              "○10步进触发(bit5=1)");
 
-        if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
-            bool stepOk = false;
-            const double stepValue = m_stepValueEdit->text().toDouble(&stepOk);
-            if (stepOk) {
-                writeToAGVDevice(5, static_cast<int>(qRound(stepValue)));
-            }
+        double stepValue = 0.0;
+        if (readUnifiedStepValue(stepValue)) {
+            writeToAGVDevice(5, static_cast<int>(qRound(stepValue)));
         }
 
         appendAgvExternalKeyRecord(keyNumber, true);
@@ -7650,6 +7648,35 @@ QString MainWindow::selectedStepTargetName() const
     }
 }
 
+bool MainWindow::isHomeStepJointAgvTargetActive() const
+{
+    if (!ui || !ui->StackedWidget) {
+        return false;
+    }
+
+    return (ui->StackedWidget->currentIndex() == 0
+            && !m_stepModeUnknown
+            && m_stepModeEnabled
+            && m_isJointMode
+            && selectedStepTargetRegister() == 504);
+}
+
+bool MainWindow::readUnifiedStepValue(double &outValue) const
+{
+    if (!m_stepValueEdit || m_stepValueEdit->text().isEmpty()) {
+        return false;
+    }
+
+    bool ok = false;
+    const double value = m_stepValueEdit->text().toDouble(&ok);
+    if (!ok) {
+        return false;
+    }
+
+    outValue = value;
+    return true;
+}
+
 void MainWindow::updateStepMoveGroupBoxState()
 {
     if (!ui) {
@@ -7785,22 +7812,16 @@ void MainWindow::setupStepMoveControl()
                                            .arg(btn->text()).arg(targetCode), 1500);
 
             // 首页 + 步进 + 关节 + AGV目标：同步触发 AGV 步进入口。
-            if (ui && ui->StackedWidget
-                && ui->StackedWidget->currentIndex() == 0
-                && m_isJointMode
-                && n == "btnStepTargetAgv") {
+            if (n == "btnStepTargetAgv" && isHomeStepJointAgvTargetActive()) {
                 writeAGVRegisterBits(0,
                                      {
                                          qMakePair(4, true),
                                      },
                                      "AGV步进目标选中(bit4=1)");
 
-                if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
-                    bool stepOk = false;
-                    const double stepValue = m_stepValueEdit->text().toDouble(&stepOk);
-                    if (stepOk) {
-                        writeToAGVDevice(5, static_cast<int>(qRound(stepValue)));
-                    }
+                double stepValue = 0.0;
+                if (readUnifiedStepValue(stepValue)) {
+                    writeToAGVDevice(5, static_cast<int>(qRound(stepValue)));
                 }
             }
         }, Qt::UniqueConnection);
@@ -7980,10 +8001,7 @@ void MainWindow::setupStepMoveLineEdits()
             writeStepValueDoubleToMainDevice(value);
 
             // 首页 + 步进 + 关节 + AGV目标时，步进输入同步写 AGV 地址5。
-            if (ui && ui->StackedWidget
-                && ui->StackedWidget->currentIndex() == 0
-                && m_isJointMode
-                && selectedStepTargetRegister() == 504) {
+            if (isHomeStepJointAgvTargetActive()) {
                 writeToAGVDevice(5, static_cast<int>(qRound(value)));
             }
         }, Qt::UniqueConnection);

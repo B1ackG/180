@@ -316,6 +316,10 @@ public:
     int selectedStepTargetRegister() const;
     /** @brief 获取当前选中的步进目标名称 */
     QString selectedStepTargetName() const;
+    /** @brief 首页是否处于“步进+关节+AGV目标”可执行态 */
+    bool isHomeStepJointAgvTargetActive() const;
+    /** @brief 读取统一步进输入值（成功返回 true） */
+    bool readUnifiedStepValue(double &outValue) const;
     /** @brief 根据模式与当前页刷新步进控制分组可用态 */
     void updateStepMoveGroupBoxState();
     /** @brief 根据模式启用或禁用步进目标按钮 */
