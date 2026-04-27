@@ -184,6 +184,16 @@ MainWindow::~MainWindow()
         qDebug() << "报警窗口已清理";
     }
 
+    if (m_servoFaultAlarmWidget) {
+        m_servoFaultAlarmWidget->close();
+        delete m_servoFaultAlarmWidget;
+        m_servoFaultAlarmWidget = nullptr;
+        m_servoFaultAlarmLabel = nullptr;
+        m_servoFaultResetButton = nullptr;
+        m_servoFaultConfirmButton = nullptr;
+        qDebug() << "伺服故障报警窗口已清理";
+    }
+
     delete m_verticalMovie;
     delete ui;
 

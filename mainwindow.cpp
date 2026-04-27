@@ -115,6 +115,173 @@ std::array<quint16, 4> doubleToRegistersGHEFCDAB(double value)
         static_cast<quint16>((static_cast<quint16>(A) << 8) | B)
     };
 }
+
+struct ServoFaultCodeInfo {
+    const char *name;
+    bool resettable;
+};
+
+QMap<quint32, ServoFaultCodeInfo> buildServoFaultCodeTable()
+{
+    QMap<quint32, ServoFaultCodeInfo> table;
+    auto addCode = [&table](quint32 code, const char *name, bool resettable) {
+        table.insert(code, ServoFaultCodeInfo{name, resettable});
+    };
+
+    // 一、警告码一览表（可复位警告，No.3）
+    addCode(0x01080108u, "写入存储参数故障", true);
+    addCode(0x11080108u, "读取存储参数故障", true);
+    addCode(0x21080108u, "写EEPROM校验错误", true);
+    addCode(0x31080108u, "读EEPROM校验错误", true);
+    addCode(0x41080108u, "单个数据读取频繁", true);
+    addCode(0x31200120u, "电机与驱动器功率不匹配", true);
+    addCode(0x01210121u, "伺服使能指令重复", true);
+    addCode(0x06000600u, "惯量辨识失败", true);
+    addCode(0x06010601u, "原点回归警告", true);
+    addCode(0x16010601u, "原点复归开关异常", true);
+    addCode(0x26010601u, "回零模式设置异常", true);
+    addCode(0x07300730u, "编码器电池警告", true);
+    addCode(0x09000900u, "DI紧急刹车", true);
+    addCode(0x09010901u, "停机方式无效警告", true);
+    addCode(0x09020902u, "DI设置无效", true);
+    addCode(0x19020902u, "DO设置无效", true);
+    addCode(0x29020902u, "转矩到达设置无效", true);
+    addCode(0x39020902u, "位置比较目标无效警告", true);
+    addCode(0x09080908u, "机型识别校验码失败", true);
+    addCode(0x09090909u, "电机过载警告", true);
+    addCode(0x09100910u, "控制电过压", true);
+    addCode(0x09200920u, "制动电阻过载", true);
+    addCode(0x09210921u, "动态制动电阻过载", true);
+    addCode(0x09220922u, "外接制动电阻阻值过小", true);
+    addCode(0x09240924u, "泄放管过温", true);
+    addCode(0x09410941u, "变更参数需重新上电生效", true);
+    addCode(0x09420942u, "参数存储频繁", true);
+    addCode(0x09500950u, "正向超程警告", true);
+    addCode(0x09520952u, "反向超程警告", true);
+    addCode(0x0A410A41u, "转矩波动补偿失败", true);
+
+    // 一、第1类（No.1）可复位故障
+    addCode(0x01500150u, "STO进入安全状态", true);
+    addCode(0x11500150u, "STO输入状态异常", true);
+    addCode(0x21500150u, "Buffer5V电压检测异常", true);
+    addCode(0x31500150u, "STO输入电路硬件诊断失败", true);
+    addCode(0x41500150u, "PWM Buffer硬件诊断失败", true);
+    addCode(0x22080208u, "编码器通讯超时", true);
+    addCode(0x32080208u, "电流采样故障", true);
+    addCode(0x42080208u, "FPGA电流环运算超时", true);
+    addCode(0x03200320u, "制动电阻过载", true);
+    addCode(0x03202320u, "泄放故障", true);
+    addCode(0x03210321u, "动态制动电阻过载", true);
+    addCode(0x04000400u, "主回路电过压", true);
+    addCode(0x04100410u, "主回路电欠压", true);
+    addCode(0x14100410u, "主回路断电", true);
+    addCode(0x05000500u, "电机超速", true);
+    addCode(0x15000500u, "速度反馈溢出", true);
+    addCode(0x25000500u, "FPGA位置反馈脉冲过速", true);
+    addCode(0x06020602u, "角度辨识失败", true);
+    addCode(0x26020602u, "UVW三相相序接反", true);
+    addCode(0x06050605u, "使能速度过快", true);
+    addCode(0x06200620u, "电机过载", true);
+    addCode(0x06300630u, "堵转电机过热保护", true);
+    addCode(0x06400640u, "逆变IGBT结温过高", true);
+    addCode(0x16400640u, "续流二极管结温过高", true);
+    addCode(0x06500650u, "散热片温度过高", true);
+    addCode(0x09390939u, "电机动力线断线", true);
+    addCode(0x0B000B00u, "位置偏差过大", true);
+    addCode(0x1B000B00u, "位置偏差溢出", true);
+
+    // 二、第2类（No.2）可复位故障
+    addCode(0x01220122u, "多圈绝对值编码器设置错误", true);
+    addCode(0x11220122u, "DI功能分配故障", true);
+    addCode(0x21220122u, "DO功能分配故障", true);
+    addCode(0x31220122u, "旋转模式上限过大", true);
+    addCode(0x04200420u, "主回路电缺相", true);
+    addCode(0x04300430u, "控制电源欠压", true);
+    addCode(0x06610661u, "STune调整失败", true);
+    addCode(0x06620662u, "ETune调整失败", true);
+    addCode(0x06630663u, "ITune调整失败", true);
+    addCode(0x06640664u, "共振过大", true);
+    addCode(0x07310731u, "编码器电池失效与多圈圈数丢失", true);
+    addCode(0x07330733u, "编码器多圈计数错误", true);
+    addCode(0x07350735u, "编码器多圈计数溢出", true);
+    addCode(0x07600760u, "编码器过热", true);
+    addCode(0x1B010B01u, "位置指令增量单次过大", true);
+    addCode(0x2B010B01u, "位置指令增量持续过大", true);
+    addCode(0x3B010B01u, "指令溢出", true);
+    addCode(0x4B016B01u, "单圈绝对值模式目标位置超过机械单圈位置的最大值", true);
+    addCode(0x1B030B03u, "电子齿轮比设定超限-第一组电子齿轮比", true);
+    addCode(0x0E080E08u, "同步信号丢失", true);
+    addCode(0x1E080E08u, "状态切换异常", true);
+    addCode(0x2E080E08u, "IRQ丢失", true);
+    addCode(0x3E080E08u, "网线连接不可靠", true);
+    addCode(0x4E080E08u, "数据丢帧保护异常", true);
+    addCode(0x5E080E08u, "数据帧转发异常", true);
+    addCode(0x6E080E08u, "数据更新超时异常", true);
+    addCode(0x0E090E09u, "软限位位置设定错误", true);
+    addCode(0x1E090E09u, "原点位置设定错误", true);
+    addCode(0x2E090E09u, "齿轮比超限", true);
+    addCode(0x3E090E09u, "无同步信号", true);
+    addCode(0x5E090E09u, "PDO映射超限", true);
+    addCode(0x0E100E10u, "MailBox设定异常保护", true);
+    addCode(0x1E100E10u, "SM2配置异常", true);
+    addCode(0x2E100E10u, "SM3配置异常", true);
+    addCode(0x3E100E10u, "PDO看门狗设定异常", true);
+    addCode(0x4E100E10u, "PLL未完成异常保护（没有sync信号错误）", true);
+    addCode(0x5E100E10u, "PHY配置异常", true);
+    addCode(0x0E110E11u, "ESI校验错误", true);
+    addCode(0x1E110E11u, "总线读取EEPROM失败", true);
+    addCode(0x2E110E11u, "总线更新EEPROM失败", true);
+    addCode(0x3E110E11u, "ESI与驱动器型号不匹配", true);
+    addCode(0x0E130E13u, "EtherCAT同步周期设定错误", true);
+    addCode(0x0E150E15u, "EtherCAT同步周期误差过大", true);
+
+    // 二、第1类（No.1）不可复位故障
+    addCode(0x01010101u, "H02及以上功能码参数异常", false);
+    addCode(0x11010101u, "H00/H01组参数异常", false);
+    addCode(0x21010101u, "参数总个数变化读写时地址异常", false);
+    addCode(0x01020102u, "FPGA通信建立的异常", false);
+    addCode(0x11020102u, "FPGA初始化启动异常", false);
+    addCode(0x81020102u, "FPGA与MCU版本号不匹配", false);
+    addCode(0x11040104u, "MCU运行超时（MCU死机）", false);
+    addCode(0x21040104u, "FPGA运行超时（FPGA死机）", false);
+    addCode(0x41040104u, "MCU指令更新超时", false);
+    addCode(0x01200120u, "无法识别的编码器类型", false);
+    addCode(0x11200120u, "无对应型号电机", false);
+    addCode(0x21200120u, "无对应型号驱动器", false);
+    addCode(0x51200120u, "电机与驱动器电流匹配错误", false);
+    addCode(0x61200120u, "FPGA与电机型号不匹配", false);
+    addCode(0x71200120u, "机型参数校验错误", false);
+    addCode(0x81200120u, "结温参数校验错误", false);
+    addCode(0x01360136u, "编码器ROM电机参数校验异常", false);
+    addCode(0x11360136u, "编码器ROM电机参数读取异常", false);
+    addCode(0x21360136u, "转矩波动补偿数据校验错误", false);
+    addCode(0x01400140u, "加密芯片校验故障", false);
+    addCode(0x11400140u, "MCU密钥计算失败", false);
+    addCode(0x21400140u, "加密芯片版本错误", false);
+    addCode(0x31400140u, "加密芯片损坏", false);
+    addCode(0x02010201u, "P相过流", false);
+    addCode(0x12010201u, "U相过流", false);
+    addCode(0x22010201u, "V相过流", false);
+    addCode(0x42010201u, "N相过流", false);
+    addCode(0x02100210u, "输出对地短路", false);
+    addCode(0x02340234u, "飞车", false);
+    addCode(0x07400740u, "绝对值编码器通讯超时", false);
+    addCode(0x27400740u, "绝对值编码器错误", false);
+    addCode(0x37400740u, "绝对值编码器单圈解算错误", false);
+    addCode(0x67400740u, "编码器写入故障", false);
+    addCode(0x07650765u, "尼康编码器过热或者过速", false);
+    addCode(0x0A330A33u, "编码器读写校验异常", false);
+    addCode(0x0E120E12u, "EtherCAT初始化失败", false);
+    addCode(0x0E160E16u, "MCU与ESC通信异常", false);
+
+    return table;
+}
+
+const QMap<quint32, ServoFaultCodeInfo> &servoFaultCodeTable()
+{
+    static const QMap<quint32, ServoFaultCodeInfo> table = buildServoFaultCodeTable();
+    return table;
+}
 }
 
 bool MainWindow::isBigFeatureEnabled(const QString &key) const
@@ -3849,6 +4016,22 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
     if (address == 134) {
         updateRobotTotalPower(value);
+    }
+
+    if (address == 102) {
+        const quint16 oldValue = m_mainRegister102Shadow;
+        const bool oldValid = m_mainRegister102Valid;
+        m_mainRegister102Shadow = value;
+        m_mainRegister102Valid = true;
+
+        const bool oldBit9 = oldValid && (((oldValue >> 9) & 0x01) == 1);
+        const bool newBit9 = (((value >> 9) & 0x01) == 1);
+        if (oldBit9 != newBit9) {
+            if (!newBit9) {
+                hideServoFaultAlarm(true);
+            }
+            QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
+        }
     }
 
     const QStringList targetLabels = {
@@ -8290,6 +8473,9 @@ void MainWindow::on_TBtn_RemoveWarning_clicked()
         qCDebug(lcMainWindow) << "用户清除了力控超限报警";
     }
 
+    // 复位触发后先隐藏伺服故障窗，若故障仍在将由后续轮询重新弹出。
+    hideServoFaultAlarm(false);
+
     // 更新报警显示
     updateAlarmDisplay();
 
@@ -8330,7 +8516,13 @@ void MainWindow::setupAlarmSystem()
     m_agvBatteryLowAcked = false;
     m_mainRegister150Valid = false;
     m_mainRegister150Shadow = 0;
+    m_mainRegister102Valid = false;
+    m_mainRegister102Shadow = 0;
+    m_servoFaultConfirmAcked = false;
+    m_lastServoFaultSignature.clear();
     m_forceLimitFlag = false;
+
+    hideServoFaultAlarm(true);
 
     // 创建报警检测定时器
     if (!m_alarmCheckTimer) {
@@ -8354,6 +8546,14 @@ void MainWindow::checkAlarmConditions()
     if (isFeatureEnabled("alarm_system", "alarm.emergency_stop")
         && MainDeviceModbusApi::isReady(m_modbusManager)) {
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
+    }
+
+    // 主设备 102.bit9 为伺服故障触发位，周期补读以避免因配置区间未覆盖导致漏检。
+    if (MainDeviceModbusApi::isReady(m_modbusManager)) {
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 102, 1);
+        if (m_mainRegister102Valid && (((m_mainRegister102Shadow >> 9) & 0x01) == 1)) {
+            MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 1000, 18);
+        }
     }
 
     // 调试输出当前报警状态
@@ -8381,6 +8581,7 @@ void MainWindow::checkAlarmConditions()
 
     // 2. 统一更新显示
     updateAlarmDisplay();
+    updateServoFaultAlarmDisplay();
 
     if (alarmStatusLogsEnabled) {
         qCDebug(lcMainWindow) << "=== 报警检查结束 ===";
@@ -8701,6 +8902,201 @@ void MainWindow::hideAgvDriveFaultAlarm()
 {
     if (m_agvDriveFaultAlarmWidget && m_agvDriveFaultAlarmWidget->isVisible()) {
         m_agvDriveFaultAlarmWidget->hide();
+    }
+}
+
+void MainWindow::updateServoFaultAlarmDisplay()
+{
+    const bool faultBit9Active = m_mainRegister102Valid && (((m_mainRegister102Shadow >> 9) & 0x01) == 1);
+    if (!faultBit9Active) {
+        hideServoFaultAlarm(true);
+        return;
+    }
+
+    const auto &codeTable = servoFaultCodeTable();
+    QStringList faultLines;
+    QStringList signatureParts;
+    bool hasNonResettableFault = false;
+
+    for (int axisIndex = 0; axisIndex < 9; ++axisIndex) {
+        const int highAddress = 1000 + axisIndex * 2;
+        const int lowAddress = highAddress + 1;
+        if (!g_registerCache.contains(highAddress) || !g_registerCache.contains(lowAddress)) {
+            continue;
+        }
+
+        const quint16 highWord = g_registerCache.value(highAddress);
+        const quint16 lowWord = g_registerCache.value(lowAddress);
+        if (highWord == 0 && lowWord == 0) {
+            continue;
+        }
+
+        const quint32 codeHighLow = (static_cast<quint32>(highWord) << 16) | static_cast<quint32>(lowWord);
+        const quint32 codeLowHigh = (static_cast<quint32>(lowWord) << 16) | static_cast<quint32>(highWord);
+
+        quint32 matchedCode = codeHighLow;
+        ServoFaultCodeInfo codeInfo{"未知故障", false};
+
+        auto it = codeTable.constFind(codeHighLow);
+        if (it != codeTable.constEnd()) {
+            matchedCode = codeHighLow;
+            codeInfo = it.value();
+        } else {
+            it = codeTable.constFind(codeLowHigh);
+            if (it != codeTable.constEnd()) {
+                matchedCode = codeLowHigh;
+                codeInfo = it.value();
+            }
+        }
+
+        const QString codeHex = QString::number(matchedCode, 16).toUpper().rightJustified(8, QChar('0'));
+        faultLines.append(QString("%1轴发生%2（0x%3）")
+                              .arg(axisIndex + 1)
+                              .arg(QString::fromUtf8(codeInfo.name))
+                              .arg(codeHex));
+        signatureParts.append(QString("%1:%2").arg(axisIndex + 1).arg(codeHex));
+        hasNonResettableFault = hasNonResettableFault || !codeInfo.resettable;
+    }
+
+    if (faultLines.isEmpty()) {
+        hideServoFaultAlarm(true);
+        return;
+    }
+
+    const QString signature = signatureParts.join('|');
+    if (signature != m_lastServoFaultSignature) {
+        m_lastServoFaultSignature = signature;
+        m_servoFaultConfirmAcked = false;
+    }
+
+    if (hasNonResettableFault && m_servoFaultConfirmAcked) {
+        return;
+    }
+
+    showServoFaultAlarm(faultLines, hasNonResettableFault, signature);
+}
+
+void MainWindow::showServoFaultAlarm(const QStringList &faultLines,
+                                     bool hasNonResettableFault,
+                                     const QString &signature)
+{
+    if (!isFeatureEnabled("alarm_system", "alarm.popup")) {
+        return;
+    }
+
+    m_lastServoFaultSignature = signature;
+
+    if (!m_servoFaultAlarmWidget) {
+        m_servoFaultAlarmWidget = new QWidget(nullptr);
+        m_servoFaultAlarmWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
+                                                Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_servoFaultAlarmWidget->setObjectName("servoFaultAlarmWidget");
+
+        QVBoxLayout *layout = new QVBoxLayout(m_servoFaultAlarmWidget);
+        layout->setContentsMargins(16, 12, 16, 12);
+        layout->setSpacing(10);
+
+        m_servoFaultAlarmLabel = new QLabel(m_servoFaultAlarmWidget);
+        m_servoFaultAlarmLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        m_servoFaultAlarmLabel->setWordWrap(true);
+        layout->addWidget(m_servoFaultAlarmLabel);
+
+        QHBoxLayout *buttonLayout = new QHBoxLayout();
+        buttonLayout->addStretch();
+
+        m_servoFaultResetButton = new QPushButton("复位", m_servoFaultAlarmWidget);
+        connect(m_servoFaultResetButton, &QPushButton::clicked,
+                this, &MainWindow::on_TBtn_RemoveWarning_clicked);
+        buttonLayout->addWidget(m_servoFaultResetButton);
+
+        m_servoFaultConfirmButton = new QPushButton("确认", m_servoFaultAlarmWidget);
+        connect(m_servoFaultConfirmButton, &QPushButton::clicked, this, [this]() {
+            m_servoFaultConfirmAcked = true;
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = "报警系统";
+                record.controlName = "主设备伺服故障";
+                record.controlType = "报警窗口";
+                record.operation = "用户确认";
+                record.oldValue = m_lastServoFaultSignature;
+                record.newValue = "用户确认并隐藏窗口";
+                m_recorder->addRecord(record);
+            }
+            hideServoFaultAlarm(false);
+        });
+        buttonLayout->addWidget(m_servoFaultConfirmButton);
+        buttonLayout->addStretch();
+
+        layout->addLayout(buttonLayout);
+    }
+
+    const QString header = hasNonResettableFault
+                               ? QStringLiteral("检测到不可复位故障：")
+                               : QStringLiteral("检测到可复位故障：");
+    m_servoFaultAlarmLabel->setText(header + "\n" + faultLines.join("\n"));
+
+    if (m_servoFaultResetButton) {
+        m_servoFaultResetButton->setVisible(!hasNonResettableFault);
+    }
+    if (m_servoFaultConfirmButton) {
+        m_servoFaultConfirmButton->setVisible(hasNonResettableFault);
+    }
+
+    const QString accentColor = hasNonResettableFault ? QStringLiteral("#ff5555") : QStringLiteral("#ffb347");
+    const QString hoverColor = hasNonResettableFault ? QStringLiteral("#ff8888") : QStringLiteral("#ffd18a");
+    m_servoFaultAlarmWidget->setStyleSheet(QString(
+        "#servoFaultAlarmWidget {"
+        "  background-color: rgba(35, 12, 12, 232);"
+        "  border: 3px solid %1;"
+        "  border-radius: 10px;"
+        "}"
+        "QLabel {"
+        "  color: %1;"
+        "  font-size: 16px;"
+        "  font-weight: bold;"
+        "  background-color: transparent;"
+        "}"
+        "QPushButton {"
+        "  background-color: %1;"
+        "  color: #1f1f1f;"
+        "  border: 2px solid %2;"
+        "  border-radius: 6px;"
+        "  padding: 6px 14px;"
+        "  font-size: 14px;"
+        "  font-weight: bold;"
+        "  min-width: 120px;"
+        "}"
+        "QPushButton:hover {"
+        "  background-color: %2;"
+        "}"
+        ).arg(accentColor).arg(hoverColor));
+
+    const int lineCount = faultLines.size() + 1;
+    const int windowHeight = qBound(200, 110 + lineCount * 26, 520);
+    m_servoFaultAlarmWidget->setFixedSize(500, windowHeight);
+
+    QScreen *screen = QGuiApplication::primaryScreen();
+    const QRect availableGeometry = screen->availableGeometry();
+    const int x = availableGeometry.x() + availableGeometry.width() - m_servoFaultAlarmWidget->width() - 40;
+    const int y = availableGeometry.y()
+                  + qBound(80,
+                           availableGeometry.height() / 2 - m_servoFaultAlarmWidget->height() / 2,
+                           availableGeometry.height() - m_servoFaultAlarmWidget->height() - 80);
+
+    m_servoFaultAlarmWidget->move(x, y);
+    m_servoFaultAlarmWidget->show();
+    m_servoFaultAlarmWidget->raise();
+}
+
+void MainWindow::hideServoFaultAlarm(bool clearAckState)
+{
+    if (m_servoFaultAlarmWidget && m_servoFaultAlarmWidget->isVisible()) {
+        m_servoFaultAlarmWidget->hide();
+    }
+    if (clearAckState) {
+        m_servoFaultConfirmAcked = false;
+        m_lastServoFaultSignature.clear();
     }
 }
 

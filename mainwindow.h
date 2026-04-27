@@ -196,6 +196,14 @@ public:
     void showAgvDriveFaultAlarm();
     /** @brief 隐藏驱动故障报警窗 */
     void hideAgvDriveFaultAlarm();
+    /** @brief 更新主设备伺服故障报警窗（102.bit9 + 1000~1017） */
+    void updateServoFaultAlarmDisplay();
+    /** @brief 显示主设备伺服故障报警窗 */
+    void showServoFaultAlarm(const QStringList &faultLines,
+                             bool hasNonResettableFault,
+                             const QString &signature);
+    /** @brief 隐藏主设备伺服故障报警窗 */
+    void hideServoFaultAlarm(bool clearAckState = false);
     /** @brief 显示低电量提示窗（51.bit0=1） */
     void showAgvBatteryLowDialog();
     /** @brief 隐藏低电量提示窗 */
@@ -553,6 +561,14 @@ private:
     QLabel *m_agvStationOfflineAlarmLabel = nullptr;
     QWidget *m_agvDriveFaultAlarmWidget = nullptr;
     QLabel *m_agvDriveFaultAlarmLabel = nullptr;
+    QWidget *m_servoFaultAlarmWidget = nullptr;
+    QLabel *m_servoFaultAlarmLabel = nullptr;
+    QPushButton *m_servoFaultResetButton = nullptr;
+    QPushButton *m_servoFaultConfirmButton = nullptr;
+    bool m_mainRegister102Valid = false;
+    quint16 m_mainRegister102Shadow = 0;
+    bool m_servoFaultConfirmAcked = false;
+    QString m_lastServoFaultSignature;
     QDialog *m_agvBatteryLowDialog = nullptr;
     QDialog *m_robotOperationHintDialog = nullptr;
 
