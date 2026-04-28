@@ -186,7 +186,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
+        <verstretch>1</verstretch>
        </sizepolicy>
       </property>
       <property name="font">
@@ -227,12 +227,12 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
     </string>
       </property>
       <property name="text">
-       <string>辅助装配系统</string>
+       <string>悬臂式人机协同数字化装配系统</string>
       </property>
      </widget>
     </item>
-    <item row="1" column="2">
-     <spacer name="horizontalSpacer_3">
+    <item row="1" column="13">
+     <spacer name="horizontalSpacer_5">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -241,7 +241,23 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
       </property>
       <property name="sizeHint" stdset="0">
        <size>
-        <width>300</width>
+        <width>50</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="1" column="12">
+     <spacer name="horizontalSpacer_6">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
         <height>20</height>
        </size>
       </property>
@@ -252,7 +268,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>3</horstretch>
-        <verstretch>0</verstretch>
+        <verstretch>1</verstretch>
        </sizepolicy>
       </property>
       <property name="title">
@@ -359,7 +375,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
           </font>
          </property>
          <property name="text">
-          <string>示教器控制</string>
+          <string>有线控制</string>
          </property>
          <property name="icon">
           <iconset resource="res.qrc">
@@ -379,27 +395,8 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
       </layout>
      </widget>
     </item>
-    <item row="1" column="3" colspan="8">
-     <widget class="QLabel" name="label_StatusTip">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>1</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>30</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>TextLabel</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="11">
-     <spacer name="horizontalSpacer_4">
+    <item row="1" column="2">
+     <spacer name="horizontalSpacer_3">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -408,131 +405,11 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
       </property>
       <property name="sizeHint" stdset="0">
        <size>
-        <width>150</width>
+        <width>300</width>
         <height>20</height>
        </size>
       </property>
      </spacer>
-    </item>
-    <item row="1" column="1">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="1" column="0">
-     <spacer name="horizontalSpacer_2">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>70</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="1" column="13">
-     <spacer name="horizontalSpacer_5">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>50</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="1" column="12">
-     <spacer name="horizontalSpacer_6">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="6" column="11" colspan="2">
-     <widget class="QGroupBox" name="groupBox_4">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>1</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="title">
-       <string>安全开关</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QToolButton" name="TBtn_RemoveWarning">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>1</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>44</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>11</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>清除报错</string>
-         </property>
-         <property name="icon">
-          <iconset resource="res.qrc">
-           <normaloff>:/Picture/RemoveWarning.png</normaloff>:/Picture/RemoveWarning.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>24</width>
-           <height>24</height>
-          </size>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
     </item>
     <item row="6" column="1" colspan="3">
      <widget class="QGroupBox" name="groupBox">
@@ -656,7 +533,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
           </font>
          </property>
          <property name="text">
-          <string>六自由度平台</string>
+          <string>六自由度</string>
          </property>
          <property name="icon">
           <iconset resource="res.qrc">
@@ -676,6 +553,22 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
       </layout>
      </widget>
     </item>
+    <item row="1" column="1">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
     <item row="7" column="0" colspan="14">
      <widget class="QStackedWidget" name="StackedWidget">
       <property name="enabled">
@@ -684,7 +577,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
-        <verstretch>7</verstretch>
+        <verstretch>11</verstretch>
        </sizepolicy>
       </property>
       <property name="font">
@@ -704,7 +597,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          <rect>
           <x>130</x>
           <y>60</y>
-          <width>160</width>
+          <width>150</width>
           <height>150</height>
          </rect>
         </property>
@@ -724,7 +617,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          <rect>
           <x>280</x>
           <y>180</y>
-          <width>160</width>
+          <width>150</width>
           <height>150</height>
          </rect>
         </property>
@@ -732,7 +625,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <widget class="QWidget" name="widget_test1" native="true">
         <property name="geometry">
          <rect>
-          <x>520</x>
+          <x>510</x>
           <y>350</y>
           <width>150</width>
           <height>150</height>
@@ -774,7 +667,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
         <property name="geometry">
          <rect>
           <x>540</x>
-          <y>115</y>
+          <y>80</y>
           <width>520</width>
           <height>80</height>
          </rect>
@@ -803,7 +696,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
         <property name="geometry">
          <rect>
           <x>540</x>
-          <y>270</y>
+          <y>250</y>
           <width>520</width>
           <height>75</height>
          </rect>
@@ -831,7 +724,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
         <property name="geometry">
          <rect>
           <x>540</x>
-          <y>195</y>
+          <y>170</y>
           <width>520</width>
           <height>75</height>
          </rect>
@@ -881,8 +774,8 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <widget class="SteeringModeSelector" name="steeringModeSelector" native="true">
         <property name="geometry">
          <rect>
-          <x>690</x>
-          <y>360</y>
+          <x>700</x>
+          <y>330</y>
           <width>460</width>
           <height>110</height>
          </rect>
@@ -930,10 +823,10 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <widget class="QQuickWidget" name="quickWidget_RobotTotalPower">
         <property name="geometry">
          <rect>
-          <x>620</x>
-          <y>0</y>
-          <width>270</width>
-          <height>110</height>
+          <x>520</x>
+          <y>-10</y>
+          <width>240</width>
+          <height>90</height>
          </rect>
         </property>
         <property name="resizeMode">
@@ -943,20 +836,20 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <widget class="QWidget" name="quickWidget_Inclinometer_Y" native="true">
         <property name="geometry">
          <rect>
-          <x>1010</x>
-          <y>490</y>
-          <width>170</width>
-          <height>60</height>
+          <x>670</x>
+          <y>450</y>
+          <width>130</width>
+          <height>91</height>
          </rect>
         </property>
        </widget>
        <widget class="QWidget" name="quickWidget_Inclinometer_X" native="true">
         <property name="geometry">
          <rect>
-          <x>660</x>
-          <y>490</y>
-          <width>170</width>
-          <height>60</height>
+          <x>1050</x>
+          <y>450</y>
+          <width>130</width>
+          <height>91</height>
          </rect>
         </property>
        </widget>
@@ -1282,9 +1175,9 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         <property name="geometry">
          <rect>
           <x>1160</x>
-          <y>0</y>
+          <y>20</y>
           <width>91</width>
-          <height>521</height>
+          <height>441</height>
          </rect>
         </property>
         <property name="title">
@@ -1398,38 +1291,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetSixAxis6">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>轴6</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetSixAxis6_2">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>钢缆</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
            </layout>
           </widget>
          </item>
@@ -1495,6 +1356,113 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         </layout>
        </widget>
       </widget>
+     </widget>
+    </item>
+    <item row="1" column="11">
+     <spacer name="horizontalSpacer_4">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>150</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="6" column="11" colspan="2">
+     <widget class="QGroupBox" name="groupBox_4">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="title">
+       <string>安全开关</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QToolButton" name="TBtn_RemoveWarning">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>44</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>11</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>清除报错</string>
+         </property>
+         <property name="icon">
+          <iconset resource="res.qrc">
+           <normaloff>:/Picture/RemoveWarning.png</normaloff>:/Picture/RemoveWarning.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <spacer name="horizontalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>70</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="1" column="3" colspan="8">
+     <widget class="QLabel" name="label_StatusTip">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
      </widget>
     </item>
    </layout>

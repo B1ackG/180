@@ -4024,13 +4024,35 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         m_mainRegister102Shadow = value;
         m_mainRegister102Valid = true;
 
+        const bool oldBit3 = oldValid && (((oldValue >> 3) & 0x01) == 1);
+        const bool oldBit2 = oldValid && (((oldValue >> 2) & 0x01) == 1);
         const bool oldBit9 = oldValid && (((oldValue >> 9) & 0x01) == 1);
+        const bool newBit3 = (((value >> 3) & 0x01) == 1);
+        const bool newBit2 = (((value >> 2) & 0x01) == 1);
         const bool newBit9 = (((value >> 9) & 0x01) == 1);
-        if (oldBit9 != newBit9) {
+        if (oldBit3 != newBit3 || oldBit2 != newBit2 || oldBit9 != newBit9) {
+            if (!newBit3 && !newBit2) {
+                m_axisLimitAcked = false;
+                m_axisLimitAckSignature.clear();
+                hideAxisLimitAlarm();
+            }
             if (!newBit9) {
                 hideServoFaultAlarm(true);
             }
             QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
+        }
+    }
+
+    if (address == 124) {
+        m_mainRegister124Shadow = value;
+        m_mainRegister124Valid = true;
+
+        if (m_mainRegister102Valid) {
+            const bool limitBitActive = (((m_mainRegister102Shadow >> 3) & 0x01) == 1)
+                                        || (((m_mainRegister102Shadow >> 2) & 0x01) == 1);
+            if (limitBitActive) {
+                QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
+            }
         }
     }
 
@@ -8518,11 +8540,16 @@ void MainWindow::setupAlarmSystem()
     m_mainRegister150Shadow = 0;
     m_mainRegister102Valid = false;
     m_mainRegister102Shadow = 0;
+    m_mainRegister124Valid = false;
+    m_mainRegister124Shadow = 0;
+    m_axisLimitAcked = false;
+    m_axisLimitAckSignature.clear();
     m_servoFaultConfirmAcked = false;
     m_lastServoFaultSignature.clear();
     m_forceLimitFlag = false;
 
     hideServoFaultAlarm(true);
+    hideAxisLimitAlarm();
 
     // 创建报警检测定时器
     if (!m_alarmCheckTimer) {
@@ -8554,6 +8581,13 @@ void MainWindow::checkAlarmConditions()
         if (m_mainRegister102Valid && (((m_mainRegister102Shadow >> 9) & 0x01) == 1)) {
             MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 1000, 18);
         }
+        if (m_mainRegister102Valid) {
+            const bool limitBitActive = (((m_mainRegister102Shadow >> 3) & 0x01) == 1)
+                                        || (((m_mainRegister102Shadow >> 2) & 0x01) == 1);
+            if (limitBitActive) {
+                MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 124, 1);
+            }
+        }
     }
 
     // 调试输出当前报警状态
@@ -8582,6 +8616,7 @@ void MainWindow::checkAlarmConditions()
     // 2. 统一更新显示
     updateAlarmDisplay();
     updateServoFaultAlarmDisplay();
+    updateAxisLimitAlarmDisplay();
 
     if (alarmStatusLogsEnabled) {
         qCDebug(lcMainWindow) << "=== 报警检查结束 ===";
@@ -9097,6 +9132,121 @@ void MainWindow::hideServoFaultAlarm(bool clearAckState)
     if (clearAckState) {
         m_servoFaultConfirmAcked = false;
         m_lastServoFaultSignature.clear();
+    }
+}
+
+void MainWindow::updateAxisLimitAlarmDisplay()
+{
+    if (!m_mainRegister102Valid) {
+        m_axisLimitAcked = false;
+        m_axisLimitAckSignature.clear();
+        hideAxisLimitAlarm();
+        return;
+    }
+
+    const bool negativeLimit = (((m_mainRegister102Shadow >> 3) & 0x01) == 1);
+    const bool positiveLimit = (((m_mainRegister102Shadow >> 2) & 0x01) == 1);
+    if (!negativeLimit && !positiveLimit) {
+        m_axisLimitAcked = false;
+        m_axisLimitAckSignature.clear();
+        hideAxisLimitAlarm();
+        return;
+    }
+
+    QString message;
+    if (negativeLimit && positiveLimit) {
+        message = QStringLiteral("到达限位");
+    } else if (negativeLimit) {
+        message = QStringLiteral("到达负限位");
+    } else {
+        message = QStringLiteral("到达正限位");
+    }
+
+    if (message != m_axisLimitAckSignature) {
+        m_axisLimitAckSignature = message;
+        m_axisLimitAcked = false;
+    }
+
+    if (m_axisLimitAcked) {
+        return;
+    }
+
+    showAxisLimitAlarm(message);
+}
+
+void MainWindow::showAxisLimitAlarm(const QString &message)
+{
+    if (!isFeatureEnabled("alarm_system", "alarm.popup")) {
+        return;
+    }
+
+    if (!m_axisLimitAlarmWidget) {
+        m_axisLimitAlarmWidget = new QWidget(nullptr);
+        m_axisLimitAlarmWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
+                                               Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_axisLimitAlarmWidget->setObjectName("axisLimitAlarmWidget");
+
+        QVBoxLayout *layout = new QVBoxLayout(m_axisLimitAlarmWidget);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(6);
+
+        m_axisLimitAlarmLabel = new QLabel(m_axisLimitAlarmWidget);
+        m_axisLimitAlarmLabel->setAlignment(Qt::AlignCenter);
+        m_axisLimitAlarmLabel->setWordWrap(true);
+        layout->addWidget(m_axisLimitAlarmLabel);
+
+        m_axisLimitConfirmButton = new QPushButton("确认", m_axisLimitAlarmWidget);
+        connect(m_axisLimitConfirmButton, &QPushButton::clicked, this, [this]() {
+            m_axisLimitAcked = true;
+            hideAxisLimitAlarm();
+        });
+        layout->addWidget(m_axisLimitConfirmButton, 0, Qt::AlignCenter);
+
+        m_axisLimitAlarmWidget->setFixedSize(340, 145);
+        m_axisLimitAlarmWidget->setStyleSheet(
+            "#axisLimitAlarmWidget {"
+            "  background-color: rgba(45, 20, 0, 232);"
+            "  border: 3px solid #ff9900;"
+            "  border-radius: 10px;"
+            "}"
+            "QLabel {"
+            "  color: #ffcc66;"
+            "  font-size: 20px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "QPushButton {"
+            "  background-color: #ff9900;"
+            "  color: #1f1f1f;"
+            "  border: 2px solid #ffcc66;"
+            "  border-radius: 6px;"
+            "  padding: 6px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 90px;"
+            "}"
+            "QPushButton:hover {"
+            "  background-color: #ffb84d;"
+            "}");
+    }
+
+    if (m_axisLimitAlarmLabel) {
+        m_axisLimitAlarmLabel->setText(message);
+    }
+
+    QScreen *screen = QGuiApplication::primaryScreen();
+    const QRect screenGeometry = screen->availableGeometry();
+    const int x = screenGeometry.x() + screenGeometry.width() - m_axisLimitAlarmWidget->width() - 40;
+    const int y = screenGeometry.y() + 340;
+    m_axisLimitAlarmWidget->move(x, y);
+    m_axisLimitAlarmWidget->show();
+    m_axisLimitAlarmWidget->raise();
+}
+
+void MainWindow::hideAxisLimitAlarm()
+{
+    if (m_axisLimitAlarmWidget && m_axisLimitAlarmWidget->isVisible()) {
+        m_axisLimitAlarmWidget->hide();
     }
 }
 

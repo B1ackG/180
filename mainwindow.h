@@ -204,6 +204,12 @@ public:
                              const QString &signature);
     /** @brief 隐藏主设备伺服故障报警窗 */
     void hideServoFaultAlarm(bool clearAckState = false);
+    /** @brief 更新主设备限位报警窗（102.bit1/bit2 + 124轴号） */
+    void updateAxisLimitAlarmDisplay();
+    /** @brief 显示主设备限位报警窗 */
+    void showAxisLimitAlarm(const QString &message);
+    /** @brief 隐藏主设备限位报警窗 */
+    void hideAxisLimitAlarm();
     /** @brief 显示低电量提示窗（51.bit0=1） */
     void showAgvBatteryLowDialog();
     /** @brief 隐藏低电量提示窗 */
@@ -567,8 +573,15 @@ private:
     QPushButton *m_servoFaultConfirmButton = nullptr;
     bool m_mainRegister102Valid = false;
     quint16 m_mainRegister102Shadow = 0;
+    bool m_mainRegister124Valid = false;
+    quint16 m_mainRegister124Shadow = 0;
     bool m_servoFaultConfirmAcked = false;
     QString m_lastServoFaultSignature;
+    QWidget *m_axisLimitAlarmWidget = nullptr;
+    QLabel *m_axisLimitAlarmLabel = nullptr;
+    QPushButton *m_axisLimitConfirmButton = nullptr;
+    bool m_axisLimitAcked = false;
+    QString m_axisLimitAckSignature;
     QDialog *m_agvBatteryLowDialog = nullptr;
     QDialog *m_robotOperationHintDialog = nullptr;
 

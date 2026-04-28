@@ -9,22 +9,17 @@ Item {
     property var samples: []
     property real maxDisplayPower: 1000
 
-    implicitWidth: 270
-    implicitHeight: 110
+    implicitWidth: 240
+    implicitHeight: 90
 
     function appendSample(v) {
         var next = Math.max(0, Number(v))
-        var arr = samples
-        if (!arr) {
-            arr = []
-        }
+        var arr = samples.slice(0)
         arr.push(next)
         if (arr.length > maxSamples) {
             arr.shift()
         }
-        if (samples !== arr) {
-            samples = arr
-        }
+        samples = arr
 
         var localMax = 100
         for (var i = 0; i < arr.length; ++i) {
@@ -72,39 +67,25 @@ Item {
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.leftMargin: 12
-        anchors.topMargin: 10
-        text: root.title
+        anchors.topMargin: 8
+        text: "机器人当前总功率"
         color: "#A6D8FF"
         font.family: "Noto Sans CJK SC"
-        font.pixelSize: 13
-        font.bold: true
+        font.pixelSize: 12
         renderType: Text.NativeRendering
     }
 
     Text {
         id: valueText
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.rightMargin: 12
-        anchors.topMargin: 8
-        text: Math.round(root.currentPower) + " " + root.unit
-        color: "#EAF7FF"
-        font.family: "Noto Sans CJK SC"
-        font.pixelSize: 30
-        font.bold: true
-        renderType: Text.NativeRendering
-    }
-
-    Text {
-        id: subtitleText
         anchors.left: parent.left
         anchors.top: titleText.bottom
         anchors.leftMargin: 12
-        anchors.topMargin: 3
-        text: "实时趋势"
-        color: "#89D1FF"
+        anchors.topMargin: 0
+        text: Math.round(root.currentPower) + " " + root.unit
+        color: "#EAF7FF"
         font.family: "Noto Sans CJK SC"
-        font.pixelSize: 11
+        font.pixelSize: 24
+        font.bold: true
         renderType: Text.NativeRendering
     }
 
@@ -113,9 +94,9 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 10
-        anchors.top: subtitleText.bottom
-        anchors.topMargin: 8
+        anchors.bottomMargin: 8
+        anchors.top: valueText.bottom
+        anchors.topMargin: 2
         anchors.leftMargin: 12
         anchors.rightMargin: 12
         antialiasing: true
