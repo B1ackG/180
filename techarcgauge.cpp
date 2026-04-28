@@ -259,8 +259,8 @@ void TechArcGauge::paintEvent(QPaintEvent *)
     painter.drawText(rect.adjusted(0, labelOffset, 0, labelOffset), Qt::AlignCenter, m_labelText);
 
     // 绘制文本，稍微偏移以避免覆盖圆弧
-    painter.drawText(QRectF(minPos.x() - 40, minPos.y() - 20, 40, 20), Qt::AlignRight | Qt::AlignVCenter, QString::number(m_minimum));
-    painter.drawText(QRectF(maxPos.x(), maxPos.y() - 20, 40, 20), Qt::AlignLeft | Qt::AlignVCenter, QString::number(m_maximum));
+    painter.drawText(QRectF(minPos.x() - 35, minPos.y() - 20, 40, 20), Qt::AlignRight | Qt::AlignVCenter, QString::number(m_minimum));
+    painter.drawText(QRectF(maxPos.x()- 5, maxPos.y() - 20, 40, 20), Qt::AlignLeft | Qt::AlignVCenter, QString::number(m_maximum));
 }
 
 void TechArcGauge::resizeEvent(QResizeEvent *event)
