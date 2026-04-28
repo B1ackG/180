@@ -4169,7 +4169,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
     if (address == 150) {
         m_mainRegister150Shadow = value;
         m_mainRegister150Valid = true;
-        const bool emergencyStop = (value == 1);
+        const bool emergencyStop = ((value & 0x01) == 1);
         if (emergencyStop != m_robotArmEmergency150Flag) {
             m_robotArmEmergency150Flag = emergencyStop;
             if (emergencyStop && m_recorder) {
