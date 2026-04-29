@@ -196,20 +196,6 @@ public:
     void showAgvDriveFaultAlarm();
     /** @brief 隐藏驱动故障报警窗 */
     void hideAgvDriveFaultAlarm();
-    /** @brief 更新主设备伺服故障报警窗（102.bit9 + 1000~1017） */
-    void updateServoFaultAlarmDisplay();
-    /** @brief 显示主设备伺服故障报警窗 */
-    void showServoFaultAlarm(const QStringList &faultLines,
-                             bool hasNonResettableFault,
-                             const QString &signature);
-    /** @brief 隐藏主设备伺服故障报警窗 */
-    void hideServoFaultAlarm(bool clearAckState = false);
-    /** @brief 更新主设备限位报警窗（102.bit1/bit2 + 124轴号） */
-    void updateAxisLimitAlarmDisplay();
-    /** @brief 显示主设备限位报警窗 */
-    void showAxisLimitAlarm(const QString &message);
-    /** @brief 隐藏主设备限位报警窗 */
-    void hideAxisLimitAlarm();
     /** @brief 显示低电量提示窗（51.bit0=1） */
     void showAgvBatteryLowDialog();
     /** @brief 隐藏低电量提示窗 */
@@ -330,10 +316,6 @@ public:
     int selectedStepTargetRegister() const;
     /** @brief 获取当前选中的步进目标名称 */
     QString selectedStepTargetName() const;
-    /** @brief 首页是否处于“步进+关节+AGV目标”可执行态 */
-    bool isHomeStepJointAgvTargetActive() const;
-    /** @brief 读取统一步进输入值（成功返回 true） */
-    bool readUnifiedStepValue(double &outValue) const;
     /** @brief 根据模式与当前页刷新步进控制分组可用态 */
     void updateStepMoveGroupBoxState();
     /** @brief 根据模式启用或禁用步进目标按钮 */
@@ -567,21 +549,6 @@ private:
     QLabel *m_agvStationOfflineAlarmLabel = nullptr;
     QWidget *m_agvDriveFaultAlarmWidget = nullptr;
     QLabel *m_agvDriveFaultAlarmLabel = nullptr;
-    QWidget *m_servoFaultAlarmWidget = nullptr;
-    QLabel *m_servoFaultAlarmLabel = nullptr;
-    QPushButton *m_servoFaultResetButton = nullptr;
-    QPushButton *m_servoFaultConfirmButton = nullptr;
-    bool m_mainRegister102Valid = false;
-    quint16 m_mainRegister102Shadow = 0;
-    bool m_mainRegister124Valid = false;
-    quint16 m_mainRegister124Shadow = 0;
-    bool m_servoFaultConfirmAcked = false;
-    QString m_lastServoFaultSignature;
-    QWidget *m_axisLimitAlarmWidget = nullptr;
-    QLabel *m_axisLimitAlarmLabel = nullptr;
-    QPushButton *m_axisLimitConfirmButton = nullptr;
-    bool m_axisLimitAcked = false;
-    QString m_axisLimitAckSignature;
     QDialog *m_agvBatteryLowDialog = nullptr;
     QDialog *m_robotOperationHintDialog = nullptr;
 

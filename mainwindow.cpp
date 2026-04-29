@@ -31,7 +31,6 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QGuiApplication>
 #include <QSignalBlocker>
 #include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QLabel>
 #include <QtMath>
 #include <array>
@@ -114,173 +113,6 @@ std::array<quint16, 4> doubleToRegistersGHEFCDAB(double value)
         static_cast<quint16>((static_cast<quint16>(C) << 8) | D),
         static_cast<quint16>((static_cast<quint16>(A) << 8) | B)
     };
-}
-
-struct ServoFaultCodeInfo {
-    const char *name;
-    bool resettable;
-};
-
-QMap<quint32, ServoFaultCodeInfo> buildServoFaultCodeTable()
-{
-    QMap<quint32, ServoFaultCodeInfo> table;
-    auto addCode = [&table](quint32 code, const char *name, bool resettable) {
-        table.insert(code, ServoFaultCodeInfo{name, resettable});
-    };
-
-    // 一、警告码一览表（可复位警告，No.3）
-    addCode(0x01080108u, "写入存储参数故障", true);
-    addCode(0x11080108u, "读取存储参数故障", true);
-    addCode(0x21080108u, "写EEPROM校验错误", true);
-    addCode(0x31080108u, "读EEPROM校验错误", true);
-    addCode(0x41080108u, "单个数据读取频繁", true);
-    addCode(0x31200120u, "电机与驱动器功率不匹配", true);
-    addCode(0x01210121u, "伺服使能指令重复", true);
-    addCode(0x06000600u, "惯量辨识失败", true);
-    addCode(0x06010601u, "原点回归警告", true);
-    addCode(0x16010601u, "原点复归开关异常", true);
-    addCode(0x26010601u, "回零模式设置异常", true);
-    addCode(0x07300730u, "编码器电池警告", true);
-    addCode(0x09000900u, "DI紧急刹车", true);
-    addCode(0x09010901u, "停机方式无效警告", true);
-    addCode(0x09020902u, "DI设置无效", true);
-    addCode(0x19020902u, "DO设置无效", true);
-    addCode(0x29020902u, "转矩到达设置无效", true);
-    addCode(0x39020902u, "位置比较目标无效警告", true);
-    addCode(0x09080908u, "机型识别校验码失败", true);
-    addCode(0x09090909u, "电机过载警告", true);
-    addCode(0x09100910u, "控制电过压", true);
-    addCode(0x09200920u, "制动电阻过载", true);
-    addCode(0x09210921u, "动态制动电阻过载", true);
-    addCode(0x09220922u, "外接制动电阻阻值过小", true);
-    addCode(0x09240924u, "泄放管过温", true);
-    addCode(0x09410941u, "变更参数需重新上电生效", true);
-    addCode(0x09420942u, "参数存储频繁", true);
-    addCode(0x09500950u, "正向超程警告", true);
-    addCode(0x09520952u, "反向超程警告", true);
-    addCode(0x0A410A41u, "转矩波动补偿失败", true);
-
-    // 一、第1类（No.1）可复位故障
-    addCode(0x01500150u, "STO进入安全状态", true);
-    addCode(0x11500150u, "STO输入状态异常", true);
-    addCode(0x21500150u, "Buffer5V电压检测异常", true);
-    addCode(0x31500150u, "STO输入电路硬件诊断失败", true);
-    addCode(0x41500150u, "PWM Buffer硬件诊断失败", true);
-    addCode(0x22080208u, "编码器通讯超时", true);
-    addCode(0x32080208u, "电流采样故障", true);
-    addCode(0x42080208u, "FPGA电流环运算超时", true);
-    addCode(0x03200320u, "制动电阻过载", true);
-    addCode(0x03202320u, "泄放故障", true);
-    addCode(0x03210321u, "动态制动电阻过载", true);
-    addCode(0x04000400u, "主回路电过压", true);
-    addCode(0x04100410u, "主回路电欠压", true);
-    addCode(0x14100410u, "主回路断电", true);
-    addCode(0x05000500u, "电机超速", true);
-    addCode(0x15000500u, "速度反馈溢出", true);
-    addCode(0x25000500u, "FPGA位置反馈脉冲过速", true);
-    addCode(0x06020602u, "角度辨识失败", true);
-    addCode(0x26020602u, "UVW三相相序接反", true);
-    addCode(0x06050605u, "使能速度过快", true);
-    addCode(0x06200620u, "电机过载", true);
-    addCode(0x06300630u, "堵转电机过热保护", true);
-    addCode(0x06400640u, "逆变IGBT结温过高", true);
-    addCode(0x16400640u, "续流二极管结温过高", true);
-    addCode(0x06500650u, "散热片温度过高", true);
-    addCode(0x09390939u, "电机动力线断线", true);
-    addCode(0x0B000B00u, "位置偏差过大", true);
-    addCode(0x1B000B00u, "位置偏差溢出", true);
-
-    // 二、第2类（No.2）可复位故障
-    addCode(0x01220122u, "多圈绝对值编码器设置错误", true);
-    addCode(0x11220122u, "DI功能分配故障", true);
-    addCode(0x21220122u, "DO功能分配故障", true);
-    addCode(0x31220122u, "旋转模式上限过大", true);
-    addCode(0x04200420u, "主回路电缺相", true);
-    addCode(0x04300430u, "控制电源欠压", true);
-    addCode(0x06610661u, "STune调整失败", true);
-    addCode(0x06620662u, "ETune调整失败", true);
-    addCode(0x06630663u, "ITune调整失败", true);
-    addCode(0x06640664u, "共振过大", true);
-    addCode(0x07310731u, "编码器电池失效与多圈圈数丢失", true);
-    addCode(0x07330733u, "编码器多圈计数错误", true);
-    addCode(0x07350735u, "编码器多圈计数溢出", true);
-    addCode(0x07600760u, "编码器过热", true);
-    addCode(0x1B010B01u, "位置指令增量单次过大", true);
-    addCode(0x2B010B01u, "位置指令增量持续过大", true);
-    addCode(0x3B010B01u, "指令溢出", true);
-    addCode(0x4B016B01u, "单圈绝对值模式目标位置超过机械单圈位置的最大值", true);
-    addCode(0x1B030B03u, "电子齿轮比设定超限-第一组电子齿轮比", true);
-    addCode(0x0E080E08u, "同步信号丢失", true);
-    addCode(0x1E080E08u, "状态切换异常", true);
-    addCode(0x2E080E08u, "IRQ丢失", true);
-    addCode(0x3E080E08u, "网线连接不可靠", true);
-    addCode(0x4E080E08u, "数据丢帧保护异常", true);
-    addCode(0x5E080E08u, "数据帧转发异常", true);
-    addCode(0x6E080E08u, "数据更新超时异常", true);
-    addCode(0x0E090E09u, "软限位位置设定错误", true);
-    addCode(0x1E090E09u, "原点位置设定错误", true);
-    addCode(0x2E090E09u, "齿轮比超限", true);
-    addCode(0x3E090E09u, "无同步信号", true);
-    addCode(0x5E090E09u, "PDO映射超限", true);
-    addCode(0x0E100E10u, "MailBox设定异常保护", true);
-    addCode(0x1E100E10u, "SM2配置异常", true);
-    addCode(0x2E100E10u, "SM3配置异常", true);
-    addCode(0x3E100E10u, "PDO看门狗设定异常", true);
-    addCode(0x4E100E10u, "PLL未完成异常保护（没有sync信号错误）", true);
-    addCode(0x5E100E10u, "PHY配置异常", true);
-    addCode(0x0E110E11u, "ESI校验错误", true);
-    addCode(0x1E110E11u, "总线读取EEPROM失败", true);
-    addCode(0x2E110E11u, "总线更新EEPROM失败", true);
-    addCode(0x3E110E11u, "ESI与驱动器型号不匹配", true);
-    addCode(0x0E130E13u, "EtherCAT同步周期设定错误", true);
-    addCode(0x0E150E15u, "EtherCAT同步周期误差过大", true);
-
-    // 二、第1类（No.1）不可复位故障
-    addCode(0x01010101u, "H02及以上功能码参数异常", false);
-    addCode(0x11010101u, "H00/H01组参数异常", false);
-    addCode(0x21010101u, "参数总个数变化读写时地址异常", false);
-    addCode(0x01020102u, "FPGA通信建立的异常", false);
-    addCode(0x11020102u, "FPGA初始化启动异常", false);
-    addCode(0x81020102u, "FPGA与MCU版本号不匹配", false);
-    addCode(0x11040104u, "MCU运行超时（MCU死机）", false);
-    addCode(0x21040104u, "FPGA运行超时（FPGA死机）", false);
-    addCode(0x41040104u, "MCU指令更新超时", false);
-    addCode(0x01200120u, "无法识别的编码器类型", false);
-    addCode(0x11200120u, "无对应型号电机", false);
-    addCode(0x21200120u, "无对应型号驱动器", false);
-    addCode(0x51200120u, "电机与驱动器电流匹配错误", false);
-    addCode(0x61200120u, "FPGA与电机型号不匹配", false);
-    addCode(0x71200120u, "机型参数校验错误", false);
-    addCode(0x81200120u, "结温参数校验错误", false);
-    addCode(0x01360136u, "编码器ROM电机参数校验异常", false);
-    addCode(0x11360136u, "编码器ROM电机参数读取异常", false);
-    addCode(0x21360136u, "转矩波动补偿数据校验错误", false);
-    addCode(0x01400140u, "加密芯片校验故障", false);
-    addCode(0x11400140u, "MCU密钥计算失败", false);
-    addCode(0x21400140u, "加密芯片版本错误", false);
-    addCode(0x31400140u, "加密芯片损坏", false);
-    addCode(0x02010201u, "P相过流", false);
-    addCode(0x12010201u, "U相过流", false);
-    addCode(0x22010201u, "V相过流", false);
-    addCode(0x42010201u, "N相过流", false);
-    addCode(0x02100210u, "输出对地短路", false);
-    addCode(0x02340234u, "飞车", false);
-    addCode(0x07400740u, "绝对值编码器通讯超时", false);
-    addCode(0x27400740u, "绝对值编码器错误", false);
-    addCode(0x37400740u, "绝对值编码器单圈解算错误", false);
-    addCode(0x67400740u, "编码器写入故障", false);
-    addCode(0x07650765u, "尼康编码器过热或者过速", false);
-    addCode(0x0A330A33u, "编码器读写校验异常", false);
-    addCode(0x0E120E12u, "EtherCAT初始化失败", false);
-    addCode(0x0E160E16u, "MCU与ESC通信异常", false);
-
-    return table;
-}
-
-const QMap<quint32, ServoFaultCodeInfo> &servoFaultCodeTable()
-{
-    static const QMap<quint32, ServoFaultCodeInfo> table = buildServoFaultCodeTable();
-    return table;
 }
 }
 
@@ -901,10 +733,7 @@ void MainWindow::applyToolButtonStyles(const QList<QToolButton*> &buttons)
             if (name == "TBtn_Stepmove" || name == "TBtn_MoveMode" ||
                 name == "TBtn_ControlMode" || name == "TBtn_RemoveWarning" ||
                 name == "TBtn_HomePage" || name == "TBtn_PermissionPage" ||
-                name == "TBtn_HistoryRecord" || name == "TBtn_SixAxies" ||
-                name.startsWith("btnStepTargetAxis") ||
-                name.startsWith("btnStepTargetSixAxis") ||
-                name == "btnStepTargetAgv") {
+                name == "TBtn_HistoryRecord" || name == "TBtn_SixAxies") {
                 continue;
             }
             btn->setStyleSheet(style);
@@ -1153,12 +982,12 @@ void MainWindow::initSpeedGaugeUI()
         {ui->widget_test2, "robot_ArcGauge_J2Height", "升降高度", "mm", -850, 1150, 0},
         {ui->widget_test3, "robot_ArcGauge_J3Length", "总伸展长度", "mm", 0, 1600, 0},
         {ui->widget_test4, "robot_ArcGauge_J4Angle", "末端角度", "°", -180, 180, 1},
-        {ui->widget_SixAxies_1, "robot_ArcGauge_SixAxis1", "六轴 1", "°", -15, 15, 2},
-        {ui->widget_SixAxies_2, "robot_ArcGauge_SixAxis2", "六轴 2", "°", -15, 15, 2},
-        {ui->widget_SixAxies_3, "robot_ArcGauge_SixAxis3", "六轴 3", "°", -17, 17, 2},
-        {ui->widget_SixAxies_4, "robot_ArcGauge_SixAxis4", "六轴 4", "mm", -110, 110, 2},
-        {ui->widget_SixAxies_5, "robot_ArcGauge_SixAxis5", "六轴 5", "mm", -110, 110, 2},
-        {ui->widget_SixAxies_6, "robot_ArcGauge_SixAxis6", "六轴 6", "mm", -90, 90, 2}
+        {ui->widget_SixAxies_1, "robot_ArcGauge_SixAxis1", "RX", "°", -15, 15, 2},
+        {ui->widget_SixAxies_2, "robot_ArcGauge_SixAxis2", "RY", "°", -15, 15, 2},
+        {ui->widget_SixAxies_3, "robot_ArcGauge_SixAxis3", "RZ", "°", -12, 12, 2},
+        {ui->widget_SixAxies_4, "robot_ArcGauge_SixAxis4", "X", "mm", -110, 110, 2},
+        {ui->widget_SixAxies_5, "robot_ArcGauge_SixAxis5", "Y", "mm", -110, 110, 2},
+        {ui->widget_SixAxies_6, "robot_ArcGauge_SixAxis6", "Z", "mm", -90, 90, 2}
     };
 
     for (auto &cfg : configs) {
@@ -1287,18 +1116,9 @@ void MainWindow::updateRobotTotalPower(quint16 powerValue)
 
     QQuickItem *root = m_robotTotalPowerQml->rootObject();
     const qreal numericPower = static_cast<qreal>(powerValue);
-    const QVariant currentPowerProp = root->property("currentPower");
-    const bool powerChanged = !currentPowerProp.isValid()
-                              || !qFuzzyCompare(currentPowerProp.toReal() + 1.0,
-                                                numericPower + 1.0);
-
-    if (powerChanged) {
-        // 值变化时仅通过属性变更触发一次采样，避免重复点导致趋势图抖动。
-        root->setProperty("currentPower", numericPower);
-    } else {
-        // 值不变时手动补点，保证趋势线持续前进。
-        QMetaObject::invokeMethod(root, "appendSample", Q_ARG(QVariant, numericPower));
-    }
+    root->setProperty("currentPower", numericPower);
+    // 即使值不变也追加样本，保证趋势图持续可见。
+    QMetaObject::invokeMethod(root, "appendSample", Q_ARG(QVariant, numericPower));
 }
 
 void MainWindow::initInclinometerCards()
@@ -1328,60 +1148,27 @@ void MainWindow::initInclinometerCards()
         }
 
         auto *layout = new QVBoxLayout(widget);
-        layout->setContentsMargins(8, 5, 8, 5);
-        layout->setSpacing(2);
-
-        auto *headRow = new QHBoxLayout();
-        headRow->setContentsMargins(0, 0, 0, 0);
-        headRow->setSpacing(6);
-
-        auto *axisLabel = new QLabel(axisTitle, widget);
-        axisLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-        axisLabel->setStyleSheet(QStringLiteral(
-            "color: #A8DAFF;"
-            "font: 700 11px 'Noto Sans CJK SC';"
-            "border: none;"
-            "background: transparent;"));
-
-        auto *thresholdLabel = new QLabel(QStringLiteral("阈值: 1.00°"), widget);
-        thresholdLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        thresholdLabel->setStyleSheet(QStringLiteral(
-            "color: #89D1FF;"
-            "font: 600 10px 'Noto Sans CJK SC';"
-            "border: none;"
-            "background: transparent;"));
-
-        headRow->addWidget(axisLabel, 1);
-        headRow->addWidget(thresholdLabel, 0);
-
-        auto *valueRow = new QHBoxLayout();
-        valueRow->setContentsMargins(0, 0, 0, 0);
-        valueRow->setSpacing(6);
+        layout->setContentsMargins(6, 8, 6, 8);
+        layout->setSpacing(0);
 
         valueLabel = new QLabel(QStringLiteral("0.00°"), widget);
-        valueLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-        valueLabel->setProperty("normalColor", QStringLiteral("#EAF7FF"));
-        valueLabel->setProperty("alarmColor", QStringLiteral("#FFB366"));
+        valueLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
         valueLabel->setStyleSheet(QStringLiteral(
             "color: #EAF7FF;"
-            "font: 800 24px 'Noto Sans CJK SC';"
+            "font: 700 28px 'Noto Sans CJK SC';"
             "border: none;"
             "background: transparent;"));
 
-        auto *statusLabel = new QLabel(QStringLiteral("状态: 正常"), widget);
-        statusLabel->setObjectName(QStringLiteral("label_threshold_state"));
-        statusLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        statusLabel->setStyleSheet(QStringLiteral(
-            "color: #7CFFBE;"
-            "font: 700 11px 'Noto Sans CJK SC';"
+        auto *axisLabel = new QLabel(axisTitle, widget);
+        axisLabel->setAlignment(Qt::AlignHCenter | Qt::AlignBottom);
+        axisLabel->setStyleSheet(QStringLiteral(
+            "color: #A8DAFF;"
+            "font: 700 14px 'Noto Sans CJK SC';"
             "border: none;"
             "background: transparent;"));
 
-        valueRow->addWidget(valueLabel, 1);
-        valueRow->addWidget(statusLabel, 0);
-
-        layout->addLayout(headRow, 0);
-        layout->addLayout(valueRow, 1);
+        layout->addWidget(valueLabel, 1);
+        layout->addWidget(axisLabel, 0);
     };
 
     initOne(m_inclinometerXCard, QStringLiteral("X轴倾角"), m_inclinometerXValueLabel);
@@ -1397,30 +1184,7 @@ void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
 
     const qint16 signedRaw = static_cast<qint16>(rawValue);
     const qreal degree = static_cast<qreal>(signedRaw) / 100.0;
-    const bool isOverThreshold = qAbs(degree) >= 1.0;
-
     targetLabel->setText(QString::number(degree, 'f', 2) + QStringLiteral("°"));
-    const QString valueColor = isOverThreshold
-                               ? targetLabel->property("alarmColor").toString()
-                               : targetLabel->property("normalColor").toString();
-    targetLabel->setStyleSheet(QStringLiteral(
-        "color: %1;"
-        "font: 800 24px 'Noto Sans CJK SC';"
-        "border: none;"
-        "background: transparent;").arg(valueColor));
-
-    if (QWidget *card = targetLabel->parentWidget()) {
-        if (QLabel *statusLabel = card->findChild<QLabel*>(QStringLiteral("label_threshold_state"))) {
-            statusLabel->setText(isOverThreshold ? QStringLiteral("状态: 超限") : QStringLiteral("状态: 正常"));
-            statusLabel->setStyleSheet(QStringLiteral(
-                "color: %1;"
-                "font: 700 12px 'Noto Sans CJK SC';"
-                "border: none;"
-                "background: transparent;")
-                                           .arg(isOverThreshold ? QStringLiteral("#FFB366")
-                                                                : QStringLiteral("#7CFFBE")));
-        }
-    }
 }
 
 //模拟速度
@@ -1443,8 +1207,10 @@ void MainWindow::setupDataSimulation()
 
     // 临时测试：使用 pushButton_5 (工艺页) 手动触发力控报警
     // 因为 Btn_Test 在当前UI中不存在
+    // if (ui->pushButton_5) {
     //     ui->pushButton_5->setText("测试报警");
     //     connect(ui->pushButton_5, &QPushButton::clicked, this, [this]() {
+    //         qCDebug(lcMainWindow) << "测试按钮点击：手动触发力控超限报警";
     //         showAlarm("力控超限警报触发\n请点击下方按钮清除报警\n请手动移出超限位置", "#ff8800");
     //     });
     // }
@@ -1592,7 +1358,7 @@ void MainWindow::initSliderEditUI()
  * @param allNonAGVSliders 页面内所有非 AGV 的滑块列表（用于联动计算）
  */
 void MainWindow::onNonAGVSliderEditChanged(TechSliderEdit *changedSlider, double newValue,
-                                            const QList<TechSliderEdit*>& allNonAGVSliders)
+                                           const QList<TechSliderEdit*> &allNonAGVSliders)
 {
     qCDebug(lcMainWindow) << "非AGV TechSliderEdit值变化：" << changedSlider->objectName()
              << "新值:" << newValue;
@@ -1726,6 +1492,7 @@ void MainWindow::setupVirtualKeyboard()
 }
 
 
+
 /*********************************历史记录**********************/
 
 void MainWindow::connectRecordSignals()
@@ -1733,6 +1500,7 @@ void MainWindow::connectRecordSignals()
     /**
      * @brief 连接界面控件到操作记录器的记录信号
      *
+     * 遍历页面中的滑块、按钮、工具按钮等控件，连接其产生的用户操作信号
      * 到 `OperationRecorder` 的记录函数，从而实现全局操作记录与审计。
      */
     // 连接所有TechSliderEdit的记录信号
@@ -1741,6 +1509,8 @@ void MainWindow::connectRecordSignals()
         // 获取控件所在的页面
         QWidget *page = qobject_cast<QWidget*>(slider->parent());
         int pageIndex = -1;
+
+        // 查找控件属于哪个StackedWidget页面
         while (page && page != this) {
             QStackedWidget *stack = qobject_cast<QStackedWidget*>(page->parent());
             if (stack) {
@@ -2096,10 +1866,13 @@ void MainWindow::setupAdminPasswordPage()
         "background-color: #55007f; color: #ffaa00; font-weight: bold; border: 2px solid #ffaa00;"
     );
     featureButton->setVisible(false);
+
+    // 注销按钮
     QPushButton *logoutButton = new QPushButton("注销 (返回操作员)", container);
     logoutButton->setObjectName("logoutButton");
     logoutButton->setVisible(false); // 默认隐藏，登录后显示
 
+    // 网络配置 (左右排布：WIN7_IP 和 远程模拟器)
     QWidget *netConfigSection = new QWidget(container);
     netConfigSection->setObjectName("netConfigSection");
     QVBoxLayout *netMainLayout = new QVBoxLayout(netConfigSection);
@@ -2905,10 +2678,6 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     QString pageName = m_pageNames.value(currentPage, "未知");
     const bool isRobotPage = (currentPage == 0 || pageName == "机械臂" || pageName == "page_Robot");
     const bool isSixAxisPage = (currentPage == 3 || pageName == "六自由度" || pageName == "page_SixAxies");
-    const bool isJointModeByUiText = (ui && ui->TBtn_MoveMode
-                                      && ui->TBtn_MoveMode->text().trimmed() == "关节模式");
-    const bool isJointModeForExternal = (m_isJointMode || isJointModeByUiText);
-    const bool isSixAxisSpecialKey = (isSixAxisPage && (keyNumber == 13 || keyNumber == 14));
 
     // 首页外部按键提示：
     // ○1/○2 检查主设备地址150的bit1；○3/○4 检查bit2。
@@ -2932,7 +2701,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     // - 点动模式：仅允许在[关节]模式下执行；
     // - 步进模式：允许执行（由按键映射与目标选择进一步约束）。
     // 释放事件仍继续处理，避免切模后寄存器保持在按下态。
-    if ((!m_stepModeEnabled && !isJointModeForExternal) && pressed && !isSixAxisSpecialKey) {
+    if ((!m_stepModeEnabled && !m_isJointMode) && pressed) {
         qCDebug(lcMainWindow) << "外部按键忽略：当前未处于可执行模式，按键○" << keyNumber
                  << (pressed ? "按下" : "释放");
         return;
@@ -2942,69 +2711,6 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     // - 点动模式：按键○1~○12映射到613写入±1~±6；
     // - 步进模式：按键○1~○12映射轴1~6，写614轴号、601步进值（奇数键写相反数），再写615触发。
     if (isSixAxisPage) {
-        // 第4页补充：点动+关节模式时，外部按键○13/○14固定走500/514链路。
-        // - 按下：先写500=5，再写514（○13->2，○14->4）
-        // - 松开：写514=0
-        if (keyNumber == 13 || keyNumber == 14) {
-            if (m_stepModeUnknown) {
-                if (pressed) {
-                    qCDebug(lcMainWindow) << "六自由度外部按键忽略：当前模式未确定，按键○" << keyNumber;
-                }
-                return;
-            }
-
-            // 仅在点动模式且关节模式下允许执行。
-            if (m_stepModeEnabled || !isJointModeForExternal) {
-                if (pressed) {
-                    qCDebug(lcMainWindow) << "六自由度外部按键忽略：按键○" << keyNumber
-                                          << "仅支持点动+关节模式";
-                }
-                return;
-            }
-
-            if (!pressed) {
-                m_sixAxisExternalKeyPressed[keyNumber] = false;
-                if (m_sixAxisActiveKey == keyNumber) {
-                    m_sixAxisActiveKey = -1;
-                }
-                ++m_sixAxisExternalWriteSeq;
-                writeToMainDevice(514, 0);
-                return;
-            }
-
-            if (m_sixAxisExternalKeyPressed.value(keyNumber, false)) {
-                qCDebug(lcMainWindow) << "六自由度外部按键去重：按键○" << keyNumber << "重复按下已忽略";
-                return;
-            }
-
-            const int value514 = (keyNumber == 13) ? 2 : 4;
-            m_sixAxisExternalKeyPressed[keyNumber] = true;
-            m_sixAxisActiveKey = keyNumber;
-            const quint64 seq = ++m_sixAxisExternalWriteSeq;
-
-            writeToMainDevice(500, 5);
-
-            auto stagedWrite514 = [this, seq, keyNumber, value514]() {
-                if (seq != m_sixAxisExternalWriteSeq) {
-                    return;
-                }
-                if (m_sixAxisActiveKey != keyNumber) {
-                    return;
-                }
-                if (!m_sixAxisExternalKeyPressed.value(keyNumber, false)) {
-                    return;
-                }
-                writeToMainDevice(514, value514);
-            };
-
-            QTimer::singleShot(25, this, stagedWrite514);
-            QTimer::singleShot(90, this, stagedWrite514);
-
-            qCDebug(lcMainWindow) << "六自由度点动/关节按键○" << keyNumber
-                                  << "-> 500=5, 514=" << value514;
-            return;
-        }
-
         if (keyNumber < 1 || keyNumber > 12) {
             return;
         }
@@ -3022,6 +2728,11 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                     writeToMainDevice(601, 0);
                     writeToMainDevice(615, 0);
                 });
+
+                QLineEdit *sixStepValueEdit = findChild<QLineEdit*>("lineEdit_SixAxies_StepValue");
+                if (sixStepValueEdit) {
+                    sixStepValueEdit->clear();
+                }
                 return;
             }
 
@@ -3425,34 +3136,6 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         return;
     }
 
-    const bool agvStepJointMode = isHomeStepJointAgvTargetActive();
-    if (agvStepJointMode) {
-        if (!pressed) {
-            writeAGVRegisterBits(0,
-                                 {
-                                     qMakePair(5, false),
-                                 },
-                                 "○9步进释放(bit5=0)");
-            appendAgvExternalKeyRecord(keyNumber, false);
-            return;
-        }
-
-        writeAGVRegisterBits(0,
-                             {
-                                 qMakePair(5, true),
-                             },
-                             "○9步进触发(bit5=1)");
-
-        double stepValue = 0.0;
-        if (readUnifiedStepValue(stepValue)) {
-            stepValue = -stepValue;
-            writeToAGVDevice(5, static_cast<int>(qRound(stepValue)));
-        }
-
-        appendAgvExternalKeyRecord(keyNumber, true);
-        return;
-    }
-
     writeAGVRegisterBits(0,
                          {
                              qMakePair(3, pressed),
@@ -3708,6 +3391,10 @@ void MainWindow::onModbusConnected()
         }
     });
     modeStartupRetryTimer->start();
+
+    if (isBigFeatureEnabled("tcp_transmission")) {
+        enableTcpTransmission(true);
+    }
 
     MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Connected);
 }
@@ -4018,44 +3705,6 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         updateRobotTotalPower(value);
     }
 
-    if (address == 102) {
-        const quint16 oldValue = m_mainRegister102Shadow;
-        const bool oldValid = m_mainRegister102Valid;
-        m_mainRegister102Shadow = value;
-        m_mainRegister102Valid = true;
-
-        const bool oldBit3 = oldValid && (((oldValue >> 3) & 0x01) == 1);
-        const bool oldBit2 = oldValid && (((oldValue >> 2) & 0x01) == 1);
-        const bool oldBit9 = oldValid && (((oldValue >> 9) & 0x01) == 1);
-        const bool newBit3 = (((value >> 3) & 0x01) == 1);
-        const bool newBit2 = (((value >> 2) & 0x01) == 1);
-        const bool newBit9 = (((value >> 9) & 0x01) == 1);
-        if (oldBit3 != newBit3 || oldBit2 != newBit2 || oldBit9 != newBit9) {
-            if (!newBit3 && !newBit2) {
-                m_axisLimitAcked = false;
-                m_axisLimitAckSignature.clear();
-                hideAxisLimitAlarm();
-            }
-            if (!newBit9) {
-                hideServoFaultAlarm(true);
-            }
-            QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
-        }
-    }
-
-    if (address == 124) {
-        m_mainRegister124Shadow = value;
-        m_mainRegister124Valid = true;
-
-        if (m_mainRegister102Valid) {
-            const bool limitBitActive = (((m_mainRegister102Shadow >> 3) & 0x01) == 1)
-                                        || (((m_mainRegister102Shadow >> 2) & 0x01) == 1);
-            if (limitBitActive) {
-                QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
-            }
-        }
-    }
-
     const QStringList targetLabels = {
         "robot_ArcGauge_J1Angle", "robot_ArcGauge_J2Height", "robot_ArcGauge_J3Length", "robot_ArcGauge_J4Angle"
     };
@@ -4169,7 +3818,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
     if (address == 150) {
         m_mainRegister150Shadow = value;
         m_mainRegister150Valid = true;
-        const bool emergencyStop = ((value & 0x01) == 1);
+        const bool emergencyStop = (value == 1);
         if (emergencyStop != m_robotArmEmergency150Flag) {
             m_robotArmEmergency150Flag = emergencyStop;
             if (emergencyStop && m_recorder) {
@@ -5156,18 +4805,6 @@ void MainWindow::onAGVWordVariableChanged(int address, quint16 value)
     } else if (address == 103) {
         int batteryPercent = qMin(static_cast<int>(value), 100);
         onAGVUpdateStatusLabel("label_battery2_text", QString("%1%").arg(batteryPercent));
-    } else if (address == 156) {
-        const bool isCharging = (value == 1);
-
-        QObject *root = ui->StackedWidget;
-        BatteryWidget *bw = root ? root->findChild<BatteryWidget*>("progressBar_battery1", Qt::FindChildrenRecursively) : nullptr;
-        if (!bw) {
-            bw = this->findChild<BatteryWidget*>("progressBar_battery1", Qt::FindChildrenRecursively);
-        }
-
-        if (bw) {
-            bw->setCharging(isCharging);
-        }
     }
 
     // 特别处理行驶速度（地址104）
@@ -5738,7 +5375,6 @@ void MainWindow::writeToAGVDevice(int address, int value)
 
         warnDialog.setFixedSize(350, 120);
         warnDialog.exec();
-        return;
     }
 
     if (isFeatureEnabled("modbus_agv", "modbus_agv.write_logs")) {
@@ -5827,7 +5463,6 @@ bool MainWindow::writeAGVRegisterBits(int address,
 
         warnDialog.setFixedSize(350, 120);
         warnDialog.exec();
-        return false;
     }
 
     quint16 baseValue = m_agvRegisterShadow.value(address, 0);
@@ -5898,7 +5533,7 @@ void MainWindow::onControlModeClicked()
         m_controlMode = WIRELESS_MODE;
         m_controlModeBtn->setText("遥控器控制");
 
-        // 遥控器控制 -> AGV设备500写1
+        // 无线控制 -> AGV设备500写1
         writeToAGVDevice(500, 1);
 
         qCDebug(lcMainWindow) << "切换到遥控器控制模式";
@@ -5914,11 +5549,9 @@ void MainWindow::onControlModeClicked()
         m_controlMode = WIRED_MODE;
         m_controlModeBtn->setText("示教器控制");
 
-        // 示教器控制 -> AGV设备500写2
+        // 有线控制 -> AGV设备500写2
         writeToAGVDevice(500, 2);
 
-        // ... 省略逻辑 ...
-        
         qCDebug(lcMainWindow) << "切换到示教器控制模式";
         ui->statusBar->showMessage("已切换到示教器控制模式", 2000);
 
@@ -5950,8 +5583,8 @@ void MainWindow::onControlModeClicked()
     record.controlName = "TBtn_ControlMode";
     record.controlType = "QToolButton";
     record.operation = "mode_switch";
-    record.oldValue = (m_controlMode == WIRED_MODE) ? "遥控器控制" : "示教器控制";
-    record.newValue = (m_controlMode == WIRED_MODE) ? "示教器控制" : "遥控器控制";
+    record.oldValue = (m_controlMode == WIRED_MODE) ? "无线控制" : "有线控制";
+    record.newValue = (m_controlMode == WIRED_MODE) ? "有线控制" : "无线控制";
     m_recorder->addRecord(record);
 }
 // void MainWindow::onEnableButtonPressed()
@@ -6219,8 +5852,8 @@ void MainWindow::onAGVOABtnClicked()
 void MainWindow::onAGVParkBtnClicked()
 {
     if (m_controlMode != WIRED_MODE) {
-        ui->statusBar->showMessage("当前为遥控器控制，驻车功能仅在示教器控制模式下生效", 3000);
-        qWarning() << "驻车请求被拒绝：当前不是示教器控制模式";
+        ui->statusBar->showMessage("当前为无线控制，驻车功能仅在有线控制模式下生效", 3000);
+        qWarning() << "驻车请求被拒绝：当前不是有线控制模式";
         return;
     }
 
@@ -6433,33 +6066,6 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         return;
     }
 
-    const bool agvStepJointMode = isHomeStepJointAgvTargetActive();
-    if (agvStepJointMode) {
-        if (!pressed) {
-            writeAGVRegisterBits(0,
-                                 {
-                                     qMakePair(5, false),
-                                 },
-                                 "○10步进释放(bit5=0)");
-            appendAgvExternalKeyRecord(keyNumber, false);
-            return;
-        }
-
-        writeAGVRegisterBits(0,
-                             {
-                                 qMakePair(5, true),
-                             },
-                             "○10步进触发(bit5=1)");
-
-        double stepValue = 0.0;
-        if (readUnifiedStepValue(stepValue)) {
-            writeToAGVDevice(5, static_cast<int>(qRound(stepValue)));
-        }
-
-        appendAgvExternalKeyRecord(keyNumber, true);
-        return;
-    }
-
     writeAGVRegisterBits(0,
                          {
                              qMakePair(2, pressed),
@@ -6601,13 +6207,6 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         m_isSteeringAlarmActive = false;
         hideAlarm();
         qCDebug(lcMainWindow) << "模式1/2/3之间切换，不弹出提示窗口";
-        return;
-    }
-
-    if (m_controlMode == WIRELESS_MODE) {
-        m_isSteeringAlarmActive = false;
-        hideAlarm();
-        qCDebug(lcMainWindow) << "遥控器控制模式下切换底盘模式，不弹出提示窗口";
         return;
     }
 
@@ -6760,8 +6359,8 @@ void MainWindow::setupTcpTransmissionUI()
         moveModeLabel->setFixedHeight(12);
         centerLayout->addWidget(moveModeLabel);
         
-        // 控制模式 (示教器/遥控器)
-        QLabel *controlModeLabel = new QLabel(m_controlMode == WIRED_MODE ? "示教器控制" : "遥控器控制", centerWidget);
+        // 控制模式 (有线/无线)
+        QLabel *controlModeLabel = new QLabel(m_controlMode == WIRED_MODE ? "有线控制" : "无线控制", centerWidget);
         controlModeLabel->setObjectName("statusBarControlModeLabel");
         controlModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
                                         .arg(m_controlMode == WIRED_MODE ? "#ffffff" : "#ffff00"));
@@ -7853,35 +7452,6 @@ QString MainWindow::selectedStepTargetName() const
     }
 }
 
-bool MainWindow::isHomeStepJointAgvTargetActive() const
-{
-    if (!ui || !ui->StackedWidget) {
-        return false;
-    }
-
-    return (ui->StackedWidget->currentIndex() == 0
-            && !m_stepModeUnknown
-            && m_stepModeEnabled
-            && m_isJointMode
-            && selectedStepTargetRegister() == 504);
-}
-
-bool MainWindow::readUnifiedStepValue(double &outValue) const
-{
-    if (!m_stepValueEdit || m_stepValueEdit->text().isEmpty()) {
-        return false;
-    }
-
-    bool ok = false;
-    const double value = m_stepValueEdit->text().toDouble(&ok);
-    if (!ok) {
-        return false;
-    }
-
-    outValue = value;
-    return true;
-}
-
 void MainWindow::updateStepMoveGroupBoxState()
 {
     if (!ui) {
@@ -8015,20 +7585,6 @@ void MainWindow::setupStepMoveControl()
             writeToMainDevice(500, targetCode);
             ui->statusBar->showMessage(QString("步进目标切换：%1 (500=%2)")
                                            .arg(btn->text()).arg(targetCode), 1500);
-
-            // 首页 + 步进 + 关节 + AGV目标：同步触发 AGV 步进入口。
-            if (n == "btnStepTargetAgv" && isHomeStepJointAgvTargetActive()) {
-                writeAGVRegisterBits(0,
-                                     {
-                                         qMakePair(4, true),
-                                     },
-                                     "AGV步进目标选中(bit4=1)");
-
-                double stepValue = 0.0;
-                if (readUnifiedStepValue(stepValue)) {
-                    writeToAGVDevice(5, static_cast<int>(qRound(stepValue)));
-                }
-            }
         }, Qt::UniqueConnection);
     }
 
@@ -8036,15 +7592,14 @@ void MainWindow::setupStepMoveControl()
     QToolButton *axis2Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis2");
     QToolButton *axis3Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis3");
     QToolButton *axis4Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis4");
-    QToolButton *axis5Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis5_2");
-    if (!axis5Btn2) {
-        axis5Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis5");
-    }
+    QToolButton *axis5Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis5");
     QLineEdit *sixStepValueEdit = findChild<QLineEdit*>("lineEdit_SixAxies_StepValue");
 
-    if (axis5Btn2) {
-        axis5Btn2->setText("轴5");
-    }
+    if (axis1Btn2) axis1Btn2->setText("RX");
+    if (axis2Btn2) axis2Btn2->setText("RY");
+    if (axis3Btn2) axis3Btn2->setText("RZ");
+    if (axis4Btn2) axis4Btn2->setText("X");
+    if (axis5Btn2) axis5Btn2->setText("Y");
 
     QToolButton *axis6Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis6");
     if (!axis6Btn2) {
@@ -8053,10 +7608,12 @@ void MainWindow::setupStepMoveControl()
         if (stepTargetList2 && stepTargetLayout2) {
             axis6Btn2 = new QToolButton(stepTargetList2);
             axis6Btn2->setObjectName("btnStepTargetSixAxis6");
-            axis6Btn2->setText("轴6");
+            axis6Btn2->setText("Z");
             axis6Btn2->setCheckable(true);
             stepTargetLayout2->addWidget(axis6Btn2);
         }
+    } else {
+        axis6Btn2->setText("Z");
     }
 
     if (sixStepValueEdit) {
@@ -8090,9 +7647,23 @@ void MainWindow::setupStepMoveControl()
         if (!btn) {
             continue;
         }
-        // 清理可能被通用样式写入的内联样式，恢复 .ui 中 groupBox 的统一样式与 checked 高亮。
-        btn->setStyleSheet(QString());
         btn->setCheckable(true);
+        btn->setStyleSheet(
+            "QToolButton {"
+            "    background-color: #6f7f8f;"
+            "    color: #eaf3ff;"
+            "    border: 1px solid #8698ab;"
+            "    border-radius: 8px;"
+            "    font-weight: bold;"
+            "}"
+            "QToolButton:hover {"
+            "    border: 1px solid #b6c9de;"
+            "}"
+            "QToolButton:checked {"
+            "    background-color: #00a8ff;"
+            "    color: #ffffff;"
+            "    border: 1px solid #7fd8ff;"
+            "}");
         m_sixAxisStepTargetGroup->addButton(btn);
 
         connect(btn, &QToolButton::clicked, this, [this, btn]() {
@@ -8106,7 +7677,7 @@ void MainWindow::setupStepMoveControl()
             else if (n == "btnStepTargetSixAxis2") targetCode = 2;
             else if (n == "btnStepTargetSixAxis3") targetCode = 3;
             else if (n == "btnStepTargetSixAxis4") targetCode = 4;
-            else if (n == "btnStepTargetSixAxis5" || n == "btnStepTargetSixAxis5_2") targetCode = 5;
+            else if (n == "btnStepTargetSixAxis5") targetCode = 5;
             else if (n == "btnStepTargetSixAxis6") targetCode = 6;
 
             writeToMainDevice(614, targetCode);
@@ -8204,11 +7775,6 @@ void MainWindow::setupStepMoveLineEdits()
                 return;
             }
             writeStepValueDoubleToMainDevice(value);
-
-            // 首页 + 步进 + 关节 + AGV目标时，步进输入同步写 AGV 地址5。
-            if (isHomeStepJointAgvTargetActive()) {
-                writeToAGVDevice(5, static_cast<int>(qRound(value)));
-            }
         }, Qt::UniqueConnection);
 
         qCDebug(lcMainWindow) << "统一步进值输入框初始化完成";
@@ -8495,9 +8061,6 @@ void MainWindow::on_TBtn_RemoveWarning_clicked()
         qCDebug(lcMainWindow) << "用户清除了力控超限报警";
     }
 
-    // 复位触发后先隐藏伺服故障窗，若故障仍在将由后续轮询重新弹出。
-    hideServoFaultAlarm(false);
-
     // 更新报警显示
     updateAlarmDisplay();
 
@@ -8538,18 +8101,7 @@ void MainWindow::setupAlarmSystem()
     m_agvBatteryLowAcked = false;
     m_mainRegister150Valid = false;
     m_mainRegister150Shadow = 0;
-    m_mainRegister102Valid = false;
-    m_mainRegister102Shadow = 0;
-    m_mainRegister124Valid = false;
-    m_mainRegister124Shadow = 0;
-    m_axisLimitAcked = false;
-    m_axisLimitAckSignature.clear();
-    m_servoFaultConfirmAcked = false;
-    m_lastServoFaultSignature.clear();
     m_forceLimitFlag = false;
-
-    hideServoFaultAlarm(true);
-    hideAxisLimitAlarm();
 
     // 创建报警检测定时器
     if (!m_alarmCheckTimer) {
@@ -8573,21 +8125,6 @@ void MainWindow::checkAlarmConditions()
     if (isFeatureEnabled("alarm_system", "alarm.emergency_stop")
         && MainDeviceModbusApi::isReady(m_modbusManager)) {
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
-    }
-
-    // 主设备 102.bit9 为伺服故障触发位，周期补读以避免因配置区间未覆盖导致漏检。
-    if (MainDeviceModbusApi::isReady(m_modbusManager)) {
-        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 102, 1);
-        if (m_mainRegister102Valid && (((m_mainRegister102Shadow >> 9) & 0x01) == 1)) {
-            MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 1000, 18);
-        }
-        if (m_mainRegister102Valid) {
-            const bool limitBitActive = (((m_mainRegister102Shadow >> 3) & 0x01) == 1)
-                                        || (((m_mainRegister102Shadow >> 2) & 0x01) == 1);
-            if (limitBitActive) {
-                MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 124, 1);
-            }
-        }
     }
 
     // 调试输出当前报警状态
@@ -8615,8 +8152,6 @@ void MainWindow::checkAlarmConditions()
 
     // 2. 统一更新显示
     updateAlarmDisplay();
-    updateServoFaultAlarmDisplay();
-    updateAxisLimitAlarmDisplay();
 
     if (alarmStatusLogsEnabled) {
         qCDebug(lcMainWindow) << "=== 报警检查结束 ===";
@@ -8937,316 +8472,6 @@ void MainWindow::hideAgvDriveFaultAlarm()
 {
     if (m_agvDriveFaultAlarmWidget && m_agvDriveFaultAlarmWidget->isVisible()) {
         m_agvDriveFaultAlarmWidget->hide();
-    }
-}
-
-void MainWindow::updateServoFaultAlarmDisplay()
-{
-    const bool faultBit9Active = m_mainRegister102Valid && (((m_mainRegister102Shadow >> 9) & 0x01) == 1);
-    if (!faultBit9Active) {
-        hideServoFaultAlarm(true);
-        return;
-    }
-
-    const auto &codeTable = servoFaultCodeTable();
-    QStringList faultLines;
-    QStringList signatureParts;
-    bool hasNonResettableFault = false;
-
-    for (int axisIndex = 0; axisIndex < 9; ++axisIndex) {
-        const int highAddress = 1000 + axisIndex * 2;
-        const int lowAddress = highAddress + 1;
-        if (!g_registerCache.contains(highAddress) || !g_registerCache.contains(lowAddress)) {
-            continue;
-        }
-
-        const quint16 highWord = g_registerCache.value(highAddress);
-        const quint16 lowWord = g_registerCache.value(lowAddress);
-        if (highWord == 0 && lowWord == 0) {
-            continue;
-        }
-
-        const quint32 codeHighLow = (static_cast<quint32>(highWord) << 16) | static_cast<quint32>(lowWord);
-        const quint32 codeLowHigh = (static_cast<quint32>(lowWord) << 16) | static_cast<quint32>(highWord);
-
-        quint32 matchedCode = codeHighLow;
-        ServoFaultCodeInfo codeInfo{"未知故障", false};
-
-        auto it = codeTable.constFind(codeHighLow);
-        if (it != codeTable.constEnd()) {
-            matchedCode = codeHighLow;
-            codeInfo = it.value();
-        } else {
-            it = codeTable.constFind(codeLowHigh);
-            if (it != codeTable.constEnd()) {
-                matchedCode = codeLowHigh;
-                codeInfo = it.value();
-            }
-        }
-
-        const QString codeHex = QString::number(matchedCode, 16).toUpper().rightJustified(8, QChar('0'));
-        faultLines.append(QString("%1轴发生%2（0x%3）")
-                              .arg(axisIndex + 1)
-                              .arg(QString::fromUtf8(codeInfo.name))
-                              .arg(codeHex));
-        signatureParts.append(QString("%1:%2").arg(axisIndex + 1).arg(codeHex));
-        hasNonResettableFault = hasNonResettableFault || !codeInfo.resettable;
-    }
-
-    if (faultLines.isEmpty()) {
-        hideServoFaultAlarm(true);
-        return;
-    }
-
-    const QString signature = signatureParts.join('|');
-    if (signature != m_lastServoFaultSignature) {
-        m_lastServoFaultSignature = signature;
-        m_servoFaultConfirmAcked = false;
-    }
-
-    if (hasNonResettableFault && m_servoFaultConfirmAcked) {
-        return;
-    }
-
-    showServoFaultAlarm(faultLines, hasNonResettableFault, signature);
-}
-
-void MainWindow::showServoFaultAlarm(const QStringList &faultLines,
-                                     bool hasNonResettableFault,
-                                     const QString &signature)
-{
-    if (!isFeatureEnabled("alarm_system", "alarm.popup")) {
-        return;
-    }
-
-    m_lastServoFaultSignature = signature;
-
-    if (!m_servoFaultAlarmWidget) {
-        m_servoFaultAlarmWidget = new QWidget(nullptr);
-        m_servoFaultAlarmWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
-                                                Qt::WindowStaysOnTopHint | Qt::Tool);
-        m_servoFaultAlarmWidget->setObjectName("servoFaultAlarmWidget");
-
-        QVBoxLayout *layout = new QVBoxLayout(m_servoFaultAlarmWidget);
-        layout->setContentsMargins(16, 12, 16, 12);
-        layout->setSpacing(10);
-
-        m_servoFaultAlarmLabel = new QLabel(m_servoFaultAlarmWidget);
-        m_servoFaultAlarmLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-        m_servoFaultAlarmLabel->setWordWrap(true);
-        layout->addWidget(m_servoFaultAlarmLabel);
-
-        QHBoxLayout *buttonLayout = new QHBoxLayout();
-        buttonLayout->addStretch();
-
-        m_servoFaultResetButton = new QPushButton("复位", m_servoFaultAlarmWidget);
-        connect(m_servoFaultResetButton, &QPushButton::clicked,
-                this, &MainWindow::on_TBtn_RemoveWarning_clicked);
-        buttonLayout->addWidget(m_servoFaultResetButton);
-
-        m_servoFaultConfirmButton = new QPushButton("确认", m_servoFaultAlarmWidget);
-        connect(m_servoFaultConfirmButton, &QPushButton::clicked, this, [this]() {
-            m_servoFaultConfirmAcked = true;
-            if (m_recorder) {
-                OperationRecord record;
-                record.timestamp = QDateTime::currentDateTime();
-                record.pageName = "报警系统";
-                record.controlName = "主设备伺服故障";
-                record.controlType = "报警窗口";
-                record.operation = "用户确认";
-                record.oldValue = m_lastServoFaultSignature;
-                record.newValue = "用户确认并隐藏窗口";
-                m_recorder->addRecord(record);
-            }
-            hideServoFaultAlarm(false);
-        });
-        buttonLayout->addWidget(m_servoFaultConfirmButton);
-        buttonLayout->addStretch();
-
-        layout->addLayout(buttonLayout);
-    }
-
-    const QString header = hasNonResettableFault
-                               ? QStringLiteral("检测到不可复位故障：")
-                               : QStringLiteral("检测到可复位故障：");
-    m_servoFaultAlarmLabel->setText(header + "\n" + faultLines.join("\n"));
-
-    if (m_servoFaultResetButton) {
-        m_servoFaultResetButton->setVisible(!hasNonResettableFault);
-    }
-    if (m_servoFaultConfirmButton) {
-        m_servoFaultConfirmButton->setVisible(hasNonResettableFault);
-    }
-
-    const QString accentColor = hasNonResettableFault ? QStringLiteral("#ff5555") : QStringLiteral("#ffb347");
-    const QString hoverColor = hasNonResettableFault ? QStringLiteral("#ff8888") : QStringLiteral("#ffd18a");
-    m_servoFaultAlarmWidget->setStyleSheet(QString(
-        "#servoFaultAlarmWidget {"
-        "  background-color: rgba(35, 12, 12, 232);"
-        "  border: 3px solid %1;"
-        "  border-radius: 10px;"
-        "}"
-        "QLabel {"
-        "  color: %1;"
-        "  font-size: 16px;"
-        "  font-weight: bold;"
-        "  background-color: transparent;"
-        "}"
-        "QPushButton {"
-        "  background-color: %1;"
-        "  color: #1f1f1f;"
-        "  border: 2px solid %2;"
-        "  border-radius: 6px;"
-        "  padding: 6px 14px;"
-        "  font-size: 14px;"
-        "  font-weight: bold;"
-        "  min-width: 120px;"
-        "}"
-        "QPushButton:hover {"
-        "  background-color: %2;"
-        "}"
-        ).arg(accentColor).arg(hoverColor));
-
-    const int lineCount = faultLines.size() + 1;
-    const int windowHeight = qBound(200, 110 + lineCount * 26, 520);
-    m_servoFaultAlarmWidget->setFixedSize(500, windowHeight);
-
-    QScreen *screen = QGuiApplication::primaryScreen();
-    const QRect availableGeometry = screen->availableGeometry();
-    const int x = availableGeometry.x() + availableGeometry.width() - m_servoFaultAlarmWidget->width() - 40;
-    const int y = availableGeometry.y()
-                  + qBound(80,
-                           availableGeometry.height() / 2 - m_servoFaultAlarmWidget->height() / 2,
-                           availableGeometry.height() - m_servoFaultAlarmWidget->height() - 80);
-
-    m_servoFaultAlarmWidget->move(x, y);
-    m_servoFaultAlarmWidget->show();
-    m_servoFaultAlarmWidget->raise();
-}
-
-void MainWindow::hideServoFaultAlarm(bool clearAckState)
-{
-    if (m_servoFaultAlarmWidget && m_servoFaultAlarmWidget->isVisible()) {
-        m_servoFaultAlarmWidget->hide();
-    }
-    if (clearAckState) {
-        m_servoFaultConfirmAcked = false;
-        m_lastServoFaultSignature.clear();
-    }
-}
-
-void MainWindow::updateAxisLimitAlarmDisplay()
-{
-    if (!m_mainRegister102Valid) {
-        m_axisLimitAcked = false;
-        m_axisLimitAckSignature.clear();
-        hideAxisLimitAlarm();
-        return;
-    }
-
-    const bool negativeLimit = (((m_mainRegister102Shadow >> 3) & 0x01) == 1);
-    const bool positiveLimit = (((m_mainRegister102Shadow >> 2) & 0x01) == 1);
-    if (!negativeLimit && !positiveLimit) {
-        m_axisLimitAcked = false;
-        m_axisLimitAckSignature.clear();
-        hideAxisLimitAlarm();
-        return;
-    }
-
-    QString message;
-    if (negativeLimit && positiveLimit) {
-        message = QStringLiteral("到达限位");
-    } else if (negativeLimit) {
-        message = QStringLiteral("到达负限位");
-    } else {
-        message = QStringLiteral("到达正限位");
-    }
-
-    if (message != m_axisLimitAckSignature) {
-        m_axisLimitAckSignature = message;
-        m_axisLimitAcked = false;
-    }
-
-    if (m_axisLimitAcked) {
-        return;
-    }
-
-    showAxisLimitAlarm(message);
-}
-
-void MainWindow::showAxisLimitAlarm(const QString &message)
-{
-    if (!isFeatureEnabled("alarm_system", "alarm.popup")) {
-        return;
-    }
-
-    if (!m_axisLimitAlarmWidget) {
-        m_axisLimitAlarmWidget = new QWidget(nullptr);
-        m_axisLimitAlarmWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
-                                               Qt::WindowStaysOnTopHint | Qt::Tool);
-        m_axisLimitAlarmWidget->setObjectName("axisLimitAlarmWidget");
-
-        QVBoxLayout *layout = new QVBoxLayout(m_axisLimitAlarmWidget);
-        layout->setContentsMargins(20, 15, 20, 15);
-        layout->setSpacing(6);
-
-        m_axisLimitAlarmLabel = new QLabel(m_axisLimitAlarmWidget);
-        m_axisLimitAlarmLabel->setAlignment(Qt::AlignCenter);
-        m_axisLimitAlarmLabel->setWordWrap(true);
-        layout->addWidget(m_axisLimitAlarmLabel);
-
-        m_axisLimitConfirmButton = new QPushButton("确认", m_axisLimitAlarmWidget);
-        connect(m_axisLimitConfirmButton, &QPushButton::clicked, this, [this]() {
-            m_axisLimitAcked = true;
-            hideAxisLimitAlarm();
-        });
-        layout->addWidget(m_axisLimitConfirmButton, 0, Qt::AlignCenter);
-
-        m_axisLimitAlarmWidget->setFixedSize(340, 145);
-        m_axisLimitAlarmWidget->setStyleSheet(
-            "#axisLimitAlarmWidget {"
-            "  background-color: rgba(45, 20, 0, 232);"
-            "  border: 3px solid #ff9900;"
-            "  border-radius: 10px;"
-            "}"
-            "QLabel {"
-            "  color: #ffcc66;"
-            "  font-size: 20px;"
-            "  font-weight: bold;"
-            "  background-color: transparent;"
-            "}"
-            "QPushButton {"
-            "  background-color: #ff9900;"
-            "  color: #1f1f1f;"
-            "  border: 2px solid #ffcc66;"
-            "  border-radius: 6px;"
-            "  padding: 6px 16px;"
-            "  font-size: 14px;"
-            "  font-weight: bold;"
-            "  min-width: 90px;"
-            "}"
-            "QPushButton:hover {"
-            "  background-color: #ffb84d;"
-            "}");
-    }
-
-    if (m_axisLimitAlarmLabel) {
-        m_axisLimitAlarmLabel->setText(message);
-    }
-
-    QScreen *screen = QGuiApplication::primaryScreen();
-    const QRect screenGeometry = screen->availableGeometry();
-    const int x = screenGeometry.x() + screenGeometry.width() - m_axisLimitAlarmWidget->width() - 40;
-    const int y = screenGeometry.y() + 340;
-    m_axisLimitAlarmWidget->move(x, y);
-    m_axisLimitAlarmWidget->show();
-    m_axisLimitAlarmWidget->raise();
-}
-
-void MainWindow::hideAxisLimitAlarm()
-{
-    if (m_axisLimitAlarmWidget && m_axisLimitAlarmWidget->isVisible()) {
-        m_axisLimitAlarmWidget->hide();
     }
 }
 
