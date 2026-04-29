@@ -320,6 +320,8 @@ public:
     void updateStepMoveGroupBoxState();
     /** @brief 根据模式启用或禁用步进目标按钮 */
     void updateStepTargetButtonsState();
+    /** @brief 按当前页面使用寄存器缓存同步步进模式UI */
+    void syncStepModeUiByCurrentPage();
     /** @brief 将步进值按双字浮点格式写入 502~505 */
     void writeStepValueDoubleToMainDevice(double value);
     /** @brief 将步进设置写入寄存器 */

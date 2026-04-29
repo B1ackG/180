@@ -482,6 +482,7 @@ void MainWindow::setupControlConnections()
                              << "个TechSliderLabel控件";
                 }
 
+                syncStepModeUiByCurrentPage();
                 updateStepTargetButtonsState();
             });
 
@@ -2828,8 +2829,39 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         return;
     }
 
-    // 除第1页（机械臂）与第4页（六自由度）外，其他页面外部按键统一不响应。
-    if (!isRobotPage) {
+    // 除第1页（机械臂）、第4页（六自由度）以及第5页（AGV控制）外，其他页面外部按键统一不响应。
+    bool isAgvPage = (currentPage == 4);
+    if (!isRobotPage && !isSixAxisPage && !isAgvPage) {
+        return;
+    }
+
+    // AGV控制页面（第5页）外部按键逻辑：
+    // ○13/○14：向500写入5，向514写入4/2 (点动/步进模式下)
+    if (isAgvPage) {
+        if (keyNumber != 13 && keyNumber != 14) {
+            return;
+        }
+
+        if (!pressed) {
+            writeToMainDevice(514, 0);
+            return;
+        }
+
+        // 点动、步进模式下执行
+        if (!m_moveModeUnknown && (m_isJointMode || m_stepModeEnabled)) {
+            const int value514 = (keyNumber == 13) ? 4 : 2;
+            
+            // 先写目标轴(500=5)，再写动作(514)
+            writeToMainDevice(500, 5);
+            
+            // 延时写514以确保PLC逻辑正确识别
+            QTimer::singleShot(50, this, [this, value514]() {
+                writeToMainDevice(514, value514);
+            });
+
+            qCDebug(lcMainWindow) << "AGV页面外部按键○" << keyNumber
+                                  << "写入 500=5, 514=" << value514;
+        }
         return;
     }
 
@@ -3625,39 +3657,19 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
     const bool allowUiStateSync = m_uiStateSyncEnabled;
 
-    if (allowUiStateSync && address == 125 && ui && ui->TBtn_Stepmove) {
-        if (value == 2) {
-            m_stepModeUnknown = false;
-            m_stepModeEnabled = true;
-            ui->TBtn_Stepmove->setText("步进模式");
-            ui->TBtn_Stepmove->setToolTip("当前模式：步进模式");
-            QLabel *runModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarRunModeLabel") : nullptr;
-            if (runModeLabel) {
-                runModeLabel->setText("步进模式");
-                runModeLabel->setStyleSheet("color: #00ff00; font-weight: bold; font-size: 11px;");
-            }
-        } else if (value == 1) {
-            m_stepModeUnknown = false;
-            m_stepModeEnabled = false;
-            ui->TBtn_Stepmove->setText("点动模式");
-            ui->TBtn_Stepmove->setToolTip("当前模式：点动模式");
-            QLabel *runModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarRunModeLabel") : nullptr;
-            if (runModeLabel) {
-                runModeLabel->setText("点动模式");
-                runModeLabel->setStyleSheet("color: #00ccff; font-weight: bold; font-size: 11px;");
-            }
-        } else {
-            m_stepModeUnknown = true;
-            ui->TBtn_Stepmove->setText("未选择模式");
-            ui->TBtn_Stepmove->setToolTip("当前模式：未选择模式");
-            QLabel *runModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarRunModeLabel") : nullptr;
-            if (runModeLabel) {
-                runModeLabel->setText("步进未选择");
-                runModeLabel->setStyleSheet("color: #aaaaaa; font-weight: bold; font-size: 11px;");
-            }
+    // 根据当前页面决定读取的寄存器：第一页(0)读125，第四页(3)读72
+    bool shouldSyncStepMode = false;
+    if (ui && ui->StackedWidget) {
+        int currentPage = ui->StackedWidget->currentIndex();
+        if ((currentPage == 0 && address == 125) || 
+            (currentPage == 3 && address == 72)) {
+            shouldSyncStepMode = true;
         }
+    }
 
-        updateFunctionSwitchVisuals();
+    if (allowUiStateSync && shouldSyncStepMode) {
+        Q_UNUSED(value);
+        syncStepModeUiByCurrentPage();
         updateStepTargetButtonsState();
     }
 
@@ -3953,6 +3965,60 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             }
         }
     }
+}
+
+void MainWindow::syncStepModeUiByCurrentPage()
+{
+    if (!ui || !ui->StackedWidget || !ui->TBtn_Stepmove) {
+        return;
+    }
+
+    const int currentPage = ui->StackedWidget->currentIndex();
+    int syncAddress = -1;
+    if (currentPage == 0) {
+        syncAddress = 125;
+    } else if (currentPage == 3) {
+        syncAddress = 72;
+    } else {
+        return;
+    }
+
+    if (!g_registerCache.contains(syncAddress)) {
+        return;
+    }
+
+    const quint16 stepModeValue = g_registerCache.value(syncAddress);
+    QLabel *runModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarRunModeLabel") : nullptr;
+
+    if (stepModeValue == 2) {
+        m_stepModeUnknown = false;
+        m_stepModeEnabled = true;
+        ui->TBtn_Stepmove->setText("步进模式");
+        ui->TBtn_Stepmove->setToolTip("当前模式：步进模式");
+        if (runModeLabel) {
+            runModeLabel->setText("步进模式");
+            runModeLabel->setStyleSheet("color: #00ff00; font-weight: bold; font-size: 11px;");
+        }
+    } else if (stepModeValue == 1) {
+        m_stepModeUnknown = false;
+        m_stepModeEnabled = false;
+        ui->TBtn_Stepmove->setText("点动模式");
+        ui->TBtn_Stepmove->setToolTip("当前模式：点动模式");
+        if (runModeLabel) {
+            runModeLabel->setText("点动模式");
+            runModeLabel->setStyleSheet("color: #00ccff; font-weight: bold; font-size: 11px;");
+        }
+    } else {
+        m_stepModeUnknown = true;
+        ui->TBtn_Stepmove->setText("未选择模式");
+        ui->TBtn_Stepmove->setToolTip("当前模式：未选择模式");
+        if (runModeLabel) {
+            runModeLabel->setText("步进未选择");
+            runModeLabel->setStyleSheet("color: #aaaaaa; font-weight: bold; font-size: 11px;");
+        }
+    }
+
+    updateFunctionSwitchVisuals();
 }
 //浮点数辅助函数
 // 将两个16位寄存器转换为32位浮点数（IEEE 754标准）
@@ -7270,11 +7336,16 @@ void MainWindow::onStepMoveButtonClicked()
         ui->TBtn_Stepmove->setText("步进模式");
         ui->TBtn_Stepmove->setToolTip("当前模式：步进模式");
 
-        // 给501寄存器写入2
-        writeToMainDevice(501, 2);
-        writeToMainDevice(600, 2);
+        // 根据当前页面决定写入的寄存器：第一页(0)->501，第四页(3)->600
+        int currentPage = ui->StackedWidget ? ui->StackedWidget->currentIndex() : 0;
+        if (currentPage == 0) {
+            writeToMainDevice(501, 2);
+            qCDebug(lcMainWindow) << "首页：切换到步进模式，地址501写入2";
+        } else if (currentPage == 3) {
+            writeToMainDevice(600, 2);
+            qCDebug(lcMainWindow) << "第四页：切换到步进模式，地址600写入2";
+        }
 
-        qCDebug(lcMainWindow) << "切换到步进模式，地址501/600写入2";
         ui->statusBar->showMessage("已切换到步进模式", 2000);
 
         // 更新状态栏显示
@@ -7296,11 +7367,16 @@ void MainWindow::onStepMoveButtonClicked()
             runModeLabel->setStyleSheet("color: #00ccff; font-weight: bold; font-size: 11px;");
         }
 
-        // 给501寄存器写入1
-        writeToMainDevice(501, 1);
-        writeToMainDevice(600, 1);
+        // 根据当前页面决定写入的寄存器：第一页(0)->501，第四页(3)->600
+        int currentPage = ui->StackedWidget ? ui->StackedWidget->currentIndex() : 0;
+        if (currentPage == 0) {
+            writeToMainDevice(501, 1);
+            qCDebug(lcMainWindow) << "首页：切换到点动模式，地址501写入1";
+        } else if (currentPage == 3) {
+            writeToMainDevice(600, 1);
+            qCDebug(lcMainWindow) << "第四页：切换到点动模式，地址600写入1";
+        }
 
-        qCDebug(lcMainWindow) << "切换到点动模式，地址501/600写入1";
         ui->statusBar->showMessage("已切换到点动模式", 2000);
     }
 
