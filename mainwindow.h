@@ -232,7 +232,7 @@ public:
     /** @brief 初始化 AGV 相关 UI */
     void setupAGVUI();
     /** @brief 向 AGV 写寄存器 */
-    void writeToAGVDevice(int address, int value);
+    void writeToAGVDevice(int address, int value, bool bypassWirelessWarning = false);
     /** @brief 按位更新 AGV 寄存器并写回，自动保留未修改位 */
     bool writeAGVRegisterBits(int address, const QList<QPair<int, bool>> &bitUpdates, const QString &scene = QString());
     
@@ -876,6 +876,8 @@ private:
 
     /** @brief 处理第二套 AGV 按键动作 */
     void handleAGVKey2Action(int keyNumber, bool pressed);
+    /** @brief 检查首页机械臂高度/长度互锁并返回提示语（空表示无互锁） */
+    QString robotInterlockHintMessage() const;
 
     /** @brief 获取当前转向模式文本（用于记录） */
     QString currentSteeringModeText() const;

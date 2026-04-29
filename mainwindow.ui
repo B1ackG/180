@@ -184,7 +184,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
     <item row="1" column="3" colspan="8">
      <widget class="QLabel" name="label_StatusTip">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
         <horstretch>1</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -696,7 +696,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <string notr="true">background-color:</string>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page_Robot">
        <widget class="QWidget" name="widget_test3" native="true">
@@ -1514,6 +1514,12 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
    <container>1</container>
   </customwidget>
   <customwidget>
+   <class>BatteryWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">batterywidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>TechSliderEdit</class>
    <extends>QWidget</extends>
    <header location="global">techslideredit.h</header>
@@ -1528,12 +1534,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
    <class>SteeringModeSelector</class>
    <extends>QWidget</extends>
    <header>steeringmodeselector.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>BatteryWidget</class>
-   <extends>QWidget</extends>
-   <header location="global">batterywidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

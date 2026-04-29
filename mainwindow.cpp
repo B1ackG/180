@@ -2671,6 +2671,18 @@ void MainWindow::onMatrixKeyPressed(int keyNumber, bool pressed)
     handleMatrixKeyAction(keyNumber, pressed);
 }
 
+QString MainWindow::robotInterlockHintMessage() const
+{
+    const quint16 status150 = m_mainRegister150Shadow;
+    if (((status150 >> 1) & 0x01) == 1) {
+        return QStringLiteral("高度互锁，请降低高度后操作");
+    }
+    if (((status150 >> 2) & 0x01) == 1) {
+        return QStringLiteral("长度互锁，请缩小长度后操作");
+    }
+    return QString();
+}
+
 // 在 handleMatrixKeyAction 函数中修改 ○1 按键的处理
 void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 {
@@ -2687,13 +2699,15 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
         }
 
-        const quint16 status150 = m_mainRegister150Shadow;
-        if ((keyNumber == 1 || keyNumber == 2) && (((status150 >> 1) & 0x01) == 1)) {
-            showRobotOperationHintDialog("请降低高度后操作");
+        const QString interlockHint = robotInterlockHintMessage();
+        if ((keyNumber == 1 || keyNumber == 2) && !interlockHint.isEmpty()
+            && interlockHint.contains(QStringLiteral("高度互锁"))) {
+            showRobotOperationHintDialog(interlockHint);
             return;
         }
-        if (keyNumber == 4 && (((status150 >> 2) & 0x01) == 1)) {
-            showRobotOperationHintDialog("请缩小长度后操作");
+        if (keyNumber == 4 && !interlockHint.isEmpty()
+            && interlockHint.contains(QStringLiteral("长度互锁"))) {
+            showRobotOperationHintDialog(interlockHint);
             return;
         }
     }
@@ -3188,6 +3202,17 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
 
     if (keyNumber != 9) {
         return;
+    }
+
+    if (pressed) {
+        if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
+            MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
+        }
+        const QString interlockHint = robotInterlockHintMessage();
+        if (!interlockHint.isEmpty()) {
+            showRobotOperationHintDialog(interlockHint);
+            return;
+        }
     }
 
     writeAGVRegisterBits(0,
@@ -5404,7 +5429,7 @@ void MainWindow::performStartupWrites()
  * @param value 要写入的数值（可以为负数，内部会转换为补码）
  * @note 若未连接会尝试延迟重试
  */
-void MainWindow::writeToAGVDevice(int address, int value)
+void MainWindow::writeToAGVDevice(int address, int value, bool bypassWirelessWarning)
 {
     if (!m_agvModbusManager || !m_agvModbusManager->isConnected()) {
         if (!m_agvDisconnectedWarnedAddresses.contains(address)) {
@@ -5416,7 +5441,7 @@ void MainWindow::writeToAGVDevice(int address, int value)
 
     m_agvDisconnectedWarnedAddresses.remove(address);
 
-    if (m_controlMode == WIRELESS_MODE) {
+    if (!bypassWirelessWarning && m_controlMode == WIRELESS_MODE) {
         QDialog warnDialog(this);
         warnDialog.setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
         warnDialog.setModal(true);
@@ -6103,7 +6128,8 @@ void MainWindow::onAGVMoveSpeedChanged(double value)
     const int intValue = qBound(0, static_cast<int>(qRound(value)), 100);
 
     // 按需求直接写入地址3（单位:mm/s）
-    writeToAGVDevice(3, intValue);
+    // 速度控件在遥控器控制下也允许直接下发，不触发无线模式门禁弹窗。
+    writeToAGVDevice(3, intValue, true);
 
     // 记录操作
     OperationRecord record;
@@ -6152,6 +6178,17 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
 
     if (keyNumber != 10) {
         return;
+    }
+
+    if (pressed) {
+        if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
+            MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
+        }
+        const QString interlockHint = robotInterlockHintMessage();
+        if (!interlockHint.isEmpty()) {
+            showRobotOperationHintDialog(interlockHint);
+            return;
+        }
     }
 
     writeAGVRegisterBits(0,
@@ -6258,6 +6295,19 @@ void MainWindow::setupSteeringModeControl()
 void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
 {
     qCDebug(lcMainWindow) << "转向模式改变为:" << mode << "，Modbus值:" << modbusValue;
+
+    if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
+    }
+    const QString interlockHint = robotInterlockHintMessage();
+    if (!interlockHint.isEmpty()) {
+        showRobotOperationHintDialog(interlockHint);
+        if (m_steeringModeSelector) {
+            const QSignalBlocker blocker(m_steeringModeSelector);
+            m_steeringModeSelector->setCurrentMode(m_lastSteeringMode);
+        }
+        return;
+    }
 
     // 向192.168.1.88的2地址写入对应值
     writeToAGVDevice(2, modbusValue);
