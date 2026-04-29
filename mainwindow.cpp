@@ -2723,9 +2723,25 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     }
 
     // 六自由度页面（第4页）外部键逻辑：
+    // - ○13/○14：固定写500=5，514=4/2；释放时514回0；
     // - 点动模式：按键○1~○12映射到613写入±1~±6；
     // - 步进模式：按键○1~○12映射轴1~6，写614轴号、601步进值（奇数键写相反数），再写615触发。
     if (isSixAxisPage) {
+        if (keyNumber == 13 || keyNumber == 14) {
+            if (!pressed) {
+                writeToMainDevice(514, 0);
+                return;
+            }
+
+            const int value514 = (keyNumber == 13) ? 4 : 2;
+            writeToMainDevice(500, 5);
+            writeToMainDevice(514, value514);
+
+            qCDebug(lcMainWindow) << "六自由度页面外部按键○" << keyNumber
+                                  << "写入 500=5, 514=" << value514;
+            return;
+        }
+
         if (keyNumber < 1 || keyNumber > 12) {
             return;
         }
