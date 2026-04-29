@@ -2756,6 +2756,28 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             }
 
             const int axisIndex = (keyNumber + 1) / 2;       // ○1/2->1 ... ○11/12->6
+
+            // 门禁：仅当当前选中的“六轴步进目标轴”与外部按键对应轴一致时，才允许执行步进写入
+            int selectedAxisIndex = -1;
+            QString selectedTargetText;
+            if (m_sixAxisStepTargetGroup && m_sixAxisStepTargetGroup->checkedButton()) {
+                const QAbstractButton *checkedBtn = m_sixAxisStepTargetGroup->checkedButton();
+                selectedTargetText = checkedBtn->text();
+                const QString checkedObjectName = checkedBtn->objectName();
+                if (checkedObjectName == "btnStepTargetSixAxis1") selectedAxisIndex = 1;
+                else if (checkedObjectName == "btnStepTargetSixAxis2") selectedAxisIndex = 2;
+                else if (checkedObjectName == "btnStepTargetSixAxis3") selectedAxisIndex = 3;
+                else if (checkedObjectName == "btnStepTargetSixAxis4") selectedAxisIndex = 4;
+                else if (checkedObjectName == "btnStepTargetSixAxis5") selectedAxisIndex = 5;
+                else if (checkedObjectName == "btnStepTargetSixAxis6") selectedAxisIndex = 6;
+            }
+
+            if (selectedAxisIndex != axisIndex) {
+                qCDebug(lcMainWindow) << "六轴步进外部按键忽略：按键○" << keyNumber
+                                      << "与当前目标轴" << selectedTargetText << "不匹配";
+                return;
+            }
+
             const bool isOddKey = ((keyNumber % 2) == 1);    // 奇数键写相反数
             if (isOddKey) {
                 rawStepValue = -rawStepValue;
