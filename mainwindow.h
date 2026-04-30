@@ -208,6 +208,10 @@ public:
     void showRobotWeightOverloadDialog();
     /** @brief 隐藏重量超载提示窗（150.bit3=0） */
     void hideRobotWeightOverloadDialog();
+    /** @brief 显示主控限位提示窗（102.bit2/bit3=1） */
+    void showRobotLimitReachedDialog(const QString &message);
+    /** @brief 隐藏主控限位提示窗 */
+    void hideRobotLimitReachedDialog();
 
     // 提示信息系统
     /** @brief 更新提示内容标签 */
@@ -551,6 +555,8 @@ private:
     bool m_agvDriveFault51Bit2Flag = false;
     bool m_agvBatteryLow51Bit0Flag = false;
     bool m_robotWeightOverload150Bit3Flag = false;
+    bool m_robotPositiveLimit102Bit2Flag = false;
+    bool m_robotNegativeLimit102Bit3Flag = false;
     bool m_agvBatteryLowAcked = false;
     QWidget *m_agvStationOfflineAlarmWidget = nullptr;
     QLabel *m_agvStationOfflineAlarmLabel = nullptr;
@@ -560,6 +566,8 @@ private:
     QDialog *m_robotOperationHintDialog = nullptr;
     QWidget *m_robotWeightOverloadWidget = nullptr;
     QLabel *m_robotWeightOverloadLabel = nullptr;
+    QDialog *m_robotLimitReachedDialog = nullptr;
+    QLabel *m_robotLimitReachedLabel = nullptr;
 
     // ----- Modbus & 通信 (Main) -----
     ModbusThreadManager *m_modbusManager;

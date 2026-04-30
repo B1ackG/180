@@ -3932,6 +3932,25 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         }
     }
 
+    if (address == 102) {
+        const bool positiveLimitReached = (((value >> 2) & 0x01) == 1);
+        const bool negativeLimitReached = (((value >> 3) & 0x01) == 1);
+
+        if (positiveLimitReached != m_robotPositiveLimit102Bit2Flag) {
+            m_robotPositiveLimit102Bit2Flag = positiveLimitReached;
+            if (positiveLimitReached) {
+                showRobotLimitReachedDialog(QStringLiteral("正限位到达"));
+            }
+        }
+
+        if (negativeLimitReached != m_robotNegativeLimit102Bit3Flag) {
+            m_robotNegativeLimit102Bit3Flag = negativeLimitReached;
+            if (negativeLimitReached) {
+                showRobotLimitReachedDialog(QStringLiteral("负限位到达"));
+            }
+        }
+    }
+
 
 
     // ============ 新增：处理大六维力寄存器（612-623） ============
@@ -8283,6 +8302,8 @@ void MainWindow::setupAlarmSystem()
     m_agvStationOffline51Bit1Flag = false;
     m_agvDriveFault51Bit2Flag = false;
     m_agvBatteryLow51Bit0Flag = false;
+    m_robotPositiveLimit102Bit2Flag = false;
+    m_robotNegativeLimit102Bit3Flag = false;
     m_agvBatteryLowAcked = false;
     m_mainRegister150Valid = false;
     m_mainRegister150Shadow = 0;
@@ -8306,10 +8327,12 @@ void MainWindow::checkAlarmConditions()
 
     const bool alarmStatusLogsEnabled = isFeatureEnabled("alarm_system", "alarm.status_logs");
 
-    // 确保主设备急停位(150)持续被读取，避免因轮询覆盖不全导致报警丢失。
-    if (isFeatureEnabled("alarm_system", "alarm.emergency_stop")
-        && MainDeviceModbusApi::isReady(m_modbusManager)) {
-        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
+    // 确保主设备关键报警/提示位持续被读取，避免因轮询覆盖不全导致状态丢失。
+    if (MainDeviceModbusApi::isReady(m_modbusManager)) {
+        if (isFeatureEnabled("alarm_system", "alarm.emergency_stop")) {
+            MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
+        }
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 102, 1);
     }
 
     // 调试输出当前报警状态
@@ -8823,6 +8846,97 @@ void MainWindow::hideRobotOperationHintDialog()
 {
     if (m_robotOperationHintDialog && m_robotOperationHintDialog->isVisible()) {
         m_robotOperationHintDialog->hide();
+    }
+}
+
+void MainWindow::showRobotLimitReachedDialog(const QString &message)
+{
+    if (m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = "提示系统";
+        record.controlName = "主控限位提示";
+        record.controlType = "提示窗口";
+        record.operation = "提示触发";
+        record.oldValue = "";
+        record.newValue = message;
+        m_recorder->addRecord(record);
+    }
+
+    if (!m_robotLimitReachedDialog) {
+        m_robotLimitReachedDialog = new QDialog(this);
+        m_robotLimitReachedDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_robotLimitReachedDialog->setModal(false);
+        m_robotLimitReachedDialog->setObjectName("robotLimitReachedDialog");
+
+        QVBoxLayout *layout = new QVBoxLayout(m_robotLimitReachedDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        m_robotLimitReachedLabel = new QLabel(m_robotLimitReachedDialog);
+        m_robotLimitReachedLabel->setObjectName("robotLimitReachedLabel");
+        m_robotLimitReachedLabel->setAlignment(Qt::AlignCenter);
+        m_robotLimitReachedLabel->setWordWrap(true);
+        layout->addWidget(m_robotLimitReachedLabel);
+
+        QPushButton *confirmBtn = new QPushButton("确认", m_robotLimitReachedDialog);
+        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
+        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = "提示系统";
+                record.controlName = "主控限位提示";
+                record.controlType = "提示窗口";
+                record.operation = "用户确认";
+                record.oldValue = "";
+                record.newValue = "用户点击确认，限位提示窗口隐藏";
+                m_recorder->addRecord(record);
+            }
+            hideRobotLimitReachedDialog();
+        });
+
+        m_robotLimitReachedDialog->setFixedSize(360, 150);
+        m_robotLimitReachedDialog->setStyleSheet(
+            "#robotLimitReachedDialog {"
+            "  background-color: rgba(45, 24, 0, 235);"
+            "  border: 3px solid #ffaa00;"
+            "  border-radius: 10px;"
+            "}"
+            "#robotLimitReachedLabel {"
+            "  color: #ffd166;"
+            "  font-size: 22px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "QPushButton {"
+            "  background-color: #ffaa00;"
+            "  color: #2b1800;"
+            "  border: 2px solid #ffd166;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 90px;"
+            "}"
+            "QPushButton:hover {"
+            "  background-color: #ffd166;"
+            "}");
+    }
+
+    if (m_robotLimitReachedLabel) {
+        m_robotLimitReachedLabel->setText(message);
+    }
+
+    m_robotLimitReachedDialog->show();
+    m_robotLimitReachedDialog->raise();
+    m_robotLimitReachedDialog->activateWindow();
+}
+
+void MainWindow::hideRobotLimitReachedDialog()
+{
+    if (m_robotLimitReachedDialog && m_robotLimitReachedDialog->isVisible()) {
+        m_robotLimitReachedDialog->hide();
     }
 }
 
