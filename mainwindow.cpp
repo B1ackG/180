@@ -3720,12 +3720,12 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
     const bool allowUiStateSync = m_uiStateSyncEnabled;
 
-    // 根据当前页面决定读取的寄存器：第一页(0)读125，第四页(3)读72
+    // 根据当前页面决定读取的寄存器：第一页(0)读125，第四页(3)读600
     bool shouldSyncStepMode = false;
     if (ui && ui->StackedWidget) {
         int currentPage = ui->StackedWidget->currentIndex();
         if ((currentPage == 0 && address == 125) || 
-            (currentPage == 3 && address == 72)) {
+            (currentPage == 3 && address == 600)) {
             shouldSyncStepMode = true;
         }
     }
@@ -4081,7 +4081,7 @@ void MainWindow::syncStepModeUiByCurrentPage()
     if (currentPage == 0) {
         syncAddress = 125;
     } else if (currentPage == 3) {
-        syncAddress = 72;
+        syncAddress = 600;
     } else {
         return;
     }
@@ -4322,6 +4322,9 @@ void MainWindow::readMainControlSyncRegisters()
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager,
                                               m_mainControlSyncStart,
                                               m_mainControlSyncCount);
+
+    // 第四页步进/点动状态同步：读取192.168.1.13设备的600寄存器（1=点动，2=步进）。
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 600, 1);
 
     // 机器人总功率：192.168.1.13 的 134 寄存器
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 134, 1);
