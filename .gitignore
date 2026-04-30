@@ -31,3 +31,9 @@ build.log
 system_check.log
 compile_commands.json
 documents/
+/third_party/libmodbus/
+/third_party/libmodbus/
+/third_party/libmodbus-3.1.11/
+/third_party/libmodbus-aarch64/
+/third_party/libmodbus-build/
+/third_party/libmodbus*/

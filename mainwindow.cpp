@@ -4354,9 +4354,9 @@ void MainWindow::setupSliderLabelConfigs()
     m_sliderLabelConfigs["robot_ArcGauge_J2Height"] = {
         "升降组件当前高度:",           // labelText
         "mm",                // unit
-        -5.0,              // minValue
-        3400.0,              // maxValue
-        432.0,               // defaultValue
+        4400.0,              // minValue
+        8000.0,              // maxValue
+        4432.0,               // defaultValue
         "mm",                // suffix
         4,                   // modbusAddress1
         5,                   // modbusAddress2
@@ -4370,8 +4370,8 @@ void MainWindow::setupSliderLabelConfigs()
     m_sliderLabelConfigs["robot_ArcGauge_J3Length"] = {
         "悬臂组件当前长度:",           // labelText
         "mm",                // unit
-        0.0,                 // minValue
-        4000.0,              // maxValue
+        3765.0,                 // minValue
+        6805.0,              // maxValue
         560.0,               // defaultValue
         "mm",                // suffix
         12,                  // modbusAddress1
@@ -4388,8 +4388,8 @@ void MainWindow::setupSliderLabelConfigs()
     m_sliderLabelConfigs["robot_ArcGauge_J4Angle"] = {
         "末端组件当前角度:",    // labelText (修改为末端组件)
         "°",                  // unit
-        -170.0,              // minValue
-        170.0,               // maxValue
+        -90.0,              // minValue
+        90.0,               // maxValue
         -34.0,               // defaultValue
         "°",                 // suffix
         20,                  // modbusAddress1

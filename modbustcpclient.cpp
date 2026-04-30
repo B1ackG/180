@@ -7,6 +7,17 @@ Q_LOGGING_CATEGORY(lcModbusTCPClient, "app.modbustcpclient")
 #include <algorithm>
 
 namespace {
+template <typename Func>
+bool resolveRequiredSymbol(QLibrary &library, const char *name, Func &target, QString &error)
+{
+    target = reinterpret_cast<Func>(library.resolve(name));
+    if (!target) {
+        error = QStringLiteral("动态库缺少符号: %1").arg(QString::fromLatin1(name));
+        return false;
+    }
+    return true;
+}
+
 bool isMainReadLogEnabled()
 {
     FeatureSwitchManager *featureSwitch = FeatureSwitchManager::instance();
@@ -60,10 +71,93 @@ ModbusTCPClient::~ModbusTCPClient()
 {
     stopPolling();
     disconnectFromServer();
+    unloadDynamicBackend();
 
     if (m_networkThread && m_networkThread->isRunning()) {
         m_networkThread->quit();
         m_networkThread->wait();
+    }
+}
+
+bool ModbusTCPClient::ensureDynamicBackendLoaded()
+{
+    if (m_dynamicBackendLoadAttempted) {
+        return m_useDynamicBackend;
+    }
+    m_dynamicBackendLoadAttempted = true;
+
+    m_dynamicBackendPath = qEnvironmentVariable("MODBUS_BACKEND_LIB").trimmed();
+    if (m_dynamicBackendPath.isEmpty()) {
+        return false;
+    }
+
+    m_dynamicBackendLibrary.setFileName(m_dynamicBackendPath);
+    if (!m_dynamicBackendLibrary.load()) {
+        m_lastDynamicBackendError = QStringLiteral("加载动态库失败: %1")
+                                        .arg(m_dynamicBackendLibrary.errorString());
+        qWarning() << m_lastDynamicBackendError << "路径:" << m_dynamicBackendPath;
+        return false;
+    }
+
+    if (!resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_create", m_backendCreate,
+                               m_lastDynamicBackendError)
+        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_destroy", m_backendDestroy,
+                                  m_lastDynamicBackendError)
+        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_connect", m_backendConnect,
+                                  m_lastDynamicBackendError)
+        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_disconnect", m_backendDisconnect,
+                                  m_lastDynamicBackendError)
+        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_is_connected", m_backendIsConnected,
+                                  m_lastDynamicBackendError)
+        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_read_holding_registers",
+                                  m_backendReadHolding, m_lastDynamicBackendError)
+        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_write_single_register",
+                                  m_backendWriteSingle, m_lastDynamicBackendError)) {
+        qWarning() << m_lastDynamicBackendError;
+        unloadDynamicBackend();
+        return false;
+    }
+
+    m_backendReadInput = reinterpret_cast<MbReadRegistersFn>(
+        m_dynamicBackendLibrary.resolve("modbus_backend_read_input_registers"));
+    m_backendWriteMultiple = reinterpret_cast<MbWriteMultipleFn>(
+        m_dynamicBackendLibrary.resolve("modbus_backend_write_multiple_registers"));
+
+    m_dynamicBackendHandle = m_backendCreate ? m_backendCreate() : nullptr;
+    if (!m_dynamicBackendHandle) {
+        m_lastDynamicBackendError = QStringLiteral("动态库创建 backend 句柄失败");
+        qWarning() << m_lastDynamicBackendError;
+        unloadDynamicBackend();
+        return false;
+    }
+
+    m_useDynamicBackend = true;
+    qInfo() << "Modbus 动态库后端已启用:" << m_dynamicBackendPath;
+    return true;
+}
+
+void ModbusTCPClient::unloadDynamicBackend()
+{
+    if (m_backendDisconnect && m_dynamicBackendHandle) {
+        m_backendDisconnect(m_dynamicBackendHandle);
+    }
+    if (m_backendDestroy && m_dynamicBackendHandle) {
+        m_backendDestroy(m_dynamicBackendHandle);
+    }
+    m_dynamicBackendHandle = nullptr;
+    m_backendCreate = nullptr;
+    m_backendDestroy = nullptr;
+    m_backendConnect = nullptr;
+    m_backendDisconnect = nullptr;
+    m_backendIsConnected = nullptr;
+    m_backendReadHolding = nullptr;
+    m_backendReadInput = nullptr;
+    m_backendWriteSingle = nullptr;
+    m_backendWriteMultiple = nullptr;
+    m_useDynamicBackend = false;
+
+    if (m_dynamicBackendLibrary.isLoaded()) {
+        m_dynamicBackendLibrary.unload();
     }
 }
 
@@ -75,13 +169,40 @@ bool ModbusTCPClient::connectToServer(const QString &host, quint16 port, int sla
     m_port = port;
     m_slaveId = slaveId;
 
-    if (m_socket->state() != QAbstractSocket::UnconnectedState) {
-        m_socket->abort();
+    if (!ensureDynamicBackendLoaded()) {
+        const QString err = QStringLiteral("未加载Modbus官方动态库，请设置MODBUS_BACKEND_LIB");
+        qWarning() << err;
+        emit errorOccurred(err);
+        return false;
     }
-    qDebug() << "[Modbus连接] 正在连接" << host << ":" << port << "SlaveID:" << slaveId;
-    m_socket->connectToHost(host, port);
 
-    return true;
+    const int rc = m_backendConnect(m_dynamicBackendHandle,
+                                    host.toUtf8().constData(),
+                                    static_cast<int>(port),
+                                    slaveId);
+    m_connectedState = (rc != 0);
+    if (m_connectedState) {
+        m_responseBuffer.clear();
+        m_transactionAddressMap.clear();
+        m_transactionMapMismatchLogged = false;
+        emit connected();
+        if (m_autoReconnect) {
+            m_reconnectTimer->stop();
+        }
+        qInfo() << "[Modbus连接] 动态库后端连接成功"
+                << host << ":" << port << "SlaveID:" << slaveId;
+        return true;
+    }
+    const QString err = QStringLiteral("动态库后端连接失败 host=%1 port=%2 slave=%3")
+                            .arg(host)
+                            .arg(port)
+                            .arg(slaveId);
+    qWarning() << err;
+    emit errorOccurred(err);
+    if (m_autoReconnect && !m_host.isEmpty() && !m_reconnectTimer->isActive()) {
+        m_reconnectTimer->start(m_reconnectInterval);
+    }
+    return false;
 }
 
 void ModbusTCPClient::disconnectFromServer()
@@ -95,20 +216,25 @@ void ModbusTCPClient::disconnectFromServer()
     m_transactionAddressMap.clear();
     m_transactionMapMismatchLogged = false;
 
-    if (m_socket->state() != QAbstractSocket::UnconnectedState) {
-        m_socket->abort();
-        m_socket->disconnectFromHost();
+    if (m_backendDisconnect && m_dynamicBackendHandle) {
+        m_backendDisconnect(m_dynamicBackendHandle);
     }
+    emit disconnected();
 }
 
 bool ModbusTCPClient::isConnected() const
 {
-    // return m_socket->state() == QAbstractSocket::ConnectedState;
-    return m_connectedState;
+    if (m_backendIsConnected && m_dynamicBackendHandle) {
+        return m_backendIsConnected(m_dynamicBackendHandle) != 0;
+    }
+    return false;
 }
 
 void ModbusTCPClient::onConnected()
 {
+    if (isDynamicBackendActive()) {
+        return;
+    }
     m_connectedState = true;
     m_responseBuffer.clear();
     m_transactionAddressMap.clear();
@@ -126,6 +252,9 @@ void ModbusTCPClient::onConnected()
 
 void ModbusTCPClient::onDisconnected()
 {
+    if (isDynamicBackendActive()) {
+        return;
+    }
     m_connectedState = false;
     m_responseBuffer.clear();
     m_transactionAddressMap.clear();
@@ -140,6 +269,10 @@ void ModbusTCPClient::onDisconnected()
 
 void ModbusTCPClient::onError(QAbstractSocket::SocketError error)
 {
+    if (isDynamicBackendActive()) {
+        Q_UNUSED(error);
+        return;
+    }
     Q_UNUSED(error);
     if (m_socket->state() != QAbstractSocket::ConnectedState) {
         m_connectedState = false;
@@ -203,52 +336,32 @@ bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 function
         return false;
     }
 
-    // 如果待处理请求过多，说明异步响应没回来，直接清理旧请求
-    if (m_transactionAddressMap.size() >= m_maxPendingTransactions) {
-        static int dropCount = 0;
-        if (dropCount++ % 10 == 0) {
-            qDebug() << "[Modbus阻塞] 待处理请求:" << m_transactionAddressMap.size()
-                       << "试图清理事务。当前状态:" << (isConnected() ? "已连接" : "断开")
-                       << "套接字状态:" << (m_socket ? m_socket->state() : -1);
-        }
+    MbReadRegistersFn readFn = nullptr;
+    if (functionCode == 0x03) {
+        readFn = m_backendReadHolding;
+    } else if (functionCode == 0x04) {
+        readFn = m_backendReadInput ? m_backendReadInput : m_backendReadHolding;
+    }
+    if (!readFn || !m_dynamicBackendHandle) {
+        qWarning() << "[Modbus动态库读失败] 未找到读取函数";
         return false;
     }
 
-    QByteArray request = createReadRequest(startAddress, count, functionCode);
-    const quint16 requestId = static_cast<quint16>(m_transactionId - 1);
-    const qint64 bytesWritten = m_socket->write(request);
-
-    if (bytesWritten != request.size()) {
-        m_transactionAddressMap.remove(requestId);
-        qWarning() << "[Modbus发送失败]"
-               << "ReqID:" << requestId
-               << "地址:" << startAddress
-               << "数量:" << count
-               << "期望字节:" << request.size()
-               << "实际写入:" << bytesWritten
-               << "错误:" << m_socket->errorString();
+    QVector<quint16> values(count);
+    const int readCount = readFn(m_dynamicBackendHandle,
+                                 startAddress,
+                                 count,
+                                 values.data(),
+                                 values.size());
+    if (readCount <= 0) {
+        qWarning() << "[Modbus动态库读失败] 地址:" << startAddress << "数量:" << count;
         return false;
     }
 
-    if (isMainReadLogEnabled()) {
-        qInfo().noquote() << QString("[Main Modbus TX] ReqID:%1 FC:0x%2 Addr:%3 Count:%4 Hex:%5")
-                                 .arg(requestId)
-                                 .arg(functionCode, 2, 16, QChar('0'))
-                                 .arg(startAddress)
-                                 .arg(count)
-                                 .arg(QString::fromLatin1(request.toHex(' ')));
+    const int actualCount = qMin(readCount, count);
+    for (int i = 0; i < actualCount; ++i) {
+        updateRegisterValue(startAddress + i, values.at(i));
     }
-
-    static int sendCount = 0;
-    if (sendCount++ % 20 == 0) {
-        // qWarning() << "[Modbus发送]"
-        //            << "ReqID:" << requestId
-        //            << "FC:" << QString("0x%1").arg(functionCode, 2, 16, QChar('0')).toUpper()
-        //            << "地址:" << startAddress
-        //            << "数量:" << count
-        //            << "Hex:" << request.toHex(' ');
-    }
-
     return true;
 }
 
@@ -259,26 +372,15 @@ bool ModbusTCPClient::writeSingleRegister(int address, quint16 value)
         return false;
     }
 
-    QByteArray request = createWriteSingleRequest(address, value);
-    enterWritePriorityWindow();
-
-    const qint64 bytesWritten = m_socket->write(request);
-    m_socket->flush(); // 强制立即发出报文
-
-    if (bytesWritten != request.size()) {
-        qWarning() << "[Modbus写失败] 地址:" << address << "期望:" << request.size() << "实际:" << bytesWritten;
+    if (!m_backendWriteSingle || !m_dynamicBackendHandle) {
+        qWarning() << "[Modbus动态库写失败] 未找到单写函数";
         return false;
     }
-
-    if (isMainWriteLogEnabled()) {
-        qInfo().noquote() << QString("[Main Modbus TX] ReqID:%1 FC:0x06 Addr:%2 Value:%3 Hex:%4")
-                                 .arg(m_transactionId - 1)
-                                 .arg(address)
-                                 .arg(value)
-                                 .arg(QString::fromLatin1(request.toHex(' ')));
+    const bool ok = m_backendWriteSingle(m_dynamicBackendHandle, address, value) != 0;
+    if (!ok) {
+        qWarning() << "[Modbus动态库写失败] 地址:" << address << "值:" << value;
     }
-
-    return true;
+    return ok;
 }
 
 bool ModbusTCPClient::writeMultipleRegisters(int startAddress, const QVector<quint16> &values)
@@ -287,19 +389,17 @@ bool ModbusTCPClient::writeMultipleRegisters(int startAddress, const QVector<qui
         return false;
     }
 
-    QByteArray request = createWriteMultipleRequest(startAddress, values);
-    enterWritePriorityWindow();
-
-    if (isMainWriteLogEnabled()) {
-        qInfo().noquote() << QString("[Main Modbus TX] ReqID:%1 FC:0x10 Addr:%2 Count:%3 Hex:%4")
-                                 .arg(m_transactionId - 1)
-                                 .arg(startAddress)
-                                 .arg(values.size())
-                                 .arg(QString::fromLatin1(request.toHex(' ')));
+    if (m_backendWriteMultiple && m_dynamicBackendHandle) {
+        return m_backendWriteMultiple(m_dynamicBackendHandle,
+                                      startAddress,
+                                      values.constData(),
+                                      values.size()) != 0;
     }
-
-    m_socket->write(request);
-
+    for (int i = 0; i < values.size(); ++i) {
+        if (!writeSingleRegister(startAddress + i, values.at(i))) {
+            return false;
+        }
+    }
     return true;
 }
 
