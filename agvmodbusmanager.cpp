@@ -7,6 +7,17 @@
 #include <QMetaObject>
 
 namespace {
+template <typename Func>
+bool resolveRequiredSymbol(QLibrary &library, const char *name, Func &target, QString &error)
+{
+    target = reinterpret_cast<Func>(library.resolve(name));
+    if (!target) {
+        error = QStringLiteral("动态库缺少符号: %1").arg(QString::fromLatin1(name));
+        return false;
+    }
+    return true;
+}
+
 bool isAgvReadLogEnabled()
 {
     FeatureSwitchManager *featureSwitch = FeatureSwitchManager::instance();
@@ -104,8 +115,95 @@ void AGVModbusManager::stopWorkerThread()
 AGVModbusManager::~AGVModbusManager()
 {
     stopWorkerThread();
+    unloadDynamicBackend();
 
     qDebug() << "AGV Modbus管理器已销毁";
+}
+
+bool AGVModbusManager::ensureDynamicBackendLoaded()
+{
+    if (m_dynamicBackendLoadAttempted) {
+        return m_useDynamicBackend;
+    }
+    m_dynamicBackendLoadAttempted = true;
+
+    // 兼容主链路变量名，同时支持 AGV 专用覆盖
+    m_dynamicBackendPath = qEnvironmentVariable("AGV_MODBUS_BACKEND_LIB").trimmed();
+    if (m_dynamicBackendPath.isEmpty()) {
+        m_dynamicBackendPath = qEnvironmentVariable("MODBUS_BACKEND_LIB").trimmed();
+    }
+    if (m_dynamicBackendPath.isEmpty()) {
+        return false;
+    }
+
+    m_dynamicBackendLibrary.setFileName(m_dynamicBackendPath);
+    if (!m_dynamicBackendLibrary.load()) {
+        m_lastDynamicBackendError = QStringLiteral("加载AGV动态库失败: %1")
+                                        .arg(m_dynamicBackendLibrary.errorString());
+        qWarning() << m_lastDynamicBackendError << "路径:" << m_dynamicBackendPath;
+        return false;
+    }
+
+    if (!resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_create", m_backendCreate,
+                               m_lastDynamicBackendError)
+        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_destroy", m_backendDestroy,
+                                  m_lastDynamicBackendError)
+        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_connect", m_backendConnect,
+                                  m_lastDynamicBackendError)
+        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_disconnect", m_backendDisconnect,
+                                  m_lastDynamicBackendError)
+        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_is_connected", m_backendIsConnected,
+                                  m_lastDynamicBackendError)
+        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_read_holding_registers",
+                                  m_backendReadHolding, m_lastDynamicBackendError)
+        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_write_single_register",
+                                  m_backendWriteSingle, m_lastDynamicBackendError)) {
+        qWarning() << m_lastDynamicBackendError;
+        unloadDynamicBackend();
+        return false;
+    }
+
+    m_backendReadInput = reinterpret_cast<MbReadRegistersFn>(
+        m_dynamicBackendLibrary.resolve("modbus_backend_read_input_registers"));
+    m_backendWriteMultiple = reinterpret_cast<MbWriteMultipleFn>(
+        m_dynamicBackendLibrary.resolve("modbus_backend_write_multiple_registers"));
+
+    m_dynamicBackendHandle = m_backendCreate ? m_backendCreate() : nullptr;
+    if (!m_dynamicBackendHandle) {
+        m_lastDynamicBackendError = QStringLiteral("AGV动态库创建 backend 句柄失败");
+        qWarning() << m_lastDynamicBackendError;
+        unloadDynamicBackend();
+        return false;
+    }
+
+    m_useDynamicBackend = true;
+    qInfo() << "AGV Modbus 动态库后端已启用:" << m_dynamicBackendPath;
+    return true;
+}
+
+void AGVModbusManager::unloadDynamicBackend()
+{
+    if (m_backendDisconnect && m_dynamicBackendHandle) {
+        m_backendDisconnect(m_dynamicBackendHandle);
+    }
+    if (m_backendDestroy && m_dynamicBackendHandle) {
+        m_backendDestroy(m_dynamicBackendHandle);
+    }
+    m_dynamicBackendHandle = nullptr;
+    m_backendCreate = nullptr;
+    m_backendDestroy = nullptr;
+    m_backendConnect = nullptr;
+    m_backendDisconnect = nullptr;
+    m_backendIsConnected = nullptr;
+    m_backendReadHolding = nullptr;
+    m_backendReadInput = nullptr;
+    m_backendWriteSingle = nullptr;
+    m_backendWriteMultiple = nullptr;
+    m_useDynamicBackend = false;
+
+    if (m_dynamicBackendLibrary.isLoaded()) {
+        m_dynamicBackendLibrary.unload();
+    }
 }
 
 bool AGVModbusManager::connectToDevice(const QString &host, quint16 port)
@@ -123,13 +221,45 @@ bool AGVModbusManager::connectToDevice(const QString &host, quint16 port)
     m_host = host;
     m_port = port;
 
-    if (m_socket->state() != QAbstractSocket::UnconnectedState) {
-        m_socket->abort();
+    if (!ensureDynamicBackendLoaded()) {
+        const QString err = QStringLiteral("未加载AGV Modbus官方动态库，请设置MODBUS_BACKEND_LIB或AGV_MODBUS_BACKEND_LIB");
+        m_lastSocketError = err;
+        qWarning() << err;
+        emit errorOccurred(err);
+        emit updateStatusLabel("label_agv_connection", "连接错误: " + err);
+        return false;
     }
-    qDebug() << "AGV Modbus连接请求，主机:" << host << "端口:" << port;
-    m_socket->connectToHost(host, port);
 
-    return true;
+    const int rc = m_backendConnect(m_dynamicBackendHandle,
+                                    host.toUtf8().constData(),
+                                    static_cast<int>(port),
+                                    1);
+    m_connectedState = (rc != 0);
+    if (m_connectedState) {
+        m_lastSocketError.clear();
+        m_disconnectedWriteWarnedAddresses.clear();
+        if (m_pollTimer) {
+            m_pollTimer->start(m_pollInterval);
+        }
+        if (m_autoReconnect && m_reconnectTimer) {
+            m_reconnectTimer->stop();
+        }
+        emit connected();
+        emit updateStatusLabel("label_agv_connection", "已连接");
+        qInfo() << "AGV Modbus动态库连接成功:" << host << ":" << port;
+        return true;
+    }
+    const QString err = QStringLiteral("AGV动态库连接失败 host=%1 port=%2")
+                            .arg(host)
+                            .arg(port);
+    m_lastSocketError = err;
+    qWarning() << err;
+    emit errorOccurred(err);
+    emit updateStatusLabel("label_agv_connection", "连接错误: " + err);
+    if (m_autoReconnect && m_reconnectTimer && !m_reconnectTimer->isActive()) {
+        m_reconnectTimer->start(m_reconnectInterval);
+    }
+    return false;
 }
 
 void AGVModbusManager::disconnectFromDevice()
@@ -146,9 +276,10 @@ void AGVModbusManager::disconnectFromDevice()
     }
 
     m_connectedState = false;
-    if (m_socket->state() != QAbstractSocket::UnconnectedState) {
-        m_socket->disconnectFromHost();
+    if (m_backendDisconnect && m_dynamicBackendHandle) {
+        m_backendDisconnect(m_dynamicBackendHandle);
     }
+    emit disconnected();
 }
 
 bool AGVModbusManager::isConnected() const
@@ -156,16 +287,26 @@ bool AGVModbusManager::isConnected() const
     if (QThread::currentThread() != thread()) {
         bool connected = false;
         QMetaObject::invokeMethod(const_cast<AGVModbusManager *>(this), [this, &connected]() {
-            connected = m_connectedState;
+            if (m_backendIsConnected && m_dynamicBackendHandle) {
+                connected = (m_backendIsConnected(m_dynamicBackendHandle) != 0);
+            } else {
+                connected = m_connectedState;
+            }
         }, Qt::BlockingQueuedConnection);
         return connected;
     }
 
-    return m_connectedState;
+    if (m_backendIsConnected && m_dynamicBackendHandle) {
+        return m_backendIsConnected(m_dynamicBackendHandle) != 0;
+    }
+    return false;
 }
 
 void AGVModbusManager::onConnected()
 {
+    if (isDynamicBackendActive()) {
+        return;
+    }
     m_connectedState = true;
     m_lastSocketError.clear();
     m_disconnectedWriteWarnedAddresses.clear();
@@ -189,6 +330,9 @@ void AGVModbusManager::onConnected()
 
 void AGVModbusManager::onDisconnected()
 {
+    if (isDynamicBackendActive()) {
+        return;
+    }
     m_connectedState = false;
     qDebug() << "AGV Modbus连接断开";
 
@@ -208,6 +352,10 @@ void AGVModbusManager::onDisconnected()
 
 void AGVModbusManager::onError(QAbstractSocket::SocketError error)
 {
+    if (isDynamicBackendActive()) {
+        Q_UNUSED(error);
+        return;
+    }
     Q_UNUSED(error);
     if (m_socket->state() != QAbstractSocket::ConnectedState) {
         m_connectedState = false;
@@ -382,51 +530,47 @@ void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
         return;
     }
 
-    // 清理过期的请求记录
-    QDateTime now = QDateTime::currentDateTime();
-    QMutableMapIterator<quint16, QDateTime> it(m_requestTimestamps);
-    while (it.hasNext()) {
-        it.next();
-        if (it.value().msecsTo(now) > REQUEST_TIMEOUT) {
-            qDebug() << "清理超时请求，事务ID:" << it.key();
-            m_transactionAddressMap.remove(it.key());
-            it.remove();
-        }
-    }
-
-    // 限制在途请求数量，避免网络异常时无限堆积
-    constexpr int kMaxPendingRequests = 32;
-    if (m_transactionAddressMap.size() >= kMaxPendingRequests) {
-        qWarning() << "AGV在途请求过多，跳过本次轮询发送。pending=" << m_transactionAddressMap.size();
+    MbReadRegistersFn readFn = m_backendReadHolding;
+    if (!readFn || !m_dynamicBackendHandle) {
+        qWarning() << "AGV动态库读失败: 缺少读取函数";
         return;
     }
 
-    QByteArray request = createReadRequest(startAddress, count);
-
-    // 记录请求时间
-    quint16 requestId = m_transactionId - 1;  // 注意：createReadRequest中已经增加了m_transactionId
-    m_requestTimestamps[requestId] = QDateTime::currentDateTime();
-
-    if (isAgvReadLogEnabled()) {
-        qInfo().noquote() << QString("[AGV Modbus TX] ReqID:%1 FC:0x03 Addr:%2 Count:%3 Hex:%4")
-                                 .arg(requestId)
-                                 .arg(startAddress)
-                                 .arg(count)
-                                 .arg(QString::fromLatin1(request.toHex(' ')));
+    QVector<quint16> values(count);
+    const int readCount = readFn(m_dynamicBackendHandle,
+                                 startAddress,
+                                 count,
+                                 values.data(),
+                                 values.size());
+    if (readCount <= 0) {
+        qWarning() << "AGV动态库读失败 地址:" << startAddress << "数量:" << count;
+        return;
     }
 
-    m_socket->write(request);
+    const int actualCount = qMin(readCount, count);
+    for (int i = 0; i < actualCount; ++i) {
+        const int address = startAddress + i;
+        const quint16 value = values.at(i);
+        emit registerValueChanged(address, value);
+
+        if (address >= 50 && address <= 51) {
+            processBitVariables(address, value);
+        } else if (address >= 102 && address <= 117) {
+            if (address == 102) {
+                processBitVariables(address, value);
+                processWordVariables(address, value);
+            } else if (address == 103) {
+                processWordVariables(address, value);
+            } else {
+                processWordVariables(address, value);
+            }
+        }
+    }
 }
 
 void AGVModbusManager::onReadyRead()
 {
-    const QByteArray chunk = m_socket->readAll();
-    if (chunk.isEmpty()) {
-        return;
-    }
-
-    m_responseBuffer.append(chunk);
-    parseResponse(m_responseBuffer);
+    return;
 }
 
 bool AGVModbusManager::parseResponse(QByteArray &data)
@@ -935,23 +1079,18 @@ bool AGVModbusManager::writeSingleRegister(int address, quint16 value)
 
     m_disconnectedWriteWarnedAddresses.remove(address);
 
-    QByteArray request = createWriteRequest(address, value);
-
-    // 记录请求时间
-    quint16 requestId = m_transactionId - 1;
-    m_requestTimestamps[requestId] = QDateTime::currentDateTime();
-
-    if (isAgvWriteLogEnabled()) {
-        qInfo().noquote() << QString("[AGV Modbus TX] ReqID:%1 FC:0x06 Addr:%2 Value:%3 Hex:%4")
-                                 .arg(requestId)
-                                 .arg(address)
-                                 .arg(value)
-                                 .arg(QString::fromLatin1(request.toHex(' ')));
+    if (!m_backendWriteSingle || !m_dynamicBackendHandle) {
+        qWarning() << "AGV动态库写失败: 未找到单写函数";
+        emit writeCompleted(address, value, false);
+        return false;
     }
 
-    m_socket->write(request);
-
-    return true;
+    const bool ok = m_backendWriteSingle(m_dynamicBackendHandle, address, value) != 0;
+    emit writeCompleted(address, value, ok);
+    if (!ok) {
+        qWarning() << "AGV动态库写失败 地址:" << address << "值:" << value;
+    }
+    return ok;
 }
 
 void AGVModbusManager::setWritesEnabled(bool enabled)

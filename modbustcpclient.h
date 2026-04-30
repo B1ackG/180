@@ -21,6 +21,7 @@
 #include <QMutex>
 #include <QTimer>
 #include <QDateTime>
+#include <QLibrary>
 
 class ModbusTCPClient : public QObject
 {
@@ -272,6 +273,36 @@ private slots:
     void tryReconnect();
 
 private:
+    // 动态库后端（可选）: 若加载成功，优先走动态库实现
+    bool ensureDynamicBackendLoaded();
+    bool isDynamicBackendActive() const { return m_useDynamicBackend; }
+    void unloadDynamicBackend();
+
+    using MbCreateHandleFn = void* (*)();
+    using MbDestroyHandleFn = void (*)(void*);
+    using MbConnectFn = int (*)(void*, const char*, int, int);
+    using MbDisconnectFn = void (*)(void*);
+    using MbIsConnectedFn = int (*)(void*);
+    using MbReadRegistersFn = int (*)(void*, int, int, quint16*, int);
+    using MbWriteSingleFn = int (*)(void*, int, quint16);
+    using MbWriteMultipleFn = int (*)(void*, int, const quint16*, int);
+
+    QLibrary m_dynamicBackendLibrary;
+    QString m_dynamicBackendPath;
+    void *m_dynamicBackendHandle = nullptr;
+    bool m_useDynamicBackend = false;
+    bool m_dynamicBackendLoadAttempted = false;
+    QString m_lastDynamicBackendError;
+    MbCreateHandleFn m_backendCreate = nullptr;
+    MbDestroyHandleFn m_backendDestroy = nullptr;
+    MbConnectFn m_backendConnect = nullptr;
+    MbDisconnectFn m_backendDisconnect = nullptr;
+    MbIsConnectedFn m_backendIsConnected = nullptr;
+    MbReadRegistersFn m_backendReadHolding = nullptr;
+    MbReadRegistersFn m_backendReadInput = nullptr;
+    MbWriteSingleFn m_backendWriteSingle = nullptr;
+    MbWriteMultipleFn m_backendWriteMultiple = nullptr;
+
     // Modbus TCP协议处理
     QByteArray createReadRequest(int startAddress, int count, quint8 functionCode = 0x04);  // 修改这里
     QByteArray createWriteSingleRequest(int address, quint16 value);
