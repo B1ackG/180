@@ -3909,6 +3909,27 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             }
             QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
         }
+
+        const bool weightOverload = (((value >> 3) & 0x01) == 1);
+        if (weightOverload != m_robotWeightOverload150Bit3Flag) {
+            m_robotWeightOverload150Bit3Flag = weightOverload;
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = "提示系统";
+                record.controlName = "重量超载提示";
+                record.controlType = "提示窗口";
+                record.operation = weightOverload ? "提示触发" : "提示解除";
+                record.oldValue = "";
+                record.newValue = weightOverload ? "检测到重量超载" : "重量超载提示已解除";
+                m_recorder->addRecord(record);
+            }
+            if (weightOverload) {
+                showRobotWeightOverloadDialog();
+            } else {
+                hideRobotWeightOverloadDialog();
+            }
+        }
     }
 
 
@@ -8802,6 +8823,51 @@ void MainWindow::hideRobotOperationHintDialog()
 {
     if (m_robotOperationHintDialog && m_robotOperationHintDialog->isVisible()) {
         m_robotOperationHintDialog->hide();
+    }
+}
+
+void MainWindow::showRobotWeightOverloadDialog()
+{
+    if (!m_robotWeightOverloadWidget) {
+        m_robotWeightOverloadWidget = new QWidget(nullptr);
+        m_robotWeightOverloadWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
+                                                    Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_robotWeightOverloadWidget->setObjectName("robotWeightOverloadWidget");
+
+        QVBoxLayout *layout = new QVBoxLayout(m_robotWeightOverloadWidget);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(8);
+
+        m_robotWeightOverloadLabel = new QLabel(m_robotWeightOverloadWidget);
+        m_robotWeightOverloadLabel->setAlignment(Qt::AlignCenter);
+        m_robotWeightOverloadLabel->setWordWrap(true);
+        m_robotWeightOverloadLabel->setText(QStringLiteral("重量超载"));
+        layout->addWidget(m_robotWeightOverloadLabel);
+
+        m_robotWeightOverloadWidget->setFixedSize(360, 120);
+        m_robotWeightOverloadWidget->setStyleSheet(
+            "#robotWeightOverloadWidget {"
+            "  background-color: rgba(45, 0, 0, 232);"
+            "  border: 3px solid #ff5555;"
+            "  border-radius: 10px;"
+            "}"
+            "QLabel {"
+            "  color: #ffb3b3;"
+            "  font-size: 22px;"
+            "  font-weight: bold;"
+            "  background: transparent;"
+            "}");
+    }
+
+    m_robotWeightOverloadWidget->show();
+    m_robotWeightOverloadWidget->raise();
+    m_robotWeightOverloadWidget->activateWindow();
+}
+
+void MainWindow::hideRobotWeightOverloadDialog()
+{
+    if (m_robotWeightOverloadWidget && m_robotWeightOverloadWidget->isVisible()) {
+        m_robotWeightOverloadWidget->hide();
     }
 }
 
