@@ -19,8 +19,6 @@
 #include <QThread>
 #include <QTimer>
 #include <QMutex>
-#include <QTcpSocket>
-#include <QHostAddress>
 #include <QVector>
 #include <QMap>
 #include <QListWidget>
@@ -234,17 +232,12 @@ signals:
 
 
 private slots:
-    void onConnected();
-    void onDisconnected();
-    void onError(QAbstractSocket::SocketError error);
-    void onReadyRead();
     void pollRegisters();
     void tryReconnect();
 
 private:
     // 动态库后端（可选）：启用后替代手写 Modbus TCP 帧处理
     bool ensureDynamicBackendLoaded();
-    bool isDynamicBackendActive() const { return m_useDynamicBackend; }
     void unloadDynamicBackend();
 
     using MbCreateHandleFn = void* (*)();
@@ -255,17 +248,6 @@ private:
     using MbReadRegistersFn = int (*)(void*, int, int, quint16*, int);
     using MbWriteSingleFn = int (*)(void*, int, quint16);
     using MbWriteMultipleFn = int (*)(void*, int, const quint16*, int);
-
-    QMap<quint16, QDateTime> m_requestTimestamps;  // 请求时间戳
-    static const int REQUEST_TIMEOUT = 2000;        // 请求超时时间（毫秒）
-     // Modbus协议处理
-    QByteArray createReadRequest(int startAddress, int count);
-    bool parseResponse(QByteArray &data);
-    bool parseSingleResponseFrame(QByteArray &data);
-    bool processSingleResponseFrame(const QByteArray &frame, quint16 transactionId);
-
-    // 响应缓冲区
-    QByteArray m_responseBuffer;
 
     // 数据处理
     void processBitVariables(int address, quint16 value);
@@ -279,14 +261,7 @@ private:
     // 故障处理
     void updateFaultsDisplay();
     void updateFaultCodesDisplay();
-    // 添加创建写入请求的函数
-    QByteArray createWriteRequest(int address, quint16 value);
-
-    // 添加处理写入响应的函数
-    bool parseWriteResponse(const QByteArray &frame, quint16 transactionId);
-
 private:
-    QTcpSocket *m_socket;
     QThread *m_networkThread;
     QMutex m_mutex;
 
@@ -299,9 +274,6 @@ private:
 
     QTimer *m_pollTimer;
     int m_pollInterval;
-
-    quint16 m_transactionId;
-    QMap<quint16, int> m_transactionAddressMap;  // 事务ID -> 起始地址映射
 
     // 数据存储
     QMap<int, quint16> m_registerValues;  // 地址 -> 值

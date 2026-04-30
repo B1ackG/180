@@ -1,6 +1,5 @@
 // file name: agvmodbusmanager.cpp
 #include "agvmodbusmanager.h"
-#include "featureswitchmanager.h"
 #include <QDebug>
 #include <QDateTime>
 #include <QCoreApplication>
@@ -18,22 +17,10 @@ bool resolveRequiredSymbol(QLibrary &library, const char *name, Func &target, QS
     return true;
 }
 
-bool isAgvReadLogEnabled()
-{
-    FeatureSwitchManager *featureSwitch = FeatureSwitchManager::instance();
-    return featureSwitch && featureSwitch->isFeatureEnabled("modbus_agv", "modbus_agv.read_logs");
-}
-
-bool isAgvWriteLogEnabled()
-{
-    FeatureSwitchManager *featureSwitch = FeatureSwitchManager::instance();
-    return featureSwitch && featureSwitch->isFeatureEnabled("modbus_agv", "modbus_agv.write_logs");
-}
 } // namespace
 
 AGVModbusManager::AGVModbusManager(QObject *parent)
     : QObject(parent)
-    , m_socket(nullptr)
     , m_networkThread(nullptr)
     , m_host("192.168.1.88")
     , m_port(502)
@@ -42,21 +29,7 @@ AGVModbusManager::AGVModbusManager(QObject *parent)
     , m_reconnectTimer(nullptr)
     , m_pollTimer(nullptr)
     , m_pollInterval(200)  // 默认200ms
-    , m_transactionId(0)
 {
-    // 注册元类型
-    qRegisterMetaType<QAbstractSocket::SocketError>("QAbstractSocket::SocketError");
-    // 保持socket与当前对象同线程，避免跨线程访问
-    m_socket = new QTcpSocket(this);
-
-    // 连接信号槽
-    connect(m_socket, &QTcpSocket::connected, this, &AGVModbusManager::onConnected);
-    connect(m_socket, &QTcpSocket::disconnected, this, &AGVModbusManager::onDisconnected);
-    connect(m_socket, QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred),
-            this, &AGVModbusManager::onError);
-    connect(m_socket, &QTcpSocket::readyRead, this, &AGVModbusManager::onReadyRead);
-
-    // 创建定时器
     m_pollTimer = new QTimer(this);
     m_pollTimer->setSingleShot(false);
     connect(m_pollTimer, &QTimer::timeout, this, &AGVModbusManager::pollRegisters);
@@ -302,87 +275,6 @@ bool AGVModbusManager::isConnected() const
     return false;
 }
 
-void AGVModbusManager::onConnected()
-{
-    if (isDynamicBackendActive()) {
-        return;
-    }
-    m_connectedState = true;
-    m_lastSocketError.clear();
-    m_disconnectedWriteWarnedAddresses.clear();
-    qDebug() << "AGV Modbus连接成功:" << m_host << ":" << m_port;
-
-    // 已禁用开机自动轮询
-    // 启动轮询定时器以定期读取关键寄存器
-    if (m_pollTimer) {
-        m_pollTimer->start(m_pollInterval);
-        qDebug() << "轮询定时器已启动，间隔:" << m_pollInterval << "ms";
-    }
-
-    // 停止重连定时器
-    if (m_autoReconnect && m_reconnectTimer) {
-        m_reconnectTimer->stop();
-    }
-
-    emit connected();
-    emit updateStatusLabel("label_agv_connection", "已连接");
-}
-
-void AGVModbusManager::onDisconnected()
-{
-    if (isDynamicBackendActive()) {
-        return;
-    }
-    m_connectedState = false;
-    qDebug() << "AGV Modbus连接断开";
-
-    // 停止轮询
-    if (m_pollTimer->isActive()) {
-        m_pollTimer->stop();
-    }
-
-    // 启动重连
-    if (m_autoReconnect && !m_host.isEmpty()) {
-        m_reconnectTimer->start(m_reconnectInterval);
-    }
-
-    emit disconnected();
-    emit updateStatusLabel("label_agv_connection", "未连接");  // 修改标签名
-}
-
-void AGVModbusManager::onError(QAbstractSocket::SocketError error)
-{
-    if (isDynamicBackendActive()) {
-        Q_UNUSED(error);
-        return;
-    }
-    Q_UNUSED(error);
-    if (m_socket->state() != QAbstractSocket::ConnectedState) {
-        m_connectedState = false;
-    }
-    QString errorStr = m_socket->errorString();
-    const bool shouldReport = (errorStr != m_lastSocketError);
-    if (shouldReport) {
-        m_lastSocketError = errorStr;
-        qWarning() << "AGV Modbus错误:" << errorStr;
-    } else {
-        qDebug() << "AGV Modbus错误(已抑制重复):" << errorStr;
-    }
-
-    // 如果发生连接错误且启用自动重连，则启动重连定时器
-    if (m_autoReconnect && !m_host.isEmpty()) {
-        if (m_reconnectTimer && !m_reconnectTimer->isActive()) {
-            qDebug() << "连接出错，" << m_reconnectInterval << "ms后尝试重连...";
-            m_reconnectTimer->start(m_reconnectInterval);
-        }
-    }
-
-    if (shouldReport) {
-        emit errorOccurred(errorStr);
-        emit updateStatusLabel("label_agv_connection", "连接错误: " + errorStr);  // 修改标签名
-    }
-}
-
 void AGVModbusManager::tryReconnect()
 {
     if (m_autoReconnect && !m_host.isEmpty()) {
@@ -474,49 +366,6 @@ void AGVModbusManager::pollRegisters()
     pollGroup = (pollGroup + 1) % 9;
 }
 
-
-
-
-
-
-QByteArray AGVModbusManager::createReadRequest(int startAddress, int count)
-{
-    QByteArray request;
-
-    // 事务标识符 (2字节)
-    request.append(static_cast<char>((m_transactionId >> 8) & 0xFF));
-    request.append(static_cast<char>(m_transactionId & 0xFF));
-
-    // 记录事务ID到起始地址的映射
-    m_transactionAddressMap[m_transactionId] = startAddress;
-    m_transactionId++;
-
-    // 协议标识符 (2字节) - Modbus = 0
-    request.append(static_cast<char>(0x00));
-    request.append(static_cast<char>(0x00));
-
-    // 长度 (2字节) - 后面字节数
-    int length = 6;  // 单元标识符1 + 功能码1 + 起始地址2 + 寄存器数量2
-    request.append(static_cast<char>((length >> 8) & 0xFF));
-    request.append(static_cast<char>(length & 0xFF));
-
-    // 单元标识符 (1字节) - 从站ID
-    request.append(static_cast<char>(1));  // 默认从站ID为1
-
-    // 功能码 (1字节) - 0x03 读保持寄存器
-    request.append(static_cast<char>(0x03));
-
-    // 起始地址 (2字节)
-    request.append(static_cast<char>((startAddress >> 8) & 0xFF));
-    request.append(static_cast<char>(startAddress & 0xFF));
-
-    // 寄存器数量 (2字节)
-    request.append(static_cast<char>((count >> 8) & 0xFF));
-    request.append(static_cast<char>(count & 0xFF));
-
-    return request;
-}
-
 void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
 {
     if (QThread::currentThread() != thread()) {
@@ -568,188 +417,6 @@ void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
     }
 }
 
-void AGVModbusManager::onReadyRead()
-{
-    return;
-}
-
-bool AGVModbusManager::parseResponse(QByteArray &data)
-{
-    bool parsedAny = false;
-    while (data.size() >= 7) {
-        quint16 length = (static_cast<quint8>(data[4]) << 8) | static_cast<quint8>(data[5]);
-        int frameLength = 6 + length;
-
-        if (frameLength < 9) {
-            qWarning() << "非法AGV Modbus帧长度:" << frameLength;
-            data.clear();
-            emit errorOccurred("非法AGV Modbus帧长度");
-            return false;
-        }
-
-        if (data.size() < frameLength) {
-            break;
-        }
-
-        if (!parseSingleResponseFrame(data)) {
-            qWarning() << "解析AGV Modbus响应帧失败";
-            return false;
-        }
-        parsedAny = true;
-    }
-    return parsedAny;
-}
-
-bool AGVModbusManager::parseSingleResponseFrame(QByteArray &data)
-{
-    if (data.size() < 9) {
-        return false;
-    }
-
-    // 提取事务ID
-    quint16 transactionId = (static_cast<quint8>(data[0]) << 8) | static_cast<quint8>(data[1]);
-
-    // 提取长度字段（偏移4-5字节）
-    quint16 length = (static_cast<quint8>(data[4]) << 8) | static_cast<quint8>(data[5]);
-
-    // 计算完整帧长度
-    int frameLength = 6 + length;  // MBAP头6字节 + 长度字段的值
-
-    if (data.size() < frameLength) {
-        return false;
-    }
-
-    // 提取完整的帧
-    QByteArray frame = data.left(frameLength);
-    data.remove(0, frameLength);  // 移除已处理的数据
-
-    // 解析这个帧
-    return processSingleResponseFrame(frame, transactionId);
-}
-
-bool AGVModbusManager::processSingleResponseFrame(const QByteArray &frame, quint16 transactionId)
-{
-
-    // 跳过MBAP头（7字节）
-    QByteArray pdu = frame.mid(7);
-
-    if (pdu.size() < 1) {
-        qWarning() << "PDU数据不足";
-        return false;
-    }
-
-    quint8 functionCode = static_cast<quint8>(pdu[0]);
-
-    const bool isReadFrame = (functionCode == 0x03 || functionCode == 0x04);
-    const bool isWriteFrame = (functionCode == 0x05 || functionCode == 0x06 || functionCode == 0x10);
-    if ((isReadFrame && isAgvReadLogEnabled()) || (isWriteFrame && isAgvWriteLogEnabled())) {
-        qInfo().noquote() << QString("[AGV Modbus RX %1] ReqID:%2 FC:0x%3 Len:%4 Hex:%5")
-                                 .arg(isWriteFrame ? "WRITE" : "READ")
-                                 .arg(transactionId)
-                                 .arg(functionCode, 2, 16, QChar('0'))
-                                 .arg(frame.size())
-                                 .arg(QString::fromLatin1(frame.toHex(' ')));
-    }
-
-    // 检查异常响应
-    if (functionCode & 0x80) {
-        quint8 errorCode = static_cast<quint8>(pdu[1]);
-        QString errorMsg = QString("Modbus异常: 错误码 0x%1").arg(errorCode, 2, 16, QChar('0'));
-        qWarning() << errorMsg;
-        m_transactionAddressMap.remove(transactionId);
-        m_requestTimestamps.remove(transactionId);
-        emit errorOccurred(errorMsg);
-        return false;
-    }
-
-    // 处理功能码 0x03（读保持寄存器）响应
-    if (functionCode == 0x03) {
-        if (!m_transactionAddressMap.contains(transactionId)) {
-            // 请求已超时清理或收到过期/乱序响应，直接忽略该帧，避免错误映射到地址0。
-            m_requestTimestamps.remove(transactionId);
-            qWarning() << "收到无映射事务ID的读响应，已忽略 transactionId=" << transactionId;
-            return true;
-        }
-
-        int startAddress = m_transactionAddressMap.take(transactionId);
-        m_requestTimestamps.remove(transactionId);
-
-        // 字节数
-        quint8 byteCount = static_cast<quint8>(pdu[1]);
-
-        // 寄存器数量
-        int registerCount = byteCount / 2;
-
-        for (int i = 0; i < registerCount; i++) {
-            int dataIndex = 2 + i * 2;
-            if (dataIndex + 1 >= pdu.size()) {
-                qWarning() << "数据不足，无法解析寄存器";
-                break;
-            }
-
-            quint16 value = (static_cast<quint8>(pdu[dataIndex]) << 8) |
-                            static_cast<quint8>(pdu[dataIndex + 1]);
-
-            int address = startAddress + i;
-
-            // 发射寄存器值变化信号
-            emit registerValueChanged(address, value);
-
-                // 根据地址范围处理数据
-            if (address >= 50 && address <= 51) {
-                // 位变量区域（50-51）
-                processBitVariables(address, value);
-            } else if (address >= 102 && address <= 117) {
-                // 这个区域既有位变量又有字变量
-                if (address == 102) {
-                    // 地址102：先处理位变量（故障状态）
-                    processBitVariables(address, value);
-                    // 然后处理字变量（电池1电量）
-                    processWordVariables(address, value);
-                } else if (address == 103) {
-                    // 地址103：电池2电量
-                    processWordVariables(address, value);
-                } else {
-                    // 其他地址：直接处理字变量
-                    processWordVariables(address, value);
-                }
-            }
-        }
-        return true;
-    }
-    // 添加功能码 0x06（写单个寄存器）响应处理
-    else if (functionCode == 0x06) {
-        m_transactionAddressMap.remove(transactionId);
-        m_requestTimestamps.remove(transactionId);
-
-        if (pdu.size() >= 5) {
-            // 提取写入的地址
-            int writtenAddress = (static_cast<quint8>(pdu[1]) << 8) |
-                                 static_cast<quint8>(pdu[2]);
-
-            // 提取写入的值
-            quint16 writtenValue = (static_cast<quint8>(pdu[3]) << 8) |
-                                   static_cast<quint8>(pdu[4]);
-
-            if (isAgvWriteLogEnabled()) {
-                qInfo().noquote() << QString("[AGV Modbus ACK] ReqID:%1 FC:0x06 Addr:%2 Value:%3")
-                                         .arg(transactionId)
-                                         .arg(writtenAddress)
-                                         .arg(writtenValue);
-            }
-
-            // 发出写入完成信号
-            emit writeCompleted(writtenAddress, writtenValue, true);
-
-            return true;
-        }
-    }
-    else {
-        qWarning() << "不支持的功能码: 0x" << QString::number(functionCode, 16).toUpper();
-    }
-
-    return false;
-}
 
 void AGVModbusManager::processBitVariables(int address, quint16 value)
 {
@@ -1114,40 +781,3 @@ bool AGVModbusManager::writesEnabled() const
     return m_writesEnabled;
 }
 
-QByteArray AGVModbusManager::createWriteRequest(int address, quint16 value)
-{
-    QByteArray request;
-
-    // 事务标识符 (2字节)
-    request.append(static_cast<char>((m_transactionId >> 8) & 0xFF));
-    request.append(static_cast<char>(m_transactionId & 0xFF));
-
-    // 记录事务ID
-    m_transactionAddressMap[m_transactionId] = address;
-    m_transactionId++;
-
-    // 协议标识符 (2字节) - Modbus = 0
-    request.append(static_cast<char>(0x00));
-    request.append(static_cast<char>(0x00));
-
-    // 长度 (2字节) - 后面字节数
-    int length = 6;  // 单元标识符1 + 功能码1 + 地址2 + 值2
-    request.append(static_cast<char>((length >> 8) & 0xFF));
-    request.append(static_cast<char>(length & 0xFF));
-
-    // 单元标识符 (1字节) - 从站ID
-    request.append(static_cast<char>(1));  // 默认从站ID为1
-
-    // 功能码 (1字节) - 0x06 写单个寄存器
-    request.append(static_cast<char>(0x06));
-
-    // 寄存器地址 (2字节)
-    request.append(static_cast<char>((address >> 8) & 0xFF));
-    request.append(static_cast<char>(address & 0xFF));
-
-    // 寄存器值 (2字节)
-    request.append(static_cast<char>((value >> 8) & 0xFF));
-    request.append(static_cast<char>(value & 0xFF));
-
-    return request;
-}

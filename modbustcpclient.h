@@ -16,12 +16,13 @@
 #define MODBUSTCPCLIENT_H
 
 #include <QObject>
-#include <QTcpSocket>
 #include <QThread>
 #include <QMutex>
 #include <QTimer>
-#include <QDateTime>
 #include <QLibrary>
+#include <QMap>
+#include <QList>
+#include <QVector>
 
 class ModbusTCPClient : public QObject
 {
@@ -213,23 +214,6 @@ public:
      * @endcode
      */
 
-    /**
-     * @brief 解析单次 Modbus 响应（供测试/调试使用）
-     *
-     * @param response 原始字节流
-     * @param transactionId 对应的事务 ID
-     * @note 此方法通常由内部 onReadyRead 调用，外部可用于单元测试。
-     */
-    void parseSingleResponse(const QByteArray &response, quint16 transactionId);
-
-    /**
-     * 使用示例（测试/调试）:
-     * @code
-     * QByteArray resp = ...;
-     * client->parseSingleResponse(resp, 1);
-     * @endcode
-     */
-
 signals:
     void connected();
     void disconnected();
@@ -265,17 +249,12 @@ public slots:
     void stopPolling();
 
 private slots:
-    void onConnected();
-    void onDisconnected();
-    void onError(QAbstractSocket::SocketError error);
-    void onReadyRead();
     void pollRegisters();
     void tryReconnect();
 
 private:
     // 动态库后端（可选）: 若加载成功，优先走动态库实现
     bool ensureDynamicBackendLoaded();
-    bool isDynamicBackendActive() const { return m_useDynamicBackend; }
     void unloadDynamicBackend();
 
     using MbCreateHandleFn = void* (*)();
@@ -303,33 +282,12 @@ private:
     MbWriteSingleFn m_backendWriteSingle = nullptr;
     MbWriteMultipleFn m_backendWriteMultiple = nullptr;
 
-    // Modbus TCP协议处理
-    QByteArray createReadRequest(int startAddress, int count, quint8 functionCode = 0x04);  // 修改这里
-    QByteArray createWriteSingleRequest(int address, quint16 value);
-    QByteArray createWriteMultipleRequest(int startAddress, const QVector<quint16> &values);
-
-    // 新增私有函数
     bool readRegisters(int startAddress, int count, quint8 functionCode);
-    bool parseResponse(const QByteArray &data);
-    
-    struct TransactionInfo {
-        int address;
-        qint64 timestamp; // 发送时的时间戳 (ms)
-    };
-
-    QMap<quint16, TransactionInfo> m_transactionAddressMap;  // 事务ID -> 事务信息映射
-    QByteArray m_responseBuffer;
-    int m_maxTimeoutMs; // 事务超时时间 (ms)
-
-    bool parseReadResponse(const QByteArray &data, int startAddress, QVector<quint16> &values);
-    bool parseWriteResponse(const QByteArray &data, int expectedAddress);
-    void enterWritePriorityWindow();
 
     // 线程安全操作
     void updateRegisterValue(int address, quint16 value);
 
 private:
-    QTcpSocket *m_socket;
     QThread *m_networkThread;
     QMutex m_mutex;
 
@@ -344,19 +302,12 @@ private:
     bool m_polling;
     int m_pollInterval;
     QTimer *m_pollTimer;
-    qint64 m_pollSuspendUntilMs = 0;
-    int m_writePriorityWindowMs = 140;
-    int m_maxPendingTransactions = 64;
 
     QMap<int, ModbusRegister> m_registers;
     QMap<int, QString> m_registerNames;
     QList<int> m_pollList;
 
-    quint16 m_transactionId;
     bool m_connectedState = false; // 追踪连接状态
-    QString m_lastSocketError;
-    qint64 m_lastSocketErrorMs = 0;
-    bool m_transactionMapMismatchLogged = false;
 };
 
 #endif // MODBUSTCPCLIENT_H
