@@ -3250,6 +3250,44 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         }
     }
 
+    if (m_stepModeEnabled) {
+        if (!pressed) {
+            return;
+        }
+
+        if (!m_stepValueEdit) {
+            qCDebug(lcMainWindow) << "首页○9(步进)：未找到 lineEdit_StepValue，仅写 bit4/bit5";
+            writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○9步进按下(1)：寄存器0 bit4=1"));
+            writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
+            appendAgvExternalKeyRecord(keyNumber, pressed);
+            return;
+        }
+
+        bool ok = false;
+        const double raw = m_stepValueEdit->text().trimmed().toDouble(&ok);
+        if (!ok) {
+            qCDebug(lcMainWindow) << "首页○9(步进)：步进值无效" << m_stepValueEdit->text();
+            return;
+        }
+        int stepInt = static_cast<int>(raw);
+        stepInt = -stepInt;
+
+        writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○9步进按下(1)：寄存器0 bit4=1"));
+        writeToAGVDevice(5, stepInt);
+        writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
+        appendAgvExternalKeyRecord(keyNumber, pressed);
+        return;
+    }
+
+    if (m_isJointMode) {
+        writeAGVRegisterBits(0,
+                             { qMakePair(3, pressed) },
+                             pressed ? QStringLiteral("○9点动按下：寄存器0 bit3=1")
+                                     : QStringLiteral("○9点动释放：寄存器0 bit3=0"));
+        appendAgvExternalKeyRecord(keyNumber, pressed);
+        return;
+    }
+
     writeAGVRegisterBits(0,
                          {
                              qMakePair(3, pressed),
@@ -6388,6 +6426,43 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
             showRobotOperationHintDialog(interlockHint);
             return;
         }
+    }
+
+    if (m_stepModeEnabled) {
+        if (!pressed) {
+            return;
+        }
+
+        if (!m_stepValueEdit) {
+            qCDebug(lcMainWindow) << "首页○10(步进)：未找到 lineEdit_StepValue，仅写 bit4/bit5";
+            writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○10步进按下(1)：寄存器0 bit4=1"));
+            writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
+            appendAgvExternalKeyRecord(keyNumber, pressed);
+            return;
+        }
+
+        bool ok = false;
+        const double raw = m_stepValueEdit->text().trimmed().toDouble(&ok);
+        if (!ok) {
+            qCDebug(lcMainWindow) << "首页○10(步进)：步进值无效" << m_stepValueEdit->text();
+            return;
+        }
+        const int stepInt = static_cast<int>(raw);
+
+        writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○10步进按下(1)：寄存器0 bit4=1"));
+        writeToAGVDevice(5, stepInt);
+        writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
+        appendAgvExternalKeyRecord(keyNumber, pressed);
+        return;
+    }
+
+    if (m_isJointMode) {
+        writeAGVRegisterBits(0,
+                             { qMakePair(2, pressed) },
+                             pressed ? QStringLiteral("○10点动按下：寄存器0 bit2=1")
+                                     : QStringLiteral("○10点动释放：寄存器0 bit2=0"));
+        appendAgvExternalKeyRecord(keyNumber, pressed);
+        return;
     }
 
     writeAGVRegisterBits(0,
