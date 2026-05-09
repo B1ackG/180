@@ -155,6 +155,11 @@ public:
      */
     bool writeMultipleRegisters(int startAddress, const QVector<quint16> &values);
 
+    /**
+     * @brief 同步读取单个保持寄存器（阻塞，用于门禁/联锁等逻辑）
+     */
+    bool readHoldingRegisterSync(int address, quint16 &value);
+
     // 批量管理
     /**
      * @brief 将寄存器加入轮询列表

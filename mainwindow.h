@@ -204,6 +204,10 @@ public:
     void showRobotOperationHintDialog(const QString &message);
     /** @brief 隐藏首页操作提示窗 */
     void hideRobotOperationHintDialog();
+    /** @brief 示教写门禁触发时的提示窗（样式仿高度互锁提示） */
+    void showTeachingWriteGateDeniedDialog();
+    /** @brief 隐藏示教写门禁提示窗 */
+    void hideTeachingWriteGateDeniedDialog();
     /** @brief 显示重量超载提示窗（150.bit3=1） */
     void showRobotWeightOverloadDialog();
     /** @brief 隐藏重量超载提示窗（150.bit3=0） */
@@ -239,8 +243,8 @@ public:
     void setupAGVModbus();
     /** @brief 初始化 AGV 相关 UI */
     void setupAGVUI();
-    /** @brief 向 AGV 写寄存器 */
-    void writeToAGVDevice(int address, int value, bool bypassWirelessWarning = false);
+    /** @brief 向 AGV 写寄存器 @return 是否写入成功（未连接或写失败为 false） */
+    bool writeToAGVDevice(int address, int value, bool bypassWirelessWarning = false);
     /** @brief 按位更新 AGV 寄存器并写回，自动保留未修改位 */
     bool writeAGVRegisterBits(int address, const QList<QPair<int, bool>> &bitUpdates, const QString &scene = QString());
     
@@ -424,6 +428,7 @@ private slots:
     void onSteeringModeChanged(SteeringMode mode, int modbusValue);
     /** @brief 移除警告按钮点击 */
     void on_TBtn_RemoveWarning_clicked();
+    void on_TBtn_Interlocking_clicked();
 
     // 历史记录
     /** @brief 清除记录 */
@@ -564,6 +569,7 @@ private:
     QLabel *m_agvDriveFaultAlarmLabel = nullptr;
     QDialog *m_agvBatteryLowDialog = nullptr;
     QDialog *m_robotOperationHintDialog = nullptr;
+    QDialog *m_teachingWriteGateDeniedDialog = nullptr;
     QWidget *m_robotWeightOverloadWidget = nullptr;
     QLabel *m_robotWeightOverloadLabel = nullptr;
     QDialog *m_robotLimitReachedDialog = nullptr;
@@ -576,6 +582,7 @@ private:
     QTimer *m_modbusPollTimer;
     QTimer *m_modbusReadTimer;
     QTimer *m_mainControlSyncTimer;
+    QTimer *m_interlockingSyncTimer = nullptr;
     QMap<QPair<int, int>, QPair<quint16, quint16>> m_floatRegisters;
     QVector<TechSliderLabel*> m_floatLabels;
 
@@ -708,6 +715,11 @@ private:
     // ==========================================
     // 10. 内部辅助函数 (Helper Methods)
     // ==========================================
+    /** @brief 初始化示教互锁按钮（8192 寄存器同步与切换） */
+    void setupInterlockingTeachingButton();
+    /** @brief 根据主控 8192 同步联锁按钮文案 */
+    void refreshInterlockingButtonText();
+
     /** @brief 初始化窗口 UI（内部） */
     void initUI();
 

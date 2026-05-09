@@ -281,6 +281,7 @@ void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
     addPollItem("主控 重连间隔 (ms):", m_editMainReconnect);
     addPollItem("AGV Modbus 轮询 (ms):", m_editAgvPoll);
     addPollItem("AGV 重连间隔 (ms):", m_editAgvReconnect);
+    addPollItem("示教写权限设备号 (与主控8192相等才允许写.13/.88，默认0):", m_editTeachingWriteDeviceId);
 
     scrollLayout->addWidget(pollGroup);
 }
@@ -363,6 +364,7 @@ void FeatureSwitchWidget::loadPollingState()
     m_editMainReconnect->setText(settings.value("main_reconnect_ms", 5000).toString());
     m_editAgvPoll->setText(settings.value("agv_poll_ms", 200).toString());
     m_editAgvReconnect->setText(settings.value("agv_reconnect_ms", 5000).toString());
+    m_editTeachingWriteDeviceId->setText(QString::number(settings.value("teaching_write_device_id", 0).toInt()));
     settings.endGroup();
 }
 
@@ -381,6 +383,7 @@ void FeatureSwitchWidget::savePollingState()
     settings.setValue("main_reconnect_ms", m_editMainReconnect->text().toInt());
     settings.setValue("agv_poll_ms", m_editAgvPoll->text().toInt());
     settings.setValue("agv_reconnect_ms", m_editAgvReconnect->text().toInt());
+    settings.setValue("teaching_write_device_id", m_editTeachingWriteDeviceId->text().toInt());
     settings.endGroup();
     settings.sync();
 }

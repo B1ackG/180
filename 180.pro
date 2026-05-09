@@ -29,6 +29,7 @@ SOURCES += \
     matrixkeythreadmanager.cpp \
     modbustcpclient.cpp \
     modbusthreadmanager.cpp \
+    modbuswritegate.cpp \
     modbusvariables.cpp \
     operationrecorder.cpp \
     poseprovider.cpp \
@@ -59,6 +60,7 @@ HEADERS += \
     matrixkeythreadmanager.h \
     modbustcpclient.h \
     modbusthreadmanager.h \
+    modbuswritegate.h \
     modbusvariables.h \
     operationrecorder.h \
     poseprovider.h \

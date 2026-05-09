@@ -50,6 +50,7 @@ void MappingConfig::initDefaultMappings()
         // ==================== 常用按钮/控件映射补充（避免显示英文对象名） ====================
         m_controlNameMap["TBtn_craft"] = "工艺切换按钮";
         m_controlNameMap["TBtn_RemoveWarning"] = "消除报警按钮";
+        m_controlNameMap["TBtn_Interlocking"] = "上下示教器互锁切换按钮";
         m_controlNameMap["TBtn_HistoryRecord"] = "历史记录按钮";
         m_controlNameMap["TBtn_HomePage"] = "首页按钮";
         m_controlNameMap["TBtn_PermissionPage"] = "权限页面按钮";

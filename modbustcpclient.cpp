@@ -298,6 +298,23 @@ bool ModbusTCPClient::writeMultipleRegisters(int startAddress, const QVector<qui
     return true;
 }
 
+bool ModbusTCPClient::readHoldingRegisterSync(int address, quint16 &value)
+{
+    if (!isConnected()) {
+        return false;
+    }
+    if (!readHoldingRegisters(address, 1)) {
+        return false;
+    }
+    QMutexLocker locker(&m_mutex);
+    const auto it = m_registers.constFind(address);
+    if (it == m_registers.constEnd()) {
+        return false;
+    }
+    value = it->value;
+    return true;
+}
+
 void ModbusTCPClient::addRegisterToPoll(int address, const QString &name)
 {
     QMutexLocker locker(&m_mutex);

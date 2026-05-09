@@ -1,5 +1,6 @@
 // file name: modbusthreadmanager.cpp
 #include "modbusthreadmanager.h"
+#include "modbuswritegate.h"
 #include "techslideredit.h"
 #include "techsliderlabel.h"
 #include <QCoreApplication>
@@ -335,8 +336,11 @@ bool ModbusThreadManager::readSingleRegister(int address, quint16 &value)
         return ok;
     }
 
-    Q_UNUSED(value);
-    return readHoldingRegisters(address, 1);
+    if (!m_modbusClient || !m_modbusClient->isConnected()) {
+        qWarning() << "Modbus客户端未连接，无法同步读取地址" << address;
+        return false;
+    }
+    return m_modbusClient->readHoldingRegisterSync(address, value);
 }
 
 void ModbusThreadManager::readAndDebugAddress(int address)
@@ -409,6 +413,11 @@ bool ModbusThreadManager::writeSingleRegister(int address, quint16 value)
         return false;
     }
 
+    if (!ModbusWriteGate::allowMainDeviceSingleWrite(address)) {
+        emit writeOperationComplete(false, ModbusWriteGate::deniedReason());
+        return false;
+    }
+
     bool result = m_modbusClient->writeSingleRegister(address, value);
     if (result) {
         emit registerWritten(address, value);
@@ -437,6 +446,11 @@ bool ModbusThreadManager::writeMultipleRegisters(int startAddress, const QVector
 
     if (values.isEmpty()) {
         qWarning() << "批量写入值为空，已忽略，起始地址" << startAddress;
+        return false;
+    }
+
+    if (!ModbusWriteGate::allowMainDeviceMultipleWrite(startAddress, values.size())) {
+        emit writeOperationComplete(false, ModbusWriteGate::deniedReason());
         return false;
     }
 

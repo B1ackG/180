@@ -1,5 +1,7 @@
 // file name: agvmodbusmanager.cpp
 #include "agvmodbusmanager.h"
+#include "modbuswritegate.h"
+#include "modbusthreadmanager.h"
 #include <QDebug>
 #include <QDateTime>
 #include <QCoreApplication>
@@ -745,6 +747,13 @@ bool AGVModbusManager::writeSingleRegister(int address, quint16 value)
     }
 
     m_disconnectedWriteWarnedAddresses.remove(address);
+
+    if (!ModbusWriteGate::allowAgvWrite(ModbusThreadManager::instance())) {
+        qWarning() << ModbusWriteGate::deniedReason() << "(AGV地址" << address << ")";
+        emit teachingWriteGateDenied();
+        emit writeCompleted(address, value, false);
+        return false;
+    }
 
     if (!m_backendWriteSingle || !m_dynamicBackendHandle) {
         qWarning() << "AGV动态库写失败: 未找到单写函数";

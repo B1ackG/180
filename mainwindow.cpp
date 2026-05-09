@@ -7,6 +7,7 @@
 #include "mainmodbuslabelmapper.h"
 #include "mainmodbuspoller.h"
 #include "mainmodbusstatus.h"
+#include "modbuswritegate.h"
 #include <QMovie>
 #include <QDateTime>
 #include <QDebug>
@@ -30,6 +31,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QButtonGroup>
 #include <QGuiApplication>
 #include <QSignalBlocker>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QtMath>
@@ -237,6 +239,10 @@ void MainWindow::applyPollingRuntimeSettings()
 
     if (m_mainControlSyncTimer && m_mainControlSyncTimer->isActive()) {
         m_mainControlSyncTimer->setInterval(m_mainUiPollIntervalMs);
+    }
+
+    if (m_interlockingSyncTimer && m_interlockingSyncTimer->isActive()) {
+        m_interlockingSyncTimer->setInterval(qMax(50, m_mainUiPollIntervalMs));
     }
 
     m_mainDeviceStatusPollIntervalMs = qBound(50, m_mainDeviceStatusPollIntervalMs, 60000);
@@ -733,6 +739,7 @@ void MainWindow::applyToolButtonStyles(const QList<QToolButton*> &buttons)
             const QString name = btn->objectName();
             if (name == "TBtn_Stepmove" || name == "TBtn_MoveMode" ||
                 name == "TBtn_ControlMode" || name == "TBtn_RemoveWarning" ||
+                name == "TBtn_Interlocking" ||
                 name == "TBtn_HomePage" || name == "TBtn_PermissionPage" ||
                 name == "TBtn_HistoryRecord" || name == "TBtn_SixAxies") {
                 continue;
@@ -2220,6 +2227,7 @@ void MainWindow::setupAdminPasswordPage()
                     applyPollingRuntimeSettings();
                     loadSliderLabelRuntimeSettings();
                     applySliderLabelRuntimeSettings();
+                    refreshInterlockingButtonText();
                 });
             }
             m_featureSwitchWidget->show();
@@ -3357,6 +3365,16 @@ void MainWindow::setupModbusManager()
             this, &MainWindow::onModbusRegisterValueChanged,
             Qt::QueuedConnection);
 
+    connect(m_modbusManager, &ModbusThreadManager::writeOperationComplete,
+            this,
+            [this](bool success, const QString &message) {
+                if (success || !ModbusWriteGate::messageIndicatesTeachingGateDenied(message)) {
+                    return;
+                }
+                showTeachingWriteGateDeniedDialog();
+            },
+            Qt::QueuedConnection);
+
     qCDebug(lcMainWindow) << "Modbus信号连接完成";
 
     const MainModbusEndpoint endpoint = MainModbusConnector::selectEndpoint(
@@ -3377,6 +3395,85 @@ void MainWindow::setupModbusManager()
 
     qCDebug(lcMainWindow) << "192.168.1.13 Modbus管理器设置完成";
 }
+
+void MainWindow::setupInterlockingTeachingButton()
+{
+    if (!ui || !ui->TBtn_Interlocking) {
+        return;
+    }
+    ui->TBtn_Interlocking->setToolTip(QStringLiteral("切换主控%1寄存器：当前显示「上方」时点按写入 0 并切换到「下方」；当前为「下方」时写入 1 并切换到「上方」")
+                                           .arg(ModbusWriteGate::interlockRegisterAddress()));
+    connect(ui->TBtn_Interlocking, &QToolButton::clicked,
+            this, &MainWindow::on_TBtn_Interlocking_clicked);
+    if (!m_interlockingSyncTimer) {
+        m_interlockingSyncTimer = new QTimer(this);
+        connect(m_interlockingSyncTimer, &QTimer::timeout,
+                this, &MainWindow::refreshInterlockingButtonText);
+    }
+}
+
+void MainWindow::refreshInterlockingButtonText()
+{
+    if (!ui || !ui->TBtn_Interlocking) {
+        return;
+    }
+    ModbusThreadManager *mgr = m_modbusManager ? m_modbusManager : ModbusThreadManager::instance();
+    if (!mgr || !mgr->isConnected()) {
+        ui->TBtn_Interlocking->setText(QStringLiteral("--"));
+        return;
+    }
+    quint16 v = 0;
+    const int addr = ModbusWriteGate::interlockRegisterAddress();
+    if (!mgr->readSingleRegister(addr, v)) {
+        ui->TBtn_Interlocking->setText(QStringLiteral("--"));
+        return;
+    }
+    ui->TBtn_Interlocking->setText(v == 1 ? QStringLiteral("上方示教器") : QStringLiteral("下方示教器"));
+}
+
+void MainWindow::on_TBtn_Interlocking_clicked()
+{
+    if (!ui || !ui->TBtn_Interlocking) {
+        return;
+    }
+
+    ModbusThreadManager *mgr = m_modbusManager ? m_modbusManager : ModbusThreadManager::instance();
+    if (!mgr || !mgr->isConnected()) {
+        showNotification(QStringLiteral("主控 Modbus 未连接，无法切换示教器"));
+        return;
+    }
+
+    const QString upper = QStringLiteral("上方示教器");
+    const QString lower = QStringLiteral("下方示教器");
+
+    QString label = ui->TBtn_Interlocking->text();
+    if (label != upper && label != lower) {
+        refreshInterlockingButtonText();
+        label = ui->TBtn_Interlocking->text();
+        if (label != upper && label != lower) {
+            showNotification(QStringLiteral("无法读取示教器状态，请稍后再试"));
+            return;
+        }
+    }
+
+    const int addr = ModbusWriteGate::interlockRegisterAddress();
+    quint16 valueToWrite = 0;
+    QString nextLabel;
+    if (label == upper) {
+        valueToWrite = 1;
+        nextLabel = lower;
+    } else {
+        valueToWrite = 0;
+        nextLabel = upper;
+    }
+
+    if (!mgr->writeSingleRegister(addr, valueToWrite)) {
+        showNotification(QStringLiteral("写入联锁寄存器失败"));
+        return;
+    }
+    ui->TBtn_Interlocking->setText(nextLabel);
+}
+
 // 修改setupSliderModbusAddresses函数，添加对TechSliderLabel的支持
 void MainWindow::setupSliderModbusAddresses()
 {
@@ -3487,6 +3584,12 @@ void MainWindow::onModbusConnected()
     });
     modeStartupRetryTimer->start();
 
+    if (m_interlockingSyncTimer) {
+        m_interlockingSyncTimer->setInterval(qMax(50, m_mainUiPollIntervalMs));
+        m_interlockingSyncTimer->start();
+    }
+    refreshInterlockingButtonText();
+
     if (isBigFeatureEnabled("tcp_transmission")) {
         enableTcpTransmission(true);
     }
@@ -3498,6 +3601,12 @@ void MainWindow::onModbusConnected()
 void MainWindow::onModbusDisconnected()
 {
     qCDebug(lcMainWindow) << "Modbus设备断开连接";
+    if (m_interlockingSyncTimer) {
+        m_interlockingSyncTimer->stop();
+    }
+    if (ui && ui->TBtn_Interlocking) {
+        ui->TBtn_Interlocking->setText(QStringLiteral("--"));
+    }
     MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Disconnected);
     MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Disconnected);
 }
@@ -4556,6 +4665,10 @@ void MainWindow::setupAGVModbus()
     connect(m_agvModbusManager, &AGVModbusManager::heartbeatReceived,
             this, &MainWindow::onAGVHeartbeatReceived);
 
+    connect(m_agvModbusManager, &AGVModbusManager::teachingWriteGateDenied,
+            this, &MainWindow::showTeachingWriteGateDeniedDialog,
+            Qt::QueuedConnection);
+
     // 连接转向切换检查槽函数
     connect(m_agvModbusManager, &AGVModbusManager::registerValueChanged,
             this, &MainWindow::checkSteeringSwitchCompletion);
@@ -5488,14 +5601,14 @@ void MainWindow::performStartupWrites()
  * @param value 要写入的数值（可以为负数，内部会转换为补码）
  * @note 若未连接会尝试延迟重试
  */
-void MainWindow::writeToAGVDevice(int address, int value, bool bypassWirelessWarning)
+bool MainWindow::writeToAGVDevice(int address, int value, bool bypassWirelessWarning)
 {
     if (!m_agvModbusManager || !m_agvModbusManager->isConnected()) {
         if (!m_agvDisconnectedWarnedAddresses.contains(address)) {
             qWarning() << "AGV Modbus未连接，无法写入地址" << address;
             m_agvDisconnectedWarnedAddresses.insert(address);
         }
-        return;
+        return false;
     }
 
     m_agvDisconnectedWarnedAddresses.remove(address);
@@ -5569,9 +5682,10 @@ void MainWindow::writeToAGVDevice(int address, int value, bool bypassWirelessWar
 
     if (!writeSuccess) {
         qWarning() << "[AGV] 写入请求发送失败 - 地址:" << address;
-    } else {
-        m_agvRegisterShadow[address] = writeValue;
+        return false;
     }
+    m_agvRegisterShadow[address] = writeValue;
+    return true;
 }
 
 bool MainWindow::writeAGVRegisterBits(int address,
@@ -6369,9 +6483,22 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
     }
 
     // 向192.168.1.88的2地址写入对应值
-    writeToAGVDevice(2, modbusValue);
+    const bool steerWriteOk = writeToAGVDevice(2, modbusValue);
 
     QLabel *steeringLabel = ui && ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarSteeringLabel") : nullptr;
+    if (!steerWriteOk) {
+        if (m_steeringModeSelector) {
+            const QSignalBlocker blocker(m_steeringModeSelector);
+            m_steeringModeSelector->setCurrentMode(m_lastSteeringMode);
+        }
+        if (steeringLabel && m_steeringModeSelector) {
+            steeringLabel->setText(QString("转向:%1").arg(m_steeringModeSelector->modeText(m_lastSteeringMode)));
+            steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
+        }
+        qCDebug(lcMainWindow) << "转向模式 AGV 写寄存器2失败（含示教写门禁等），已回滚选择器";
+        return;
+    }
+
     if (steeringLabel && m_steeringModeSelector) {
         steeringLabel->setText(QString("转向:%1").arg(m_steeringModeSelector->modeText(mode)));
         steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
@@ -6407,80 +6534,86 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         return;
     }
 
-    // 其余切换都弹窗并持续等待位信号
-    m_isSteeringAlarmActive = true;
-    showAlarm("正在更换底盘模式", "#FFFF00", false);
-    m_isSwitchingSteeringMode = true;
-
-    if (mode == STEER_LATERAL) {
-        // 切到4，等待地址50的bit10=1
-        m_targetSteeringWaitBit = 11;
-    } else if (mode == STEER_ROTATE) {
-        // 切到5，等待地址50的bit12=1
-        m_targetSteeringWaitBit = 12;
-    } else {
-        // 4/5切到1/2/3，等待地址50的bit9=1
-        m_targetSteeringWaitBit = 10;
-    }
-
-    qCDebug(lcMainWindow) << "底盘模式切换等待地址50的bit" << m_targetSteeringWaitBit << "=1 后隐藏提示窗口";
-
-    const SteeringMode expectedMode = mode;
-    const int expectedBit = m_targetSteeringWaitBit;
-    QTimer::singleShot(20000, this, [this, expectedMode, expectedBit]() {
-        if (!m_isSwitchingSteeringMode || !m_isSteeringAlarmActive) {
-            return;
-        }
-        if (m_lastSteeringMode != expectedMode || m_targetSteeringWaitBit != expectedBit) {
-            return;
-        }
-
-        m_isSwitchingSteeringMode = false;
-        m_targetSteeringWaitBit = -1;
+    // 其余切换：示教器控制下弹窗并等待位信号；遥控器模式不弹出
+    if (m_controlMode == WIRELESS_MODE) {
         m_isSteeringAlarmActive = false;
         hideAlarm();
+        qCDebug(lcMainWindow) << "遥控器控制模式，不弹出底盘切换等待窗口";
+    } else {
+        m_isSteeringAlarmActive = true;
+        showAlarm("正在更换底盘模式", "#FFFF00", false);
+        m_isSwitchingSteeringMode = true;
 
-        if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
-            m_agvModbusManager->readMultipleRegisters(50, 1);
+        if (mode == STEER_LATERAL) {
+            // 切到4，等待地址50的bit10=1
+            m_targetSteeringWaitBit = 11;
+        } else if (mode == STEER_ROTATE) {
+            // 切到5，等待地址50的bit12=1
+            m_targetSteeringWaitBit = 12;
+        } else {
+            // 4/5切到1/2/3，等待地址50的bit9=1
+            m_targetSteeringWaitBit = 10;
         }
 
-        QTimer::singleShot(300, this, [this, expectedBit]() {
-            const bool hasStatusWord = m_agvRegisterShadow.contains(50);
-            const quint16 regValue = hasStatusWord ? m_agvRegisterShadow.value(50) : static_cast<quint16>(0xFFFF);
-            QString currentModeText;
-            if (hasStatusWord) {
-                SteeringMode currentMode = STEER_FRONT_BACK;
-                const bool modeResolved = resolveSteeringModeFromStatus50(regValue, &currentMode, &currentModeText);
-                if (!modeResolved) {
-                    currentModeText = QStringLiteral("未知模式");
-                }
-                if (m_steeringModeSelector) {
-                    if (modeResolved) {
-                        const QSignalBlocker blocker(m_steeringModeSelector);
-                        m_steeringModeSelector->setCurrentMode(currentMode);
-                        currentModeText = m_steeringModeSelector->modeText(currentMode);
-                    }
-                }
-                if (modeResolved) {
-                    m_lastSteeringMode = currentMode;
-                }
+        qCDebug(lcMainWindow) << "底盘模式切换等待地址50的bit" << m_targetSteeringWaitBit << "=1 后隐藏提示窗口";
+
+        const SteeringMode expectedMode = mode;
+        const int expectedBit = m_targetSteeringWaitBit;
+        QTimer::singleShot(20000, this, [this, expectedMode, expectedBit]() {
+            if (!m_isSwitchingSteeringMode || !m_isSteeringAlarmActive) {
+                return;
+            }
+            if (m_lastSteeringMode != expectedMode || m_targetSteeringWaitBit != expectedBit) {
+                return;
             }
 
-            OperationRecord timeoutRecord;
-            timeoutRecord.timestamp = QDateTime::currentDateTime();
-            timeoutRecord.pageName = "AGV控制";
-            timeoutRecord.controlName = "steeringModeSelector";
-            timeoutRecord.controlType = "SteeringModeSelector";
-            timeoutRecord.operation = "steering_switch_timeout";
-            timeoutRecord.oldValue = QString("等待bit%1").arg(expectedBit);
-            if (hasStatusWord) {
-                timeoutRecord.newValue = QString("20秒超时，当前在%1（读值:%2）").arg(currentModeText).arg(regValue);
-            } else {
-                timeoutRecord.newValue = "20秒超时，当前模式读取失败";
+            m_isSwitchingSteeringMode = false;
+            m_targetSteeringWaitBit = -1;
+            m_isSteeringAlarmActive = false;
+            hideAlarm();
+
+            if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
+                m_agvModbusManager->readMultipleRegisters(50, 1);
             }
-            m_recorder->addRecord(timeoutRecord);
+
+            QTimer::singleShot(300, this, [this, expectedBit]() {
+                const bool hasStatusWord = m_agvRegisterShadow.contains(50);
+                const quint16 regValue = hasStatusWord ? m_agvRegisterShadow.value(50) : static_cast<quint16>(0xFFFF);
+                QString currentModeText;
+                if (hasStatusWord) {
+                    SteeringMode currentMode = STEER_FRONT_BACK;
+                    const bool modeResolved = resolveSteeringModeFromStatus50(regValue, &currentMode, &currentModeText);
+                    if (!modeResolved) {
+                        currentModeText = QStringLiteral("未知模式");
+                    }
+                    if (m_steeringModeSelector) {
+                        if (modeResolved) {
+                            const QSignalBlocker blocker(m_steeringModeSelector);
+                            m_steeringModeSelector->setCurrentMode(currentMode);
+                            currentModeText = m_steeringModeSelector->modeText(currentMode);
+                        }
+                    }
+                    if (modeResolved) {
+                        m_lastSteeringMode = currentMode;
+                    }
+                }
+
+                OperationRecord timeoutRecord;
+                timeoutRecord.timestamp = QDateTime::currentDateTime();
+                timeoutRecord.pageName = "AGV控制";
+                timeoutRecord.controlName = "steeringModeSelector";
+                timeoutRecord.controlType = "SteeringModeSelector";
+                timeoutRecord.operation = "steering_switch_timeout";
+                timeoutRecord.oldValue = QString("等待bit%1").arg(expectedBit);
+                if (hasStatusWord) {
+                    timeoutRecord.newValue = QString("20秒超时，当前在%1（读值:%2）").arg(currentModeText).arg(regValue);
+                } else {
+                    timeoutRecord.newValue = "20秒超时，当前模式读取失败";
+                }
+                m_recorder->addRecord(timeoutRecord);
+            });
         });
-    });
+    }
 
     // 记录操作
     OperationRecord record;
@@ -8849,6 +8982,74 @@ void MainWindow::hideRobotOperationHintDialog()
 {
     if (m_robotOperationHintDialog && m_robotOperationHintDialog->isVisible()) {
         m_robotOperationHintDialog->hide();
+    }
+}
+
+void MainWindow::showTeachingWriteGateDeniedDialog()
+{
+    if (!m_teachingWriteGateDeniedDialog) {
+        m_teachingWriteGateDeniedDialog = new QDialog(this);
+        m_teachingWriteGateDeniedDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_teachingWriteGateDeniedDialog->setModal(false);
+        m_teachingWriteGateDeniedDialog->setObjectName("teachingWriteGateDeniedDialog");
+
+        auto *layout = new QVBoxLayout(m_teachingWriteGateDeniedDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        auto *msgLabel = new QLabel(m_teachingWriteGateDeniedDialog);
+        msgLabel->setObjectName("teachingWriteGateDeniedLabel");
+        msgLabel->setAlignment(Qt::AlignCenter);
+        msgLabel->setWordWrap(true);
+        msgLabel->setText(ModbusWriteGate::teachingGateUserDialogMessage());
+        layout->addWidget(msgLabel);
+
+        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), m_teachingWriteGateDeniedDialog);
+        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
+        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
+            hideTeachingWriteGateDeniedDialog();
+        });
+
+        m_teachingWriteGateDeniedDialog->setFixedSize(380, 150);
+        m_teachingWriteGateDeniedDialog->setStyleSheet(
+            "#teachingWriteGateDeniedDialog {"
+            "  background-color: rgba(20, 30, 50, 235);"
+            "  border: 3px solid #4da3ff;"
+            "  border-radius: 10px;"
+            "}"
+            "#teachingWriteGateDeniedLabel {"
+            "  color: #8ec5ff;"
+            "  font-size: 20px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "QPushButton {"
+            "  background-color: #4da3ff;"
+            "  color: #102030;"
+            "  border: 2px solid #8ec5ff;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 90px;"
+            "}"
+            "QPushButton:hover {"
+            "  background-color: #8ec5ff;"
+            "}");
+    }
+
+    if (auto *lbl = m_teachingWriteGateDeniedDialog->findChild<QLabel*>("teachingWriteGateDeniedLabel")) {
+        lbl->setText(ModbusWriteGate::teachingGateUserDialogMessage());
+    }
+    m_teachingWriteGateDeniedDialog->show();
+    m_teachingWriteGateDeniedDialog->raise();
+    m_teachingWriteGateDeniedDialog->activateWindow();
+}
+
+void MainWindow::hideTeachingWriteGateDeniedDialog()
+{
+    if (m_teachingWriteGateDeniedDialog && m_teachingWriteGateDeniedDialog->isVisible()) {
+        m_teachingWriteGateDeniedDialog->hide();
     }
 }
 

@@ -344,12 +344,14 @@ void MainWindow::modbusInit()
 {
     if (!isBigFeatureEnabled("modbus_main")) {
         qDebug() << "主控Modbus功能已关闭，跳过初始化";
+        setupInterlockingTeachingButton();
         return;
     }
 
     setupModbusManager();
     setupModbusVariables();
     setupModbusLabels();
+    setupInterlockingTeachingButton();
 }
 
 void MainWindow::checkUI()

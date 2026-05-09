@@ -230,6 +230,9 @@ signals:
     // 添加写入完成信号
     void writeCompleted(int address, quint16 value, bool success);
 
+    /** 因示教端写门禁导致 AGV 写被拒绝（用于 UI 弹窗提示） */
+    void teachingWriteGateDenied();
+
 
 private slots:
     void pollRegisters();
