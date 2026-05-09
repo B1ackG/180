@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "batterywidget.h"
 #include "featureswitchmanager.h"
 #include "featureswitchwidget.h"
 #include "maindevicemodbusapi.h"
@@ -5090,6 +5091,21 @@ void MainWindow::onAGVWordVariableChanged(int address, quint16 value)
     } else if (address == 103) {
         int batteryPercent = qMin(static_cast<int>(value), 100);
         onAGVUpdateStatusLabel("label_battery2_text", QString("%1%").arg(batteryPercent));
+    } else if (address == 156) {
+        const bool isCharging = (value == 1);
+
+        QObject *root = ui->StackedWidget;
+        BatteryWidget *bw = root ? root->findChild<BatteryWidget*>(QStringLiteral("progressBar_battery1"),
+                                                                   Qt::FindChildrenRecursively)
+                                 : nullptr;
+        if (!bw) {
+            bw = this->findChild<BatteryWidget*>(QStringLiteral("progressBar_battery1"),
+                                                 Qt::FindChildrenRecursively);
+        }
+
+        if (bw) {
+            bw->setCharging(isCharging);
+        }
     }
 
     // 特别处理行驶速度（地址104）

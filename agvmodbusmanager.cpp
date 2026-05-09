@@ -333,6 +333,16 @@ void AGVModbusManager::pollRegisters()
     // 组8: 151-152 (X/Y 倾角)
     static int pollGroup = 0;
 
+    // 地址156(电池1充电状态)采用独立时隙轮询，避免与常规轮询同周期并发发送。
+    static int chargingPollTick = 0;
+    const int chargingPollPeriod = qMax(1, 5000 / qMax(1, m_pollInterval));
+    ++chargingPollTick;
+    if (chargingPollTick >= chargingPollPeriod) {
+        chargingPollTick = 0;
+        readMultipleRegisters(156, 1);
+        return;
+    }
+
     switch (pollGroup) {
     case 0:
         readMultipleRegisters(0, 1);
@@ -415,6 +425,9 @@ void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
             } else {
                 processWordVariables(address, value);
             }
+        } else if (address == 156) {
+            // 电池1充电状态（1=充电中）
+            processWordVariables(address, value);
         }
     }
 }
@@ -555,6 +568,11 @@ void AGVModbusManager::processWordVariables(int address, quint16 value)
         emit updateStatusLabel("label_jog_displacement", QString("%1 mm").arg(value));
         emit wordVariableChanged(address, value);
     }
+    else if (varName == "battery1_charging") {
+        // 电池1充电状态（1=充电中，其他值=非充电）
+        qDebug() << "电池1充电状态:" << value;
+        emit wordVariableChanged(address, value);
+    }
     else if (varName.startsWith("fault_code_")) {
         // 故障代码处理
         QString faultName = varName.mid(11);  // 去掉"fault_code_"前缀
@@ -635,6 +653,7 @@ QString AGVModbusManager::getWordVariableName(int address) const
         {103, "battery2"},                   // 电池2电量
         {104, "speed"},                      // 行驶速度
         {105, "jog_displacement"},           // 点动位移
+        {156, "battery1_charging"},          // 电池1充电状态（1=充电中）
         {110, "fault_code_1"},               // 转向1故障代码
         {111, "fault_code_2"},               // 转向2故障代码
         {112, "fault_code_3"},               // 转向3故障代码
