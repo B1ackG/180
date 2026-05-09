@@ -449,19 +449,19 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         <property name="geometry">
          <rect>
           <x>670</x>
-          <y>450</y>
-          <width>130</width>
-          <height>91</height>
+          <y>440</y>
+          <width>140</width>
+          <height>112</height>
          </rect>
         </property>
        </widget>
        <widget class="QWidget" name="quickWidget_Inclinometer_X" native="true">
         <property name="geometry">
          <rect>
-          <x>1050</x>
-          <y>450</y>
-          <width>130</width>
-          <height>91</height>
+          <x>1040</x>
+          <y>440</y>
+          <width>140</width>
+          <height>112</height>
          </rect>
         </property>
        </widget>

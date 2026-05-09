@@ -1157,16 +1157,8 @@ void MainWindow::initInclinometerCards()
         }
 
         auto *layout = new QVBoxLayout(widget);
-        layout->setContentsMargins(6, 8, 6, 8);
-        layout->setSpacing(0);
-
-        valueLabel = new QLabel(QStringLiteral("0.00°"), widget);
-        valueLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-        valueLabel->setStyleSheet(QStringLiteral(
-            "color: #EAF7FF;"
-            "font: 700 28px 'Noto Sans CJK SC';"
-            "border: none;"
-            "background: transparent;"));
+        layout->setContentsMargins(8, 8, 8, 8);
+        layout->setSpacing(4);
 
         auto *axisLabel = new QLabel(axisTitle, widget);
         axisLabel->setAlignment(Qt::AlignHCenter | Qt::AlignBottom);
@@ -1176,8 +1168,26 @@ void MainWindow::initInclinometerCards()
             "border: none;"
             "background: transparent;"));
 
-        layout->addWidget(valueLabel, 1);
+        valueLabel = new QLabel(QStringLiteral("0.00°"), widget);
+        valueLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+        valueLabel->setStyleSheet(QStringLiteral(
+            "color: #EAF7FF;"
+            "font: 700 28px 'Noto Sans CJK SC';"
+            "border: none;"
+            "background: transparent;"));
+
+        auto *thresholdLabel = new QLabel(QStringLiteral("阈值：1°"), widget);
+        thresholdLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+        thresholdLabel->setWordWrap(true);
+        thresholdLabel->setStyleSheet(QStringLiteral(
+            "color: #8BC4EA;"
+            "font: 500 12px 'Noto Sans CJK SC';"
+            "border: none;"
+            "background: transparent;"));
+
         layout->addWidget(axisLabel, 0);
+        layout->addWidget(valueLabel, 1);
+        layout->addWidget(thresholdLabel, 0);
     };
 
     initOne(m_inclinometerXCard, QStringLiteral("X轴倾角"), m_inclinometerXValueLabel);
