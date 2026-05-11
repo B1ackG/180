@@ -562,6 +562,8 @@ private:
     bool m_robotWeightOverload150Bit3Flag = false;
     bool m_robotPositiveLimit102Bit2Flag = false;
     bool m_robotNegativeLimit102Bit3Flag = false;
+    bool m_robotHeightInterlock150Bit1Flag = false;
+    bool m_robotLengthInterlock150Bit2Flag = false;
     bool m_agvBatteryLowAcked = false;
     QWidget *m_agvStationOfflineAlarmWidget = nullptr;
     QLabel *m_agvStationOfflineAlarmLabel = nullptr;

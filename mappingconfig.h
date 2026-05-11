@@ -17,6 +17,9 @@
 #include <QObject>
 #include <QHash>
 #include <QString>
+#include <QVariant>
+
+struct OperationRecord;
 
 class MappingConfig : public QObject
 {
@@ -79,6 +82,12 @@ public:
     QString mapValue(const QString &value) const;
 
     /**
+     * 功能: 将一条操作记录中的页面名、控件名、操作类型、控件类型及布尔/常用值统一映射为可读文案。
+     * 如何使用: 在写入记录列表、导出或发往 UI 前调用（由 OperationRecorder 集中调用）。
+     */
+    void normalizeOperationRecord(OperationRecord &record) const;
+
+    /**
      * 功能: 添加或覆盖控件名称映射。
      * 如何使用: 在运行时或配置加载时调用以自定义显示名称。
      * 如何修改: 直接修改 m_controlNameMap 或提供批量加载接口。
@@ -113,6 +122,8 @@ private:
     QHash<QString, QString> m_controlTypeMap;    // 控件类型映射
     QHash<QString, QString> m_pageNameMap;       // 页面名称映射
     QHash<QString, QString> m_valueMap;          // 值映射
+
+    QVariant mapVariantForDisplay(const QVariant &value) const;
 
     static MappingConfig* s_instance;  // 单例实例
 };

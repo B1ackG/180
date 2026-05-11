@@ -35,27 +35,31 @@ Item {
 
     function isAlarmRecord(controlType, op, page, control) {
         var t = (controlType || "") + " " + (op || "") + " " + (page || "") + " " + (control || "")
-        t = t.toLowerCase()
+        var tl = t.toLowerCase()
         return t.indexOf("报警") >= 0 ||
                t.indexOf("急停") >= 0 ||
                t.indexOf("告警") >= 0 ||
                t.indexOf("超限") >= 0 ||
-               t.indexOf("fault") >= 0 ||
-               t.indexOf("error") >= 0 ||
-               t.indexOf("warning") >= 0 ||
-               t.indexOf("alarm") >= 0
+               t.indexOf("错误") >= 0 ||
+               tl.indexOf("fault") >= 0 ||
+               tl.indexOf("error") >= 0 ||
+               tl.indexOf("warning") >= 0 ||
+               tl.indexOf("alarm") >= 0
     }
 
     function isControlRecord(controlType, op) {
         var ct = controlType || ""
         var opText = (op || "").toLowerCase()
-        if (ct === "EnableButton" || ct === "MatrixKey") {
+        if (ct === "EnableButton" || ct === "MatrixKey" ||
+            ct === "使能按钮" || ct === "物理按键") {
             return true
         }
 
         return opText.indexOf("external") >= 0 ||
                opText.indexOf("enable") >= 0 ||
-               opText.indexOf("使能") >= 0
+               opText.indexOf("使能") >= 0 ||
+               opText.indexOf("外部运动") >= 0 ||
+               opText.indexOf("agv外部") >= 0
     }
 
     function matchesCategory(controlType, op, page, control) {
@@ -119,10 +123,9 @@ Item {
             anchors.leftMargin: 15
             spacing: 0
             
-            Text { width: parent.width * 0.15; text: "时间"; color: "#a9d4ff"; font.bold: true; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
+            Text { width: parent.width * 0.20; text: "时间"; color: "#a9d4ff"; font.bold: true; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
             Text { width: parent.width * 0.20; text: "页面"; color: "#a9d4ff"; font.bold: true; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
-            Text { width: parent.width * 0.25; text: "控件"; color: "#a9d4ff"; font.bold: true; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
-            Text { width: parent.width * 0.40; text: "操作详情"; color: "#a9d4ff"; font.bold: true; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
+            Text { width: parent.width * 0.60; text: "操作详情"; color: "#a9d4ff"; font.bold: true; font.pixelSize: 14; anchors.verticalCenter: parent.verticalCenter }
         }
     }
 
@@ -180,7 +183,10 @@ Item {
         spacing: 0
 
         delegate: Item {
-            property bool rowVisible: root.matchesCategory(model.controlType, model.op, model.page, model.control)
+            property bool rowVisible: {
+                if (model.operation === "IGNORE_LOG" || model.control === "") return false;
+                return root.matchesCategory(model.controlType, model.op, model.page, model.control);
+            }
             width: listView.width
             height: rowVisible ? 58 : 0
             visible: rowVisible
@@ -223,7 +229,7 @@ Item {
                     spacing: 0
 
                     Text {
-                        width: parent.width * 0.15; height: parent.height
+                        width: parent.width * 0.20; height: parent.height
                         text: model.time; color: "#00f0ff"; verticalAlignment: Text.AlignVCenter
                         font.pixelSize: 12; font.family: "Monospace"
                     }
@@ -232,25 +238,28 @@ Item {
                         text: model.page; color: "#ffffff"; verticalAlignment: Text.AlignVCenter
                         font.pixelSize: 13
                     }
-                    Text {
-                        width: parent.width * 0.25; height: parent.height
-                        text: model.control; color: "#ffffff"; verticalAlignment: Text.AlignVCenter
-                        font.pixelSize: 13; font.bold: true
-                        elide: Text.ElideRight
-                    }
                     
                     Column {
-                        width: parent.width * 0.40; height: parent.height
+                        width: parent.width * 0.60; height: parent.height
                         anchors.verticalCenter: parent.verticalCenter
                         spacing: 2
                         
                         Text {
-                            text: model.op; color: "#ff8888"; font.pixelSize: 11; font.italic: true
-                        }
-                        Text {
-                            text: qsTr("%1 → %2").arg(model.oldVal).arg(model.newVal)
-                            color: "#00ff88"; font.pixelSize: 12; font.bold: true
+                            text: model.control; color: "#ffffff"; verticalAlignment: Text.AlignVCenter
+                            font.pixelSize: 13; font.bold: true
                             elide: Text.ElideRight
+                        }
+
+                        Row {
+                            spacing: 8
+                            Text {
+                                text: model.op; color: "#ff8888"; font.pixelSize: 11; font.italic: true
+                            }
+                            Text {
+                                text: (model.oldVal === "" && model.newVal === "") ? "" : qsTr("%1 → %2").arg(model.oldVal).arg(model.newVal)
+                                color: "#00ff88"; font.pixelSize: 12; font.bold: true
+                                elide: Text.ElideRight
+                            }
                         }
                     }
                 }
