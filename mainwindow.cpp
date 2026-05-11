@@ -118,6 +118,22 @@ std::array<quint16, 4> doubleToRegistersGHEFCDAB(double value)
     };
 }
 
+std::array<quint16, 2> floatToRegistersCDAB(float value)
+{
+    quint32 raw = 0;
+    memcpy(&raw, &value, sizeof(float));
+
+    const quint8 A = static_cast<quint8>((raw >> 24) & 0xFF);
+    const quint8 B = static_cast<quint8>((raw >> 16) & 0xFF);
+    const quint8 C = static_cast<quint8>((raw >> 8) & 0xFF);
+    const quint8 D = static_cast<quint8>(raw & 0xFF);
+
+    return {
+        static_cast<quint16>((static_cast<quint16>(C) << 8) | D),
+        static_cast<quint16>((static_cast<quint16>(A) << 8) | B)
+    };
+}
+
 /** 与 OperationRecorder 规范化后的中文 controlType 或原始英文类名均可匹配 */
 bool operationRecordControlTypeMatches(const OperationRecord &record, const QString &englishKey)
 {
@@ -2758,7 +2774,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     // 六自由度页面（第4页）外部键逻辑：
     // - ○13/○14：固定写500=5，514=4/2；释放时514回0；
     // - 点动模式：按键○1~○12映射到613写入±1~±6；
-    // - 步进模式：按键○1~○12映射轴1~6，写614轴号、601步进值（奇数键写相反数），再写615触发。
+    // - 步进模式：按键○1~○12映射轴1~6，写614轴号、601~602(CDAB浮点步进值，奇数键写相反数)，再写615触发。
     if (isSixAxisPage) {
         if (keyNumber == 13 || keyNumber == 14) {
             if (!pressed) {
@@ -2786,12 +2802,6 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                     m_sixAxisActiveKey = -1;
                 }
                 ++m_sixAxisExternalWriteSeq;
-                writeToMainDevice(601, 0);
-                writeToMainDevice(615, 0);
-                QTimer::singleShot(35, this, [this]() {
-                    writeToMainDevice(601, 0);
-                    writeToMainDevice(615, 0);
-                });
 
                 QLineEdit *sixStepValueEdit = findChild<QLineEdit*>("lineEdit_SixAxies_StepValue");
                 if (sixStepValueEdit) {
@@ -2846,14 +2856,14 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 rawStepValue = -rawStepValue;
             }
 
-            const int stepValueInt = static_cast<int>(rawStepValue);
+            const float stepValueFloat = static_cast<float>(rawStepValue);
             m_sixAxisExternalKeyPressed[keyNumber] = true;
             m_sixAxisActiveKey = keyNumber;
             const quint64 seq = ++m_sixAxisExternalWriteSeq;
 
             writeToMainDevice(614, axisIndex);
 
-            auto stagedWrite601 = [this, seq, keyNumber, stepValueInt]() {
+            auto stagedWrite601 = [this, seq, keyNumber, stepValueFloat]() {
                 if (seq != m_sixAxisExternalWriteSeq) {
                     return;
                 }
@@ -2863,7 +2873,15 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 if (!m_sixAxisExternalKeyPressed.value(keyNumber, false)) {
                     return;
                 }
-                writeToMainDevice(601, stepValueInt);
+
+                const auto regs = floatToRegistersCDAB(stepValueFloat);
+                QVector<quint16> values;
+                values.reserve(2);
+                values << regs[0] << regs[1];
+                if (!MainDeviceModbusApi::writeRegisters(m_modbusManager, 601, values)) {
+                    writeToMainDevice(601, static_cast<int>(regs[0]));
+                    writeToMainDevice(602, static_cast<int>(regs[1]));
+                }
             };
 
             auto stagedWrite615 = [this, seq, keyNumber]() {
@@ -2886,7 +2904,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
             qCDebug(lcMainWindow) << "六轴步进外部按键○" << keyNumber
                                   << "-> 614=" << axisIndex
-                                  << "601=" << stepValueInt
+                                  << "601~602(float CDAB)=" << stepValueFloat
                                   << "615=1";
             return;
         }
@@ -8150,19 +8168,6 @@ void MainWindow::setupStepMoveControl()
     if (sixStepValueEdit) {
         QRegularExpression regExp("^-?\\d+(\\.\\d+)?$");
         sixStepValueEdit->setValidator(new QRegularExpressionValidator(regExp, sixStepValueEdit));
-        connect(sixStepValueEdit, &QLineEdit::editingFinished, this,
-                [this, sixStepValueEdit]() {
-            const QString text = sixStepValueEdit ? sixStepValueEdit->text().trimmed() : QString();
-            if (text.isEmpty()) {
-                return;
-            }
-            bool ok = false;
-            const int value = text.toInt(&ok);
-            if (!ok) {
-                return;
-            }
-            writeToMainDevice(601, value);
-        }, Qt::UniqueConnection);
     }
 
     if (!m_sixAxisStepTargetGroup) {
