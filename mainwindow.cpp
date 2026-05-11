@@ -118,6 +118,29 @@ std::array<quint16, 4> doubleToRegistersGHEFCDAB(double value)
     };
 }
 
+std::array<quint16, 2> floatToRegistersCDAB(float value)
+{
+    quint32 raw = 0;
+    memcpy(&raw, &value, sizeof(float));
+
+    const quint8 A = static_cast<quint8>((raw >> 24) & 0xFF);
+    const quint8 B = static_cast<quint8>((raw >> 16) & 0xFF);
+    const quint8 C = static_cast<quint8>((raw >> 8) & 0xFF);
+    const quint8 D = static_cast<quint8>(raw & 0xFF);
+
+    return {
+        static_cast<quint16>((static_cast<quint16>(C) << 8) | D),
+        static_cast<quint16>((static_cast<quint16>(A) << 8) | B)
+    };
+}
+
+/** 与 OperationRecorder 规范化后的中文 controlType 或原始英文类名均可匹配 */
+bool operationRecordControlTypeMatches(const OperationRecord &record, const QString &englishKey)
+{
+    MappingConfig *cfg = MappingConfig::instance();
+    return record.controlType == englishKey || record.controlType == cfg->mapControlType(englishKey);
+}
+
 /** 与 OperationRecorder 规范化后的中文 controlType 或原始英文类名均可匹配 */
 bool operationRecordControlTypeMatches(const OperationRecord &record, const QString &englishKey)
 {
@@ -2300,17 +2323,25 @@ bool MainWindow::shouldDisplayRecord(const OperationRecord &record, const QStrin
     }
 
     if (filter.contains(QStringLiteral("滑块操作")) && operationRecordControlTypeMatches(record, QStringLiteral("TechSliderEdit"))) {
+    if (filter.contains(QStringLiteral("滑块操作")) && operationRecordControlTypeMatches(record, QStringLiteral("TechSliderEdit"))) {
         return true;
     }
 
+    if (filter.contains(QStringLiteral("按钮操作")) && operationRecordControlTypeMatches(record, QStringLiteral("TechPushButton"))) {
     if (filter.contains(QStringLiteral("按钮操作")) && operationRecordControlTypeMatches(record, QStringLiteral("TechPushButton"))) {
         return true;
     }
 
     if (filter.contains(QStringLiteral("工具按钮")) && operationRecordControlTypeMatches(record, QStringLiteral("QToolButton"))) {
+    if (filter.contains(QStringLiteral("工具按钮")) && operationRecordControlTypeMatches(record, QStringLiteral("QToolButton"))) {
         return true;
     }
 
+    if (filter.contains(QStringLiteral("登录记录")) &&
+        (record.controlType.contains(QStringLiteral("Login"), Qt::CaseInsensitive) ||
+         record.controlType.contains(QStringLiteral("登录")) ||
+         record.operation.contains(QStringLiteral("login"), Qt::CaseInsensitive) ||
+         record.operation.contains(QStringLiteral("登录")))) {
     if (filter.contains(QStringLiteral("登录记录")) &&
         (record.controlType.contains(QStringLiteral("Login"), Qt::CaseInsensitive) ||
          record.controlType.contains(QStringLiteral("登录")) ||
@@ -2322,6 +2353,8 @@ bool MainWindow::shouldDisplayRecord(const OperationRecord &record, const QStrin
     // 检查页面筛选
     for (int i = 0; i < 5; i++) {
         if (m_pageNames.contains(i) && filter.contains(m_pageNames[i])) {
+            const QString mappedPage = MappingConfig::instance()->mapPageName(m_pageNames[i]);
+            return record.pageName == m_pageNames[i] || record.pageName == mappedPage;
             const QString mappedPage = MappingConfig::instance()->mapPageName(m_pageNames[i]);
             return record.pageName == m_pageNames[i] || record.pageName == mappedPage;
         }
@@ -2758,7 +2791,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     // 六自由度页面（第4页）外部键逻辑：
     // - ○13/○14：固定写500=5，514=4/2；释放时514回0；
     // - 点动模式：按键○1~○12映射到613写入±1~±6；
-    // - 步进模式：按键○1~○12映射轴1~6，写614轴号、601步进值（奇数键写相反数），再写615触发。
+    // - 步进模式：按键○1~○12映射轴1~6，写614轴号、601~602(CDAB浮点步进值，奇数键写相反数)，再写615触发。
     if (isSixAxisPage) {
         if (keyNumber == 13 || keyNumber == 14) {
             if (!pressed) {
@@ -2786,12 +2819,6 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                     m_sixAxisActiveKey = -1;
                 }
                 ++m_sixAxisExternalWriteSeq;
-                writeToMainDevice(601, 0);
-                writeToMainDevice(615, 0);
-                QTimer::singleShot(35, this, [this]() {
-                    writeToMainDevice(601, 0);
-                    writeToMainDevice(615, 0);
-                });
 
                 QLineEdit *sixStepValueEdit = findChild<QLineEdit*>("lineEdit_SixAxies_StepValue");
                 if (sixStepValueEdit) {
@@ -2846,14 +2873,14 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 rawStepValue = -rawStepValue;
             }
 
-            const int stepValueInt = static_cast<int>(rawStepValue);
+            const float stepValueFloat = static_cast<float>(rawStepValue);
             m_sixAxisExternalKeyPressed[keyNumber] = true;
             m_sixAxisActiveKey = keyNumber;
             const quint64 seq = ++m_sixAxisExternalWriteSeq;
 
             writeToMainDevice(614, axisIndex);
 
-            auto stagedWrite601 = [this, seq, keyNumber, stepValueInt]() {
+            auto stagedWrite601 = [this, seq, keyNumber, stepValueFloat]() {
                 if (seq != m_sixAxisExternalWriteSeq) {
                     return;
                 }
@@ -2863,7 +2890,15 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 if (!m_sixAxisExternalKeyPressed.value(keyNumber, false)) {
                     return;
                 }
-                writeToMainDevice(601, stepValueInt);
+
+                const auto regs = floatToRegistersCDAB(stepValueFloat);
+                QVector<quint16> values;
+                values.reserve(2);
+                values << regs[0] << regs[1];
+                if (!MainDeviceModbusApi::writeRegisters(m_modbusManager, 601, values)) {
+                    writeToMainDevice(601, static_cast<int>(regs[0]));
+                    writeToMainDevice(602, static_cast<int>(regs[1]));
+                }
             };
 
             auto stagedWrite615 = [this, seq, keyNumber]() {
@@ -2886,7 +2921,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
             qCDebug(lcMainWindow) << "六轴步进外部按键○" << keyNumber
                                   << "-> 614=" << axisIndex
-                                  << "601=" << stepValueInt
+                                  << "601~602(float CDAB)=" << stepValueFloat
                                   << "615=1";
             return;
         }
@@ -4151,6 +4186,38 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             m_robotNegativeLimit102Bit3Flag = negativeLimitReached;
             if (negativeLimitReached) {
                 showRobotLimitReachedDialog(QStringLiteral("负限位到达"));
+            }
+        }
+
+        if (m_recorder) {
+            // 记录正限位
+            static bool s_posLimitLogged = false;
+            if (positiveLimitReached != s_posLimitLogged) {
+                s_posLimitLogged = positiveLimitReached;
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = "报警系统";
+                record.controlName = "正限位报警";
+                record.controlType = "限位监控";
+                record.operation = positiveLimitReached ? "限制触发" : "限制解除";
+                record.oldValue = "";
+                record.newValue = positiveLimitReached ? "正方向行程已达限制" : "正限位已解除";
+                m_recorder->addRecord(record);
+            }
+
+            // 记录负限位
+            static bool s_negLimitLogged = false;
+            if (negativeLimitReached != s_negLimitLogged) {
+                s_negLimitLogged = negativeLimitReached;
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = "报警系统";
+                record.controlName = "负限位报警";
+                record.controlType = "限位监控";
+                record.operation = negativeLimitReached ? "限制触发" : "限制解除";
+                record.oldValue = "";
+                record.newValue = negativeLimitReached ? "负方向行程已达限制" : "负限位已解除";
+                m_recorder->addRecord(record);
             }
         }
 
@@ -6735,6 +6802,18 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
             m_recorder->addRecord(record);
         }
 
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = "AGV控制";
+            record.controlName = "底盘模式切换";
+            record.controlType = "模式控制";
+            record.operation = "切换开始";
+            record.oldValue = "";
+            record.newValue = QString("正在向模式 %1 切换").arg(static_cast<int>(mode));
+            m_recorder->addRecord(record);
+        }
+
         if (mode == STEER_LATERAL) {
             // 切到4，等待地址50的bit10=1
             m_targetSteeringWaitBit = 11;
@@ -8150,19 +8229,6 @@ void MainWindow::setupStepMoveControl()
     if (sixStepValueEdit) {
         QRegularExpression regExp("^-?\\d+(\\.\\d+)?$");
         sixStepValueEdit->setValidator(new QRegularExpressionValidator(regExp, sixStepValueEdit));
-        connect(sixStepValueEdit, &QLineEdit::editingFinished, this,
-                [this, sixStepValueEdit]() {
-            const QString text = sixStepValueEdit ? sixStepValueEdit->text().trimmed() : QString();
-            if (text.isEmpty()) {
-                return;
-            }
-            bool ok = false;
-            const int value = text.toInt(&ok);
-            if (!ok) {
-                return;
-            }
-            writeToMainDevice(601, value);
-        }, Qt::UniqueConnection);
     }
 
     if (!m_sixAxisStepTargetGroup) {
@@ -9472,6 +9538,19 @@ void MainWindow::checkSteeringSwitchCompletion(int address, quint16 value)
     const bool targetBitSet = ((value >> m_targetSteeringWaitBit) & 0x01);
     if (targetBitSet) {
         qCDebug(lcMainWindow) << "[转向切换] 检测到地址50满足条件: Bit" << m_targetSteeringWaitBit << "=1，切换完成";
+        
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = "AGV控制";
+            record.controlName = "底盘模式切换";
+            record.controlType = "模式控制";
+            record.operation = "切换完成";
+            record.oldValue = "";
+            record.newValue = "底盘模式切换成功";
+            m_recorder->addRecord(record);
+        }
+
         
         if (m_recorder) {
             OperationRecord record;

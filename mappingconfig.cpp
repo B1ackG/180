@@ -2,6 +2,8 @@
 
 #include "operationrecorder.h"
 
+#include "operationrecorder.h"
+
 MappingConfig* MappingConfig::s_instance = nullptr;
 
 MappingConfig::MappingConfig(QObject *parent)
@@ -115,6 +117,10 @@ void MappingConfig::initDefaultMappings()
     m_operationMap["listening"] = "开启监听";
     m_operationMap["connected"] = "建立连接";
     m_operationMap["disconnected"] = "断开连接";
+    m_operationMap["client_disconnected"] = "客户端断开";
+    m_operationMap["listening"] = "开启监听";
+    m_operationMap["connected"] = "建立连接";
+    m_operationMap["disconnected"] = "断开连接";
     m_operationMap["error"] = "错误";
     m_operationMap["force_control_toggled"] = "力控切换";
     m_operationMap["force_clear_pressed"] = "传感器清零";
@@ -122,6 +128,19 @@ void MappingConfig::initDefaultMappings()
     m_operationMap["step_mode_changed"] = "步进模式变更";
     m_operationMap["step_move_start"] = "开始步进移动";
     m_operationMap["step_move_end"] = "结束步进移动";
+    m_operationMap["external_motion_start"] = "外部运动触发";
+    m_operationMap["external_motion_stop"] = "外部运动停止";
+    m_operationMap["agv_external_motion_start"] = "AGV外部联动开始";
+    m_operationMap["agv_external_motion_end"] = "AGV外部联动结束";
+    m_operationMap["clear_alarm"] = "清除报警";
+    m_operationMap["报警触发"] = "报警触发";
+    m_operationMap["报警解除"] = "报警解除";
+    m_operationMap["互锁触发"] = "互锁激活";
+    m_operationMap["互锁解除"] = "互锁解除";
+    m_operationMap["限制触发"] = "限制触发";
+    m_operationMap["限制解除"] = "限制解除";
+    m_operationMap["切换开始"] = "切换开始";
+    m_operationMap["切换完成"] = "切换完成";
     m_operationMap["external_motion_start"] = "外部运动触发";
     m_operationMap["external_motion_stop"] = "外部运动停止";
     m_operationMap["agv_external_motion_start"] = "AGV外部联动开始";
@@ -144,6 +163,12 @@ void MappingConfig::initDefaultMappings()
     m_operationMap["angle_changed"] = "角度已调整";
     m_operationMap["状态变化"] = "设备状态更新";
     m_operationMap["用户确认"] = "用户已确认";
+    m_operationMap["unknown"] = "未知状态";
+    m_operationMap["mode_changed"] = "运行模式已变更";
+    m_operationMap["move_speed_changed"] = "运动速度已调整";
+    m_operationMap["angle_changed"] = "角度已调整";
+    m_operationMap["状态变化"] = "设备状态更新";
+    m_operationMap["用户确认"] = "用户已确认";
 
     // ==================== 控件类型映射 ====================
     m_controlTypeMap["TechSliderEdit"] = "滑块控件";
@@ -155,11 +180,17 @@ void MappingConfig::initDefaultMappings()
     m_controlTypeMap["LoginSuccess"] = "登录成功";
     m_controlTypeMap["LoginFail"] = "登录失败";
     m_controlTypeMap["Network"] = "网络服务";
+    m_controlTypeMap["Network"] = "网络服务";
     m_controlTypeMap["EnableButton"] = "使能按钮";
     m_controlTypeMap["StepMove"] = "步进运动";
     m_controlTypeMap["ModbusTCP"] = "Modbus连接";
     m_controlTypeMap["ForceClear"] = "力控清零";
     m_controlTypeMap["Logout"] = "注销";
+    m_controlTypeMap["MatrixKey"] = "物理按键";
+    m_controlTypeMap["提示窗口"] = "系统弹窗";
+    m_controlTypeMap["互锁监控"] = "互锁系统";
+    m_controlTypeMap["限位监控"] = "限位系统";
+    m_controlTypeMap["模式控制"] = "底盘模式";
     m_controlTypeMap["MatrixKey"] = "物理按键";
     m_controlTypeMap["提示窗口"] = "系统弹窗";
     m_controlTypeMap["互锁监控"] = "互锁系统";
@@ -173,6 +204,8 @@ void MappingConfig::initDefaultMappings()
     m_valueMap["Connection refused"] = "连接被拒绝";
     m_valueMap["Socket timeout"] = "连接超时";
     m_valueMap["Unknown error"] = "未知错误";
+    m_valueMap["Network unreachable"] = "网络不可达";
+    m_valueMap["The remote host closed the connection"] = "远端连接已关闭";
     m_valueMap["Network unreachable"] = "网络不可达";
     m_valueMap["The remote host closed the connection"] = "远端连接已关闭";
     m_valueMap["主页"] = "返回主页";
@@ -218,6 +251,26 @@ void MappingConfig::initDefaultMappings()
     m_controlNameMap["主控限位提示"] = "限位报警窗口";
     m_controlNameMap["正限位报警"] = "正向限位";
     m_controlNameMap["负限位报警"] = "负向限位";
+    m_controlNameMap["btnStepTargetSixAxis1"] = "六轴步进目标 · 轴1";
+    m_controlNameMap["btnStepTargetSixAxis2"] = "六轴步进目标 · 轴2";
+    m_controlNameMap["btnStepTargetSixAxis3"] = "六轴步进目标 · 轴3";
+    m_controlNameMap["btnStepTargetSixAxis4"] = "六轴步进目标 · 轴4";
+    m_controlNameMap["btnStepTargetSixAxis5"] = "六轴步进目标 · 轴5";
+    m_controlNameMap["btnStepTargetSixAxis6"] = "六轴步进目标 · 轴6";
+    m_controlNameMap["btnStepTargetSixAxis7"] = "六轴步进目标 · 轴7";
+    m_controlNameMap["btnStepTargetAxis1"] = "单轴步进目标 · 轴1";
+    m_controlNameMap["btnStepTargetAxis2"] = "单轴步进目标 · 轴2";
+    m_controlNameMap["btnStepTargetAxis3"] = "单轴步进目标 · 轴3";
+    m_controlNameMap["btnStepTargetAxis4"] = "单轴步进目标 · 轴4";
+    m_controlNameMap["btnStepTargetAgv"] = "AGV 步进目标";
+    m_controlNameMap["btnStepTargetCable"] = "线缆/附加步进目标";
+    m_controlNameMap["passwordEdit"] = "密码输入框";
+    m_controlNameMap["TCP接收器"] = "TCP服务";
+    m_controlNameMap["AGV Modbus连接"] = "AGV通讯";
+    m_controlNameMap["Modbus连接"] = "主系统通讯";
+    m_controlNameMap["主控限位提示"] = "限位报警窗口";
+    m_controlNameMap["正限位报警"] = "正向限位";
+    m_controlNameMap["负限位报警"] = "负向限位";
 
     // ==================== 页面名称映射 ====================
     // 使用页面索引作为key
@@ -232,6 +285,9 @@ void MappingConfig::initDefaultMappings()
     // 也可以使用页面对象名作为key
     m_pageNameMap["softwareParamPage"] = "软件参数页面";
     m_pageNameMap["verticalSupportPage"] = "回转升降控制";
+    m_pageNameMap["六自由度"] = "六自由度控制";
+    m_pageNameMap["机械臂"] = "机械臂调试";
+    m_pageNameMap["提示系统"] = "全局消息";
     m_pageNameMap["六自由度"] = "六自由度控制";
     m_pageNameMap["机械臂"] = "机械臂调试";
     m_pageNameMap["提示系统"] = "全局消息";
@@ -298,12 +354,27 @@ QString MappingConfig::mapValue(const QString &value) const
 
     if (m_valueMap.contains(trimmed)) {
         return m_valueMap[trimmed];
+    const QString trimmed = value.trimmed();
+    const QString lower = trimmed.toLower();
+    if (lower == QLatin1String("true")) {
+        return m_valueMap.value(QStringLiteral("true"), trimmed);
     }
+    if (lower == QLatin1String("false")) {
+        return m_valueMap.value(QStringLiteral("false"), trimmed);
+    }
+
+    if (m_valueMap.contains(trimmed)) {
+        return m_valueMap[trimmed];
+    }
+
 
     // 支持模糊匹配
     if (trimmed.contains(QLatin1String("Host unreachable"))) {
         return QStringLiteral("主机不可达 (AGV失联)");
+    if (trimmed.contains(QLatin1String("Host unreachable"))) {
+        return QStringLiteral("主机不可达 (AGV失联)");
     }
+
 
     return value;
 }
