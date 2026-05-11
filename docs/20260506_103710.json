@@ -1,0 +1,392 @@
+[
+    {
+        "controlName": "TCP接收器",
+        "controlType": "Network",
+        "newValue": "0.0.0.0:12345",
+        "oldValue": "",
+        "operation": "listening",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:37:12"
+    },
+    {
+        "controlName": "btnStepTargetSixAxis1",
+        "controlType": "QToolButton",
+        "newValue": "false",
+        "oldValue": "true",
+        "operation": "toggled",
+        "pageName": "六自由度",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:37:13"
+    },
+    {
+        "controlName": "AGV Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "连接成功",
+        "oldValue": "",
+        "operation": "connected",
+        "pageName": "AGV控制",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:37:13"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "连接成功",
+        "oldValue": "",
+        "operation": "connected",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:37:13"
+    },
+    {
+        "controlName": "TBtn_HomePage",
+        "controlType": "QToolButton",
+        "newValue": "false",
+        "oldValue": "true",
+        "operation": "toggled",
+        "pageName": "未知页面",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:37:18"
+    },
+    {
+        "controlName": "TBtn_PermissionPage",
+        "controlType": "QToolButton",
+        "newValue": "true",
+        "oldValue": "false",
+        "operation": "toggled",
+        "pageName": "未知页面",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:37:18"
+    },
+    {
+        "controlName": "权限页面按钮",
+        "controlType": "工具按钮",
+        "newValue": "权限",
+        "oldValue": "",
+        "operation": "点击",
+        "pageName": "通用/导航",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:37:18"
+    },
+    {
+        "controlName": "passwordEdit",
+        "controlType": "LoginAttempt",
+        "newValue": "尝试登录 厂家 (Manufacturer): ******",
+        "oldValue": "",
+        "operation": "login_attempt",
+        "pageName": "权限验证",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:37:23"
+    },
+    {
+        "controlName": "loginButton",
+        "controlType": "LoginSuccess",
+        "newValue": "登录成功: 厂家 (Manufacturer)",
+        "oldValue": "",
+        "operation": "login_success",
+        "pageName": "权限验证",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:37:23"
+    },
+    {
+        "controlName": "TBtn_PermissionPage",
+        "controlType": "QToolButton",
+        "newValue": "false",
+        "oldValue": "true",
+        "operation": "toggled",
+        "pageName": "未知页面",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:37:24"
+    },
+    {
+        "controlName": "AGV Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "The remote host closed the connection",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "AGV控制",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:39:16"
+    },
+    {
+        "controlName": "AGV Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "连接断开",
+        "oldValue": "",
+        "operation": "disconnected",
+        "pageName": "AGV控制",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:39:16"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "The remote host closed the connection",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:39:16"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "连接断开",
+        "oldValue": "",
+        "operation": "disconnected",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:39:16"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:39:21"
+    },
+    {
+        "controlName": "AGV Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "AGV控制",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:39:21"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:39:26"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:39:31"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:39:37"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:39:42"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:39:47"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:39:52"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:39:57"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:02"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:07"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:12"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:17"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:22"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:27"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:32"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:37"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:42"
+    },
+    {
+        "controlName": "TBtn_PermissionPage",
+        "controlType": "QToolButton",
+        "newValue": "true",
+        "oldValue": "false",
+        "operation": "toggled",
+        "pageName": "未知页面",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:42"
+    },
+    {
+        "controlName": "权限页面按钮",
+        "controlType": "工具按钮",
+        "newValue": "权限",
+        "oldValue": "",
+        "operation": "点击",
+        "pageName": "通用/导航",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:42"
+    },
+    {
+        "controlName": "TBtn_PermissionPage",
+        "controlType": "QToolButton",
+        "newValue": "false",
+        "oldValue": "true",
+        "operation": "toggled",
+        "pageName": "未知页面",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:43"
+    },
+    {
+        "controlName": "TBtn_HomePage",
+        "controlType": "QToolButton",
+        "newValue": "true",
+        "oldValue": "false",
+        "operation": "toggled",
+        "pageName": "未知页面",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:43"
+    },
+    {
+        "controlName": "首页按钮",
+        "controlType": "工具按钮",
+        "newValue": "返回主页",
+        "oldValue": "",
+        "operation": "点击",
+        "pageName": "通用/导航",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:43"
+    },
+    {
+        "controlName": "TBtn_HomePage",
+        "controlType": "QToolButton",
+        "newValue": "false",
+        "oldValue": "true",
+        "operation": "toggled",
+        "pageName": "未知页面",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:44"
+    },
+    {
+        "controlName": "Modbus连接",
+        "controlType": "ModbusTCP",
+        "newValue": "Network unreachable",
+        "oldValue": "",
+        "operation": "error",
+        "pageName": "系统",
+        "runtime_ms": 0,
+        "timestamp": "2026-05-06T10:40:47"
+    }
+]

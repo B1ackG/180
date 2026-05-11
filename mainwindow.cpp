@@ -117,6 +117,13 @@ std::array<quint16, 4> doubleToRegistersGHEFCDAB(double value)
         static_cast<quint16>((static_cast<quint16>(A) << 8) | B)
     };
 }
+
+/** 与 OperationRecorder 规范化后的中文 controlType 或原始英文类名均可匹配 */
+bool operationRecordControlTypeMatches(const OperationRecord &record, const QString &englishKey)
+{
+    MappingConfig *cfg = MappingConfig::instance();
+    return record.controlType == englishKey || record.controlType == cfg->mapControlType(englishKey);
+}
 }
 
 bool MainWindow::isBigFeatureEnabled(const QString &key) const
@@ -1769,14 +1776,16 @@ void MainWindow::onFilterRecords()
             display->appendPlainText(record.toString());
         }
     } else if (filter == "TechSliderEdit操作") {
+        const QString sliderTypeDisplay = MappingConfig::instance()->mapControlType(QStringLiteral("TechSliderEdit"));
         for (const auto &record : records) {
-            if (record.controlType == "TechSliderEdit") {
+            if (record.controlType == QStringLiteral("TechSliderEdit") || record.controlType == sliderTypeDisplay) {
                 display->appendPlainText(record.toString());
             }
         }
     } else if (filter == "TechPushButton操作") {
+        const QString pushTypeDisplay = MappingConfig::instance()->mapControlType(QStringLiteral("TechPushButton"));
         for (const auto &record : records) {
-            if (record.controlType == "TechPushButton") {
+            if (record.controlType == QStringLiteral("TechPushButton") || record.controlType == pushTypeDisplay) {
                 display->appendPlainText(record.toString());
             }
         }
@@ -2271,15 +2280,16 @@ void MainWindow::showNotification(const QString &message)
 // 辅助函数：根据记录类型获取颜色
 QString MainWindow::getRecordColor(const OperationRecord &record)
 {
-    if (record.controlType == "TechSliderEdit") {
+    if (operationRecordControlTypeMatches(record, QStringLiteral("TechSliderEdit"))) {
         return "#a9d4ff";  // 浅蓝色
-    } else if (record.controlType == "TechPushButton") {
-        return "#ffffff";  // 白色
-    } else if (record.controlType == "QToolButton") {
-        return "#a9d4ff";  // 浅蓝色
-    } else {
-        return "#ffffff";  // 默认白色
     }
+    if (operationRecordControlTypeMatches(record, QStringLiteral("TechPushButton"))) {
+        return "#ffffff";  // 白色
+    }
+    if (operationRecordControlTypeMatches(record, QStringLiteral("QToolButton"))) {
+        return "#a9d4ff";  // 浅蓝色
+    }
+    return "#ffffff";  // 默认白色
 }
 
 // 辅助函数：检查记录是否应该显示
@@ -2289,27 +2299,31 @@ bool MainWindow::shouldDisplayRecord(const OperationRecord &record, const QStrin
         return true;
     }
 
-    if (filter.contains("滑块操作") && record.controlType == "TechSliderEdit") {
+    if (filter.contains(QStringLiteral("滑块操作")) && operationRecordControlTypeMatches(record, QStringLiteral("TechSliderEdit"))) {
         return true;
     }
 
-    if (filter.contains("按钮操作") && record.controlType == "TechPushButton") {
+    if (filter.contains(QStringLiteral("按钮操作")) && operationRecordControlTypeMatches(record, QStringLiteral("TechPushButton"))) {
         return true;
     }
 
-    if (filter.contains("工具按钮") && record.controlType == "QToolButton") {
+    if (filter.contains(QStringLiteral("工具按钮")) && operationRecordControlTypeMatches(record, QStringLiteral("QToolButton"))) {
         return true;
     }
 
-    if (filter.contains("登录记录") &&
-        (record.controlType.contains("Login") || record.operation.contains("login"))) {
+    if (filter.contains(QStringLiteral("登录记录")) &&
+        (record.controlType.contains(QStringLiteral("Login"), Qt::CaseInsensitive) ||
+         record.controlType.contains(QStringLiteral("登录")) ||
+         record.operation.contains(QStringLiteral("login"), Qt::CaseInsensitive) ||
+         record.operation.contains(QStringLiteral("登录")))) {
         return true;
     }
 
     // 检查页面筛选
     for (int i = 0; i < 5; i++) {
         if (m_pageNames.contains(i) && filter.contains(m_pageNames[i])) {
-            return record.pageName == m_pageNames[i];
+            const QString mappedPage = MappingConfig::instance()->mapPageName(m_pageNames[i]);
+            return record.pageName == m_pageNames[i] || record.pageName == mappedPage;
         }
     }
 
@@ -4088,6 +4102,38 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                 hideRobotWeightOverloadDialog();
             }
         }
+
+        const bool heightInterlock = (((value >> 1) & 0x01) == 1);
+        if (heightInterlock != m_robotHeightInterlock150Bit1Flag) {
+            m_robotHeightInterlock150Bit1Flag = heightInterlock;
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = "报警系统";
+                record.controlName = "高度互锁";
+                record.controlType = "互锁监控";
+                record.operation = heightInterlock ? "互锁触发" : "互锁解除";
+                record.oldValue = "";
+                record.newValue = heightInterlock ? "高度互锁激活，动作受限" : "高度互锁已解除";
+                m_recorder->addRecord(record);
+            }
+        }
+
+        const bool lengthInterlock = (((value >> 2) & 0x01) == 1);
+        if (lengthInterlock != m_robotLengthInterlock150Bit2Flag) {
+            m_robotLengthInterlock150Bit2Flag = lengthInterlock;
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = "报警系统";
+                record.controlName = "长度互锁";
+                record.controlType = "互锁监控";
+                record.operation = lengthInterlock ? "互锁触发" : "互锁解除";
+                record.oldValue = "";
+                record.newValue = lengthInterlock ? "长度互锁激活，动作受限" : "长度互锁已解除";
+                m_recorder->addRecord(record);
+            }
+        }
     }
 
     if (address == 102) {
@@ -4105,6 +4151,38 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             m_robotNegativeLimit102Bit3Flag = negativeLimitReached;
             if (negativeLimitReached) {
                 showRobotLimitReachedDialog(QStringLiteral("负限位到达"));
+            }
+        }
+
+        if (m_recorder) {
+            // 记录正限位
+            static bool s_posLimitLogged = false;
+            if (positiveLimitReached != s_posLimitLogged) {
+                s_posLimitLogged = positiveLimitReached;
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = "报警系统";
+                record.controlName = "正限位报警";
+                record.controlType = "限位监控";
+                record.operation = positiveLimitReached ? "限制触发" : "限制解除";
+                record.oldValue = "";
+                record.newValue = positiveLimitReached ? "正方向行程已达限制" : "正限位已解除";
+                m_recorder->addRecord(record);
+            }
+
+            // 记录负限位
+            static bool s_negLimitLogged = false;
+            if (negativeLimitReached != s_negLimitLogged) {
+                s_negLimitLogged = negativeLimitReached;
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = "报警系统";
+                record.controlName = "负限位报警";
+                record.controlType = "限位监控";
+                record.operation = negativeLimitReached ? "限制触发" : "限制解除";
+                record.oldValue = "";
+                record.newValue = negativeLimitReached ? "负方向行程已达限制" : "负限位已解除";
+                m_recorder->addRecord(record);
             }
         }
     }
@@ -6644,6 +6722,18 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         m_isSteeringAlarmActive = true;
         showAlarm("正在更换底盘模式", "#FFFF00", false);
         m_isSwitchingSteeringMode = true;
+
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = "AGV控制";
+            record.controlName = "底盘模式切换";
+            record.controlType = "模式控制";
+            record.operation = "切换开始";
+            record.oldValue = "";
+            record.newValue = QString("正在向模式 %1 切换").arg(static_cast<int>(mode));
+            m_recorder->addRecord(record);
+        }
 
         if (mode == STEER_LATERAL) {
             // 切到4，等待地址50的bit10=1
@@ -9382,6 +9472,19 @@ void MainWindow::checkSteeringSwitchCompletion(int address, quint16 value)
     const bool targetBitSet = ((value >> m_targetSteeringWaitBit) & 0x01);
     if (targetBitSet) {
         qCDebug(lcMainWindow) << "[转向切换] 检测到地址50满足条件: Bit" << m_targetSteeringWaitBit << "=1，切换完成";
+        
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = "AGV控制";
+            record.controlName = "底盘模式切换";
+            record.controlType = "模式控制";
+            record.operation = "切换完成";
+            record.oldValue = "";
+            record.newValue = "底盘模式切换成功";
+            m_recorder->addRecord(record);
+        }
+
         m_isSwitchingSteeringMode = false;
         m_targetSteeringWaitBit = -1;
         m_isSteeringAlarmActive = false;

@@ -35,27 +35,31 @@ Item {
 
     function isAlarmRecord(controlType, op, page, control) {
         var t = (controlType || "") + " " + (op || "") + " " + (page || "") + " " + (control || "")
-        t = t.toLowerCase()
+        var tl = t.toLowerCase()
         return t.indexOf("报警") >= 0 ||
                t.indexOf("急停") >= 0 ||
                t.indexOf("告警") >= 0 ||
                t.indexOf("超限") >= 0 ||
-               t.indexOf("fault") >= 0 ||
-               t.indexOf("error") >= 0 ||
-               t.indexOf("warning") >= 0 ||
-               t.indexOf("alarm") >= 0
+               t.indexOf("错误") >= 0 ||
+               tl.indexOf("fault") >= 0 ||
+               tl.indexOf("error") >= 0 ||
+               tl.indexOf("warning") >= 0 ||
+               tl.indexOf("alarm") >= 0
     }
 
     function isControlRecord(controlType, op) {
         var ct = controlType || ""
         var opText = (op || "").toLowerCase()
-        if (ct === "EnableButton" || ct === "MatrixKey") {
+        if (ct === "EnableButton" || ct === "MatrixKey" ||
+            ct === "使能按钮" || ct === "物理按键") {
             return true
         }
 
         return opText.indexOf("external") >= 0 ||
                opText.indexOf("enable") >= 0 ||
-               opText.indexOf("使能") >= 0
+               opText.indexOf("使能") >= 0 ||
+               opText.indexOf("外部运动") >= 0 ||
+               opText.indexOf("agv外部") >= 0
     }
 
     function matchesCategory(controlType, op, page, control) {

@@ -1,4 +1,7 @@
 #include "operationrecorder.h"
+
+#include "mappingconfig.h"
+
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -117,17 +120,20 @@ OperationRecorder::~OperationRecorder()
 
 void OperationRecorder::addRecord(const OperationRecord &record)
 {
+    OperationRecord normalized = record;
+    MappingConfig::instance()->normalizeOperationRecord(normalized);
+
     // 限制记录数量
     if (m_records.size() >= m_maxRecords) {
         m_records.removeFirst();
     }
 
-    m_records.append(record);
-    emit recordAdded(record);
+    m_records.append(normalized);
+    emit recordAdded(normalized);
 
     // 如果TCP传输已启用，将记录纳入发送队列并触发发送/重连。
     if (m_tcpEnabled) {
-        if (enqueueRecordIfPossible(record)) {
+        if (enqueueRecordIfPossible(normalized)) {
             if (isTcpConnected()) {
                 sendQueuedRecords();
             } else {
@@ -136,7 +142,7 @@ void OperationRecorder::addRecord(const OperationRecord &record)
         }
     }
 
-    //qDebug() << "记录操作:" << record.toString();
+    //qDebug() << "记录操作:" << normalized.toString();
 }
 
 void OperationRecorder::clear()
@@ -182,6 +188,7 @@ bool OperationRecorder::loadFromFile(const QString &filename)
     QJsonArray jsonArray = doc.array();
     for (const auto &jsonValue : jsonArray) {
         OperationRecord record = OperationRecord::fromJson(jsonValue.toObject());
+        MappingConfig::instance()->normalizeOperationRecord(record);
         m_records.append(record);
     }
 
