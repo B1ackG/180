@@ -118,7 +118,7 @@ std::array<quint16, 4> doubleToRegistersGHEFCDAB(double value)
     };
 }
 
-std::array<quint16, 2> floatToRegistersCDAB(float value)
+    std::array<quint16, 2> floatToRegistersCDAB(float value)
 {
     quint32 raw = 0;
     memcpy(&raw, &value, sizeof(float));
@@ -132,13 +132,6 @@ std::array<quint16, 2> floatToRegistersCDAB(float value)
         static_cast<quint16>((static_cast<quint16>(C) << 8) | D),
         static_cast<quint16>((static_cast<quint16>(A) << 8) | B)
     };
-}
-
-/** 与 OperationRecorder 规范化后的中文 controlType 或原始英文类名均可匹配 */
-bool operationRecordControlTypeMatches(const OperationRecord &record, const QString &englishKey)
-{
-    MappingConfig *cfg = MappingConfig::instance();
-    return record.controlType == englishKey || record.controlType == cfg->mapControlType(englishKey);
 }
 
 /** 与 OperationRecorder 规范化后的中文 controlType 或原始英文类名均可匹配 */
@@ -2323,25 +2316,17 @@ bool MainWindow::shouldDisplayRecord(const OperationRecord &record, const QStrin
     }
 
     if (filter.contains(QStringLiteral("滑块操作")) && operationRecordControlTypeMatches(record, QStringLiteral("TechSliderEdit"))) {
-    if (filter.contains(QStringLiteral("滑块操作")) && operationRecordControlTypeMatches(record, QStringLiteral("TechSliderEdit"))) {
         return true;
     }
 
-    if (filter.contains(QStringLiteral("按钮操作")) && operationRecordControlTypeMatches(record, QStringLiteral("TechPushButton"))) {
     if (filter.contains(QStringLiteral("按钮操作")) && operationRecordControlTypeMatches(record, QStringLiteral("TechPushButton"))) {
         return true;
     }
 
     if (filter.contains(QStringLiteral("工具按钮")) && operationRecordControlTypeMatches(record, QStringLiteral("QToolButton"))) {
-    if (filter.contains(QStringLiteral("工具按钮")) && operationRecordControlTypeMatches(record, QStringLiteral("QToolButton"))) {
         return true;
     }
 
-    if (filter.contains(QStringLiteral("登录记录")) &&
-        (record.controlType.contains(QStringLiteral("Login"), Qt::CaseInsensitive) ||
-         record.controlType.contains(QStringLiteral("登录")) ||
-         record.operation.contains(QStringLiteral("login"), Qt::CaseInsensitive) ||
-         record.operation.contains(QStringLiteral("登录")))) {
     if (filter.contains(QStringLiteral("登录记录")) &&
         (record.controlType.contains(QStringLiteral("Login"), Qt::CaseInsensitive) ||
          record.controlType.contains(QStringLiteral("登录")) ||
@@ -2353,8 +2338,6 @@ bool MainWindow::shouldDisplayRecord(const OperationRecord &record, const QStrin
     // 检查页面筛选
     for (int i = 0; i < 5; i++) {
         if (m_pageNames.contains(i) && filter.contains(m_pageNames[i])) {
-            const QString mappedPage = MappingConfig::instance()->mapPageName(m_pageNames[i]);
-            return record.pageName == m_pageNames[i] || record.pageName == mappedPage;
             const QString mappedPage = MappingConfig::instance()->mapPageName(m_pageNames[i]);
             return record.pageName == m_pageNames[i] || record.pageName == mappedPage;
         }
