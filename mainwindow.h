@@ -885,6 +885,9 @@ private:
     /** @brief 记录步进移动结束（用于历史记录） */
     void recordStepMoveEnd(const QString &jointName, double currentValue);
 
+    /** @brief 第四页六自由度点动：○1～○12 对应 RX/RY/RZ/X/Y/Z，按下/松开记录当前角度或位置（展示方式与步进一致） */
+    void recordSixAxisJogExternalKey(int keyNumber, bool pressed);
+
     /** @brief 返回蓝色风格的 Widget 样式 */
     QString BlueWidgetStyle(const QString &WidgetType );
 

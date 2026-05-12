@@ -2939,7 +2939,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
     // 六自由度页面（第4页）外部键逻辑：
     // - ○13/○14：固定写500=5，514=4/2；释放时514回0；
-    // - 点动模式：按键○1~○12映射到613写入±1~±6；
+    // - 点动模式：按键○1~○12映射到613写入±1~±6；按下/松开各记一条历史（RX/RY/RZ 角度，X/Y/Z 位置，文案仿步进列表）
     // - 步进模式：按键○1~○12映射轴1~6，写614轴号、601~602(CDAB浮点步进值，奇数键写相反数)，再写615触发。
     if (isSixAxisPage) {
         if (keyNumber == 13 || keyNumber == 14) {
@@ -3102,10 +3102,12 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         }
 
         if (!pressed) {
+            recordSixAxisJogExternalKey(keyNumber, false);
             writeToMainDevice(613, 0);
             return;
         }
 
+        recordSixAxisJogExternalKey(keyNumber, true);
         const int groupIndex = (keyNumber + 1) / 2;       // ○1/2->1 ... ○11/12->6
         const int signedCommand = (keyNumber % 2 == 1) ? -groupIndex : groupIndex;
         const quint16 encoded = static_cast<quint16>(signedCommand); // 负数按补码写入
@@ -8813,9 +8815,65 @@ void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue
     showNotification(record.newValue.toString());
 }
 
+void MainWindow::recordSixAxisJogExternalKey(int keyNumber, bool pressed)
+{
+    if (!m_recorder || keyNumber < 1 || keyNumber > 12) {
+        return;
+    }
 
+    const int axisIndex = (keyNumber + 1) / 2; // ○1/2->1 … ○11/12->6
+    QString axisName;
+    switch (axisIndex) {
+    case 1: axisName = QStringLiteral("RX"); break;
+    case 2: axisName = QStringLiteral("RY"); break;
+    case 3: axisName = QStringLiteral("RZ"); break;
+    case 4: axisName = QStringLiteral("X"); break;
+    case 5: axisName = QStringLiteral("Y"); break;
+    case 6: axisName = QStringLiteral("Z"); break;
+    default: return;
+    }
 
+    double currentValue = 0.0;
+    const QString sixAxisGaugeName = QStringLiteral("robot_ArcGauge_SixAxis%1").arg(axisIndex);
+    if (TechArcGauge *gauge = m_arcGauges.value(sixAxisGaugeName, nullptr)) {
+        currentValue = gauge->value();
+    }
 
+    const bool isRotationAxis = (axisIndex <= 3);
+    QString msg;
+    if (pressed) {
+        if (isRotationAxis) {
+            msg = QStringLiteral("%1当前角度为%2，开始运动")
+                      .arg(axisName)
+                      .arg(currentValue, 0, 'f', 3);
+        } else {
+            msg = QStringLiteral("%1轴当前位置为%2，开始运动")
+                      .arg(axisName)
+                      .arg(currentValue, 0, 'f', 3);
+        }
+    } else {
+        if (isRotationAxis) {
+            msg = QStringLiteral("%1当前角度为%2，运动停止")
+                      .arg(axisName)
+                      .arg(currentValue, 0, 'f', 3);
+        } else {
+            msg = QStringLiteral("%1轴当前位置为%2，运动停止")
+                      .arg(axisName)
+                      .arg(currentValue, 0, 'f', 3);
+        }
+    }
+
+    OperationRecord record;
+    record.timestamp = QDateTime::currentDateTime();
+    record.pageName = getCurrentPageName();
+    record.controlName = msg;
+    record.controlType = QString();
+    record.operation = QString();
+    record.oldValue = QString();
+    record.newValue = QString();
+    m_recorder->addRecord(record);
+    showNotification(msg);
+}
 
 void MainWindow::sendRemoveWarningModbusWrites()
 {
