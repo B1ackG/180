@@ -1009,7 +1009,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          </rect>
         </property>
         <property name="text">
-         <string>避障开启</string>
+         <string>姿态回中</string>
         </property>
        </widget>
       </widget>
