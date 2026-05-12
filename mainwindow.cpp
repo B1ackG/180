@@ -544,6 +544,28 @@ void MainWindow::setupControlConnections()
     } else {
         qWarning() << "未找到btn_ForceControl按钮";
     }
+
+    // 六自由度页：主控 192.168.1.13 保持寄存器 615 的 bit1 置 1（读改写，保留其它位）
+    if (TechPushButton *resetSixBtn = findChild<TechPushButton*>(QStringLiteral("techBtn_resetSixAxies"))) {
+        connect(resetSixBtn, &TechPushButton::clicked, this, [this]() {
+            if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
+                showNotification(QStringLiteral("主控 Modbus 未连接"));
+                return;
+            }
+            quint16 cur = 0;
+            if (!m_modbusManager->readSingleRegister(615, cur)) {
+                qWarning() << "[六轴复位] 同步读取寄存器615失败";
+                showNotification(QStringLiteral("读取寄存器615失败"));
+                return;
+            }
+            constexpr int kBit = 1;
+            const quint16 next = static_cast<quint16>(cur | (static_cast<quint16>(1u) << kBit));
+            writeToMainDevice(615, next);
+            qCDebug(lcMainWindow) << "[六轴复位] 615: 原值" << cur << "→ 写入" << next << "(bit" << kBit << "=1)";
+        });
+    } else {
+        qWarning() << "未找到 techBtn_resetSixAxies 按钮";
+    }
 }
 
 void MainWindow::setupSubsystemConnections()
