@@ -354,27 +354,12 @@ QString MappingConfig::mapValue(const QString &value) const
 
     if (m_valueMap.contains(trimmed)) {
         return m_valueMap[trimmed];
-    const QString trimmed = value.trimmed();
-    const QString lower = trimmed.toLower();
-    if (lower == QLatin1String("true")) {
-        return m_valueMap.value(QStringLiteral("true"), trimmed);
     }
-    if (lower == QLatin1String("false")) {
-        return m_valueMap.value(QStringLiteral("false"), trimmed);
-    }
-
-    if (m_valueMap.contains(trimmed)) {
-        return m_valueMap[trimmed];
-    }
-
 
     // 支持模糊匹配
     if (trimmed.contains(QLatin1String("Host unreachable"))) {
         return QStringLiteral("主机不可达 (AGV失联)");
-    if (trimmed.contains(QLatin1String("Host unreachable"))) {
-        return QStringLiteral("主机不可达 (AGV失联)");
     }
-
 
     return value;
 }
