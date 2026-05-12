@@ -37,10 +37,13 @@ private:
     void loadCurrentState();
     void setupPollingUI(QVBoxLayout *scrollLayout);
     void setupSliderLimitUI(QVBoxLayout *scrollLayout);
+    void setupInclinometerThresholdUI(QVBoxLayout *scrollLayout);
     void loadPollingState();
     void savePollingState();
     void loadSliderLimitState();
     void saveSliderLimitState();
+    void loadInclinometerThresholdState();
+    void saveInclinometerThresholdState();
 
     QMap<QString, QCheckBox*> m_bigCheckboxes;
     QMap<QString, QCheckBox*> m_smallCheckboxes;
@@ -65,6 +68,9 @@ private:
         QLineEdit *maxEdit;
     };
     QMap<QString, LimitEdits> m_limitEdits;
+
+    QLineEdit *m_editInclinometerThresholdX = nullptr;
+    QLineEdit *m_editInclinometerThresholdY = nullptr;
 
     TechVirtualKeyboard *m_virtualKeyboard = nullptr;
 };

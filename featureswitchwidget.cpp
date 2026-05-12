@@ -200,6 +200,8 @@ void FeatureSwitchWidget::setupUI()
     // 滑块自定义范围配置组
     setupSliderLimitUI(scrollLayout);
 
+    setupInclinometerThresholdUI(scrollLayout);
+
     scrollLayout->addStretch();
 
     scroll->setWidget(scrollContent);
@@ -249,6 +251,7 @@ void FeatureSwitchWidget::loadCurrentState()
     }
     loadPollingState();
     loadSliderLimitState();
+    loadInclinometerThresholdState();
 }
 
 void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
@@ -347,6 +350,59 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
     }
 
     scrollLayout->addWidget(limitGroup);
+}
+
+void FeatureSwitchWidget::setupInclinometerThresholdUI(QVBoxLayout *scrollLayout)
+{
+    QGroupBox *incGroup = new QGroupBox("倾角仪显示阈值 (首页 X/Y 卡片)");
+    QVBoxLayout *incLayout = new QVBoxLayout(incGroup);
+
+    auto addRow = [&](const QString &desc, QLineEdit *&edit) {
+        QHBoxLayout *h = new QHBoxLayout();
+        h->addWidget(new QLabel(desc));
+        edit = new QLineEdit();
+        edit->setFixedWidth(150);
+        edit->setStyleSheet("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px; padding: 3px;");
+        edit->installEventFilter(this);
+        h->addWidget(edit);
+        h->addStretch();
+        incLayout->addLayout(h);
+    };
+
+    addRow("X 轴倾角显示阈值 (°):", m_editInclinometerThresholdX);
+    addRow("Y 轴倾角显示阈值 (°):", m_editInclinometerThresholdY);
+
+    scrollLayout->addWidget(incGroup);
+}
+
+void FeatureSwitchWidget::loadInclinometerThresholdState()
+{
+    QSettings settings("config.ini", QSettings::IniFormat);
+    settings.beginGroup("Inclinometer");
+    m_editInclinometerThresholdX->setText(
+        QString::number(settings.value("display_threshold_x_deg", 1.0).toDouble(), 'f', 2));
+    m_editInclinometerThresholdY->setText(
+        QString::number(settings.value("display_threshold_y_deg", 1.0).toDouble(), 'f', 2));
+    settings.endGroup();
+}
+
+void FeatureSwitchWidget::saveInclinometerThresholdState()
+{
+    auto parseBounded = [](const QString &text, double fallback) -> double {
+        bool ok = false;
+        const double v = text.trimmed().toDouble(&ok);
+        if (!ok) {
+            return fallback;
+        }
+        return qBound(0.01, v, 90.0);
+    };
+
+    QSettings settings("config.ini", QSettings::IniFormat);
+    settings.beginGroup("Inclinometer");
+    settings.setValue("display_threshold_x_deg", parseBounded(m_editInclinometerThresholdX->text(), 1.0));
+    settings.setValue("display_threshold_y_deg", parseBounded(m_editInclinometerThresholdY->text(), 1.0));
+    settings.endGroup();
+    settings.sync();
 }
 
 void FeatureSwitchWidget::loadPollingState()
@@ -456,6 +512,8 @@ void FeatureSwitchWidget::onApply()
     
     // 应用滑块限制配置
     saveSliderLimitState();
+
+    saveInclinometerThresholdState();
 
     emit runtimeSettingsChanged();
 

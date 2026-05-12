@@ -377,6 +377,26 @@ void MainWindow::applySliderLabelRuntimeSettings()
     }
 }
 
+void MainWindow::applyInclinometerDisplayRuntimeSettings()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("Inclinometer"));
+    const double tx = qBound(0.01, settings.value(QStringLiteral("display_threshold_x_deg"), 1.0).toDouble(), 90.0);
+    const double ty = qBound(0.01, settings.value(QStringLiteral("display_threshold_y_deg"), 1.0).toDouble(), 90.0);
+    settings.endGroup();
+
+    const auto formatThreshold = [](double deg) {
+        return QStringLiteral("阈值：%1°").arg(deg, 0, 'f', 2);
+    };
+
+    if (m_inclinometerXThresholdLabel) {
+        m_inclinometerXThresholdLabel->setText(formatThreshold(tx));
+    }
+    if (m_inclinometerYThresholdLabel) {
+        m_inclinometerYThresholdLabel->setText(formatThreshold(ty));
+    }
+}
+
 // 1. 生命周期与核心初始化 (Life Cycle)
 // ==========================================
 
@@ -1212,7 +1232,7 @@ void MainWindow::initInclinometerCards()
     m_inclinometerXCard = findChild<QWidget*>("quickWidget_Inclinometer_X");
     m_inclinometerYCard = findChild<QWidget*>("quickWidget_Inclinometer_Y");
 
-    auto initOne = [](QWidget *widget, const QString &axisTitle, QLabel *&valueLabel) {
+    auto initOne = [](QWidget *widget, const QString &axisTitle, QLabel *&valueLabel, QLabel *&thresholdLabelOut) {
         if (!widget) {
             return;
         }
@@ -1253,10 +1273,10 @@ void MainWindow::initInclinometerCards()
             "border: none;"
             "background: transparent;"));
 
-        auto *thresholdLabel = new QLabel(QStringLiteral("阈值：1°"), widget);
-        thresholdLabel->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-        thresholdLabel->setWordWrap(true);
-        thresholdLabel->setStyleSheet(QStringLiteral(
+        thresholdLabelOut = new QLabel(widget);
+        thresholdLabelOut->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+        thresholdLabelOut->setWordWrap(true);
+        thresholdLabelOut->setStyleSheet(QStringLiteral(
             "color: #8BC4EA;"
             "font: 500 12px 'Noto Sans CJK SC';"
             "border: none;"
@@ -1264,11 +1284,12 @@ void MainWindow::initInclinometerCards()
 
         layout->addWidget(axisLabel, 0);
         layout->addWidget(valueLabel, 1);
-        layout->addWidget(thresholdLabel, 0);
+        layout->addWidget(thresholdLabelOut, 0);
     };
 
-    initOne(m_inclinometerXCard, QStringLiteral("X轴倾角"), m_inclinometerXValueLabel);
-    initOne(m_inclinometerYCard, QStringLiteral("Y轴倾角"), m_inclinometerYValueLabel);
+    initOne(m_inclinometerXCard, QStringLiteral("X轴倾角"), m_inclinometerXValueLabel, m_inclinometerXThresholdLabel);
+    initOne(m_inclinometerYCard, QStringLiteral("Y轴倾角"), m_inclinometerYValueLabel, m_inclinometerYThresholdLabel);
+    applyInclinometerDisplayRuntimeSettings();
 }
 
 void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
@@ -2404,6 +2425,7 @@ void MainWindow::setupAdminPasswordPage()
                     applyPollingRuntimeSettings();
                     loadSliderLabelRuntimeSettings();
                     applySliderLabelRuntimeSettings();
+                    applyInclinometerDisplayRuntimeSettings();
                     refreshInterlockingButtonText();
                 });
             }
@@ -2883,21 +2905,21 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     const bool isSixAxisPage = (currentPage == 3 || pageName == "六自由度" || pageName == "page_SixAxies");
 
     // 首页外部按键提示：
-    // ○1/○2 检查主设备地址150的bit1；○3/○4 检查bit2。
+    // ○1/○2 对应主设备地址 150 的 bit1（高度互锁）；仅 ○4 受 bit2（长度互锁）限制，○3 不受长度互锁拦截。
+    // 须按位直接判断：若仅用 robotInterlockHintMessage()，在高度与长度同时触发时会始终返回高度文案，
+    // 导致 ○4 无法弹出长度互锁提示。
     if (isRobotPage && pressed && keyNumber >= 1 && keyNumber <= 4) {
         if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
             MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
         }
 
-        const QString interlockHint = robotInterlockHintMessage();
-        if ((keyNumber == 1 || keyNumber == 2) && !interlockHint.isEmpty()
-            && interlockHint.contains(QStringLiteral("高度互锁"))) {
-            showRobotOperationHintDialog(interlockHint);
+        const quint16 s150 = m_mainRegister150Shadow;
+        if ((keyNumber == 1 || keyNumber == 2) && (((s150 >> 1) & 0x01) == 1)) {
+            showRobotOperationHintDialog(QStringLiteral("高度互锁，请降低高度后操作"));
             return;
         }
-        if (keyNumber == 4 && !interlockHint.isEmpty()
-            && interlockHint.contains(QStringLiteral("长度互锁"))) {
-            showRobotOperationHintDialog(interlockHint);
+        if (keyNumber == 4 && (((s150 >> 2) & 0x01) == 1)) {
+            showRobotOperationHintDialog(QStringLiteral("长度互锁，请缩小长度后操作"));
             return;
         }
     }

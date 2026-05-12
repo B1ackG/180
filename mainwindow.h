@@ -696,6 +696,8 @@ private:
     QWidget *m_inclinometerYCard = nullptr;  // QWidget 版本 Y 轴倾角卡片容器
     QLabel *m_inclinometerXValueLabel = nullptr;
     QLabel *m_inclinometerYValueLabel = nullptr;
+    QLabel *m_inclinometerXThresholdLabel = nullptr;
+    QLabel *m_inclinometerYThresholdLabel = nullptr;
     QMovie* m_verticalMovie;
     QPixmap m_backgroundPixmap;
     bool m_backgroundLoaded = false;
@@ -804,6 +806,9 @@ public:
 
     /** @brief 应用 SliderLabel 的自定义配置到所有实例 */
     void applySliderLabelRuntimeSettings();
+
+    /** @brief 从 config.ini 刷新首页倾角卡片上的阈值说明文字 */
+    void applyInclinometerDisplayRuntimeSettings();
 
 private:
     /** @brief 连接导航与页面切换相关信号 */
