@@ -3498,7 +3498,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○9步进按下(1)：寄存器0 bit4=1"));
         writeToAGVDevice(5, stepInt);
         writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
-        appendAgvExternalKeyRecord(keyNumber, pressed);
+        appendAgvExternalKeyRecord(keyNumber, pressed, m_stepValueEdit->text().trimmed());
         m_robotExternalKeyPressed[keyNumber] = true;
         return;
     }
@@ -6724,7 +6724,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○10步进按下(1)：寄存器0 bit4=1"));
         writeToAGVDevice(5, stepInt);
         writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
-        appendAgvExternalKeyRecord(keyNumber, pressed);
+        appendAgvExternalKeyRecord(keyNumber, pressed, m_stepValueEdit->text().trimmed());
         m_robotExternalKeyPressed[keyNumber] = true;
         return;
     }
@@ -6762,7 +6762,7 @@ QString MainWindow::currentSteeringModeText() const
     }
 }
 
-void MainWindow::appendAgvExternalKeyRecord(int keyNumber, bool pressed)
+void MainWindow::appendAgvExternalKeyRecord(int keyNumber, bool pressed, const QString &stepValueFromLineEdit)
 {
     if (!m_recorder) {
         return;
@@ -6778,15 +6778,19 @@ void MainWindow::appendAgvExternalKeyRecord(int keyNumber, bool pressed)
     record.controlType = "MatrixKey";
     record.operation = pressed ? "agv_external_motion_start" : "agv_external_motion_end";
     record.oldValue = "";
-    record.newValue = pressed
-                          ? QString("当前模式为%1，设置速度为%2，设置角度为%3，开始运动")
-                                .arg(currentSteeringModeText())
-                                .arg(speedValue, 0, 'f', 0)
-                                .arg(angleValue, 0, 'f', 0)
-                          : QString("运动完成，当前模式为%1，设置速度为%2，设置角度为%3")
-                                .arg(currentSteeringModeText())
-                                .arg(speedValue, 0, 'f', 0)
-                                .arg(angleValue, 0, 'f', 0);
+    QString detail = pressed
+                         ? QString("当前模式为%1，设置速度为%2，设置角度为%3，开始运动")
+                               .arg(currentSteeringModeText())
+                               .arg(speedValue, 0, 'f', 0)
+                               .arg(angleValue, 0, 'f', 0)
+                         : QString("运动完成，当前模式为%1，设置速度为%2，设置角度为%3")
+                               .arg(currentSteeringModeText())
+                               .arg(speedValue, 0, 'f', 0)
+                               .arg(angleValue, 0, 'f', 0);
+    if (!stepValueFromLineEdit.isEmpty()) {
+        detail += QStringLiteral("，步进值为：%1").arg(stepValueFromLineEdit);
+    }
+    record.newValue = detail;
     m_recorder->addRecord(record);
 }
 //运动模式选择
