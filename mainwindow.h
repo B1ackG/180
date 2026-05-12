@@ -187,6 +187,10 @@ public:
     void hideAlarm();
     /** @brief 刷新报警显示 */
     void updateAlarmDisplay();
+    /** @brief AGV 寄存器150 bit0~10 急停来源（与 192.168.1.88 设备约定一致） */
+    QStringList agvChassisEstopSourcesFromRegister150(quint16 reg150) const;
+    /** @brief 主设备(192.168.1.13)寄存器150 bit4/bit5 示教器急停来源 */
+    QStringList robotArmTeachPendantEstopFromRegister150(quint16 reg150) const;
     /** @brief 处理 AGV 51 地址提示/报警位（bit0/bit1） */
     void handleAGVRegister51Alerts(quint16 value);
     /** @brief 显示站掉线报警窗（51.bit1=1） */

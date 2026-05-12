@@ -4334,7 +4334,9 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
     if (address == 150) {
         m_mainRegister150Shadow = value;
         m_mainRegister150Valid = true;
-        const bool emergencyStop = (value == 1);
+        // 原约定 value==1；另支持 150.bit4/bit5 示教器急停（与现场寄存器定义一致）
+        const bool emergencyStop = (value == 1)
+            || (((value >> 4) & 0x03) != 0);
         if (emergencyStop != m_robotArmEmergency150Flag) {
             m_robotArmEmergency150Flag = emergencyStop;
             if (emergencyStop && m_recorder) {
@@ -4369,7 +4371,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                 showRobotWeightOverloadDialog();
             } else {
                 hideRobotWeightOverloadDialog();
-            }
+                }
         }
 
         const bool heightInterlock = (((value >> 1) & 0x01) == 1);
@@ -4402,6 +4404,10 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                 record.newValue = lengthInterlock ? "长度互锁激活，动作受限" : "长度互锁已解除";
                 m_recorder->addRecord(record);
             }
+        }
+
+        if (m_robotArmEmergency150Flag && isBigFeatureEnabled("alarm_system")) {
+            QTimer::singleShot(0, this, &MainWindow::updateAlarmDisplay);
         }
     }
 
@@ -5155,6 +5161,9 @@ void MainWindow::setupAGVModbus()
                             record.newValue = "AGV触发了急停报警";
                             m_recorder->addRecord(record);
                         }
+                        if (bit5 && m_agvModbusManager && m_agvModbusManager->isConnected()) {
+                            m_agvModbusManager->readMultipleRegisters(150, 1);
+                        }
                         QTimer::singleShot(0, this, &MainWindow::checkAlarmConditions);
                     }
 
@@ -5165,6 +5174,11 @@ void MainWindow::setupAGVModbus()
 
                 if (address == 155) {
                     syncAGVSteeringModeFromRegister155(value);
+                }
+
+                if (address == 150 && m_agvChassisEmergency51Bit5Flag
+                    && isBigFeatureEnabled("alarm_system")) {
+                    QTimer::singleShot(0, this, &MainWindow::updateAlarmDisplay);
                 }
 
                 if (isFeatureEnabled("modbus_agv", "modbus_agv.read_logs")) {
@@ -8962,6 +8976,12 @@ void MainWindow::checkAlarmConditions()
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 102, 1);
     }
 
+    if (m_agvModbusManager && m_agvModbusManager->isConnected()
+        && m_agvChassisEmergency51Bit5Flag
+        && isFeatureEnabled("alarm_system", "alarm.emergency_stop")) {
+        m_agvModbusManager->readMultipleRegisters(150, 1);
+    }
+
     // 调试输出当前报警状态
     if (alarmStatusLogsEnabled) {
         qCDebug(lcMainWindow) << "=== 检查报警条件 ===";
@@ -9041,8 +9061,8 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
 
         connect(clearBtn, &QPushButton::clicked, this, &MainWindow::on_TBtn_RemoveWarning_clicked);
 
-        // 设置固定大小
-        m_alarmWidget->setFixedSize(350, 120);
+        // 初始大小；具体高度在 showAlarm 中按文案行数调整
+        m_alarmWidget->setFixedSize(420, 120);
 
         qCDebug(lcMainWindow) << "报警窗口创建完成";
     }
@@ -9055,6 +9075,13 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
     
     // 更新报警信息
     m_alarmLabel->setText(message);
+
+    {
+        const int lineCount = qMax(1, message.count(QLatin1Char('\n')) + 1);
+        const int buttonReserve = closable ? 52 : 0;
+        const int targetH = qBound(120, 56 + lineCount * 22 + buttonReserve, 520);
+        m_alarmWidget->setFixedSize(420, targetH);
+    }
 
     // 设置样式
     QString styleSheet = QString(
@@ -9088,7 +9115,7 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
 
     m_alarmWidget->setStyleSheet(styleSheet);
 
-    // 计算显示位置（屏幕右下角）
+    // 计算显示位置（屏幕右下角，随窗口高度变化）
     QScreen *screen = QGuiApplication::primaryScreen();
     QRect screenGeometry = screen->geometry();
     int x = screenGeometry.width() - m_alarmWidget->width() - 50;
@@ -9110,6 +9137,42 @@ void MainWindow::hideAlarm()
     }
 }
 
+QStringList MainWindow::robotArmTeachPendantEstopFromRegister150(quint16 reg150) const
+{
+    QStringList out;
+    if (((reg150 >> 4) & 0x01) != 0) {
+        out << QStringLiteral("下方示教器触发急停");
+    }
+    if (((reg150 >> 5) & 0x01) != 0) {
+        out << QStringLiteral("上方示教器触发急停");
+    }
+    return out;
+}
+
+QStringList MainWindow::agvChassisEstopSourcesFromRegister150(quint16 reg150) const
+{
+    static const QString kNames[11] = {
+        QStringLiteral("前面板急停"),
+        QStringLiteral("后面板急停"),
+        QStringLiteral("前面板左急停"),
+        QStringLiteral("前面板右急停"),
+        QStringLiteral("后面板左急停"),
+        QStringLiteral("后面板右急停"),
+        QStringLiteral("右面板左急停"),
+        QStringLiteral("右面板右急停"),
+        QStringLiteral("左面板左急停"),
+        QStringLiteral("左面板右急停"),
+        QStringLiteral("遥控器急停"),
+    };
+    QStringList out;
+    for (int bit = 0; bit <= 10; ++bit) {
+        if (((reg150 >> bit) & 0x01) != 0) {
+            out << kNames[bit];
+        }
+    }
+    return out;
+}
+
 // 新增：更新报警显示
 void MainWindow::updateAlarmDisplay()
 {
@@ -9124,6 +9187,22 @@ void MainWindow::updateAlarmDisplay()
             alarmMessage = "机械臂触发急停，请解除急停。";
         } else {
             alarmMessage = "底盘触发急停，请解除急停。";
+        }
+        if (robotEmergency) {
+            const QStringList teachLines = robotArmTeachPendantEstopFromRegister150(
+                m_mainRegister150Shadow);
+            if (!teachLines.isEmpty()) {
+                alarmMessage += QLatin1Char('\n');
+                alarmMessage += teachLines.join(QLatin1Char('\n'));
+            }
+        }
+        if (chassisEmergency) {
+            const QStringList sources = agvChassisEstopSourcesFromRegister150(
+                m_agvRegisterShadow.value(150, 0));
+            if (!sources.isEmpty()) {
+                alarmMessage += QLatin1Char('\n');
+                alarmMessage += sources.join(QLatin1Char('\n'));
+            }
         }
         showAlarm(alarmMessage, "#ff5555", false);
     } else {
