@@ -8077,7 +8077,10 @@ void MainWindow::onEnableButtonReleasedStepMode()
 
     // 步进模式下使能按钮释放：不写514；首页 lineEdit_StepValue 清空见 maybeClearFirstPageStepValueIfAllExternalKeysReleased。
 
-    if (m_stepValueEdit) {
+    // 与 onEnableButtonPressedStepMode 一致：仅当首页统一步进输入框有内容时才按选中目标记录结束；
+    // 否则仅判断 m_stepValueEdit 非空会在输入为空时仍走本分支，且 selectedStepTargetRegister()
+    // 无选中按钮时默认 500，误记为「悬臂组件(J1)」步进结束。
+    if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
         const int targetReg = selectedStepTargetRegister();
         const QString targetName = selectedStepTargetName();
 
