@@ -1,6 +1,7 @@
 #include "operationrecorder.h"
 
 #include "mappingconfig.h"
+#include "modbuswritegate.h"
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -120,6 +121,10 @@ OperationRecorder::~OperationRecorder()
 
 void OperationRecorder::addRecord(const OperationRecord &record)
 {
+    if (!ModbusWriteGate::shouldAppendOperationHistoryRecord()) {
+        return;
+    }
+
     OperationRecord normalized = record;
     MappingConfig::instance()->normalizeOperationRecord(normalized);
 

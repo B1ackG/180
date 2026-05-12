@@ -40,6 +40,15 @@ bool messageIndicatesTeachingGateDenied(const QString &message);
 /** 门禁弹窗展示给用户的固定提示语 */
 QString teachingGateUserDialogMessage();
 
+/**
+ * 由 UI 轮询（如联锁按钮刷新）在每次读取 8192 后调用，供操作历史是否落库判断。
+ * readOk 为 false 时表示未读到有效值，此时不暂停历史记录。
+ */
+void updateOperationHistoryGateFromInterlockRead(bool readOk, quint16 register8192Value);
+
+/** 是否应将当前操作写入历史：已读到 8192 且与示教设备号不一致时为 false */
+bool shouldAppendOperationHistoryRecord();
+
 } // namespace ModbusWriteGate
 
 #endif

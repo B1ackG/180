@@ -3692,15 +3692,18 @@ void MainWindow::refreshInterlockingButtonText()
     }
     ModbusThreadManager *mgr = m_modbusManager ? m_modbusManager : ModbusThreadManager::instance();
     if (!mgr || !mgr->isConnected()) {
+        ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(false, 0);
         ui->TBtn_Interlocking->setText(QStringLiteral("--"));
         return;
     }
     quint16 v = 0;
     const int addr = ModbusWriteGate::interlockRegisterAddress();
     if (!mgr->readSingleRegister(addr, v)) {
+        ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(false, 0);
         ui->TBtn_Interlocking->setText(QStringLiteral("--"));
         return;
     }
+    ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(true, v);
     ui->TBtn_Interlocking->setText(v == 1 ? QStringLiteral("上方示教器") : QStringLiteral("下方示教器"));
 }
 
@@ -3895,6 +3898,7 @@ void MainWindow::onModbusConnected()
 void MainWindow::onModbusDisconnected()
 {
     qCDebug(lcMainWindow) << "Modbus设备断开连接";
+    ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(false, 0);
     if (m_interlockingSyncTimer) {
         m_interlockingSyncTimer->stop();
     }

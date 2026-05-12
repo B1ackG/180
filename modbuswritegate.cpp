@@ -3,6 +3,11 @@
 
 #include <QSettings>
 
+namespace {
+bool s_interlock8192ReadOk = false;
+quint16 s_interlock8192Value = 0;
+}
+
 namespace ModbusWriteGate {
 
 quint16 configuredTeachingDeviceId()
@@ -95,6 +100,22 @@ bool messageIndicatesTeachingGateDenied(const QString &message)
 QString teachingGateUserDialogMessage()
 {
     return QStringLiteral("示教器控制互锁，请切换到当前示教器。");
+}
+
+void updateOperationHistoryGateFromInterlockRead(bool readOk, quint16 register8192Value)
+{
+    s_interlock8192ReadOk = readOk;
+    if (readOk) {
+        s_interlock8192Value = register8192Value;
+    }
+}
+
+bool shouldAppendOperationHistoryRecord()
+{
+    if (!s_interlock8192ReadOk) {
+        return true;
+    }
+    return s_interlock8192Value == configuredTeachingDeviceId();
 }
 
 } // namespace ModbusWriteGate
