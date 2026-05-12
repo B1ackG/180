@@ -206,6 +206,7 @@ public:
      * @return 标签字符串
      */
     QString labelText() const;
+    QString lastChangeSource() const;
 
     /**
      * @brief 设置标签文本
@@ -499,6 +500,7 @@ private:
 
     // 转换因子（用于处理小数）
     int m_conversionFactor;
+    QString m_lastChangeSource;
 
 signals:
 };

@@ -35,6 +35,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QGroupBox>
 #include <QtMath>
 #include <array>
 #include <fcntl.h>
@@ -142,6 +143,34 @@ bool operationRecordControlTypeMatches(const OperationRecord &record, const QStr
 {
     MappingConfig *cfg = MappingConfig::instance();
     return record.controlType == englishKey || record.controlType == cfg->mapControlType(englishKey);
+}
+
+QString findNearestGroupTitle(const QWidget *widget)
+{
+    const QWidget *current = widget;
+    while (current) {
+        const auto *groupBox = qobject_cast<const QGroupBox*>(current);
+        if (groupBox) {
+            const QString title = groupBox->title().trimmed();
+            if (!title.isEmpty()) {
+                return title;
+            }
+        }
+        current = current->parentWidget();
+    }
+    return QString();
+}
+
+bool isInsideSteeringModeSelector(const QWidget *widget)
+{
+    const QWidget *current = widget;
+    while (current) {
+        if (qobject_cast<const SteeringModeSelector*>(current)) {
+            return true;
+        }
+        current = current->parentWidget();
+    }
+    return false;
 }
 }
 
@@ -1590,15 +1619,27 @@ void MainWindow::connectRecordSignals()
         if (pageIndex != -1) {
             // 使用lambda捕获页面信息
             connect(slider, &TechSliderEdit::valueChangedWithRecord,
-                    this, [this, slider, pageIndex](double oldValue, double newValue) {
+                    this, [this, slider, pageIndex](double /*oldValue*/, double newValue) {
                         OperationRecord record;
+                        const QString labelTextRaw = slider->labelText().trimmed();
+                        const QString sliderLabelText = labelTextRaw.isEmpty()
+                            ? MappingConfig::instance()->mapControlName(slider->objectName())
+                            : labelTextRaw;
+                        const QString changeSource = slider->lastChangeSource().trimmed();
+                        const bool isPresetClick = (changeSource == QStringLiteral("低速")
+                                                 || changeSource == QStringLiteral("中速")
+                                                 || changeSource == QStringLiteral("高速"));
+                        const QString changedTo = isPresetClick
+                            ? changeSource
+                            : QString::number(newValue, 'f', slider->precision());
+
                         record.timestamp = QDateTime::currentDateTime();
                         record.pageName = MappingConfig::instance()->mapPageName(QString::number(pageIndex));
-                        record.controlName = MappingConfig::instance()->mapControlName(slider->objectName());
+                        record.controlName = QStringLiteral("“%1”被设置为%2").arg(sliderLabelText, changedTo);
                         record.controlType = MappingConfig::instance()->mapControlType("TechSliderEdit");
-                        record.operation = MappingConfig::instance()->mapOperation("valueChanged");
-                        record.oldValue = QString::number(oldValue);
-                        record.newValue = QString::number(newValue);
+                        record.operation = "";
+                        record.oldValue = "";
+                        record.newValue = "";
 
                         m_recorder->addRecord(record);
                     });
@@ -1622,10 +1663,22 @@ void MainWindow::connectRecordSignals()
                         page = page->parentWidget();
                     }
 
+                    const QString buttonText = button->text().trimmed();
+                    const QString detailText = buttonText.isEmpty()
+                        ? button->objectName()
+                        : buttonText;
+                    const QString groupTitle = findNearestGroupTitle(button);
+
                     OperationRecord record;
                     record.timestamp = QDateTime::currentDateTime();
                     record.pageName = MappingConfig::instance()->mapPageName(QString::number(pageIndex));
-                    record.controlName = MappingConfig::instance()->mapControlName(button->objectName());
+                    if (isInsideSteeringModeSelector(button)) {
+                        record.controlName = QStringLiteral("转向模式切换为：“%1”").arg(detailText);
+                    } else {
+                        record.controlName = groupTitle.isEmpty()
+                            ? QStringLiteral("切换到“%1”").arg(detailText)
+                            : QStringLiteral("“%1”切换到了“%2”").arg(groupTitle, detailText);
+                    }
                     record.controlType = MappingConfig::instance()->mapControlType("TechPushButton");
                     record.operation = MappingConfig::instance()->mapOperation("clicked");
                     record.oldValue = "";
@@ -1649,10 +1702,19 @@ void MainWindow::connectRecordSignals()
                     // 获取按钮所在页面
                     QString pageName = getControlPageName(toolButton);
 
+                    const QString buttonText = toolButton->text().trimmed();
+                    const QString tooltipText = toolButton->toolTip().trimmed();
+                    const QString detailText = !buttonText.isEmpty()
+                        ? buttonText
+                        : (!tooltipText.isEmpty() ? tooltipText : toolButton->objectName());
+                    const QString groupTitle = findNearestGroupTitle(toolButton);
+
                     OperationRecord record;
                     record.timestamp = QDateTime::currentDateTime();
                     record.pageName = MappingConfig::instance()->mapPageName(pageName);
-                    record.controlName = MappingConfig::instance()->mapControlName(toolButton->objectName());
+                    record.controlName = groupTitle.isEmpty()
+                        ? QStringLiteral("切换到“%1”").arg(detailText)
+                        : QStringLiteral("“%1”切换到了“%2”").arg(groupTitle, detailText);
                     record.controlType = MappingConfig::instance()->mapControlType("QToolButton");
                     record.operation = MappingConfig::instance()->mapOperation("clicked");
                     record.oldValue = "";
@@ -1664,28 +1726,6 @@ void MainWindow::connectRecordSignals()
                     showNotification(QString("工具按钮点击: %1").arg(record.controlName));
                 });
 
-        // 如果按钮有toggle状态，也记录
-        if (toolButton->isCheckable()) {
-            connect(toolButton, &QToolButton::toggled,
-                    this, [this, toolButton](bool checked) {
-                        QString pageName = getControlPageName(toolButton);
-
-                        OperationRecord record;
-                        record.timestamp = QDateTime::currentDateTime();
-                        record.pageName = pageName;
-                        record.controlName = toolButton->objectName();
-                        record.controlType = "QToolButton";
-                        record.operation = "toggled";
-                        record.oldValue = !checked;
-                        record.newValue = checked;
-
-                        m_recorder->addRecord(record);
-
-                        showNotification(QString("工具按钮切换: %1 -> %2")
-                                             .arg(record.controlName)
-                                             .arg(checked ? "选中" : "未选中"));
-                    });
-        }
     }
 }
 
@@ -3007,6 +3047,25 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                                   << "-> 614=" << axisIndex
                                   << "601~602(float CDAB)=" << stepValueFloat
                                   << "615=1";
+
+            QString targetName = selectedTargetText;
+            if (targetName.isEmpty()) {
+                targetName = QStringLiteral("轴%1").arg(axisIndex);
+            }
+
+            double currentValue = 0.0;
+            const QString sixAxisGaugeName = QStringLiteral("robot_ArcGauge_SixAxis%1").arg(axisIndex);
+            if (TechArcGauge *gauge = m_arcGauges.value(sixAxisGaugeName, nullptr)) {
+                currentValue = gauge->value();
+            }
+
+            recordStepMoveAction(targetName, currentValue, QString::number(stepValueFloat, 'f', 3), true);
+            ui->statusBar->showMessage(
+                QString("步进触发：按键○%1，目标%2，步进值%3")
+                    .arg(keyNumber)
+                    .arg(targetName)
+                    .arg(stepValueFloat, 0, 'f', 3),
+                2000);
             return;
         }
 
@@ -6176,16 +6235,6 @@ void MainWindow::onControlModeClicked()
         writeToMainDevice(500, targetCode);
     }
 
-    // 记录操作
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = getCurrentPageName();
-    record.controlName = "TBtn_ControlMode";
-    record.controlType = "QToolButton";
-    record.operation = "mode_switch";
-    record.oldValue = (m_controlMode == WIRED_MODE) ? "无线控制" : "有线控制";
-    record.newValue = (m_controlMode == WIRED_MODE) ? "有线控制" : "无线控制";
-    m_recorder->addRecord(record);
 }
 // void MainWindow::onEnableButtonPressed()
 // {
@@ -6371,17 +6420,6 @@ void MainWindow::onAGVOABtnClicked()
                                    .arg(m_agvOaEnabled ? "#00C8FF" : "#7F8C8D"));
     }
 
-    // 记录操作
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = "AGV控制";
-    record.controlName = "techBtn_AGV_OA";
-    record.controlType = "TechPushButton";
-    record.operation = "oa_mode_changed";
-    record.oldValue = m_agvOaEnabled ? "避障关闭" : "避障开启";
-    record.newValue = m_agvOaEnabled ? "避障开启" : "避障关闭";
-    m_recorder->addRecord(record);
-
     // 写后做一次回读确认，目标设备偶发丢响应时自动补发一次。
     QTimer::singleShot(250, this, [this]() {
         if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
@@ -6522,16 +6560,6 @@ void MainWindow::onAGVParkBtnClicked()
                                      .arg(targetParkingEnabled ? "#00C8FF" : "#7F8C8D"));
     }
 
-    OperationRecord modeRecord;
-    modeRecord.timestamp = QDateTime::currentDateTime();
-    modeRecord.pageName = "AGV控制";
-    modeRecord.controlName = "techBtn_AGV_Park";
-    modeRecord.controlType = "TechPushButton";
-    modeRecord.operation = "parking_mode_changed";
-    modeRecord.oldValue = oldParkingEnabled ? "驻车开启" : "驻车关闭";
-    modeRecord.newValue = targetParkingEnabled ? "驻车模式已开启" : "驻车模式已关闭";
-    m_recorder->addRecord(modeRecord);
-
     // 与底盘模式切换一致：驻车切换期间显示等待提示，直到51寄存器目标位为1。
     if (QTimer *oldTimer = findChild<QTimer*>("parkingSwitchWaitTimer")) {
         oldTimer->stop();
@@ -6618,16 +6646,6 @@ void MainWindow::onAGVMoveSpeedChanged(double value)
     // 速度控件在遥控器控制下也允许直接下发，不触发无线模式门禁弹窗。
     writeToAGVDevice(3, intValue, true);
 
-    // 记录操作
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = "AGV控制";
-    record.controlName = "SEdit_AGV_MoveSpeed";
-    record.controlType = "TechSliderEdit";
-    record.operation = "move_speed_changed";
-    record.oldValue = "";
-    record.newValue = QString("%1 mm/s").arg(intValue);
-    m_recorder->addRecord(record);
 }
 
 // AGV转向角度变化槽函数
@@ -6643,16 +6661,6 @@ void MainWindow::onAGVAngleChanged(double value)
                           << "°，地址4写入(有符号):" << signedValue
                           << "原始UINT:" << rawUintValue;
 
-    // 记录操作
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = "AGV控制";
-    record.controlName = "SEdit_AGV_Angle";
-    record.controlType = "TechSliderEdit";
-    record.operation = "angle_changed";
-    record.oldValue = "";
-    record.newValue = QString::number(value);
-    m_recorder->addRecord(record);
 }
 
 
@@ -6895,30 +6903,6 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         showAlarm("正在更换底盘模式", "#FFFF00", false);
         m_isSwitchingSteeringMode = true;
 
-        if (m_recorder) {
-            OperationRecord record;
-            record.timestamp = QDateTime::currentDateTime();
-            record.pageName = "AGV控制";
-            record.controlName = "底盘模式切换";
-            record.controlType = "模式控制";
-            record.operation = "切换开始";
-            record.oldValue = "";
-            record.newValue = QString("正在向模式 %1 切换").arg(static_cast<int>(mode));
-            m_recorder->addRecord(record);
-        }
-
-        if (m_recorder) {
-            OperationRecord record;
-            record.timestamp = QDateTime::currentDateTime();
-            record.pageName = "AGV控制";
-            record.controlName = "底盘模式切换";
-            record.controlType = "模式控制";
-            record.operation = "切换开始";
-            record.oldValue = "";
-            record.newValue = QString("正在向模式 %1 切换").arg(static_cast<int>(mode));
-            m_recorder->addRecord(record);
-        }
-
         if (mode == STEER_LATERAL) {
             // 切到4，等待地址50的bit10=1
             m_targetSteeringWaitBit = 11;
@@ -6989,17 +6973,6 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
             });
         });
     }
-
-    // 记录操作
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = "AGV控制";
-    record.controlName = "steeringModeSelector";
-    record.controlType = "SteeringModeSelector";
-    record.operation = "steering_mode_changed";
-    record.oldValue = "";
-    record.newValue = QString("%1 (值:%2)").arg(m_steeringModeSelector->modeText(mode)).arg(modbusValue);
-    m_recorder->addRecord(record);
 
     // 显示通知
     showNotification(QString("转向模式: %1").arg(m_steeringModeSelector->modeText(mode)));
@@ -7914,17 +7887,6 @@ void MainWindow::toggleForceControl()
         label->setForceControlMode(m_forcecontrolMode);
     }
 
-    // 记录操作
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = getCurrentPageName();
-    record.controlName = "btn_ForceControl";
-    record.controlType = "TechPushButton";
-    record.operation = "force_control_toggled";
-    record.oldValue = !m_forcecontrolMode;
-    record.newValue = m_forcecontrolMode;
-    m_recorder->addRecord(record);
-
     // 立即检查报警条件（因为力控状态变化可能影响报警显示）
     checkAlarmConditions();
 
@@ -8022,16 +7984,6 @@ void MainWindow::onStepMoveButtonClicked()
     updateFunctionSwitchVisuals();
     updateStepTargetButtonsState();
 
-    // 记录操作
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = getCurrentPageName();
-    record.controlName = "TBtn_Stepmove";
-    record.controlType = "QToolButton";
-    record.operation = "step_mode_changed";
-    record.oldValue = m_stepModeEnabled ? "点动模式" : "步进模式";
-    record.newValue = m_stepModeEnabled ? "步进模式" : "点动模式";
-    m_recorder->addRecord(record);
 }
 
 // 步进模式下使能按钮按下
@@ -8334,6 +8286,21 @@ void MainWindow::setupStepMoveControl()
     if (sixStepValueEdit) {
         QRegularExpression regExp("^-?\\d+(\\.\\d+)?$");
         sixStepValueEdit->setValidator(new QRegularExpressionValidator(regExp, sixStepValueEdit));
+        connect(sixStepValueEdit, &QLineEdit::editingFinished, this, [this, sixStepValueEdit]() {
+            const QString stepText = sixStepValueEdit->text().trimmed();
+            if (stepText.isEmpty() || !m_recorder) {
+                return;
+            }
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = getControlPageName(sixStepValueEdit);
+            record.controlName = QStringLiteral("步进值被设定为%1").arg(stepText);
+            record.controlType = "";
+            record.operation = "";
+            record.oldValue = "";
+            record.newValue = "";
+            m_recorder->addRecord(record);
+        }, Qt::UniqueConnection);
     }
 
     if (!m_sixAxisStepTargetGroup) {
@@ -8477,6 +8444,24 @@ void MainWindow::setupStepMoveLineEdits()
                 return;
             }
             writeStepValueDoubleToMainDevice(value);
+        }, Qt::UniqueConnection);
+        connect(m_stepValueEdit, &QLineEdit::editingFinished, this, [this]() {
+            if (!m_stepValueEdit || !m_recorder) {
+                return;
+            }
+            const QString stepText = m_stepValueEdit->text().trimmed();
+            if (stepText.isEmpty()) {
+                return;
+            }
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = getControlPageName(m_stepValueEdit);
+            record.controlName = QStringLiteral("步进值被设定为%1").arg(stepText);
+            record.controlType = "";
+            record.operation = "";
+            record.oldValue = "";
+            record.newValue = "";
+            m_recorder->addRecord(record);
         }, Qt::UniqueConnection);
 
         qCDebug(lcMainWindow) << "统一步进值输入框初始化完成";
@@ -8683,7 +8668,17 @@ void MainWindow::recordStepMoveAction(const QString &jointName, double currentVa
     record.operation = "step_move_start";
     record.oldValue = "";
     QString msg;
-    if (jointName.contains("J1")) {
+    if (jointName == "RX" || jointName == "RY" || jointName == "RZ") {
+        msg = QString("%1当前角度为%2，步进%3°")
+                  .arg(jointName)
+                  .arg(currentValue, 0, 'f', 3)
+                  .arg(stepValue);
+    } else if (jointName == "X" || jointName == "Y" || jointName == "Z") {
+        msg = QString("%1轴当前位置为%2，步进%3mm")
+                  .arg(jointName)
+                  .arg(currentValue, 0, 'f', 3)
+                  .arg(stepValue);
+    } else if (jointName.contains("J1")) {
         msg = QString("悬臂组件当前角度为%1°，开始步进%2°").arg(currentValue, 0, 'f', 1).arg(stepValue);
     } else if (jointName.contains("J2")) {
         msg = QString("升降组件当前高度为%1mm，开始步进%2mm").arg(currentValue, 0, 'f', 1).arg(stepValue);
@@ -8769,16 +8764,6 @@ void MainWindow::on_TBtn_RemoveWarning_clicked()
     // 显示通知
     showNotification("报警已清除");
 
-    // 记录操作
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = getCurrentPageName();
-    record.controlName = "TBtn_RemoveWarning";
-    record.controlType = "QToolButton";
-    record.operation = "clear_alarm";
-    record.oldValue = "";
-    record.newValue = "用户清除报警";
-    m_recorder->addRecord(record);
 }
 // 新增：设置报警系统
 void MainWindow::setupAlarmSystem()
@@ -9643,19 +9628,6 @@ void MainWindow::checkSteeringSwitchCompletion(int address, quint16 value)
     const bool targetBitSet = ((value >> m_targetSteeringWaitBit) & 0x01);
     if (targetBitSet) {
         qCDebug(lcMainWindow) << "[转向切换] 检测到地址50满足条件: Bit" << m_targetSteeringWaitBit << "=1，切换完成";
-        
-        if (m_recorder) {
-            OperationRecord record;
-            record.timestamp = QDateTime::currentDateTime();
-            record.pageName = "AGV控制";
-            record.controlName = "底盘模式切换";
-            record.controlType = "模式控制";
-            record.operation = "切换完成";
-            record.oldValue = "";
-            record.newValue = "底盘模式切换成功";
-            m_recorder->addRecord(record);
-        }
-
         
         if (m_recorder) {
             OperationRecord record;

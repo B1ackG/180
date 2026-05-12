@@ -25,6 +25,7 @@ TechSliderEdit::TechSliderEdit(QWidget *parent)
     , m_pulseAlpha(0.3)
     , m_pulseDirection(true)
     , m_conversionFactor(1)
+    , m_lastChangeSource("slider")
 {
     setupUI();
     setupConnections();
@@ -312,8 +313,8 @@ void TechSliderEdit::onLineEditEditingFinished()
         if (newValue > m_maximum) newValue = m_maximum;
         if (qAbs(newValue - m_value) > 0.0001) {
             m_oldValue = m_value;  // 保存旧值
-
-        setValue(newValue);
+            m_lastChangeSource = "edit";
+            setValue(newValue);
             emit valueChangedWithRecord(m_oldValue, m_value);  // 发出带记录的信号
         }
         emit editingFinished();
@@ -344,6 +345,7 @@ void TechSliderEdit::onPresetButtonClicked()
 
     if (qAbs(newValue - m_value) > 0.0001) {
         m_oldValue = m_value;
+        m_lastChangeSource = btn->text().trimmed();
         setValue(newValue);
         emit valueChangedWithRecord(m_oldValue, m_value);
     }
@@ -361,6 +363,7 @@ void TechSliderEdit::onSliderValueChanged(int sliderValue)
 
     if (qAbs(newValue - m_value) > 0.0001) {
         m_oldValue = m_value;  // 保存旧值
+        m_lastChangeSource = "slider";
         m_value = newValue;
         updateLineEditFromValue();
         emit valueChanged(m_value);
@@ -535,6 +538,11 @@ void TechSliderEdit::setLabelText(const QString &text)
 QString TechSliderEdit::labelText() const
 {
     return m_label ? m_label->text() : QString();
+}
+
+QString TechSliderEdit::lastChangeSource() const
+{
+    return m_lastChangeSource;
 }
 
 // 新增：设置标签宽度的函数
