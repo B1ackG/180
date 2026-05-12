@@ -174,6 +174,9 @@ bool isInsideSteeringModeSelector(const QWidget *widget)
 }
 }
 
+// 主控保持寄存器快照（先于使用它的成员函数定义，供 applyCachedMainControlSyncRegistersToUi 等使用）
+static QMap<int, quint16> g_registerCache;
+
 bool MainWindow::isBigFeatureEnabled(const QString &key) const
 {
     if (!m_featureSwitchManager) {
@@ -3707,6 +3710,67 @@ void MainWindow::refreshInterlockingButtonText()
     ui->TBtn_Interlocking->setText(v == 1 ? QStringLiteral("上方示教器") : QStringLiteral("下方示教器"));
 }
 
+void MainWindow::applyMoveModeUiFromRegister126(quint16 value)
+{
+    if (!ui || !ui->TBtn_MoveMode) {
+        return;
+    }
+    if (value == 2) {
+        m_moveModeUnknown = false;
+        m_isJointMode = true;
+        ui->TBtn_MoveMode->setText(QStringLiteral("关节模式"));
+        QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarMoveModeLabel")) : nullptr;
+        if (moveModeLabel) {
+            moveModeLabel->setText(QStringLiteral("关节模式"));
+            moveModeLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
+        }
+    } else if (value == 1) {
+        m_moveModeUnknown = false;
+        m_isJointMode = false;
+        ui->TBtn_MoveMode->setText(QStringLiteral("坐标模式"));
+        QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarMoveModeLabel")) : nullptr;
+        if (moveModeLabel) {
+            moveModeLabel->setText(QStringLiteral("坐标模式"));
+            moveModeLabel->setStyleSheet(QStringLiteral("color: #ffaa00; font-weight: bold; font-size: 11px;"));
+        }
+    } else {
+        m_moveModeUnknown = true;
+        ui->TBtn_MoveMode->setText(QStringLiteral("未选择模式"));
+        QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarMoveModeLabel")) : nullptr;
+        if (moveModeLabel) {
+            moveModeLabel->setText(QStringLiteral("运动未选择"));
+            moveModeLabel->setStyleSheet(QStringLiteral("color: #aaaaaa; font-weight: bold; font-size: 11px;"));
+        }
+    }
+}
+
+void MainWindow::applyRobotSpeedUiFromRegister130(quint16 value)
+{
+    TechSliderEdit *robotSpeedSlider = findChild<TechSliderEdit*>(QStringLiteral("TechSliderEdit_Robot_RobotSpeed"));
+    if (!robotSpeedSlider) {
+        return;
+    }
+    const QSignalBlocker blocker(robotSpeedSlider);
+    const double clamped = qBound(robotSpeedSlider->minimum(), static_cast<double>(value), robotSpeedSlider->maximum());
+    robotSpeedSlider->setValue(clamped);
+}
+
+void MainWindow::applyCachedMainControlSyncRegistersToUi()
+{
+    if (!ui) {
+        return;
+    }
+    syncStepModeUiByCurrentPage();
+    updateStepTargetButtonsState();
+    if (g_registerCache.contains(126)) {
+        applyMoveModeUiFromRegister126(g_registerCache.value(126));
+    }
+    if (g_registerCache.contains(130)) {
+        applyRobotSpeedUiFromRegister130(g_registerCache.value(130));
+    }
+    updateFunctionSwitchVisuals();
+}
+
 void MainWindow::on_TBtn_Interlocking_clicked()
 {
     if (!ui || !ui->TBtn_Interlocking) {
@@ -3748,6 +3812,14 @@ void MainWindow::on_TBtn_Interlocking_clicked()
         return;
     }
     ui->TBtn_Interlocking->setText(nextLabel);
+
+    applyCachedMainControlSyncRegistersToUi();
+    QTimer::singleShot(0, this, [this]() {
+        if (MainDeviceModbusApi::isReady(m_modbusManager)) {
+            readMainControlSyncRegisters();
+            readAllFloatRegisters();
+        }
+    });
 }
 
 // 修改setupSliderModbusAddresses函数，添加对TechSliderLabel的支持
@@ -4050,8 +4122,6 @@ void MainWindow::pollModbusVariables()
     return;
 }
 
-static QMap<int, quint16> g_registerCache; 
-
 void MainWindow::updateSliderLabelValue(const QString& labelName, float value)
 {
     // 根据首页控件名，更新所有相关页面的对应控件
@@ -4127,15 +4197,8 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
     const bool allowUiStateSync = m_uiStateSyncEnabled;
 
-    // 根据当前页面决定读取的寄存器：第一页(0)读125，第四页(3)读600
-    bool shouldSyncStepMode = false;
-    if (ui && ui->StackedWidget) {
-        int currentPage = ui->StackedWidget->currentIndex();
-        if ((currentPage == 0 && address == 125) || 
-            (currentPage == 3 && address == 600)) {
-            shouldSyncStepMode = true;
-        }
-    }
+    // 步进/点动：首页用 125、六自由度页用 600；任一处变化都应刷新（syncStepModeUiByCurrentPage 按当前页选源）
+    const bool shouldSyncStepMode = (address == 125 || address == 600);
 
     if (allowUiStateSync && shouldSyncStepMode) {
         Q_UNUSED(value);
@@ -4143,44 +4206,13 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         updateStepTargetButtonsState();
     }
 
-    if (allowUiStateSync && address == 126 && ui && ui->TBtn_MoveMode) {
-        if (value == 2) {
-            m_moveModeUnknown = false;
-            m_isJointMode = true;
-            ui->TBtn_MoveMode->setText("关节模式");
-            QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
-            if (moveModeLabel) {
-                moveModeLabel->setText("关节模式");
-                moveModeLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
-            }
-        } else if (value == 1) {
-            m_moveModeUnknown = false;
-            m_isJointMode = false;
-            ui->TBtn_MoveMode->setText("坐标模式");
-            QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
-            if (moveModeLabel) {
-                moveModeLabel->setText("坐标模式");
-                moveModeLabel->setStyleSheet("color: #ffaa00; font-weight: bold; font-size: 11px;");
-            }
-        } else {
-            m_moveModeUnknown = true;
-            ui->TBtn_MoveMode->setText("未选择模式");
-            QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
-            if (moveModeLabel) {
-                moveModeLabel->setText("运动未选择");
-                moveModeLabel->setStyleSheet("color: #aaaaaa; font-weight: bold; font-size: 11px;");
-            }
-        }
-
+    if (allowUiStateSync && address == 126) {
+        applyMoveModeUiFromRegister126(value);
         updateFunctionSwitchVisuals();
     }
 
     if (allowUiStateSync && address == 130) {
-        if (TechSliderEdit *robotSpeedSlider = findChild<TechSliderEdit*>("TechSliderEdit_Robot_RobotSpeed")) {
-            const QSignalBlocker blocker(robotSpeedSlider);
-            const double clamped = qBound(robotSpeedSlider->minimum(), static_cast<double>(value), robotSpeedSlider->maximum());
-            robotSpeedSlider->setValue(clamped);
-        }
+        applyRobotSpeedUiFromRegister130(value);
     }
 
     if (address == 134) {

@@ -742,6 +742,13 @@ private:
     /** @brief 根据主控 8192 同步联锁按钮文案 */
     void refreshInterlockingButtonText();
 
+    /** @brief 将寄存器 126 反映到运动模式按钮与状态栏 */
+    void applyMoveModeUiFromRegister126(quint16 value);
+    /** @brief 将寄存器 130 反映到机器人速度滑块 */
+    void applyRobotSpeedUiFromRegister130(quint16 value);
+    /** @brief 从 g_registerCache 刷新步进/运动/速度等与主控同步的 UI（示教切换后等） */
+    void applyCachedMainControlSyncRegistersToUi();
+
     /** @brief 初始化窗口 UI（内部） */
     void initUI();
 
