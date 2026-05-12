@@ -1085,7 +1085,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
     <item row="6" column="11" colspan="2">
      <widget class="QGroupBox" name="groupBox_4">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
         <horstretch>0</horstretch>
         <verstretch>1</verstretch>
        </sizepolicy>
@@ -1141,7 +1141,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
     <item row="6" column="1" colspan="3">
      <widget class="QGroupBox" name="groupBox">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
         <horstretch>5</horstretch>
         <verstretch>1</verstretch>
        </sizepolicy>
@@ -1299,10 +1299,16 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
     <item row="6" column="4" colspan="7">
      <widget class="QGroupBox" name="groupBox_2">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
         <horstretch>3</horstretch>
         <verstretch>1</verstretch>
        </sizepolicy>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>484</width>
+        <height>16777215</height>
+       </size>
       </property>
       <property name="title">
        <string>控制模式</string>

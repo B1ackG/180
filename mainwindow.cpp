@@ -4343,6 +4343,9 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             m_robotPositiveLimit102Bit2Flag = positiveLimitReached;
             if (positiveLimitReached) {
                 showRobotLimitReachedDialog(QStringLiteral("正限位到达"));
+            } else if (m_robotLimitDialogTrigger == RobotLimitDialogTrigger::Positive
+                       && m_robotLimitReachedDialog && m_robotLimitReachedDialog->isVisible()) {
+                hideRobotLimitReachedDialog();
             }
         }
 
@@ -4350,38 +4353,9 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             m_robotNegativeLimit102Bit3Flag = negativeLimitReached;
             if (negativeLimitReached) {
                 showRobotLimitReachedDialog(QStringLiteral("负限位到达"));
-            }
-        }
-
-        if (m_recorder) {
-            // 记录正限位
-            static bool s_posLimitLogged = false;
-            if (positiveLimitReached != s_posLimitLogged) {
-                s_posLimitLogged = positiveLimitReached;
-                OperationRecord record;
-                record.timestamp = QDateTime::currentDateTime();
-                record.pageName = "报警系统";
-                record.controlName = "正限位报警";
-                record.controlType = "限位监控";
-                record.operation = positiveLimitReached ? "限制触发" : "限制解除";
-                record.oldValue = "";
-                record.newValue = positiveLimitReached ? "正方向行程已达限制" : "正限位已解除";
-                m_recorder->addRecord(record);
-            }
-
-            // 记录负限位
-            static bool s_negLimitLogged = false;
-            if (negativeLimitReached != s_negLimitLogged) {
-                s_negLimitLogged = negativeLimitReached;
-                OperationRecord record;
-                record.timestamp = QDateTime::currentDateTime();
-                record.pageName = "报警系统";
-                record.controlName = "负限位报警";
-                record.controlType = "限位监控";
-                record.operation = negativeLimitReached ? "限制触发" : "限制解除";
-                record.oldValue = "";
-                record.newValue = negativeLimitReached ? "负方向行程已达限制" : "负限位已解除";
-                m_recorder->addRecord(record);
+            } else if (m_robotLimitDialogTrigger == RobotLimitDialogTrigger::Negative
+                       && m_robotLimitReachedDialog && m_robotLimitReachedDialog->isVisible()) {
+                hideRobotLimitReachedDialog();
             }
         }
 
@@ -8663,10 +8637,6 @@ void MainWindow::recordStepMoveAction(const QString &jointName, double currentVa
     OperationRecord record;
     record.timestamp = QDateTime::currentDateTime();
     record.pageName = getCurrentPageName();
-    record.controlName = "StepMove_" + jointName;
-    record.controlType = "StepMove";
-    record.operation = "step_move_start";
-    record.oldValue = "";
     QString msg;
     if (jointName == "RX" || jointName == "RY" || jointName == "RZ") {
         msg = QString("%1当前角度为%2，步进%3°")
@@ -8694,10 +8664,26 @@ void MainWindow::recordStepMoveAction(const QString &jointName, double currentVa
                   .arg(currentValue, 0, 'f', 1)
                   .arg(stepValue);
     }
-    record.newValue = msg;
+
+    // 六自由度步进：历史列表「操作详情」只显示约定文案，不出现 StepMove_* / 开始步进移动 等。
+    const bool sixAxisStepDetailOnly = (jointName == "RX" || jointName == "RY" || jointName == "RZ"
+                                        || jointName == "X" || jointName == "Y" || jointName == "Z");
+    if (sixAxisStepDetailOnly) {
+        record.controlName = msg;
+        record.controlType = "";
+        record.operation = "";
+        record.oldValue = "";
+        record.newValue = "";
+    } else {
+        record.controlName = "StepMove_" + jointName;
+        record.controlType = "StepMove";
+        record.operation = "step_move_start";
+        record.oldValue = "";
+        record.newValue = msg;
+    }
 
     m_recorder->addRecord(record);
-    showNotification(record.newValue.toString());
+    showNotification(msg);
 }
 
 // 记录步进动作结束
@@ -8736,16 +8722,20 @@ void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue
 
 
 
+void MainWindow::sendRemoveWarningModbusWrites()
+{
+    // 写入 290 清除报警（与「清除报警」按钮一致）
+    writeToMainDevice(290, 1);
+    // 清除力控超限错误：403 写 0
+    ModbusThreadManager::instance()->writeSingleRegister(403, 0);
+}
+
 // 修改：原有的清除报警按钮函数
 void MainWindow::on_TBtn_RemoveWarning_clicked()
 {
     qCDebug(lcMainWindow) << "用户点击清除报警按钮";
 
-    // 写入29地址清除报警
-    writeToMainDevice(290, 1);
-    
-    // 清除力控超限错误，给403写0（写到192.168.1.13）
-    ModbusThreadManager::instance()->writeSingleRegister(403, 0);
+    sendRemoveWarningModbusWrites();
 
     // 清除所有报警状态
     if (m_emergencyStopAlarm) {
@@ -8787,6 +8777,7 @@ void MainWindow::setupAlarmSystem()
     m_agvBatteryLow51Bit0Flag = false;
     m_robotPositiveLimit102Bit2Flag = false;
     m_robotNegativeLimit102Bit3Flag = false;
+    m_robotLimitDialogTrigger = RobotLimitDialogTrigger::None;
     m_agvBatteryLowAcked = false;
     m_mainRegister150Valid = false;
     m_mainRegister150Shadow = 0;
@@ -9402,6 +9393,14 @@ void MainWindow::hideTeachingWriteGateDeniedDialog()
 
 void MainWindow::showRobotLimitReachedDialog(const QString &message)
 {
+    if (message.contains(QStringLiteral("正限位"))) {
+        m_robotLimitDialogTrigger = RobotLimitDialogTrigger::Positive;
+    } else if (message.contains(QStringLiteral("负限位"))) {
+        m_robotLimitDialogTrigger = RobotLimitDialogTrigger::Negative;
+    } else {
+        m_robotLimitDialogTrigger = RobotLimitDialogTrigger::None;
+    }
+
     if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
@@ -9433,6 +9432,7 @@ void MainWindow::showRobotLimitReachedDialog(const QString &message)
         QPushButton *confirmBtn = new QPushButton("确认", m_robotLimitReachedDialog);
         layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
         connect(confirmBtn, &QPushButton::clicked, this, [this]() {
+            sendRemoveWarningModbusWrites();
             if (m_recorder) {
                 OperationRecord record;
                 record.timestamp = QDateTime::currentDateTime();
@@ -9441,7 +9441,7 @@ void MainWindow::showRobotLimitReachedDialog(const QString &message)
                 record.controlType = "提示窗口";
                 record.operation = "用户确认";
                 record.oldValue = "";
-                record.newValue = "用户点击确认，限位提示窗口隐藏";
+                record.newValue = "用户点击确认，限位提示窗口隐藏（已发送与清除报警相同的 Modbus）";
                 m_recorder->addRecord(record);
             }
             hideRobotLimitReachedDialog();
@@ -9489,6 +9489,7 @@ void MainWindow::hideRobotLimitReachedDialog()
     if (m_robotLimitReachedDialog && m_robotLimitReachedDialog->isVisible()) {
         m_robotLimitReachedDialog->hide();
     }
+    m_robotLimitDialogTrigger = RobotLimitDialogTrigger::None;
 }
 
 void MainWindow::showRobotWeightOverloadDialog()

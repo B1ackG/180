@@ -584,6 +584,9 @@ private:
     QLabel *m_robotWeightOverloadLabel = nullptr;
     QDialog *m_robotLimitReachedDialog = nullptr;
     QLabel *m_robotLimitReachedLabel = nullptr;
+    /** @brief 当前限位提示窗对应的 102 限位来源（用于位清零后自动关闭） */
+    enum class RobotLimitDialogTrigger : quint8 { None, Positive, Negative };
+    RobotLimitDialogTrigger m_robotLimitDialogTrigger = RobotLimitDialogTrigger::None;
 
     // ----- Modbus & 通信 (Main) -----
     ModbusThreadManager *m_modbusManager;
@@ -820,7 +823,10 @@ private:
 
     /** @brief 显示临时通知（气泡/提示条） */
     void showNotification(const QString &message);
-    
+
+    /** @brief 与「清除报警」按钮相同的 Modbus 写入（主控 290、403） */
+    void sendRemoveWarningModbusWrites();
+
     /** @brief 获取当前页面名称 */
     QString getCurrentPageName() const;
 
