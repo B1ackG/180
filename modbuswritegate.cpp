@@ -47,12 +47,22 @@ QString deniedReason()
 
 bool isExemptMainSingleWrite(int address)
 {
-    return address == interlockRegisterAddress();
+    return address == interlockRegisterAddress()
+        || address == 8193
+        || address == 8194;
 }
 
 bool isExemptMainMultipleWrite(int startAddress, int registerCount)
 {
-    return registerCount == 1 && startAddress == interlockRegisterAddress();
+    return registerCount == 1
+        && (startAddress == interlockRegisterAddress()
+            || startAddress == 8193
+            || startAddress == 8194);
+}
+
+bool isRuntimeU32WriteRange(int startAddress, int registerCount)
+{
+    return startAddress == 8193 && registerCount == 2;
 }
 
 bool allowMainDeviceSingleWrite(int address)
@@ -65,7 +75,8 @@ bool allowMainDeviceSingleWrite(int address)
 
 bool allowMainDeviceMultipleWrite(int startAddress, int registerCount)
 {
-    if (isExemptMainMultipleWrite(startAddress, registerCount)) {
+    if (isExemptMainMultipleWrite(startAddress, registerCount)
+        || isRuntimeU32WriteRange(startAddress, registerCount)) {
         return true;
     }
     return verifyWriteAllowed(ModbusThreadManager::instance());

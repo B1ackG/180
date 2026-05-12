@@ -47,6 +47,7 @@
 #include <QQuickWidget>
 #include <QQuickItem>
 #include <QQmlContext>
+#include <QElapsedTimer>
 #include <QSet>
 #include <QHash>
 #include "poseprovider.h"
@@ -352,6 +353,13 @@ public:
     void connectRecordSignals();
     /** @brief 初始化历史页面 */
     void initializeHistoryPage();
+    /** @brief 从主控 Modbus 寄存器加载已累计的设备总运行时间（秒） */
+    void loadPersistedDeviceTotalRuntime();
+    /** @brief 将当前会话计入总运行时间并写入主控 Modbus 寄存器 */
+    void savePersistedDeviceTotalRuntime();
+    /** @brief 刷新历史记录页上的运行时间显示 */
+    void updateHistoryListRuntimeDisplay();
+    static QString formatUptimeSeconds(qint64 totalSeconds);
     /** @brief 配置 TCP 传输 UI */
     void setupTcpTransmissionUI();
     /** @brief 启用或禁用 TCP 传输 */
@@ -675,6 +683,11 @@ private:
     SpeedModeSelector *m_speedModeSelector;
     QQuickWidget *m_speedGaugeQml = nullptr;  // 使用 QML 版本的速度仪表
     QQuickWidget *m_historyListQml = nullptr;  // 使用 QML 版本操作记录列表
+    QElapsedTimer m_appSessionUptimeTimer;
+    qint64 m_persistedTotalRuntimeSec = 0;
+    qint64 m_lastSavedTotalRuntimeSec = -1;
+    bool m_runtimeBaselineReady = false;
+    QTimer *m_historyRuntimeUpdateTimer = nullptr;
     QQuickWidget *m_robotTotalPowerQml = nullptr;  // 使用 QML 版本总功率卡片
     QWidget *m_inclinometerXCard = nullptr;  // QWidget 版本 X 轴倾角卡片容器
     QWidget *m_inclinometerYCard = nullptr;  // QWidget 版本 Y 轴倾角卡片容器

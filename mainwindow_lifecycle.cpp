@@ -8,6 +8,7 @@
 #include <QMovie>
 #include <QQuickWidget>
 #include <QQmlContext>
+#include <QTimer>
 #include <unistd.h>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -58,6 +59,13 @@ MainWindow::MainWindow(QWidget *parent)
     , m_btnForceClear(nullptr)
 {
     ui->setupUi(this);
+
+    loadPersistedDeviceTotalRuntime();
+    m_appSessionUptimeTimer.start();
+    m_historyRuntimeUpdateTimer = new QTimer(this);
+    connect(m_historyRuntimeUpdateTimer, &QTimer::timeout, this, &MainWindow::updateHistoryListRuntimeDisplay);
+    m_historyRuntimeUpdateTimer->start(1000);
+
     loadBackgroundImage();
     setupSliderLabelConfigs();
     loadSliderLabelRuntimeSettings(); // 加载运行时自定义的限制值
@@ -92,6 +100,11 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     qDebug() << "正在清理资源...";
+
+    if (m_historyRuntimeUpdateTimer) {
+        m_historyRuntimeUpdateTimer->stop();
+    }
+    savePersistedDeviceTotalRuntime();
 
     if (m_keyManager) {
         qDebug() << "停止键盘管理器...";

@@ -6,6 +6,9 @@ Item {
     height: 600
     property string currentCategory: "全部"
 
+    // 与列表区域顶部对齐（用于简易滚动条）
+    readonly property real listAreaTopY: runtimeStrip.height + header.height + 8 + categoryBar.height + 6
+
     // 计算滚动条位置和比例
     property real scrollPos: listView.visibleArea.yPosition
     property real scrollHeight: listView.visibleArea.heightRatio
@@ -31,6 +34,11 @@ Item {
 
     function clearRecords() {
         historyModel.clear()
+    }
+
+    function setRuntimeTexts(sessionStr, totalStr) {
+        sessionRuntimeValue.text = sessionStr
+        totalRuntimeValue.text = totalStr
     }
 
     function isAlarmRecord(controlType, op, page, control) {
@@ -94,6 +102,72 @@ Item {
         return currentCategory === category ? "#F7FBFF" : "#BFD9F2"
     }
 
+    // 顶部：本次运行 / 累计运行时间（由 C++ 定时刷新）
+    Rectangle {
+        id: runtimeStrip
+        width: parent.width
+        height: 38
+        color: "transparent"
+
+        Rectangle {
+            anchors.fill: parent
+            color: "#102a52"
+            opacity: 0.55
+            radius: 4
+            border.width: 1
+            border.color: "#3d7ec4"
+        }
+
+        Row {
+            anchors.left: parent.left
+            anchors.leftMargin: 12
+            anchors.right: parent.right
+            anchors.rightMargin: 12
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 28
+
+            Row {
+                spacing: 4
+                Text {
+                    text: "设备运行时间"
+                    color: "#89c3ff"
+                    font.pixelSize: 13
+                    font.bold: true
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+                Text {
+                    id: sessionRuntimeValue
+                    text: "00:00:00"
+                    color: "#00f0ff"
+                    font.pixelSize: 14
+                    font.bold: true
+                    font.family: "Monospace"
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
+
+            Row {
+                spacing: 4
+                Text {
+                    text: "总运行时间"
+                    color: "#89c3ff"
+                    font.pixelSize: 13
+                    font.bold: true
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+                Text {
+                    id: totalRuntimeValue
+                    text: "00:00:00"
+                    color: "#7dff9a"
+                    font.pixelSize: 14
+                    font.bold: true
+                    font.family: "Monospace"
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+            }
+        }
+    }
+
     function hasVisibleRecords() {
         for (var i = 0; i < historyModel.count; ++i) {
             var r = historyModel.get(i)
@@ -107,6 +181,7 @@ Item {
     // 渐变标题背景
     Rectangle {
         id: header
+        anchors.top: runtimeStrip.bottom
         width: parent.width
         height: 40
         color: "transparent"
@@ -297,7 +372,7 @@ Item {
         id: customScrollBar
         anchors.right: listView.right
         anchors.rightMargin: 2
-        y: header.height + 5 + scrollPos * listView.height
+        y: root.listAreaTopY + scrollPos * listView.height
         width: 6
         height: scrollHeight * listView.height
         color: "#1a5fb4"

@@ -44,6 +44,9 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QSocketNotifier>
 
 namespace {
+constexpr int kRuntimePersistRegister = 8193;
+constexpr int kRuntimePersistRegisterHi = 8194;
+
 SteeringMode steeringModeFromRegisterValue(quint16 value)
 {
     switch (value) {
@@ -1687,6 +1690,9 @@ void MainWindow::setupRecordUI()
     m_historyListQml = historyQuick;
     m_historyListQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
     connect(m_historyListQml, &QQuickWidget::statusChanged, this, [this](QQuickWidget::Status status) {
+        if (status == QQuickWidget::Ready) {
+            updateHistoryListRuntimeDisplay();
+        }
         if (status == QQuickWidget::Error && m_historyListQml) {
             const auto errs = m_historyListQml->errors();
             for (const auto &err : errs) {
@@ -1718,6 +1724,79 @@ void MainWindow::setupRecordUI()
     });
 
     qCDebug(lcMainWindow) << "QML 操作记录列表初始化完成";
+}
+
+QString MainWindow::formatUptimeSeconds(qint64 sec)
+{
+    if (sec < 0) {
+        sec = 0;
+    }
+    const qint64 days = sec / 86400;
+    const int h = static_cast<int>((sec % 86400) / 3600);
+    const int m = static_cast<int>((sec % 3600) / 60);
+    const int s = static_cast<int>(sec % 60);
+    if (days > 0) {
+        return QStringLiteral("%1天 %2:%3:%4")
+            .arg(days)
+            .arg(h, 2, 10, QChar('0'))
+            .arg(m, 2, 10, QChar('0'))
+            .arg(s, 2, 10, QChar('0'));
+    }
+    return QStringLiteral("%1:%2:%3")
+        .arg(h, 2, 10, QChar('0'))
+        .arg(m, 2, 10, QChar('0'))
+        .arg(s, 2, 10, QChar('0'));
+}
+
+void MainWindow::loadPersistedDeviceTotalRuntime()
+{
+    m_persistedTotalRuntimeSec = 0;
+    m_lastSavedTotalRuntimeSec = -1;
+    m_runtimeBaselineReady = false;
+}
+
+void MainWindow::savePersistedDeviceTotalRuntime()
+{
+    if (!m_appSessionUptimeTimer.isValid() || !m_runtimeBaselineReady) {
+        return;
+    }
+    const qint64 sessionSec = m_appSessionUptimeTimer.elapsed() / 1000;
+    const qint64 totalSecRaw = m_persistedTotalRuntimeSec + sessionSec;
+    const qint64 totalSec = qBound<qint64>(0, totalSecRaw, 0xFFFFFFFFLL);
+    if (totalSec == m_lastSavedTotalRuntimeSec) {
+        return;
+    }
+    if (!m_modbusManager || !m_modbusManager->isConnected()) {
+        return;
+    }
+
+    const quint32 packed = static_cast<quint32>(totalSec);
+    QVector<quint16> words;
+    words.reserve(2);
+    words.append(static_cast<quint16>(packed & 0xFFFF));         // 8193: low word
+    words.append(static_cast<quint16>((packed >> 16) & 0xFFFF)); // 8194: high word
+    if (m_modbusManager->writeMultipleRegisters(kRuntimePersistRegister, words)) {
+        m_lastSavedTotalRuntimeSec = totalSec;
+    }
+}
+
+void MainWindow::updateHistoryListRuntimeDisplay()
+{
+    if (!m_appSessionUptimeTimer.isValid()) {
+        return;
+    }
+    const qint64 sessionSec = m_appSessionUptimeTimer.elapsed() / 1000;
+    const qint64 totalSec = m_persistedTotalRuntimeSec + sessionSec;
+
+    if (m_historyListQml && m_historyListQml->rootObject()) {
+        const QString sessionText = formatUptimeSeconds(sessionSec);
+        const QString totalText = formatUptimeSeconds(totalSec);
+        QMetaObject::invokeMethod(m_historyListQml->rootObject(), "setRuntimeTexts",
+                                  Q_ARG(QVariant, sessionText),
+                                  Q_ARG(QVariant, totalText));
+    }
+
+    savePersistedDeviceTotalRuntime();
 }
 
 void MainWindow::updateRecordDisplay()
@@ -3595,6 +3674,27 @@ void MainWindow::onModbusConnected()
 {
     qCDebug(lcMainWindow) << "Modbus连接成功，启动交互任务...";
     MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Connected);
+
+    if (!m_runtimeBaselineReady && m_modbusManager) {
+        quint16 persistedLow = 0;
+        quint16 persistedHigh = 0;
+        const bool lowOk = m_modbusManager->readSingleRegister(kRuntimePersistRegister, persistedLow);
+        const bool highOk = m_modbusManager->readSingleRegister(kRuntimePersistRegisterHi, persistedHigh);
+        if (lowOk && highOk) {
+            const quint32 packed = (static_cast<quint32>(persistedHigh) << 16) | persistedLow;
+            m_persistedTotalRuntimeSec = static_cast<qint64>(packed);
+            m_lastSavedTotalRuntimeSec = m_persistedTotalRuntimeSec;
+            m_runtimeBaselineReady = true;
+            updateHistoryListRuntimeDisplay();
+            qCDebug(lcMainWindow) << "已从主控寄存器" << kRuntimePersistRegister
+                                  << "~" << kRuntimePersistRegisterHi
+                                  << "加载总运行时间(秒):" << m_persistedTotalRuntimeSec;
+        } else {
+            qCWarning(lcMainWindow) << "读取主控寄存器" << kRuntimePersistRegister
+                                    << "~" << kRuntimePersistRegisterHi
+                                    << "失败，暂不写入运行时间";
+        }
+    }
 
     // 立即启动原本推迟的数据读取子系统
     if (isFeatureEnabled("startup_checks", "startup.write_registers")) {

@@ -356,12 +356,10 @@ QString MappingConfig::mapValue(const QString &value) const
         return m_valueMap[trimmed];
     }
 
-
     // 支持模糊匹配
     if (trimmed.contains(QLatin1String("Host unreachable"))) {
         return QStringLiteral("主机不可达 (AGV失联)");
     }
-
 
     return value;
 }
