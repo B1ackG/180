@@ -341,7 +341,9 @@ public:
     void writeStepMoveRegisters();
     /** @brief 清除步进寄存器 */
     void clearStepMoveRegisters();
-    
+    /** @brief 首页步进：当 ○1~○10 均已松开时清空统一步进输入框 */
+    void maybeClearFirstPageStepValueIfAllExternalKeysReleased();
+
     // ==========================================
     // 7. 历史记录与日志 (History & Logging)
     // ==========================================

@@ -3244,6 +3244,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 if (!pressed) {
                     // 需求：步进模式由外部键按下触发，释放不再回写514。
                     m_robotExternalKeyPressed[keyNumber] = false;
+                    maybeClearFirstPageStepValueIfAllExternalKeysReleased();
                     return;
                 }
 
@@ -3466,6 +3467,13 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
 
     if (m_stepModeEnabled) {
         if (!pressed) {
+            m_robotExternalKeyPressed[keyNumber] = false;
+            maybeClearFirstPageStepValueIfAllExternalKeysReleased();
+            return;
+        }
+
+        if (selectedStepTargetRegister() != 504) {
+            qCDebug(lcMainWindow) << "首页○9(步进)：未选中 AGV 步进目标(btnStepTargetAgv)，忽略";
             return;
         }
 
@@ -3474,6 +3482,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
             writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○9步进按下(1)：寄存器0 bit4=1"));
             writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
             appendAgvExternalKeyRecord(keyNumber, pressed);
+            m_robotExternalKeyPressed[keyNumber] = true;
             return;
         }
 
@@ -3490,6 +3499,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         writeToAGVDevice(5, stepInt);
         writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
         appendAgvExternalKeyRecord(keyNumber, pressed);
+        m_robotExternalKeyPressed[keyNumber] = true;
         return;
     }
 
@@ -6684,6 +6694,13 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
 
     if (m_stepModeEnabled) {
         if (!pressed) {
+            m_robotExternalKeyPressed[keyNumber] = false;
+            maybeClearFirstPageStepValueIfAllExternalKeysReleased();
+            return;
+        }
+
+        if (selectedStepTargetRegister() != 504) {
+            qCDebug(lcMainWindow) << "首页○10(步进)：未选中 AGV 步进目标(btnStepTargetAgv)，忽略";
             return;
         }
 
@@ -6692,6 +6709,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
             writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○10步进按下(1)：寄存器0 bit4=1"));
             writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
             appendAgvExternalKeyRecord(keyNumber, pressed);
+            m_robotExternalKeyPressed[keyNumber] = true;
             return;
         }
 
@@ -6707,6 +6725,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         writeToAGVDevice(5, stepInt);
         writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
         appendAgvExternalKeyRecord(keyNumber, pressed);
+        m_robotExternalKeyPressed[keyNumber] = true;
         return;
     }
 
@@ -7982,6 +8001,20 @@ void MainWindow::onStepMoveButtonClicked()
 
 }
 
+void MainWindow::maybeClearFirstPageStepValueIfAllExternalKeysReleased()
+{
+    if (!m_stepModeEnabled || !ui || !ui->StackedWidget || ui->StackedWidget->currentIndex() != 0
+        || !m_stepValueEdit) {
+        return;
+    }
+    for (int k = 1; k <= 10; ++k) {
+        if (m_robotExternalKeyPressed.value(k, false)) {
+            return;
+        }
+    }
+    m_stepValueEdit->clear();
+}
+
 // 步进模式下使能按钮按下
 void MainWindow::onEnableButtonPressedStepMode()
 {
@@ -8040,12 +8073,9 @@ void MainWindow::onEnableButtonReleasedStepMode()
 {
     qCDebug(lcMainWindow) << "步进模式下使能按钮释放";
 
-    // 需求：仅在首页(索引0)且步进模式时，释放使能键后清空统一步进输入框。
-    if (ui && ui->StackedWidget && m_stepModeEnabled && ui->StackedWidget->currentIndex() == 0 && m_stepValueEdit) {
-        m_stepValueEdit->clear();
-    }
+    // 首页统一步进输入框：不在使能松开时清空，改由所有外部按键(○1~○10)均松开后清空。
 
-    // 步进模式下使能按钮释放：不写514；统一输入框是否清空由上面的首页条件控制。
+    // 步进模式下使能按钮释放：不写514；首页 lineEdit_StepValue 清空见 maybeClearFirstPageStepValueIfAllExternalKeysReleased。
 
     if (m_stepValueEdit) {
         const int targetReg = selectedStepTargetRegister();
