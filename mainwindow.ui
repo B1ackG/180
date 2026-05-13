@@ -653,6 +653,13 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
           </widget>
          </item>
          <item>
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>单位:°/mm</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QWidget" name="widget_StepValueInput" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_StepValueInput">
             <property name="spacing">
@@ -700,6 +707,38 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="widget" native="true">
+        <property name="geometry">
+         <rect>
+          <x>220</x>
+          <y>450</y>
+          <width>111</width>
+          <height>81</height>
+         </rect>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>支腿长度设置</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="LEdit_AGV_ParkOutTriggerLenght">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>1100</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
        <zorder>lab_Overall</zorder>
        <zorder>widget_test3</zorder>
        <zorder>widget_test4</zorder>
@@ -717,6 +756,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <zorder>quickWidget_Inclinometer_Y</zorder>
        <zorder>quickWidget_Inclinometer_X</zorder>
        <zorder>groupBox_StepMove</zorder>
+       <zorder>widget</zorder>
       </widget>
       <widget class="QWidget" name="page_HistoryRecord">
        <widget class="QQuickWidget" name="quickWidget_HistoryList">
@@ -999,6 +1039,13 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
            </property>
            <property name="text">
             <string>步进值</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>单位:°/mm</string>
            </property>
           </widget>
          </item>

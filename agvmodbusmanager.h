@@ -199,11 +199,10 @@ public:
     bool writeSingleRegister(int address, quint16 value);
 
     /**
-     * 使用示例:
-     * @code
-     * mgr.writeSingleRegister(200, 1);
-     * @endcode
+     * 功能: 从起始地址连续写入多个保持寄存器（FC16）。
+     * 如何使用: 传入起始地址与 16 位字序列；若动态库支持则一次写入，否则退化为多次单寄存器写。
      */
+    bool writeMultipleRegisters(int startAddress, const QVector<quint16> &values);
 
 signals:
     // 状态信号

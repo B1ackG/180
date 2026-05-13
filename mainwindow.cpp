@@ -43,6 +43,9 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <cerrno>
 #include <cstring>
 #include <QSocketNotifier>
+#include <QIntValidator>
+#include <QLineEdit>
+#include <QVector>
 
 namespace {
 constexpr int kRuntimePersistRegister = 8193;
@@ -173,6 +176,28 @@ bool isInsideSteeringModeSelector(const QWidget *widget)
     return false;
 }
 }
+
+namespace {
+constexpr int kAgvParkOutTriggerLengthRegStart = 5014;
+
+QPair<int, int> parkOutTriggerLengthLimitsFromSettings()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("SliderLabelLimits"));
+    int lo = qRound(settings.value(QStringLiteral("agv_park_out_trigger_length_min"), 100).toDouble());
+    int hi = qRound(settings.value(QStringLiteral("agv_park_out_trigger_length_max"), 1100).toDouble());
+    settings.endGroup();
+    if (hi < lo) {
+        qSwap(lo, hi);
+    }
+    lo = qBound(1, lo, 1000000);
+    hi = qBound(1, hi, 1000000);
+    if (lo > hi) {
+        qSwap(lo, hi);
+    }
+    return {lo, hi};
+}
+} // namespace
 
 // 主控保持寄存器快照（先于使用它的成员函数定义，供 applyCachedMainControlSyncRegistersToUi 等使用）
 static QMap<int, quint16> g_registerCache;
@@ -378,6 +403,45 @@ void MainWindow::applySliderLabelRuntimeSettings()
             }
         }
     }
+}
+
+void MainWindow::applyParkOutTriggerLengthRuntimeSettings()
+{
+    QLineEdit *ed = ui ? ui->LEdit_AGV_ParkOutTriggerLenght : nullptr;
+    if (!ed) {
+        return;
+    }
+    const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
+    if (!m_parkOutTriggerLengthValidator) {
+        m_parkOutTriggerLengthValidator = new QIntValidator(this);
+        ed->setValidator(m_parkOutTriggerLengthValidator);
+    }
+    m_parkOutTriggerLengthValidator->setRange(lim.first, lim.second);
+
+    bool ok = false;
+    const int cur = ed->text().trimmed().toInt(&ok);
+    if (!ok) {
+        ed->setText(QStringLiteral("1100"));
+        return;
+    }
+    const int clamped = qBound(lim.first, cur, lim.second);
+    if (clamped != cur) {
+        ed->setText(QString::number(clamped));
+    }
+}
+
+bool MainWindow::writeAgvHoldingRegisterBlock(int startAddress, const QVector<quint16> &words)
+{
+    if (!m_agvModbusManager || words.isEmpty()) {
+        return false;
+    }
+    if (!m_agvModbusManager->writeMultipleRegisters(startAddress, words)) {
+        return false;
+    }
+    for (int i = 0; i < words.size(); ++i) {
+        m_agvRegisterShadow[startAddress + i] = words.at(i);
+    }
+    return true;
 }
 
 void MainWindow::applyInclinometerDisplayRuntimeSettings()
@@ -2428,6 +2492,7 @@ void MainWindow::setupAdminPasswordPage()
                     applyPollingRuntimeSettings();
                     loadSliderLabelRuntimeSettings();
                     applySliderLabelRuntimeSettings();
+                    applyParkOutTriggerLengthRuntimeSettings();
                     applyInclinometerDisplayRuntimeSettings();
                     refreshInterlockingButtonText();
                 });
@@ -6360,6 +6425,28 @@ void MainWindow::setupAGVOAControl()
     } else {
         qWarning() << "未找到techBtn_AGV_Park按钮";
     }
+
+    if (ui->LEdit_AGV_ParkOutTriggerLenght) {
+        if (ui->LEdit_AGV_ParkOutTriggerLenght->text().trimmed().isEmpty()) {
+            ui->LEdit_AGV_ParkOutTriggerLenght->setText(QStringLiteral("1100"));
+        }
+        applyParkOutTriggerLengthRuntimeSettings();
+        connect(ui->LEdit_AGV_ParkOutTriggerLenght, &QLineEdit::editingFinished, this, [this]() {
+            if (!ui || !ui->LEdit_AGV_ParkOutTriggerLenght) {
+                return;
+            }
+            const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
+            bool ok = false;
+            int v = ui->LEdit_AGV_ParkOutTriggerLenght->text().trimmed().toInt(&ok);
+            if (!ok) {
+                v = 1100;
+            }
+            const int c = qBound(lim.first, v, lim.second);
+            if (c != v || !ok) {
+                ui->LEdit_AGV_ParkOutTriggerLenght->setText(QString::number(c));
+            }
+        }, Qt::UniqueConnection);
+    }
 }
 
 // 设置AGV运动速度控制
@@ -6561,6 +6648,46 @@ void MainWindow::onAGVParkBtnClicked()
     const bool oldParkingEnabled = m_agvParkingEnabled;
     const bool targetParkingEnabled = !oldParkingEnabled;
     const int targetWaitBit = targetParkingEnabled ? 3 : 4;
+
+    if (targetParkingEnabled) {
+        QLineEdit *lenEdit = ui ? ui->LEdit_AGV_ParkOutTriggerLenght : nullptr;
+        const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
+        bool lenOk = false;
+        int mm = lenEdit ? lenEdit->text().trimmed().toInt(&lenOk) : 0;
+        if (!lenOk) {
+            mm = 1100;
+        }
+        const int clampedMm = qBound(lim.first, mm, lim.second);
+        if (lenEdit && (clampedMm != mm || !lenOk)) {
+            lenEdit->setText(QString::number(clampedMm));
+        }
+
+        const auto wordsArr = doubleToRegistersGHEFCDAB(static_cast<double>(clampedMm));
+        const QVector<quint16> parkLenWords = {wordsArr[0], wordsArr[1], wordsArr[2], wordsArr[3]};
+
+        if (!writeAgvHoldingRegisterBlock(kAgvParkOutTriggerLengthRegStart, parkLenWords)) {
+            m_agvParkingEnabled = oldParkingEnabled;
+            if (m_techBtnAGV_Park) {
+                m_techBtnAGV_Park->setText(oldParkingEnabled ? "驻车开启" : "驻车关闭");
+                m_techBtnAGV_Park->setPrimaryColor(oldParkingEnabled ? QColor("#00C8FF") : QColor("#7F8C8D"));
+                m_techBtnAGV_Park->setGlowColor(oldParkingEnabled ? QColor(0, 200, 255, 180)
+                                                                  : QColor(127, 140, 141, 100));
+            }
+
+            ui->statusBar->showMessage("驻车伸出长度写入寄存器5014~5017失败，未开启驻车", 4000);
+            OperationRecord failRecord;
+            failRecord.timestamp = QDateTime::currentDateTime();
+            failRecord.pageName = "AGV控制";
+            failRecord.controlName = "techBtn_AGV_Park";
+            failRecord.controlType = "TechPushButton";
+            failRecord.operation = "park_out_trigger_length_write_failed";
+            failRecord.oldValue = oldParkingEnabled ? "驻车开启" : "驻车关闭";
+            failRecord.newValue = QStringLiteral("双精度写入5014~5017失败");
+            m_recorder->addRecord(failRecord);
+            return;
+        }
+    }
+
     const bool writeOk = targetParkingEnabled
                              ? writeAGVRegisterBits(0,
                                                     {
@@ -9283,6 +9410,24 @@ void MainWindow::handleAGVRegister51Alerts(quint16 value)
     }
 }
 
+namespace {
+void positionFloatingPopupTopRight(QWidget *widget, int topOffsetPx)
+{
+    if (!widget) {
+        return;
+    }
+    QScreen *screen = QGuiApplication::primaryScreen();
+    if (!screen) {
+        return;
+    }
+    const QRect area = screen->availableGeometry();
+    const int x = area.right() - widget->width() - 40;
+    int y = area.top() + topOffsetPx;
+    y = qBound(area.top() + 20, y, area.bottom() - widget->height() - 20);
+    widget->move(x, y);
+}
+}
+
 void MainWindow::showAgvStationOfflineAlarm()
 {
     if (!m_agvStationOfflineAlarmWidget) {
@@ -9320,11 +9465,7 @@ void MainWindow::showAgvStationOfflineAlarm()
         m_agvStationOfflineAlarmLabel->setText("检测到有站掉线");
     }
 
-    QScreen *screen = QGuiApplication::primaryScreen();
-    const QRect screenGeometry = screen->availableGeometry();
-    const int x = screenGeometry.width() - m_agvStationOfflineAlarmWidget->width() - 40;
-    const int y = 60;
-    m_agvStationOfflineAlarmWidget->move(x, y);
+    positionFloatingPopupTopRight(m_agvStationOfflineAlarmWidget, 60);
     m_agvStationOfflineAlarmWidget->show();
     m_agvStationOfflineAlarmWidget->raise();
 }
@@ -9373,11 +9514,7 @@ void MainWindow::showAgvDriveFaultAlarm()
         m_agvDriveFaultAlarmLabel->setText("检测到驱动故障");
     }
 
-    QScreen *screen = QGuiApplication::primaryScreen();
-    const QRect screenGeometry = screen->availableGeometry();
-    const int x = screenGeometry.width() - m_agvDriveFaultAlarmWidget->width() - 40;
-    const int y = 200;
-    m_agvDriveFaultAlarmWidget->move(x, y);
+    positionFloatingPopupTopRight(m_agvDriveFaultAlarmWidget, 200);
     m_agvDriveFaultAlarmWidget->show();
     m_agvDriveFaultAlarmWidget->raise();
 }
@@ -9452,6 +9589,7 @@ void MainWindow::showAgvBatteryLowDialog()
             "}");
     }
 
+    positionFloatingPopupTopRight(m_agvBatteryLowDialog, 340);
     m_agvBatteryLowDialog->show();
     m_agvBatteryLowDialog->raise();
     m_agvBatteryLowDialog->activateWindow();
@@ -9543,6 +9681,7 @@ void MainWindow::showRobotOperationHintDialog(const QString &message)
         msgLabel->setText(message);
     }
 
+    positionFloatingPopupTopRight(m_robotOperationHintDialog, 500);
     m_robotOperationHintDialog->show();
     m_robotOperationHintDialog->raise();
     m_robotOperationHintDialog->activateWindow();
@@ -9611,6 +9750,7 @@ void MainWindow::showTeachingWriteGateDeniedDialog()
     if (auto *lbl = m_teachingWriteGateDeniedDialog->findChild<QLabel*>("teachingWriteGateDeniedLabel")) {
         lbl->setText(ModbusWriteGate::teachingGateUserDialogMessage());
     }
+    positionFloatingPopupTopRight(m_teachingWriteGateDeniedDialog, 660);
     m_teachingWriteGateDeniedDialog->show();
     m_teachingWriteGateDeniedDialog->raise();
     m_teachingWriteGateDeniedDialog->activateWindow();
@@ -9711,6 +9851,7 @@ void MainWindow::showRobotLimitReachedDialog(const QString &message)
         m_robotLimitReachedLabel->setText(message);
     }
 
+    positionFloatingPopupTopRight(m_robotLimitReachedDialog, 820);
     m_robotLimitReachedDialog->show();
     m_robotLimitReachedDialog->raise();
     m_robotLimitReachedDialog->activateWindow();
@@ -9757,6 +9898,7 @@ void MainWindow::showRobotWeightOverloadDialog()
             "}");
     }
 
+    positionFloatingPopupTopRight(m_robotWeightOverloadWidget, 980);
     m_robotWeightOverloadWidget->show();
     m_robotWeightOverloadWidget->raise();
     m_robotWeightOverloadWidget->activateWindow();

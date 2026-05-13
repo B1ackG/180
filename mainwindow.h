@@ -43,6 +43,9 @@
 #include <QRegularExpressionValidator> // 验证器需要这个
 #include <QCheckBox>
 #include <QGroupBox>
+#include <QVector>
+
+class QIntValidator;
 #include <QProgressBar>
 #include <QQuickWidget>
 #include <QQuickItem>
@@ -252,6 +255,10 @@ public:
     bool writeToAGVDevice(int address, int value, bool bypassWirelessWarning = false);
     /** @brief 按位更新 AGV 寄存器并写回，自动保留未修改位 */
     bool writeAGVRegisterBits(int address, const QList<QPair<int, bool>> &bitUpdates, const QString &scene = QString());
+    /** @brief 驻车伸出触发长度输入：从 config.ini 应用允许范围与校验器 */
+    void applyParkOutTriggerLengthRuntimeSettings();
+    /** @brief 连续写 AGV 保持寄存器并更新 m_agvRegisterShadow */
+    bool writeAgvHoldingRegisterBlock(int startAddress, const QVector<quint16> &words);
     
     /** @brief 配置浮点寄存器读取 */
     void setupModbusFloatReading();
@@ -613,6 +620,7 @@ private:
     bool m_agvOaEnabled = true;
     bool m_agvParkingEnabled = false;
     QMap<int, quint16> m_agvRegisterShadow;
+    QIntValidator *m_parkOutTriggerLengthValidator = nullptr;
     bool m_mainRegister150Valid = false;
     quint16 m_mainRegister150Shadow = 0;
 

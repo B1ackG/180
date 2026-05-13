@@ -788,6 +788,57 @@ bool AGVModbusManager::writeSingleRegister(int address, quint16 value)
     return ok;
 }
 
+bool AGVModbusManager::writeMultipleRegisters(int startAddress, const QVector<quint16> &values)
+{
+    if (QThread::currentThread() != thread()) {
+        bool ok = false;
+        QMetaObject::invokeMethod(this, [this, startAddress, values, &ok]() {
+            ok = writeMultipleRegisters(startAddress, values);
+        }, Qt::BlockingQueuedConnection);
+        return ok;
+    }
+
+    if (!m_writesEnabled) {
+        qWarning() << "AGV 写操作已被禁用，忽略批量写入 起始地址:" << startAddress << "字数:" << values.size();
+        return false;
+    }
+
+    if (values.isEmpty()) {
+        qWarning() << "AGV 批量写入拒绝: 空数据";
+        return false;
+    }
+
+    if (!isConnected()) {
+        qWarning() << "AGV Modbus未连接，无法批量写入起始地址" << startAddress;
+        return false;
+    }
+
+    if (!ModbusWriteGate::allowAgvWrite(ModbusThreadManager::instance())) {
+        qWarning() << ModbusWriteGate::deniedReason() << "(AGV批量写起始" << startAddress << ")";
+        emit teachingWriteGateDenied();
+        return false;
+    }
+
+    if (m_backendWriteMultiple && m_dynamicBackendHandle) {
+        const int rc = m_backendWriteMultiple(m_dynamicBackendHandle,
+                                              startAddress,
+                                              values.constData(),
+                                              static_cast<int>(values.size()));
+        if (rc) {
+            return true;
+        }
+        qWarning() << "AGV 动态库批量写失败，尝试按单寄存器依次写入 起始:" << startAddress;
+    }
+
+    for (int i = 0; i < values.size(); ++i) {
+        if (!writeSingleRegister(startAddress + i, values.at(i))) {
+            qWarning() << "AGV 批量写退化失败 地址:" << (startAddress + i);
+            return false;
+        }
+    }
+    return true;
+}
+
 void AGVModbusManager::setWritesEnabled(bool enabled)
 {
     if (QThread::currentThread() != thread()) {
