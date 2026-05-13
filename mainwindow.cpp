@@ -1736,6 +1736,10 @@ void MainWindow::connectRecordSignals()
     // 连接所有TechPushButton的记录信号
     QList<TechPushButton*> allButtons = this->findChildren<TechPushButton*>();
     for (TechPushButton* button : allButtons) {
+        // 驻车按钮：成功/超时由 onAGVParkBtnClicked 单独写入简短中文，避免与全局点击记录重复。
+        if (button->objectName() == QStringLiteral("techBtn_AGV_Park")) {
+            continue;
+        }
         connect(button, &TechPushButton::clicked,
                 this, [this, button]() {
                     // 获取按钮所在页面
@@ -6678,11 +6682,11 @@ void MainWindow::onAGVParkBtnClicked()
             OperationRecord failRecord;
             failRecord.timestamp = QDateTime::currentDateTime();
             failRecord.pageName = "AGV控制";
-            failRecord.controlName = "techBtn_AGV_Park";
-            failRecord.controlType = "TechPushButton";
-            failRecord.operation = "park_out_trigger_length_write_failed";
-            failRecord.oldValue = oldParkingEnabled ? "驻车开启" : "驻车关闭";
-            failRecord.newValue = QStringLiteral("双精度写入5014~5017失败");
+            failRecord.controlName = QStringLiteral("驻车伸出长度写入失败");
+            failRecord.controlType = "";
+            failRecord.operation = "";
+            failRecord.oldValue = "";
+            failRecord.newValue = "";
             m_recorder->addRecord(failRecord);
             return;
         }
@@ -6715,11 +6719,11 @@ void MainWindow::onAGVParkBtnClicked()
         OperationRecord failRecord;
         failRecord.timestamp = QDateTime::currentDateTime();
         failRecord.pageName = "AGV控制";
-        failRecord.controlName = "techBtn_AGV_Park";
-        failRecord.controlType = "TechPushButton";
-        failRecord.operation = "parking_mode_write_failed";
-        failRecord.oldValue = oldParkingEnabled ? "驻车开启" : "驻车关闭";
-        failRecord.newValue = "指令发送失败，状态保持不变";
+        failRecord.controlName = QStringLiteral("驻车指令发送失败");
+        failRecord.controlType = "";
+        failRecord.operation = "";
+        failRecord.oldValue = "";
+        failRecord.newValue = "";
         m_recorder->addRecord(failRecord);
         return;
     }
@@ -6781,11 +6785,13 @@ void MainWindow::onAGVParkBtnClicked()
                         OperationRecord okRecord;
                         okRecord.timestamp = QDateTime::currentDateTime();
                         okRecord.pageName = "AGV控制";
-                        okRecord.controlName = "techBtn_AGV_Park";
-                        okRecord.controlType = "TechPushButton";
-                        okRecord.operation = "parking_mode_confirmed";
+                        okRecord.controlName = targetParkingEnabled
+                                                     ? QStringLiteral("驻车模式已开启")
+                                                     : QStringLiteral("驻车模式已关闭");
+                        okRecord.controlType = "";
+                        okRecord.operation = "";
                         okRecord.oldValue = "";
-                        okRecord.newValue = targetParkingEnabled ? "驻车模式已开启" : "驻车模式已关闭";
+                        okRecord.newValue = "";
                         m_recorder->addRecord(okRecord);
                         return;
                     }
@@ -6801,18 +6807,11 @@ void MainWindow::onAGVParkBtnClicked()
                     OperationRecord timeoutRecord;
                     timeoutRecord.timestamp = QDateTime::currentDateTime();
                     timeoutRecord.pageName = "AGV控制";
-                    timeoutRecord.controlName = "techBtn_AGV_Park";
-                    timeoutRecord.controlType = "TechPushButton";
-                    timeoutRecord.operation = "parking_switch_timeout";
-                    timeoutRecord.oldValue = QString("等待寄存器51 bit%1=1").arg(targetWaitBit);
-                    if (m_agvRegisterShadow.contains(51)) {
-                        timeoutRecord.newValue = QString("90秒超时，读值=%1，期望状态=%2")
-                                                     .arg(m_agvRegisterShadow.value(51))
-                                                     .arg(targetParkingEnabled ? "驻车开启" : "驻车关闭");
-                    } else {
-                        timeoutRecord.newValue = QString("90秒超时，未读到寄存器51，期望状态=%1")
-                                                     .arg(targetParkingEnabled ? "驻车开启" : "驻车关闭");
-                    }
+                    timeoutRecord.controlName = QStringLiteral("驻车模式90秒已超时");
+                    timeoutRecord.controlType = "";
+                    timeoutRecord.operation = "";
+                    timeoutRecord.oldValue = "";
+                    timeoutRecord.newValue = "";
                     m_recorder->addRecord(timeoutRecord);
                 }
             });
