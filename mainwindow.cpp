@@ -6755,8 +6755,7 @@ void MainWindow::onAGVParkBtnClicked()
     setProperty("parkingTargetBit", targetWaitBit);
     setProperty("parkingTargetEnabled", targetParkingEnabled);
 
-    m_isSteeringAlarmActive = true;
-    showAlarm("正在切换驻车模式", "#FFFF00", false);
+    showParkingSwitchHintDialog(QStringLiteral("正在切换驻车模式"));
 
     auto *parkingWaitTimer = new QTimer(this);
     parkingWaitTimer->setObjectName("parkingSwitchWaitTimer");
@@ -6777,8 +6776,7 @@ void MainWindow::onAGVParkBtnClicked()
                         parkingWaitTimer->deleteLater();
                         setProperty("parkingSwitchWaiting", false);
                         setProperty("parkingTargetBit", -1);
-                        m_isSteeringAlarmActive = false;
-                        hideAlarm();
+                        hideParkingSwitchHintDialog();
 
                         OperationRecord okRecord;
                         okRecord.timestamp = QDateTime::currentDateTime();
@@ -6798,8 +6796,7 @@ void MainWindow::onAGVParkBtnClicked()
                     parkingWaitTimer->deleteLater();
                     setProperty("parkingSwitchWaiting", false);
                     setProperty("parkingTargetBit", -1);
-                    m_isSteeringAlarmActive = false;
-                    hideAlarm();
+                    hideParkingSwitchHintDialog();
 
                     OperationRecord timeoutRecord;
                     timeoutRecord.timestamp = QDateTime::currentDateTime();
@@ -9305,6 +9302,8 @@ void MainWindow::updateAlarmDisplay()
 {
     // 如果有任何报警处于激活状态，显示相应的报警
     if (m_emergencyStopAlarm) {
+        // 急停优先：出现急停时关闭其他类型提示窗，避免操作员被非急停信息干扰。
+        hideNonEmergencyPopups();
         const bool robotEmergency = m_robotArmEmergency150Flag;
         const bool chassisEmergency = m_agvChassisEmergency51Bit5Flag;
         QString alarmMessage;
@@ -9339,6 +9338,18 @@ void MainWindow::updateAlarmDisplay()
             hideAlarm();
         }
     }
+}
+
+void MainWindow::hideNonEmergencyPopups()
+{
+    hideParkingSwitchHintDialog();
+    hideAgvStationOfflineAlarm();
+    hideAgvDriveFaultAlarm();
+    hideAgvBatteryLowDialog();
+    hideRobotOperationHintDialog();
+    hideTeachingWriteGateDeniedDialog();
+    hideRobotLimitReachedDialog();
+    hideRobotWeightOverloadDialog();
 }
 
 void MainWindow::handleAGVRegister51Alerts(quint16 value)
@@ -9468,6 +9479,63 @@ void MainWindow::showAgvStationOfflineAlarm()
     positionFloatingPopupTopRight(m_agvStationOfflineAlarmWidget, 60);
     m_agvStationOfflineAlarmWidget->show();
     m_agvStationOfflineAlarmWidget->raise();
+}
+
+void MainWindow::showParkingSwitchHintDialog(const QString &message)
+{
+    if (!m_parkingSwitchHintDialog) {
+        m_parkingSwitchHintDialog = new QDialog(this);
+        m_parkingSwitchHintDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_parkingSwitchHintDialog->setModal(false);
+        m_parkingSwitchHintDialog->setObjectName("parkingSwitchHintDialog");
+
+        auto *layout = new QVBoxLayout(m_parkingSwitchHintDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(8);
+
+        m_parkingSwitchHintLabel = new QLabel(m_parkingSwitchHintDialog);
+        m_parkingSwitchHintLabel->setObjectName("parkingSwitchHintLabel");
+        m_parkingSwitchHintLabel->setAlignment(Qt::AlignCenter);
+        m_parkingSwitchHintLabel->setWordWrap(true);
+        layout->addWidget(m_parkingSwitchHintLabel);
+
+        m_parkingSwitchHintDialog->setFixedSize(360, 120);
+        m_parkingSwitchHintDialog->setStyleSheet(
+            "#parkingSwitchHintDialog {"
+            "  background-color: rgba(30, 0, 0, 230);"
+            "  border: 3px solid #FFFF00;"
+            "  border-radius: 10px;"
+            "}"
+            "#parkingSwitchHintLabel {"
+            "  color: #FFFF00;"
+            "  font-size: 20px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}");
+    }
+
+    if (m_parkingSwitchHintLabel) {
+        m_parkingSwitchHintLabel->setText(message);
+    }
+
+    QScreen *screen = QGuiApplication::primaryScreen();
+    if (!screen) {
+        return;
+    }
+    const QRect screenGeometry = screen->availableGeometry();
+    const int x = screenGeometry.width() - m_parkingSwitchHintDialog->width() - 40;
+    const int y = 820;
+    m_parkingSwitchHintDialog->move(x, y);
+    m_parkingSwitchHintDialog->show();
+    m_parkingSwitchHintDialog->raise();
+    m_parkingSwitchHintDialog->activateWindow();
+}
+
+void MainWindow::hideParkingSwitchHintDialog()
+{
+    if (m_parkingSwitchHintDialog && m_parkingSwitchHintDialog->isVisible()) {
+        m_parkingSwitchHintDialog->hide();
+    }
 }
 
 void MainWindow::hideAgvStationOfflineAlarm()

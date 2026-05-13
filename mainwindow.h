@@ -224,6 +224,10 @@ public:
     void showRobotLimitReachedDialog(const QString &message);
     /** @brief 隐藏主控限位提示窗 */
     void hideRobotLimitReachedDialog();
+    /** @brief 显示驻车切换等待提示窗（与报警窗解耦） */
+    void showParkingSwitchHintDialog(const QString &message);
+    /** @brief 隐藏驻车切换等待提示窗 */
+    void hideParkingSwitchHintDialog();
 
     // 提示信息系统
     /** @brief 更新提示内容标签 */
@@ -586,6 +590,8 @@ private:
     bool m_robotHeightInterlock150Bit1Flag = false;
     bool m_robotLengthInterlock150Bit2Flag = false;
     bool m_agvBatteryLowAcked = false;
+    QDialog *m_parkingSwitchHintDialog = nullptr;
+    QLabel *m_parkingSwitchHintLabel = nullptr;
     QWidget *m_agvStationOfflineAlarmWidget = nullptr;
     QLabel *m_agvStationOfflineAlarmLabel = nullptr;
     QWidget *m_agvDriveFaultAlarmWidget = nullptr;
@@ -885,6 +891,8 @@ private:
 
     /** @brief 记录水平支撑移动动作 */
     void recordHorizontalSupportMoveAction(int keyNumber, bool pressed);
+    /** @brief 急停弹窗显示前，隐藏仍可见的非急停类型弹窗 */
+    void hideNonEmergencyPopups();
 
     /** @brief 记录步进移动动作开始/持续状态
      *  @param jointName 关节名
