@@ -596,6 +596,7 @@ void MainWindow::setupRecordAndPermissionConnections()
         }
 
         updateFunctionSwitchVisuals();
+        updateStepTargetButtonsState();
     });
     connect(ui->TBtn_PermissionPage, &QPushButton::clicked, [this]() {
         if (ui->page_Permission) {
@@ -3110,7 +3111,14 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     // - 点动模式：仅允许在[关节]模式下执行；
     // - 步进模式：允许执行（由按键映射与目标选择进一步约束）。
     // 释放事件仍继续处理，避免切模后寄存器保持在按下态。
-    if ((!m_stepModeEnabled && !m_isJointMode) && pressed) {
+    const bool allowCoordinateExternalOnRobotPage =
+        isRobotPage
+        && !m_stepModeEnabled
+        && !m_moveModeUnknown
+        && !m_isJointMode
+        && keyNumber >= 1
+        && keyNumber <= 8;
+    if ((!m_stepModeEnabled && !m_isJointMode) && pressed && !allowCoordinateExternalOnRobotPage) {
         qCDebug(lcMainWindow) << "外部按键忽略：当前未处于可执行模式，按键○" << keyNumber
                  << (pressed ? "按下" : "释放");
         return;
@@ -3419,6 +3427,100 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             m_recorder->addRecord(record);
         };
 
+        auto recordRobotExternalCoordinateMotion = [this](int key, bool isPressed) {
+            if (!m_recorder || key < 1 || key > 8) {
+                return;
+            }
+
+            const int axisIndex = (key - 1) / 2;
+            const bool isOddKey = (key % 2) == 1;
+
+            QString coordName;
+            QString unit;
+            QString negativeAction;
+            QString positiveAction;
+            int regStart = -1;
+
+            switch (axisIndex) {
+            case 0:
+                coordName = "X";
+                unit = "mm";
+                negativeAction = "负向";
+                positiveAction = "正向";
+                regStart = 103;
+                break;
+            case 1:
+                coordName = "Y";
+                unit = "mm";
+                negativeAction = "负向";
+                positiveAction = "正向";
+                regStart = 107;
+                break;
+            case 2:
+                coordName = "Z";
+                unit = "mm";
+                negativeAction = "负向";
+                positiveAction = "正向";
+                regStart = 111;
+                break;
+            case 3:
+                coordName = "R";
+                unit = "°";
+                negativeAction = "负向";
+                positiveAction = "正向";
+                regStart = 115;
+                break;
+            default:
+                return;
+            }
+
+            double currentValue = 0.0;
+            if (regStart > 0
+                && g_registerCache.contains(regStart)
+                && g_registerCache.contains(regStart + 1)
+                && g_registerCache.contains(regStart + 2)
+                && g_registerCache.contains(regStart + 3)) {
+                currentValue = registersToDoubleDCBAFEHG(
+                    g_registerCache.value(regStart),
+                    g_registerCache.value(regStart + 1),
+                    g_registerCache.value(regStart + 2),
+                    g_registerCache.value(regStart + 3));
+            } else if (m_deviceCoordPanelQml && m_deviceCoordPanelQml->rootObject()) {
+                const char *propName = (axisIndex == 0) ? "coordX"
+                                      : (axisIndex == 1) ? "coordY"
+                                      : (axisIndex == 2) ? "coordZ"
+                                                         : "coordAr";
+                currentValue = m_deviceCoordPanelQml->rootObject()->property(propName).toDouble();
+            }
+
+            const double speedPercent = getSliderEditValue("TechSliderEdit_Robot_RobotSpeed");
+            const QString directionText = isOddKey ? negativeAction : positiveAction;
+
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = "机械臂";
+            record.controlName = QString("外部按键○%1").arg(key);
+            record.controlType = "MatrixKey";
+            record.operation = isPressed ? "external_coordinate_start" : "external_coordinate_stop";
+            record.oldValue = "";
+
+            if (isPressed) {
+                record.newValue = QString("坐标%1当前值为%2%3，当前设置速度为%4%，开始%5运行")
+                                      .arg(coordName)
+                                      .arg(currentValue, 0, 'f', 2)
+                                      .arg(unit)
+                                      .arg(speedPercent, 0, 'f', 0)
+                                      .arg(directionText);
+            } else {
+                record.newValue = QString("坐标%1当前值为%2%3，运动结束")
+                                      .arg(coordName)
+                                      .arg(currentValue, 0, 'f', 2)
+                                      .arg(unit);
+            }
+
+            m_recorder->addRecord(record);
+        };
+
         if (keyNumber >= 1 && keyNumber <= 8) {
             if (m_stepModeEnabled) {
                 const int axisIndex = (keyNumber - 1) / 2;   // 0~3
@@ -3501,6 +3603,23 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                         .arg(targetName)
                         .arg(stepValue, 0, 'f', 3),
                     2000);
+                return;
+            }
+
+            if (!m_isJointMode && !m_moveModeUnknown) {
+                const int groupIndex = (keyNumber + 1) / 2;       // ○1/2->1 ... ○7/8->4
+                const int signedCommand = (keyNumber % 2 == 1) ? -groupIndex : groupIndex;
+                if (pressed) {
+                    writeToMainDevice(526, signedCommand);
+                } else {
+                    writeToMainDevice(526, 0);
+                }
+
+                qCDebug(lcMainWindow) << "page_Robot (Index 0, 坐标) 按键 ○" << keyNumber << " "
+                                      << (pressed ? "按下" : "释放")
+                                      << " -> 地址526写入:" << (pressed ? signedCommand : 0);
+
+                recordRobotExternalCoordinateMotion(keyNumber, pressed);
                 return;
             }
 
@@ -3647,6 +3766,11 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
             showRobotOperationHintDialog(interlockHint);
             return;
         }
+    }
+
+    if (pressed && !m_stepModeEnabled && !m_isJointMode) {
+        qCDebug(lcMainWindow) << "首页○9外部按键忽略：当前非关节模式且非步进模式";
+        return;
     }
 
     if (m_stepModeEnabled) {
@@ -3923,6 +4047,7 @@ void MainWindow::applyMoveModeUiFromRegister126(quint16 value)
             moveModeLabel->setStyleSheet(QStringLiteral("color: #aaaaaa; font-weight: bold; font-size: 11px;"));
         }
     }
+    updateStepTargetButtonsState();
 }
 
 void MainWindow::applyRobotSpeedUiFromRegister130(quint16 value)
@@ -6156,6 +6281,13 @@ void MainWindow::onEnableButtonActivated(int socket)
  */
 void MainWindow::processEnableButton(bool enabled)
 {
+    if (!m_stepModeEnabled && !m_isJointMode) {
+        if (enabled) {
+            qCDebug(lcMainWindow) << "使能按钮按下忽略：当前非关节模式且非步进模式";
+        }
+        return;
+    }
+
     if (m_stepModeEnabled) {
         // 步进模式下的使能按钮处理
         if (enabled) {
@@ -6983,6 +7115,11 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
             showRobotOperationHintDialog(interlockHint);
             return;
         }
+    }
+
+    if (pressed && !m_stepModeEnabled && !m_isJointMode) {
+        qCDebug(lcMainWindow) << "首页○10外部按键忽略：当前非关节模式且非步进模式";
+        return;
     }
 
     if (m_stepModeEnabled) {
@@ -8473,6 +8610,42 @@ void MainWindow::updateStepMoveGroupBoxState()
 void MainWindow::updateStepTargetButtonsState()
 {
     updateStepMoveGroupBoxState();
+
+    QToolButton *axis1Btn = findChild<QToolButton*>("btnStepTargetAxis1");
+    QToolButton *axis2Btn = findChild<QToolButton*>("btnStepTargetAxis2");
+    QToolButton *axis3Btn = findChild<QToolButton*>("btnStepTargetAxis3");
+    QToolButton *axis4Btn = findChild<QToolButton*>("btnStepTargetAxis4");
+    QToolButton *agvBtn = findChild<QToolButton*>("btnStepTargetAgv");
+    const QList<QToolButton*> firstPageTargetButtons = {axis1Btn, axis2Btn, axis3Btn, axis4Btn, agvBtn};
+    const bool isFirstPage = ui && ui->StackedWidget && ui->StackedWidget->currentIndex() == 0;
+    const bool useCoordinateDisplay = isFirstPage && !m_stepModeEnabled && !m_moveModeUnknown && !m_isJointMode;
+
+    for (QToolButton *btn : firstPageTargetButtons) {
+        if (!btn) {
+            continue;
+        }
+        if (!btn->property("stepTargetDefaultText").isValid()) {
+            btn->setProperty("stepTargetDefaultText", btn->text());
+        }
+    }
+
+    if (useCoordinateDisplay) {
+        if (axis1Btn) axis1Btn->setText("X");
+        if (axis2Btn) axis2Btn->setText("Y");
+        if (axis3Btn) axis3Btn->setText("Z");
+        if (axis4Btn) axis4Btn->setText("R");
+        if (agvBtn) agvBtn->setText("无");
+    } else {
+        for (QToolButton *btn : firstPageTargetButtons) {
+            if (!btn) {
+                continue;
+            }
+            const QVariant defaultText = btn->property("stepTargetDefaultText");
+            if (defaultText.isValid()) {
+                btn->setText(defaultText.toString());
+            }
+        }
+    }
 
     auto updateGroupState = [this](QButtonGroup *group, const QString &defaultButtonName) {
         if (!group) {
