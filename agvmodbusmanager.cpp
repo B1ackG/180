@@ -262,6 +262,10 @@ bool AGVModbusManager::isConnected() const
     if (QThread::currentThread() != thread()) {
         bool connected = false;
         QMetaObject::invokeMethod(const_cast<AGVModbusManager *>(this), [this, &connected]() {
+            if (!m_connectedState) {
+                connected = false;
+                return;
+            }
             if (m_backendIsConnected && m_dynamicBackendHandle) {
                 connected = (m_backendIsConnected(m_dynamicBackendHandle) != 0);
             } else {
@@ -271,10 +275,45 @@ bool AGVModbusManager::isConnected() const
         return connected;
     }
 
+    if (!m_connectedState) {
+        return false;
+    }
+
     if (m_backendIsConnected && m_dynamicBackendHandle) {
         return m_backendIsConnected(m_dynamicBackendHandle) != 0;
     }
     return false;
+}
+
+void AGVModbusManager::handleCommunicationFailure(const QString &reason)
+{
+    bool shouldEmitDisconnected = false;
+    {
+        QMutexLocker locker(&m_mutex);
+        if (m_connectedState) {
+            m_connectedState = false;
+            if (m_pollTimer && m_pollTimer->isActive()) {
+                m_pollTimer->stop();
+            }
+            if (m_backendDisconnect && m_dynamicBackendHandle) {
+                m_backendDisconnect(m_dynamicBackendHandle);
+            }
+            shouldEmitDisconnected = true;
+        }
+    }
+
+    if (shouldEmitDisconnected) {
+        emit disconnected();
+    }
+
+    m_lastSocketError = reason;
+    emit errorOccurred(reason);
+    emit updateStatusLabel("label_agv_connection", "连接中断，自动重连中...");
+
+    if (m_autoReconnect && m_reconnectTimer && !m_reconnectTimer->isActive() && !m_host.isEmpty()) {
+        qWarning() << "AGV 通信中断，启动自动重连，原因:" << reason;
+        m_reconnectTimer->start(m_reconnectInterval);
+    }
 }
 
 void AGVModbusManager::tryReconnect()
@@ -405,6 +444,10 @@ void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
                                  values.size());
     if (readCount <= 0) {
         qWarning() << "AGV动态库读失败 地址:" << startAddress << "数量:" << count;
+        const QString reason = QStringLiteral("AGV动态库读取失败 address=%1 count=%2")
+                                   .arg(startAddress)
+                                   .arg(count);
+        handleCommunicationFailure(reason);
         return;
     }
 
@@ -784,6 +827,8 @@ bool AGVModbusManager::writeSingleRegister(int address, quint16 value)
     emit writeCompleted(address, value, ok);
     if (!ok) {
         qWarning() << "AGV动态库写失败 地址:" << address << "值:" << value;
+        const QString reason = QStringLiteral("AGV动态库写入失败 address=%1").arg(address);
+        handleCommunicationFailure(reason);
     }
     return ok;
 }

@@ -258,6 +258,8 @@ private slots:
     void tryReconnect();
 
 private:
+    void handleCommunicationFailure(const QString &reason);
+
     // 动态库后端（可选）: 若加载成功，优先走动态库实现
     bool ensureDynamicBackendLoaded();
     void unloadDynamicBackend();

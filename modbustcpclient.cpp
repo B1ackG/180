@@ -191,10 +191,39 @@ void ModbusTCPClient::disconnectFromServer()
 
 bool ModbusTCPClient::isConnected() const
 {
+    if (!m_connectedState) {
+        return false;
+    }
     if (m_backendIsConnected && m_dynamicBackendHandle) {
         return m_backendIsConnected(m_dynamicBackendHandle) != 0;
     }
     return false;
+}
+
+void ModbusTCPClient::handleCommunicationFailure(const QString &reason)
+{
+    bool shouldEmitDisconnected = false;
+    {
+        QMutexLocker locker(&m_mutex);
+        if (m_connectedState) {
+            m_connectedState = false;
+            if (m_backendDisconnect && m_dynamicBackendHandle) {
+                m_backendDisconnect(m_dynamicBackendHandle);
+            }
+            shouldEmitDisconnected = true;
+        }
+    }
+
+    if (shouldEmitDisconnected) {
+        emit disconnected();
+    }
+
+    emit errorOccurred(reason);
+
+    if (m_autoReconnect && !m_host.isEmpty() && !m_reconnectTimer->isActive()) {
+        qWarning() << "[Modbus通信中断] 启动自动重连，原因:" << reason;
+        m_reconnectTimer->start(m_reconnectInterval);
+    }
 }
 
 void ModbusTCPClient::tryReconnect()
@@ -249,7 +278,11 @@ bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 function
                                  values.data(),
                                  values.size());
     if (readCount <= 0) {
+        const QString reason = QStringLiteral("动态库读取失败 address=%1 count=%2")
+                                   .arg(startAddress)
+                                   .arg(count);
         qWarning() << "[Modbus动态库读失败] 地址:" << startAddress << "数量:" << count;
+        handleCommunicationFailure(reason);
         return false;
     }
 
@@ -274,6 +307,8 @@ bool ModbusTCPClient::writeSingleRegister(int address, quint16 value)
     const bool ok = m_backendWriteSingle(m_dynamicBackendHandle, address, value) != 0;
     if (!ok) {
         qWarning() << "[Modbus动态库写失败] 地址:" << address << "值:" << value;
+        const QString reason = QStringLiteral("动态库写入失败 address=%1").arg(address);
+        handleCommunicationFailure(reason);
     }
     return ok;
 }
@@ -285,10 +320,17 @@ bool ModbusTCPClient::writeMultipleRegisters(int startAddress, const QVector<qui
     }
 
     if (m_backendWriteMultiple && m_dynamicBackendHandle) {
-        return m_backendWriteMultiple(m_dynamicBackendHandle,
-                                      startAddress,
-                                      values.constData(),
-                                      values.size()) != 0;
+        const bool ok = m_backendWriteMultiple(m_dynamicBackendHandle,
+                                               startAddress,
+                                               values.constData(),
+                                               values.size()) != 0;
+        if (!ok) {
+            const QString reason = QStringLiteral("动态库批量写入失败 start=%1 count=%2")
+                                       .arg(startAddress)
+                                       .arg(values.size());
+            handleCommunicationFailure(reason);
+        }
+        return ok;
     }
     for (int i = 0; i < values.size(); ++i) {
         if (!writeSingleRegister(startAddress + i, values.at(i))) {

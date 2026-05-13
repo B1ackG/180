@@ -1,4 +1,4 @@
-#include "modbuswritegate.h"
+    #include "modbuswritegate.h"
 #include "modbusthreadmanager.h"
 
 #include <QSettings>

@@ -238,6 +238,8 @@ private slots:
     void tryReconnect();
 
 private:
+    void handleCommunicationFailure(const QString &reason);
+
     // 动态库后端（可选）：启用后替代手写 Modbus TCP 帧处理
     bool ensureDynamicBackendLoaded();
     void unloadDynamicBackend();
