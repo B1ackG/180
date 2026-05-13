@@ -9341,6 +9341,16 @@ void MainWindow::updateAlarmDisplay()
 
 void MainWindow::hideNonEmergencyPopups()
 {
+    // 急停触发时如果清理了驻车切换提示，也要同步释放驻车切换在途锁，
+    // 避免按钮继续被 parkingSwitchWaiting 拦截到 90 秒超时。
+    if (QTimer *parkingWaitTimer = findChild<QTimer*>("parkingSwitchWaitTimer")) {
+        parkingWaitTimer->stop();
+        parkingWaitTimer->deleteLater();
+    }
+    setProperty("parkingSwitchWaiting", false);
+    setProperty("parkingTargetBit", -1);
+    setProperty("parkingTargetEnabled", false);
+
     hideParkingSwitchHintDialog();
     hideAgvStationOfflineAlarm();
     hideAgvDriveFaultAlarm();
