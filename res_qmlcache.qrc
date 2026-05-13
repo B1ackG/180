@@ -48,6 +48,7 @@
         <file alias="Picture/190overall6.png">Picture/190overall6.png</file>
         <file alias="TechSpeedGauge.qml">TechSpeedGauge.qml</file>
         <file alias="RobotTotalPowerCard.qml">RobotTotalPowerCard.qml</file>
+        <file alias="DeviceCoordPanel.qml">DeviceCoordPanel.qml</file>
         <file alias="InclinometerCard.qml">InclinometerCard.qml</file>
         <file alias="HistoryList.qml">HistoryList.qml</file>
         <file alias="BatteryWidget.qml">BatteryWidget.qml</file>

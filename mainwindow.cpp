@@ -34,6 +34,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QSignalBlocker>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QGroupBox>
 #include <QtMath>
@@ -95,12 +96,24 @@ void applyTransparentQuickWidgetBackground(QQuickWidget *widget)
         return;
     }
 
-    const QColor panelBlue(26, 95, 180);
-    widget->setStyleSheet(QStringLiteral("background-color: rgb(26, 95, 180); border: 0px;"));
-    widget->setClearColor(panelBlue);
-    if (widget->quickWindow()) {
-        widget->quickWindow()->setColor(panelBlue);
-    }
+    // QQuickWidget 默认/样式表矩形底色会盖住 QML 圆角外侧，表现为直角边框。
+    // 与速度表一致：透明清除色 + 半透明背景属性，仅由 QML Rectangle 绘制圆角卡片。
+    widget->setStyleSheet(QString());
+    widget->setAttribute(Qt::WA_TranslucentBackground, true);
+    widget->setClearColor(Qt::transparent);
+
+    const auto syncQuickWindowTransparent = [widget]() {
+        if (QQuickWindow *qw = widget->quickWindow()) {
+            qw->setColor(Qt::transparent);
+        }
+    };
+    syncQuickWindowTransparent();
+    QObject::connect(widget, &QQuickWidget::statusChanged, widget,
+                     [syncQuickWindowTransparent](QQuickWidget::Status status) {
+                         if (status == QQuickWidget::Ready) {
+                             syncQuickWindowTransparent();
+                         }
+                     });
 }
 
 std::array<quint16, 4> doubleToRegistersGHEFCDAB(double value)
@@ -1253,14 +1266,37 @@ void MainWindow::updateSpeed(qreal newSpeed)
     }
 }
 
-void MainWindow::initRobotTotalPowerCard()
+void MainWindow::initInclinometerAndRobotPowerStrip()
 {
-    m_robotTotalPowerQml = findChild<QQuickWidget*>("quickWidget_RobotTotalPower");
-    if (!m_robotTotalPowerQml) {
-        qCWarning(lcMainWindow) << "未找到 quickWidget_RobotTotalPower，跳过总功率卡片初始化";
+    QWidget *host = findChild<QWidget*>(QStringLiteral("widget_InclinometerPowerStrip"));
+    if (!host) {
+        qCWarning(lcMainWindow) << "未找到 widget_InclinometerPowerStrip，跳过倾角+总功率条初始化";
         return;
     }
 
+    if (QLayout *oldLayout = host->layout()) {
+        QLayoutItem *item = nullptr;
+        while ((item = oldLayout->takeAt(0)) != nullptr) {
+            if (item->widget()) {
+                item->widget()->deleteLater();
+            }
+            delete item;
+        }
+        delete oldLayout;
+    }
+
+    host->setStyleSheet(QStringLiteral(
+        "background-color: #1A5FB4;"
+        "border: 1px solid #4FAFE8;"
+        "border-radius: 14px;"));
+
+    m_inclinometerXCard = new QWidget(host);
+    m_inclinometerXCard->setFixedWidth(100);
+    m_inclinometerXCard->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+
+    m_robotTotalPowerQml = new QQuickWidget(host);
+    m_robotTotalPowerQml->setMinimumWidth(200);
+    m_robotTotalPowerQml->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     m_robotTotalPowerQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
     applyTransparentQuickWidgetBackground(m_robotTotalPowerQml);
     connect(m_robotTotalPowerQml, &QQuickWidget::statusChanged, this,
@@ -1278,7 +1314,146 @@ void MainWindow::initRobotTotalPowerCard()
         root->setProperty("title", QStringLiteral("总功率"));
         root->setProperty("unit", QStringLiteral("W"));
         root->setProperty("currentPower", 0.0);
+        root->setProperty("showCardBackground", false);
     }
+
+    m_inclinometerYCard = new QWidget(host);
+    m_inclinometerYCard->setFixedWidth(100);
+    m_inclinometerYCard->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+
+    auto *row = new QHBoxLayout(host);
+    row->setContentsMargins(4, 6, 4, 6);
+    row->setSpacing(4);
+    row->addWidget(m_inclinometerXCard, 0);
+    QWidget *sepLeft = new QWidget(host);
+    sepLeft->setFixedWidth(1);
+    sepLeft->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    sepLeft->setStyleSheet(QStringLiteral("background-color: #2A9FE7AA; border: none;"));
+    row->addWidget(sepLeft, 0);
+    row->addWidget(m_robotTotalPowerQml, 1);
+    QWidget *sepRight = new QWidget(host);
+    sepRight->setFixedWidth(1);
+    sepRight->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    sepRight->setStyleSheet(QStringLiteral("background-color: #2A9FE7AA; border: none;"));
+    row->addWidget(sepRight, 0);
+    row->addWidget(m_inclinometerYCard, 0);
+
+    auto initOne = [](QWidget *widget, const QString &axisTitle, QLabel *&valueLabel, QLabel *&thresholdLabelOut) {
+        if (!widget) {
+            return;
+        }
+
+        widget->setStyleSheet(QStringLiteral(
+            "background: transparent;"
+            "border: none;"));
+
+        if (QLayout *innerOld = widget->layout()) {
+            QLayoutItem *item = nullptr;
+            while ((item = innerOld->takeAt(0)) != nullptr) {
+                if (item->widget()) {
+                    item->widget()->deleteLater();
+                }
+                delete item;
+            }
+            delete innerOld;
+        }
+
+        auto *layout = new QVBoxLayout(widget);
+        layout->setContentsMargins(2, 2, 2, 2);
+        layout->setSpacing(2);
+
+        auto *axisLabel = new QLabel(axisTitle, widget);
+        axisLabel->setAlignment(Qt::AlignHCenter | Qt::AlignBottom);
+        axisLabel->setStyleSheet(QStringLiteral(
+            "color: #A8DAFF;"
+            "font: 700 12px 'Noto Sans CJK SC';"
+            "border: none;"
+            "background: transparent;"));
+
+        valueLabel = new QLabel(QStringLiteral("0.00°"), widget);
+        valueLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+        valueLabel->setStyleSheet(QStringLiteral(
+            "color: #EAF7FF;"
+            "font: 700 22px 'Noto Sans CJK SC';"
+            "border: none;"
+            "background: transparent;"));
+
+        thresholdLabelOut = new QLabel(widget);
+        thresholdLabelOut->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+        thresholdLabelOut->setWordWrap(true);
+        thresholdLabelOut->setStyleSheet(QStringLiteral(
+            "color: #8BC4EA;"
+            "font: 500 10px 'Noto Sans CJK SC';"
+            "border: none;"
+            "background: transparent;"));
+
+        layout->addWidget(axisLabel, 0);
+        layout->addWidget(valueLabel, 1);
+        layout->addWidget(thresholdLabelOut, 0);
+    };
+
+    initOne(m_inclinometerXCard, QStringLiteral("X轴倾角"), m_inclinometerXValueLabel, m_inclinometerXThresholdLabel);
+    initOne(m_inclinometerYCard, QStringLiteral("Y轴倾角"), m_inclinometerYValueLabel, m_inclinometerYThresholdLabel);
+    applyInclinometerDisplayRuntimeSettings();
+}
+
+void MainWindow::initDeviceCoordPanel()
+{
+    m_deviceCoordPanelQml = findChild<QQuickWidget*>(QStringLiteral("quickWidget_DeviceCoordPanel"));
+    if (!m_deviceCoordPanelQml) {
+        qCWarning(lcMainWindow) << "未找到 quickWidget_DeviceCoordPanel，跳过坐标面板初始化";
+        return;
+    }
+
+    m_deviceCoordPanelQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    applyTransparentQuickWidgetBackground(m_deviceCoordPanelQml);
+    connect(m_deviceCoordPanelQml, &QQuickWidget::statusChanged, this,
+            [this](QQuickWidget::Status status) {
+                if (status == QQuickWidget::Error && m_deviceCoordPanelQml) {
+                    const auto errs = m_deviceCoordPanelQml->errors();
+                    for (const auto &err : errs) {
+                        qWarning() << "DeviceCoordPanel QML error:" << err.toString();
+                    }
+                }
+            }, Qt::UniqueConnection);
+    m_deviceCoordPanelQml->setSource(QUrl(QStringLiteral("qrc:/DeviceCoordPanel.qml")));
+
+    if (QQuickItem *root = m_deviceCoordPanelQml->rootObject()) {
+        root->setProperty("coordX", 0.0);
+        root->setProperty("coordY", 0.0);
+        root->setProperty("coordZ", 0.0);
+        root->setProperty("coordAr", 0.0);
+    }
+}
+
+void MainWindow::updateDeviceCoordPanelFromCache()
+{
+    if (!(m_deviceCoordPanelQml && m_deviceCoordPanelQml->rootObject())) {
+        return;
+    }
+
+    constexpr int kStart = 103;
+    constexpr int kEnd = 118;
+    for (int a = kStart; a <= kEnd; ++a) {
+        if (!g_registerCache.contains(a)) {
+            return;
+        }
+    }
+
+    const double cx = registersToDoubleDCBAFEHG(
+        g_registerCache[103], g_registerCache[104], g_registerCache[105], g_registerCache[106]);
+    const double cy = registersToDoubleDCBAFEHG(
+        g_registerCache[107], g_registerCache[108], g_registerCache[109], g_registerCache[110]);
+    const double cz = registersToDoubleDCBAFEHG(
+        g_registerCache[111], g_registerCache[112], g_registerCache[113], g_registerCache[114]);
+    const double car = registersToDoubleDCBAFEHG(
+        g_registerCache[115], g_registerCache[116], g_registerCache[117], g_registerCache[118]);
+
+    QQuickItem *root = m_deviceCoordPanelQml->rootObject();
+    root->setProperty("coordX", cx);
+    root->setProperty("coordY", cy);
+    root->setProperty("coordZ", cz);
+    root->setProperty("coordAr", car);
 }
 
 void MainWindow::updateRobotTotalPower(quint16 powerValue)
@@ -1292,71 +1467,6 @@ void MainWindow::updateRobotTotalPower(quint16 powerValue)
     root->setProperty("currentPower", numericPower);
     // 即使值不变也追加样本，保证趋势图持续可见。
     QMetaObject::invokeMethod(root, "appendSample", Q_ARG(QVariant, numericPower));
-}
-
-void MainWindow::initInclinometerCards()
-{
-    m_inclinometerXCard = findChild<QWidget*>("quickWidget_Inclinometer_X");
-    m_inclinometerYCard = findChild<QWidget*>("quickWidget_Inclinometer_Y");
-
-    auto initOne = [](QWidget *widget, const QString &axisTitle, QLabel *&valueLabel, QLabel *&thresholdLabelOut) {
-        if (!widget) {
-            return;
-        }
-
-        widget->setStyleSheet(QStringLiteral(
-            "background-color: #1A5FB4;"
-            "border: 1px solid #4FAFE8;"
-            "border-radius: 14px;"));
-
-        if (QLayout *oldLayout = widget->layout()) {
-            QLayoutItem *item = nullptr;
-            while ((item = oldLayout->takeAt(0)) != nullptr) {
-                if (item->widget()) {
-                    item->widget()->deleteLater();
-                }
-                delete item;
-            }
-            delete oldLayout;
-        }
-
-        auto *layout = new QVBoxLayout(widget);
-        layout->setContentsMargins(8, 8, 8, 8);
-        layout->setSpacing(4);
-
-        auto *axisLabel = new QLabel(axisTitle, widget);
-        axisLabel->setAlignment(Qt::AlignHCenter | Qt::AlignBottom);
-        axisLabel->setStyleSheet(QStringLiteral(
-            "color: #A8DAFF;"
-            "font: 700 14px 'Noto Sans CJK SC';"
-            "border: none;"
-            "background: transparent;"));
-
-        valueLabel = new QLabel(QStringLiteral("0.00°"), widget);
-        valueLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-        valueLabel->setStyleSheet(QStringLiteral(
-            "color: #EAF7FF;"
-            "font: 700 28px 'Noto Sans CJK SC';"
-            "border: none;"
-            "background: transparent;"));
-
-        thresholdLabelOut = new QLabel(widget);
-        thresholdLabelOut->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-        thresholdLabelOut->setWordWrap(true);
-        thresholdLabelOut->setStyleSheet(QStringLiteral(
-            "color: #8BC4EA;"
-            "font: 500 12px 'Noto Sans CJK SC';"
-            "border: none;"
-            "background: transparent;"));
-
-        layout->addWidget(axisLabel, 0);
-        layout->addWidget(valueLabel, 1);
-        layout->addWidget(thresholdLabelOut, 0);
-    };
-
-    initOne(m_inclinometerXCard, QStringLiteral("X轴倾角"), m_inclinometerXValueLabel, m_inclinometerXThresholdLabel);
-    initOne(m_inclinometerYCard, QStringLiteral("Y轴倾角"), m_inclinometerYValueLabel, m_inclinometerYThresholdLabel);
-    applyInclinometerDisplayRuntimeSettings();
 }
 
 void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
@@ -3840,6 +3950,7 @@ void MainWindow::applyCachedMainControlSyncRegistersToUi()
         applyRobotSpeedUiFromRegister130(g_registerCache.value(130));
     }
     updateFunctionSwitchVisuals();
+    updateDeviceCoordPanelFromCache();
 }
 
 void MainWindow::on_TBtn_Interlocking_clicked()
@@ -4288,6 +4399,10 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
     if (address == 134) {
         updateRobotTotalPower(value);
+    }
+
+    if (address >= 103 && address <= 118) {
+        updateDeviceCoordPanelFromCache();
     }
 
     const QStringList targetLabels = {
@@ -4914,6 +5029,9 @@ void MainWindow::readMainControlSyncRegisters()
 
     // 机器人总功率：192.168.1.13 的 134 寄存器
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 134, 1);
+
+    // 当前位姿 X/Y/Z/AR：192.168.1.13 保持寄存器 103~118，每组 4 个寄存器为 IEEE754 双精度（与 J1~J4 解析一致）
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 103, 16);
 }
 // 配置所有TechSliderLabel的参数
 void MainWindow::setupSliderLabelConfigs()

@@ -5,6 +5,7 @@ Item {
     property real currentPower: 0
     property string title: "Power"
     property string unit: "W"
+    property bool showCardBackground: true
     property int maxSamples: 50
     property var samples: []
     property real maxDisplayPower: 1000
@@ -40,6 +41,7 @@ Item {
     Component.onCompleted: appendSample(currentPower)
 
     Rectangle {
+        visible: root.showCardBackground
         anchors.fill: parent
         radius: 18
         color: "#1A5FB4"
@@ -49,6 +51,7 @@ Item {
     }
 
     Rectangle {
+        visible: root.showCardBackground
         anchors.fill: parent
         anchors.margins: 2
         radius: 16
@@ -137,7 +140,14 @@ Item {
             var innerW = w - leftPad - rightPad
             var innerH = h - topPad - bottomPad
 
-            ctx.strokeStyle = "#4A95C9CC"
+            // 嵌入整条卡片时：与倾角区同色系，趋势线用亮橙；独立卡片时保持原冷色方案。
+            var stripMode = !root.showCardBackground
+            var gridColor = stripMode ? "#A8DAFF44" : "#4A95C9CC"
+            var fillTop = stripMode ? "#FFAB4028" : "#3D8FE08A"
+            var fillBot = stripMode ? "#1A5FB412" : "#0A2F5C14"
+            var lineColor = stripMode ? "#FF9500" : "#69D0FF"
+
+            ctx.strokeStyle = gridColor
             ctx.lineWidth = 1
             ctx.setLineDash([4, 4])
             for (var g = 0; g < 4; ++g) {
@@ -168,8 +178,8 @@ Item {
             }
 
             var grad = ctx.createLinearGradient(0, topPad, 0, topPad + innerH)
-            grad.addColorStop(0.0, "#3D8FE08A")
-            grad.addColorStop(1.0, "#0A2F5C14")
+            grad.addColorStop(0.0, fillTop)
+            grad.addColorStop(1.0, fillBot)
             ctx.fillStyle = grad
             ctx.beginPath()
             ctx.moveTo(pts[0].x, topPad + innerH)
@@ -180,8 +190,8 @@ Item {
             ctx.closePath()
             ctx.fill()
 
-            ctx.strokeStyle = "#69D0FF"
-            ctx.lineWidth = 2
+            ctx.strokeStyle = lineColor
+            ctx.lineWidth = stripMode ? 2.5 : 2
             ctx.beginPath()
             ctx.moveTo(pts[0].x, pts[0].y)
             for (var k = 1; k < pts.length; ++k) {

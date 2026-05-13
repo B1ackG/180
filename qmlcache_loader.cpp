@@ -9,6 +9,12 @@ namespace _0x5f__BatteryWidget_qml {
         reinterpret_cast<const QV4::CompiledData::Unit*>(&qmlData), nullptr, nullptr
     };
 }
+namespace _0x5f__DeviceCoordPanel_qml { 
+    extern const unsigned char qmlData[];
+    const QQmlPrivate::CachedQmlUnit unit = {
+        reinterpret_cast<const QV4::CompiledData::Unit*>(&qmlData), nullptr, nullptr
+    };
+}
 namespace _0x5f__HistoryList_qml { 
     extern const unsigned char qmlData[];
     const QQmlPrivate::CachedQmlUnit unit = {
@@ -54,6 +60,7 @@ Q_GLOBAL_STATIC(Registry, unitRegistry)
 
 Registry::Registry() {
         resourcePathToCachedUnit.insert(QStringLiteral("/BatteryWidget.qml"), &QmlCacheGeneratedCode::_0x5f__BatteryWidget_qml::unit);
+        resourcePathToCachedUnit.insert(QStringLiteral("/DeviceCoordPanel.qml"), &QmlCacheGeneratedCode::_0x5f__DeviceCoordPanel_qml::unit);
         resourcePathToCachedUnit.insert(QStringLiteral("/HistoryList.qml"), &QmlCacheGeneratedCode::_0x5f__HistoryList_qml::unit);
         resourcePathToCachedUnit.insert(QStringLiteral("/TechSpeedGauge.qml"), &QmlCacheGeneratedCode::_0x5f__TechSpeedGauge_qml::unit);
         resourcePathToCachedUnit.insert(QStringLiteral("/InclinometerCard.qml"), &QmlCacheGeneratedCode::_0x5f__InclinometerCard_qml::unit);

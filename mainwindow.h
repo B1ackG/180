@@ -389,10 +389,12 @@ public:
     // ==========================================
     /** @brief 初始化速度仪表 UI */
     void initSpeedGaugeUI();
-    /** @brief 初始化机器人总功率 QML 卡片 */
-    void initRobotTotalPowerCard();
-    /** @brief 初始化 X/Y 倾角卡片（QWidget 版本） */
-    void initInclinometerCards();
+    /** @brief 初始化设备坐标面板（保持寄存器 103~118，双精度） */
+    void initDeviceCoordPanel();
+    /**
+     * @brief 初始化倾角 X + 总功率 + 倾角 Y 横向组合条（左 X、中 QML 总功率、右 Y）
+     */
+    void initInclinometerAndRobotPowerStrip();
     /**
      * @brief 更新速度显示
      * @param newSpeed 新速度值
@@ -712,6 +714,7 @@ private:
     bool m_runtimeBaselineReady = false;
     QTimer *m_historyRuntimeUpdateTimer = nullptr;
     QQuickWidget *m_robotTotalPowerQml = nullptr;  // 使用 QML 版本总功率卡片
+    QQuickWidget *m_deviceCoordPanelQml = nullptr; // 当前 X/Y/Z/AR（寄存器 103~118）
     QWidget *m_inclinometerXCard = nullptr;  // QWidget 版本 X 轴倾角卡片容器
     QWidget *m_inclinometerYCard = nullptr;  // QWidget 版本 Y 轴倾角卡片容器
     QLabel *m_inclinometerXValueLabel = nullptr;
@@ -766,6 +769,9 @@ private:
     void applyRobotSpeedUiFromRegister130(quint16 value);
     /** @brief 从 g_registerCache 刷新步进/运动/速度等与主控同步的 UI（示教切换后等） */
     void applyCachedMainControlSyncRegistersToUi();
+
+    /** @brief 将主控 103~118（四组 double）刷新到坐标 QML 面板 */
+    void updateDeviceCoordPanelFromCache();
 
     /** @brief 初始化窗口 UI（内部） */
     void initUI();
