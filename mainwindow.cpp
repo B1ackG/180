@@ -2766,20 +2766,20 @@ void MainWindow::recordVerticalSupportAction(int keyNumber, bool pressed)
 
     if (keyNumber == 1) {  // ○1 升降下降
         if (pressed) {
-            record.newValue = QString("升降组件当前高度为%1mm，当前以%2mm/s速度下降")
+            record.newValue = QString("立柱升降当前高度为%1mm，当前以%2mm/s速度下降")
                                   .arg(currentHeight, 0, 'f', 1)
                                   .arg(moveSpeed, 0, 'f', 1);
         } else {
-            record.newValue = QString("升降组件当前高度为%1mm，下降完成")
+            record.newValue = QString("立柱升降当前高度为%1mm，下降完成")
                                   .arg(currentHeight, 0, 'f', 1);
         }
     } else if (keyNumber == 2) {  // ○2 升降上升
         if (pressed) {
-            record.newValue = QString("升降组件当前高度为%1mm，当前以%2mm/s速度上升")
+            record.newValue = QString("立柱升降当前高度为%1mm，当前以%2mm/s速度上升")
                                   .arg(currentHeight, 0, 'f', 1)
                                   .arg(moveSpeed, 0, 'f', 1);
         } else {
-            record.newValue = QString("升降组件当前高度为%1mm，上升完成")
+            record.newValue = QString("立柱升降当前高度为%1mm，上升完成")
                                   .arg(currentHeight, 0, 'f', 1);
         }
     }
@@ -2808,20 +2808,20 @@ void MainWindow::recordHorizontalSupportAction(int keyNumber, bool pressed)
 
     if (keyNumber == 3) {  // ○3 负方向旋转
         if (pressed) {
-            record.newValue = QString("悬臂组件当前角度为%1°，当前以%2°/s速度负方向旋转")
+            record.newValue = QString("立柱旋转当前角度为%1°，当前以%2°/s速度负方向旋转")
                                   .arg(currentAngle, 0, 'f', 1)
                                   .arg(rotationSpeed, 0, 'f', 1);
         } else {
-            record.newValue = QString("悬臂组件当前角度为%1°，旋转完成")
+            record.newValue = QString("立柱旋转当前角度为%1°，旋转完成")
                                   .arg(currentAngle, 0, 'f', 1);
         }
     } else if (keyNumber == 4) {  // ○4 正方向旋转
         if (pressed) {
-            record.newValue = QString("悬臂组件当前角度为%1°，当前以%2°/s速度正方向旋转")
+            record.newValue = QString("立柱旋转当前角度为%1°，当前以%2°/s速度正方向旋转")
                                   .arg(currentAngle, 0, 'f', 1)
                                   .arg(rotationSpeed, 0, 'f', 1);
         } else {
-            record.newValue = QString("悬臂组件当前角度为%1°，旋转完成")
+            record.newValue = QString("立柱旋转当前角度为%1°，旋转完成")
                                   .arg(currentAngle, 0, 'f', 1);
         }
     }
@@ -2849,20 +2849,20 @@ void MainWindow::recordHorizontalSupportMoveAction(int keyNumber, bool pressed)
 
     if (keyNumber == 1) {  // ○1 缩短
         if (pressed) {
-            record.newValue = QString("悬臂组件当前长度为%1mm，当前以%2mm/s速度缩短")
+            record.newValue = QString("伸缩平衡臂当前长度为%1mm，当前以%2mm/s速度缩短")
                                   .arg(currentLength, 0, 'f', 1)
                                   .arg(moveSpeed, 0, 'f', 1);
         } else {
-            record.newValue = QString("悬臂组件当前长度为%1mm，缩短完成")
+            record.newValue = QString("伸缩平衡臂当前长度为%1mm，缩短完成")
                                   .arg(currentLength, 0, 'f', 1);
         }
     } else if (keyNumber == 2) {  // ○2 伸长
         if (pressed) {
-            record.newValue = QString("悬臂组件当前长度为%1mm，当前以%2mm/s速度伸长")
+            record.newValue = QString("伸缩平衡臂当前长度为%1mm，当前以%2mm/s速度伸长")
                                   .arg(currentLength, 0, 'f', 1)
                                   .arg(moveSpeed, 0, 'f', 1);
         } else {
-            record.newValue = QString("悬臂组件当前长度为%1mm，伸长完成")
+            record.newValue = QString("伸缩平衡臂当前长度为%1mm，伸长完成")
                                   .arg(currentLength, 0, 'f', 1);
         }
     }
@@ -4856,7 +4856,7 @@ void MainWindow::setupSliderLabelConfigs()
     QStringList allTargetPages = {"回转升降", "伸缩臂", "EOAT控制"};
 
     m_sliderLabelConfigs["robot_ArcGauge_J1Angle"] = {
-        "悬臂组件当前角度:",           // labelText
+        "立柱旋转当前角度:",           // labelText
         "°",                  // unit
         -170.0,              // minValue
         170.0,               // maxValue
@@ -4872,7 +4872,7 @@ void MainWindow::setupSliderLabelConfigs()
     };
 
     m_sliderLabelConfigs["robot_ArcGauge_J2Height"] = {
-        "升降组件当前高度:",           // labelText
+        "立柱升降当前高度:",           // labelText
         "mm",                // unit
         4400.0,              // minValue
         8000.0,              // maxValue
@@ -4888,7 +4888,7 @@ void MainWindow::setupSliderLabelConfigs()
     };
 
     m_sliderLabelConfigs["robot_ArcGauge_J3Length"] = {
-        "悬臂组件当前长度:",           // labelText
+        "伸缩平衡臂当前长度:",           // labelText
         "mm",                // unit
         3765.0,                 // minValue
         6805.0,              // maxValue
@@ -8760,9 +8760,9 @@ void MainWindow::recordStepMoveAction(const QString &jointName, double currentVa
                   .arg(currentValue, 0, 'f', 3)
                   .arg(stepValue);
     } else if (jointName.contains("J1")) {
-        msg = QString("悬臂组件当前角度为%1°，开始步进%2°").arg(currentValue, 0, 'f', 1).arg(stepValue);
+        msg = QString("立柱旋转当前角度为%1°，开始步进%2°").arg(currentValue, 0, 'f', 1).arg(stepValue);
     } else if (jointName.contains("J2")) {
-        msg = QString("升降组件当前高度为%1mm，开始步进%2mm").arg(currentValue, 0, 'f', 1).arg(stepValue);
+        msg = QString("立柱升降当前高度为%1mm，开始步进%2mm").arg(currentValue, 0, 'f', 1).arg(stepValue);
     } else if (jointName.contains("J3")) {
         msg = QString("伸缩臂当前长度为%1mm，开始步进%2mm").arg(currentValue, 0, 'f', 1).arg(stepValue);
     } else if (jointName.contains("J4")) {
@@ -8809,9 +8809,9 @@ void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue
     record.oldValue = "";
     QString msg;
     if (jointName.contains("J1")) {
-        msg = QString("悬臂组件当前角度为%1°，步进结束").arg(currentValue, 0, 'f', 1);
+        msg = QString("立柱旋转当前角度为%1°，步进结束").arg(currentValue, 0, 'f', 1);
     } else if (jointName.contains("J2")) {
-        msg = QString("升降组件当前高度为%1mm，步进结束").arg(currentValue, 0, 'f', 1);
+        msg = QString("立柱升降当前高度为%1mm，步进结束").arg(currentValue, 0, 'f', 1);
     } else if (jointName.contains("J3")) {
         msg = QString("伸缩臂当前长度为%1mm，步进结束").arg(currentValue, 0, 'f', 1);
     } else if (jointName.contains("J4")) {
