@@ -2,7 +2,117 @@
 
 #include "operationrecorder.h"
 
-#include "operationrecorder.h"
+#include <QRegularExpression>
+
+namespace {
+
+/** 去掉「向某寄存器写入某值」类技术描述，仅保留面向用户的操作文案。 */
+QString scrubOperationHistoryRegisterWriteText(QString s)
+{
+    const QString trimmed = s.trimmed();
+    if (trimmed.isEmpty()) {
+        return QString();
+    }
+    QString t = trimmed;
+
+    static const QRegularExpression reWholeLineWriteAddr(
+        QStringLiteral(R"(^\s*写入地址\d+.*$)"),
+        QRegularExpression::DotMatchesEverythingOption);
+    if (reWholeLineWriteAddr.match(t).hasMatch()) {
+        return QString();
+    }
+
+    static const QRegularExpression reWholeLineBatch(
+        QStringLiteral(R"(^\s*批量写入地址.*$)"),
+        QRegularExpression::DotMatchesEverythingOption);
+    if (reWholeLineBatch.match(t).hasMatch()) {
+        return QString();
+    }
+
+    // 如「○9点动按下：寄存器0 bit3=1」→ 去掉冒号后的寄存器位描述
+    static const QRegularExpression reColonRegisterTail(
+        QStringLiteral(R"([:：][^:：]*寄存器\s*\d+.*$)"),
+        QRegularExpression::DotMatchesEverythingOption);
+    t.remove(reColonRegisterTail);
+
+    // 如「…，向主控(192.168.1.13)寄存器290写入1」
+    static const QRegularExpression reMainCtrlRegWrite(
+        QStringLiteral(R"([，,][^，。\n]*寄存器\s*\d+[^，。\n]*写入[^，。\n]*)"));
+    t.remove(reMainCtrlRegWrite);
+
+    // 如「…，地址124写入: 3」「地址500写入:1」
+    static const QRegularExpression reAddrWriteSeg(
+        QStringLiteral(R"([,，]?\s*地址\s*\d+\s*写入[^，;；]*)"));
+    t.remove(reAddrWriteSeg);
+
+    static const QRegularExpression reArrowAddr(
+        QStringLiteral(R"(\s*->\s*地址\s*\d+\s*写入[^，;；]*)"));
+    t.remove(reArrowAddr);
+
+    static const QRegularExpression reParenModbus(
+        QStringLiteral(R"([（(][^）\n]*Modbus[^）\n]*[）)])"));
+    t.remove(reParenModbus);
+
+    static const QRegularExpression reReadValueParen(
+        QStringLiteral(R"(（读值[:：]\s*[^）]+）)"));
+    t.remove(reReadValueParen);
+
+    // 「示教写权限：主控寄存器8192与…」→ 去掉具体寄存器号
+    static const QRegularExpression reMainRegNum(QStringLiteral(R"(主控寄存器\s*\d+)"));
+    t.replace(reMainRegNum, QStringLiteral("主控"));
+
+    t = t.trimmed();
+    while (t.endsWith(QLatin1Char('：')) || t.endsWith(QLatin1Char(':')) || t.endsWith(QLatin1Char(','))
+           || t.endsWith(QLatin1Char('，'))) {
+        t.chop(1);
+        t = t.trimmed();
+    }
+    return t;
+}
+
+bool historyTextLooksLikeRegisterWriteDetail(const QString &s)
+{
+    if (s.contains(QStringLiteral("寄存器"))) {
+        return true;
+    }
+    if (s.contains(QStringLiteral("写入地址"))) {
+        return true;
+    }
+    if (s.contains(QStringLiteral("批量写入"))) {
+        return true;
+    }
+    static const QRegularExpression reAddrWrite(QStringLiteral(R"(地址\s*\d+\s*写入)"));
+    return reAddrWrite.match(s).hasMatch();
+}
+
+QVariant scrubHistoryValueVariant(const QVariant &v)
+{
+    if (!v.isValid()) {
+        return v;
+    }
+    switch (static_cast<int>(v.type())) {
+    case QVariant::Bool:
+    case QVariant::Int:
+    case QVariant::UInt:
+    case QVariant::LongLong:
+    case QVariant::ULongLong:
+    case QVariant::Double:
+        return v;
+    default:
+        break;
+    }
+    const QString raw = v.toString();
+    if (raw.isEmpty()) {
+        return v;
+    }
+    const QString out = scrubOperationHistoryRegisterWriteText(raw);
+    if (out.trimmed().isEmpty()) {
+        return QVariant();
+    }
+    return QVariant(out);
+}
+
+} // namespace
 
 MappingConfig* MappingConfig::s_instance = nullptr;
 
@@ -424,6 +534,20 @@ void MappingConfig::normalizeOperationRecord(OperationRecord &record) const
         // 简单做法是清空内容
         record.controlName = "";
         record.operation = "IGNORE_LOG"; 
+    }
+
+    // 5. 历史列表：去掉「写某寄存器某值」等技术尾巴，保留用户操作描述
+    record.oldValue = scrubHistoryValueVariant(record.oldValue);
+    record.newValue = scrubHistoryValueVariant(record.newValue);
+    if (historyTextLooksLikeRegisterWriteDetail(record.operation)) {
+        const QString op = scrubOperationHistoryRegisterWriteText(record.operation);
+        record.operation = op.trimmed().isEmpty() ? QString() : op;
+    }
+    if (historyTextLooksLikeRegisterWriteDetail(record.controlName)) {
+        const QString cn = scrubOperationHistoryRegisterWriteText(record.controlName);
+        if (!cn.trimmed().isEmpty()) {
+            record.controlName = cn;
+        }
     }
 }
 
