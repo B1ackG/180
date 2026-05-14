@@ -3083,6 +3083,16 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 {
     // 获取当前页面
     int currentPage = ui->StackedWidget->currentIndex();
+    // 超载仍有效且用户已点「确认」关窗后：拦截外部按键（首页 ○3/○4 除外），并再次弹出超载提示
+    if (pressed && m_robotWeightOverload150Bit3Flag && m_robotWeightOverloadUserAckedWhileActive) {
+        const bool firstPageOverloadExempt = (currentPage == 0 && (keyNumber == 3 || keyNumber == 4));
+        if (!firstPageOverloadExempt) {
+            showRobotWeightOverloadDialog();
+            ui->statusBar->showMessage(QStringLiteral("重量超载：该外部按键操作已无效"), 3000);
+            return;
+        }
+    }
+
     QString pageName = m_pageNames.value(currentPage, "未知");
     const bool isRobotPage = (currentPage == 0 || pageName == "机械臂" || pageName == "page_Robot");
     const bool isSixAxisPage = (currentPage == 3 || pageName == "六自由度" || pageName == "page_SixAxies");
@@ -4677,10 +4687,12 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                 m_recorder->addRecord(record);
             }
             if (weightOverload) {
+                m_robotWeightOverloadUserAckedWhileActive = false;
                 showRobotWeightOverloadDialog();
             } else {
                 hideRobotWeightOverloadDialog();
-                }
+                m_robotWeightOverloadUserAckedWhileActive = false;
+            }
         }
 
         const bool heightInterlock = (((value >> 1) & 0x01) == 1);
@@ -7290,10 +7302,24 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         return;
     }
 
+    QLabel *steeringLabel = ui && ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarSteeringLabel") : nullptr;
+
+    if (m_robotWeightOverload150Bit3Flag && m_robotWeightOverloadUserAckedWhileActive) {
+        showRobotWeightOverloadDialog();
+        showNotification(QStringLiteral("重量超载：底盘转向模式切换已无效"));
+        if (m_steeringModeSelector) {
+            const QSignalBlocker blocker(m_steeringModeSelector);
+            m_steeringModeSelector->setCurrentMode(m_lastSteeringMode);
+        }
+        if (steeringLabel && m_steeringModeSelector) {
+            steeringLabel->setText(QStringLiteral("转向:%1").arg(m_steeringModeSelector->modeText(m_lastSteeringMode)));
+            steeringLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
+        }
+        return;
+    }
+
     // 向192.168.1.88的2地址写入对应值
     const bool steerWriteOk = writeToAGVDevice(2, modbusValue);
-
-    QLabel *steeringLabel = ui && ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarSteeringLabel") : nullptr;
     if (!steerWriteOk) {
         if (m_steeringModeSelector) {
             const QSignalBlocker blocker(m_steeringModeSelector);
@@ -10251,7 +10277,13 @@ void MainWindow::showRobotWeightOverloadDialog()
         m_robotWeightOverloadLabel->setText(QStringLiteral("重量超载"));
         layout->addWidget(m_robotWeightOverloadLabel);
 
-        m_robotWeightOverloadWidget->setFixedSize(360, 120);
+        m_robotWeightOverloadConfirmBtn = new QPushButton(QStringLiteral("确认"), m_robotWeightOverloadWidget);
+        m_robotWeightOverloadConfirmBtn->setObjectName(QStringLiteral("robotWeightOverloadConfirmBtn"));
+        layout->addWidget(m_robotWeightOverloadConfirmBtn, 0, Qt::AlignCenter);
+        connect(m_robotWeightOverloadConfirmBtn, &QPushButton::clicked,
+                this, &MainWindow::onRobotWeightOverloadConfirmClicked);
+
+        m_robotWeightOverloadWidget->setFixedSize(360, 168);
         m_robotWeightOverloadWidget->setStyleSheet(
             "#robotWeightOverloadWidget {"
             "  background-color: rgba(45, 0, 0, 232);"
@@ -10263,6 +10295,19 @@ void MainWindow::showRobotWeightOverloadDialog()
             "  font-size: 22px;"
             "  font-weight: bold;"
             "  background: transparent;"
+            "}"
+            "#robotWeightOverloadConfirmBtn {"
+            "  background-color: #ffaa00;"
+            "  color: #2b1800;"
+            "  border: 2px solid #ffd166;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 90px;"
+            "}"
+            "#robotWeightOverloadConfirmBtn:hover {"
+            "  background-color: #ffd166;"
             "}");
     }
 
@@ -10270,6 +10315,24 @@ void MainWindow::showRobotWeightOverloadDialog()
     m_robotWeightOverloadWidget->show();
     m_robotWeightOverloadWidget->raise();
     m_robotWeightOverloadWidget->activateWindow();
+}
+
+void MainWindow::onRobotWeightOverloadConfirmClicked()
+{
+    writeToMainDevice(290, 1);
+    m_robotWeightOverloadUserAckedWhileActive = true;
+    hideRobotWeightOverloadDialog();
+    if (m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = QStringLiteral("提示系统");
+        record.controlName = QStringLiteral("重量超载提示");
+        record.controlType = QStringLiteral("提示窗口");
+        record.operation = QStringLiteral("用户确认");
+        record.oldValue = QString();
+        record.newValue = QStringLiteral("用户确认重量超载提示，已向主控(192.168.1.13)寄存器290写入1");
+        m_recorder->addRecord(record);
+    }
 }
 
 void MainWindow::hideRobotWeightOverloadDialog()

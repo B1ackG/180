@@ -424,6 +424,8 @@ private slots:
     void onEnableButtonError(const QString &error);
     /** @brief 测试报警按钮点击回调 */
     void onTestAlarmButtonClicked();
+    /** @brief 重量超载提示窗「确认」：写主控290=1并进入已确认门禁态 */
+    void onRobotWeightOverloadConfirmClicked();
     /** @brief 非 AGV 滑块编辑值变化回调
      *  @param changedSlider 被改变的滑块
      *  @param newValue 新值
@@ -603,6 +605,9 @@ private:
     QDialog *m_teachingWriteGateDeniedDialog = nullptr;
     QWidget *m_robotWeightOverloadWidget = nullptr;
     QLabel *m_robotWeightOverloadLabel = nullptr;
+    QPushButton *m_robotWeightOverloadConfirmBtn = nullptr;
+    /** @brief 150.bit3 仍为超载时用户已点确认关闭提示窗，用于拦截后续外部操作直至超载解除 */
+    bool m_robotWeightOverloadUserAckedWhileActive = false;
     QDialog *m_robotLimitReachedDialog = nullptr;
     QLabel *m_robotLimitReachedLabel = nullptr;
     /** @brief 当前限位提示窗对应的 102 限位来源（用于位清零后自动关闭） */
