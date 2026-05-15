@@ -4695,6 +4695,29 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             }
         }
 
+        const bool axisSyncDeviation = (((value >> 6) & 0x01) == 1);
+        if (axisSyncDeviation != m_robotAxisSyncDeviation150Bit6Flag) {
+            m_robotAxisSyncDeviation150Bit6Flag = axisSyncDeviation;
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = QStringLiteral("提示系统");
+                record.controlName = QStringLiteral("主副轴位置偏差");
+                record.controlType = QStringLiteral("提示窗口");
+                record.operation = axisSyncDeviation ? QStringLiteral("提示触发") : QStringLiteral("提示解除");
+                record.oldValue = QString();
+                record.newValue = axisSyncDeviation
+                    ? QStringLiteral("检测到主副轴位置偏差过大")
+                    : QStringLiteral("主副轴位置偏差提示已解除");
+                m_recorder->addRecord(record);
+            }
+            if (axisSyncDeviation) {
+                showRobotAxisSyncDeviationDialog();
+            } else {
+                hideRobotAxisSyncDeviationDialog();
+            }
+        }
+
         const bool heightInterlock = (((value >> 1) & 0x01) == 1);
         if (heightInterlock != m_robotHeightInterlock150Bit1Flag) {
             m_robotHeightInterlock150Bit1Flag = heightInterlock;
@@ -9382,6 +9405,7 @@ void MainWindow::setupAlarmSystem()
     m_agvStationOffline51Bit1Flag = false;
     m_agvDriveFault51Bit2Flag = false;
     m_agvBatteryLow51Bit0Flag = false;
+    m_robotAxisSyncDeviation150Bit6Flag = false;
     m_robotPositiveLimit102Bit2Flag = false;
     m_robotNegativeLimit102Bit3Flag = false;
     m_robotLimitDialogTrigger = RobotLimitDialogTrigger::None;
@@ -9658,6 +9682,7 @@ void MainWindow::updateAlarmDisplay()
 
 void MainWindow::hideNonEmergencyPopups()
 {
+    // 主副轴位置偏差提示窗（150.bit6）不在此列表中：急停全屏报警时仍保持可见，直至位6清零。
     // 急停触发时如果清理了驻车切换提示，也要同步释放驻车切换在途锁，
     // 避免按钮继续被 parkingSwitchWaiting 拦截到 90 秒超时。
     if (QTimer *parkingWaitTimer = findChild<QTimer*>("parkingSwitchWaitTimer")) {
@@ -10339,6 +10364,103 @@ void MainWindow::hideRobotWeightOverloadDialog()
 {
     if (m_robotWeightOverloadWidget && m_robotWeightOverloadWidget->isVisible()) {
         m_robotWeightOverloadWidget->hide();
+    }
+}
+
+void MainWindow::showRobotAxisSyncDeviationDialog()
+{
+    if (!m_robotAxisSyncDeviationWidget) {
+        m_robotAxisSyncDeviationWidget = new QWidget(nullptr);
+        m_robotAxisSyncDeviationWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
+                                                       Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_robotAxisSyncDeviationWidget->setObjectName(QStringLiteral("robotAxisSyncDeviationWidget"));
+
+        QVBoxLayout *layout = new QVBoxLayout(m_robotAxisSyncDeviationWidget);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(8);
+
+        m_robotAxisSyncDeviationLabel = new QLabel(m_robotAxisSyncDeviationWidget);
+        m_robotAxisSyncDeviationLabel->setAlignment(Qt::AlignCenter);
+        m_robotAxisSyncDeviationLabel->setWordWrap(true);
+        m_robotAxisSyncDeviationLabel->setText(QStringLiteral("主副轴位置偏差过大"));
+        layout->addWidget(m_robotAxisSyncDeviationLabel);
+
+        m_robotAxisSyncDeviationStartBtn = new QPushButton(QStringLiteral("开始同步"), m_robotAxisSyncDeviationWidget);
+        m_robotAxisSyncDeviationStartBtn->setObjectName(QStringLiteral("robotAxisSyncDeviationStartBtn"));
+        layout->addWidget(m_robotAxisSyncDeviationStartBtn, 0, Qt::AlignCenter);
+        connect(m_robotAxisSyncDeviationStartBtn, &QPushButton::clicked,
+                this, &MainWindow::onRobotAxisSyncStartClicked);
+
+        m_robotAxisSyncDeviationWidget->setFixedSize(360, 188);
+        m_robotAxisSyncDeviationWidget->setStyleSheet(
+            QStringLiteral(
+                "#robotAxisSyncDeviationWidget {"
+                "  background-color: rgba(45, 0, 0, 232);"
+                "  border: 3px solid #ff5555;"
+                "  border-radius: 10px;"
+                "}"
+                "QLabel {"
+                "  color: #ffb3b3;"
+                "  font-size: 22px;"
+                "  font-weight: bold;"
+                "  background: transparent;"
+                "}"
+                "#robotAxisSyncDeviationStartBtn {"
+                "  background-color: #ffaa00;"
+                "  color: #2b1800;"
+                "  border: 2px solid #ffd166;"
+                "  border-radius: 6px;"
+                "  padding: 8px 16px;"
+                "  font-size: 14px;"
+                "  font-weight: bold;"
+                "  min-width: 90px;"
+                "}"
+                "#robotAxisSyncDeviationStartBtn:hover {"
+                "  background-color: #ffd166;"
+                "}"));
+    }
+
+    positionFloatingPopupTopRight(m_robotAxisSyncDeviationWidget, 940);
+    m_robotAxisSyncDeviationWidget->show();
+    m_robotAxisSyncDeviationWidget->raise();
+    m_robotAxisSyncDeviationWidget->activateWindow();
+}
+
+void MainWindow::onRobotAxisSyncStartClicked()
+{
+    if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
+        showNotification(QStringLiteral("主控 Modbus 未连接"));
+        return;
+    }
+    writeToMainDevice(290, 1);
+    quint16 cur527 = 0;
+    if (!m_modbusManager->readSingleRegister(527, cur527)) {
+        qWarning() << "[主副轴同步] 读取寄存器527失败";
+        showNotification(QStringLiteral("读取寄存器527失败"));
+        return;
+    }
+    constexpr int kBit = 5;
+    const quint16 next527 = static_cast<quint16>(cur527 | (static_cast<quint16>(1u) << kBit));
+    writeToMainDevice(527, next527);
+    qCDebug(lcMainWindow) << "[主副轴同步] 527: 原值" << cur527 << "→ 写入" << next527 << "(bit" << kBit << "=1)";
+    if (m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = QStringLiteral("提示系统");
+        record.controlName = QStringLiteral("主副轴位置偏差");
+        record.controlType = QStringLiteral("提示窗口");
+        record.operation = QStringLiteral("开始同步");
+        record.oldValue = QString();
+        record.newValue = QStringLiteral(
+            "用户点击开始同步，已向主控(192.168.1.13)寄存器290写入1，并向寄存器527位5写入1");
+        m_recorder->addRecord(record);
+    }
+}
+
+void MainWindow::hideRobotAxisSyncDeviationDialog()
+{
+    if (m_robotAxisSyncDeviationWidget && m_robotAxisSyncDeviationWidget->isVisible()) {
+        m_robotAxisSyncDeviationWidget->hide();
     }
 }
 

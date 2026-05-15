@@ -192,7 +192,7 @@ public:
     void updateAlarmDisplay();
     /** @brief AGV 寄存器150 bit0~10 急停来源（与 192.168.1.88 设备约定一致） */
     QStringList agvChassisEstopSourcesFromRegister150(quint16 reg150) const;
-    /** @brief 主设备(192.168.1.13)寄存器150 bit4/bit5 示教器急停来源 */
+    /** @brief 主设备(192.168.1.13)寄存器150 bit4/bit5 示教器急停；bit6 主副轴位置偏差过大 */
     QStringList robotArmTeachPendantEstopFromRegister150(quint16 reg150) const;
     /** @brief 处理 AGV 51 地址提示/报警位（bit0/bit1） */
     void handleAGVRegister51Alerts(quint16 value);
@@ -220,6 +220,10 @@ public:
     void showRobotWeightOverloadDialog();
     /** @brief 隐藏重量超载提示窗（150.bit3=0） */
     void hideRobotWeightOverloadDialog();
+    /** @brief 显示主副轴位置偏差提示窗（150.bit6=1），急停全屏清理时不隐藏 */
+    void showRobotAxisSyncDeviationDialog();
+    /** @brief 隐藏主副轴位置偏差提示窗（150.bit6=0） */
+    void hideRobotAxisSyncDeviationDialog();
     /** @brief 显示主控限位提示窗（102.bit2/bit3=1） */
     void showRobotLimitReachedDialog(const QString &message);
     /** @brief 隐藏主控限位提示窗 */
@@ -426,6 +430,8 @@ private slots:
     void onTestAlarmButtonClicked();
     /** @brief 重量超载提示窗「确认」：写主控290=1并进入已确认门禁态 */
     void onRobotWeightOverloadConfirmClicked();
+    /** @brief 主副轴偏差窗「开始同步」：主控290=1，527.bit5=1（读改写） */
+    void onRobotAxisSyncStartClicked();
     /** @brief 非 AGV 滑块编辑值变化回调
      *  @param changedSlider 被改变的滑块
      *  @param newValue 新值
@@ -589,6 +595,7 @@ private:
     bool m_agvDriveFault51Bit2Flag = false;
     bool m_agvBatteryLow51Bit0Flag = false;
     bool m_robotWeightOverload150Bit3Flag = false;
+    bool m_robotAxisSyncDeviation150Bit6Flag = false;
     bool m_robotPositiveLimit102Bit2Flag = false;
     bool m_robotNegativeLimit102Bit3Flag = false;
     bool m_robotHeightInterlock150Bit1Flag = false;
@@ -608,6 +615,9 @@ private:
     QPushButton *m_robotWeightOverloadConfirmBtn = nullptr;
     /** @brief 150.bit3 仍为超载时用户已点确认关闭提示窗，用于拦截后续外部操作直至超载解除 */
     bool m_robotWeightOverloadUserAckedWhileActive = false;
+    QWidget *m_robotAxisSyncDeviationWidget = nullptr;
+    QLabel *m_robotAxisSyncDeviationLabel = nullptr;
+    QPushButton *m_robotAxisSyncDeviationStartBtn = nullptr;
     QDialog *m_robotLimitReachedDialog = nullptr;
     QLabel *m_robotLimitReachedLabel = nullptr;
     /** @brief 当前限位提示窗对应的 102 限位来源（用于位清零后自动关闭） */
@@ -902,7 +912,7 @@ private:
 
     /** @brief 记录水平支撑移动动作 */
     void recordHorizontalSupportMoveAction(int keyNumber, bool pressed);
-    /** @brief 急停弹窗显示前，隐藏仍可见的非急停类型弹窗 */
+    /** @brief 急停弹窗显示前，隐藏仍可见的非急停类型弹窗（主副轴偏差窗除外） */
     void hideNonEmergencyPopups();
 
     /** @brief 记录步进移动动作开始/持续状态
