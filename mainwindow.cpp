@@ -6398,53 +6398,12 @@ bool MainWindow::writeToAGVDevice(int address, int value, bool bypassWirelessWar
 
     m_agvDisconnectedWarnedAddresses.remove(address);
 
+    if (!verifyTeachingWriteGateOrShowDialog()) {
+        return false;
+    }
+
     if (!bypassWirelessWarning && m_controlMode == WIRELESS_MODE) {
-        QDialog warnDialog(this);
-        warnDialog.setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        warnDialog.setModal(true);
-
-        QVBoxLayout *layout = new QVBoxLayout(&warnDialog);
-        layout->setContentsMargins(20, 15, 20, 15);
-        layout->setSpacing(10);
-
-        QLabel *msgLabel = new QLabel("当前处于无线模式", &warnDialog);
-        msgLabel->setAlignment(Qt::AlignCenter);
-        msgLabel->setWordWrap(true);
-        layout->addWidget(msgLabel);
-
-        QPushButton *confirmBtn = new QPushButton("确认", &warnDialog);
-        layout->addWidget(confirmBtn);
-        connect(confirmBtn, &QPushButton::clicked, &warnDialog, &QDialog::accept);
-
-        warnDialog.setStyleSheet(
-            "QDialog {"
-            "  background-color: rgba(30, 0, 0, 230);"
-            "  border: 3px solid #FFFF00;"
-            "  border-radius: 10px;"
-            "}"
-            "QLabel {"
-            "  color: #FFFF00;"
-            "  font-size: 18px;"
-            "  font-weight: bold;"
-            "  background-color: transparent;"
-            "}"
-            "QPushButton {"
-            "  background-color: #FFFF00;"
-            "  color: #202020;"
-            "  border: 2px solid #FFD65A;"
-            "  border-radius: 6px;"
-            "  padding: 8px 16px;"
-            "  font-size: 14px;"
-            "  font-weight: bold;"
-            "  min-width: 100px;"
-            "}"
-            "QPushButton:hover {"
-            "  background-color: #FFD65A;"
-            "  border-color: #FFFF00;"
-            "}");
-
-        warnDialog.setFixedSize(350, 120);
-        warnDialog.exec();
+        showWirelessModeWarningDialog();
     }
 
     if (isFeatureEnabled("modbus_agv", "modbus_agv.write_logs")) {
@@ -6475,7 +6434,8 @@ bool MainWindow::writeToAGVDevice(int address, int value, bool bypassWirelessWar
 
 bool MainWindow::writeAGVRegisterBits(int address,
                                       const QList<QPair<int, bool>> &bitUpdates,
-                                      const QString &scene)
+                                      const QString &scene,
+                                      bool bypassWirelessWarning)
 {
     if (address < 0 || address > 65535) {
         qWarning() << "[AGV按位写入] 非法寄存器地址:" << address;
@@ -6487,53 +6447,12 @@ bool MainWindow::writeAGVRegisterBits(int address,
         return false;
     }
 
-    if (m_controlMode == WIRELESS_MODE) {
-        QDialog warnDialog(this);
-        warnDialog.setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        warnDialog.setModal(true);
+    if (!verifyTeachingWriteGateOrShowDialog()) {
+        return false;
+    }
 
-        QVBoxLayout *layout = new QVBoxLayout(&warnDialog);
-        layout->setContentsMargins(20, 15, 20, 15);
-        layout->setSpacing(10);
-
-        QLabel *msgLabel = new QLabel("当前处于无线模式", &warnDialog);
-        msgLabel->setAlignment(Qt::AlignCenter);
-        msgLabel->setWordWrap(true);
-        layout->addWidget(msgLabel);
-
-        QPushButton *confirmBtn = new QPushButton("确认", &warnDialog);
-        layout->addWidget(confirmBtn);
-        connect(confirmBtn, &QPushButton::clicked, &warnDialog, &QDialog::accept);
-
-        warnDialog.setStyleSheet(
-            "QDialog {"
-            "  background-color: rgba(30, 0, 0, 230);"
-            "  border: 3px solid #FFFF00;"
-            "  border-radius: 10px;"
-            "}"
-            "QLabel {"
-            "  color: #FFFF00;"
-            "  font-size: 18px;"
-            "  font-weight: bold;"
-            "  background-color: transparent;"
-            "}"
-            "QPushButton {"
-            "  background-color: #FFFF00;"
-            "  color: #202020;"
-            "  border: 2px solid #FFD65A;"
-            "  border-radius: 6px;"
-            "  padding: 8px 16px;"
-            "  font-size: 14px;"
-            "  font-weight: bold;"
-            "  min-width: 100px;"
-            "}"
-            "QPushButton:hover {"
-            "  background-color: #FFD65A;"
-            "  border-color: #FFFF00;"
-            "}");
-
-        warnDialog.setFixedSize(350, 120);
-        warnDialog.exec();
+    if (!bypassWirelessWarning && m_controlMode == WIRELESS_MODE) {
+        showWirelessModeWarningDialog();
     }
 
     quint16 baseValue = m_agvRegisterShadow.value(address, 0);
@@ -9698,6 +9617,7 @@ void MainWindow::hideNonEmergencyPopups()
     hideAgvDriveFaultAlarm();
     hideAgvBatteryLowDialog();
     hideRobotOperationHintDialog();
+    hideWirelessModeWarningDialog();
     hideTeachingWriteGateDeniedDialog();
     hideRobotLimitReachedDialog();
     hideRobotWeightOverloadDialog();
@@ -10115,6 +10035,8 @@ void MainWindow::hideRobotOperationHintDialog()
 
 void MainWindow::showTeachingWriteGateDeniedDialog()
 {
+    hideWirelessModeWarningDialog();
+
     if (!m_teachingWriteGateDeniedDialog) {
         m_teachingWriteGateDeniedDialog = new QDialog(this);
         m_teachingWriteGateDeniedDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
@@ -10179,6 +10101,80 @@ void MainWindow::hideTeachingWriteGateDeniedDialog()
 {
     if (m_teachingWriteGateDeniedDialog && m_teachingWriteGateDeniedDialog->isVisible()) {
         m_teachingWriteGateDeniedDialog->hide();
+    }
+}
+
+bool MainWindow::verifyTeachingWriteGateOrShowDialog()
+{
+    ModbusThreadManager *mgr = m_modbusManager ? m_modbusManager : ModbusThreadManager::instance();
+    if (ModbusWriteGate::verifyWriteAllowed(mgr)) {
+        return true;
+    }
+    showTeachingWriteGateDeniedDialog();
+    return false;
+}
+
+void MainWindow::showWirelessModeWarningDialog()
+{
+    hideTeachingWriteGateDeniedDialog();
+
+    if (!m_wirelessModeWarningDialog) {
+        m_wirelessModeWarningDialog = new QDialog(this);
+        m_wirelessModeWarningDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_wirelessModeWarningDialog->setModal(true);
+        m_wirelessModeWarningDialog->setObjectName(QStringLiteral("wirelessModeWarningDialog"));
+
+        auto *layout = new QVBoxLayout(m_wirelessModeWarningDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        auto *msgLabel = new QLabel(QStringLiteral("当前处于无线模式"), m_wirelessModeWarningDialog);
+        msgLabel->setObjectName(QStringLiteral("wirelessModeWarningLabel"));
+        msgLabel->setAlignment(Qt::AlignCenter);
+        msgLabel->setWordWrap(true);
+        layout->addWidget(msgLabel);
+
+        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), m_wirelessModeWarningDialog);
+        layout->addWidget(confirmBtn);
+        connect(confirmBtn, &QPushButton::clicked, m_wirelessModeWarningDialog, &QDialog::accept);
+
+        m_wirelessModeWarningDialog->setFixedSize(350, 120);
+        m_wirelessModeWarningDialog->setStyleSheet(
+            "#wirelessModeWarningDialog {"
+            "  background-color: rgba(30, 0, 0, 230);"
+            "  border: 3px solid #FFFF00;"
+            "  border-radius: 10px;"
+            "}"
+            "#wirelessModeWarningLabel {"
+            "  color: #FFFF00;"
+            "  font-size: 18px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "QPushButton {"
+            "  background-color: #FFFF00;"
+            "  color: #202020;"
+            "  border: 2px solid #FFD65A;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 100px;"
+            "}"
+            "QPushButton:hover {"
+            "  background-color: #FFD65A;"
+            "  border-color: #FFFF00;"
+            "}");
+    }
+
+    positionFloatingPopupTopRight(m_wirelessModeWarningDialog, 660);
+    m_wirelessModeWarningDialog->exec();
+}
+
+void MainWindow::hideWirelessModeWarningDialog()
+{
+    if (m_wirelessModeWarningDialog && m_wirelessModeWarningDialog->isVisible()) {
+        m_wirelessModeWarningDialog->done(QDialog::Rejected);
     }
 }
 

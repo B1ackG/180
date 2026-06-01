@@ -216,6 +216,12 @@ public:
     void showTeachingWriteGateDeniedDialog();
     /** @brief 隐藏示教写门禁提示窗 */
     void hideTeachingWriteGateDeniedDialog();
+    /** @brief 无线模式下 AGV 写入前的确认提示窗 */
+    void showWirelessModeWarningDialog();
+    /** @brief 隐藏无线模式提示窗 */
+    void hideWirelessModeWarningDialog();
+    /** @brief 校验示教写门禁，未通过时弹出互锁提示并返回 false */
+    bool verifyTeachingWriteGateOrShowDialog();
     /** @brief 显示重量超载提示窗（150.bit3=1） */
     void showRobotWeightOverloadDialog();
     /** @brief 隐藏重量超载提示窗（150.bit3=0） */
@@ -262,7 +268,10 @@ public:
     /** @brief 向 AGV 写寄存器 @return 是否写入成功（未连接或写失败为 false） */
     bool writeToAGVDevice(int address, int value, bool bypassWirelessWarning = false);
     /** @brief 按位更新 AGV 寄存器并写回，自动保留未修改位 */
-    bool writeAGVRegisterBits(int address, const QList<QPair<int, bool>> &bitUpdates, const QString &scene = QString());
+    bool writeAGVRegisterBits(int address,
+                              const QList<QPair<int, bool>> &bitUpdates,
+                              const QString &scene = QString(),
+                              bool bypassWirelessWarning = false);
     /** @brief 驻车伸出触发长度输入：从 config.ini 应用允许范围与校验器 */
     void applyParkOutTriggerLengthRuntimeSettings();
     /** @brief 连续写 AGV 保持寄存器并更新 m_agvRegisterShadow */
@@ -610,6 +619,7 @@ private:
     QDialog *m_agvBatteryLowDialog = nullptr;
     QDialog *m_robotOperationHintDialog = nullptr;
     QDialog *m_teachingWriteGateDeniedDialog = nullptr;
+    QDialog *m_wirelessModeWarningDialog = nullptr;
     QWidget *m_robotWeightOverloadWidget = nullptr;
     QLabel *m_robotWeightOverloadLabel = nullptr;
     QPushButton *m_robotWeightOverloadConfirmBtn = nullptr;
