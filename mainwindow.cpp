@@ -5203,7 +5203,7 @@ void MainWindow::setupSliderLabelConfigs()
     QStringList allTargetPages = {"回转升降", "伸缩臂", "EOAT控制"};
 
     m_sliderLabelConfigs["robot_ArcGauge_J1Angle"] = {
-        "立柱旋转当前角度:",           // labelText
+        "J1当前角度:",           // labelText
         "°",                  // unit
         -170.0,              // minValue
         170.0,               // maxValue
@@ -5219,7 +5219,7 @@ void MainWindow::setupSliderLabelConfigs()
     };
 
     m_sliderLabelConfigs["robot_ArcGauge_J2Height"] = {
-        "立柱升降当前高度:",           // labelText
+        "J2当前高度:",           // labelText
         "mm",                // unit
         4400.0,              // minValue
         8000.0,              // maxValue
@@ -5235,7 +5235,7 @@ void MainWindow::setupSliderLabelConfigs()
     };
 
     m_sliderLabelConfigs["robot_ArcGauge_J3Length"] = {
-        "伸缩平衡臂当前长度:",           // labelText
+        "J3当前长度:",           // labelText
         "mm",                // unit
         3765.0,                 // minValue
         6805.0,              // maxValue
@@ -5253,10 +5253,10 @@ void MainWindow::setupSliderLabelConfigs()
     };
 
     m_sliderLabelConfigs["robot_ArcGauge_J4Angle"] = {
-        "末端组件当前角度:",    // labelText (修改为末端组件)
+        "J4当前角度:",    // labelText (修改为末端组件)
         "°",                  // unit
-        -90.0,              // minValue
-        90.0,               // maxValue
+        -45.0,              // minValue
+        45.0,               // maxValue
         -34.0,               // defaultValue
         "°",                 // suffix
         20,                  // modbusAddress1

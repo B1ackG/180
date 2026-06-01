@@ -255,12 +255,12 @@ void TechArcGauge::paintEvent(QPaintEvent *)
     painter.setPen(Qt::white);
     painter.setFont(font);
     const bool hasSecondValueDisplay = (!m_secondSuffix.isEmpty() || m_secondValue != 0);
-    const qreal labelOffset = hasSecondValueDisplay ? (size / 2.9) : (-size / 3.5);
+    const qreal labelOffset = hasSecondValueDisplay ? (size / 4.5) : (-size / 3.5);
     painter.drawText(rect.adjusted(0, labelOffset, 0, labelOffset), Qt::AlignCenter, m_labelText);
 
     // 绘制文本，稍微偏移以避免覆盖圆弧
     painter.drawText(QRectF(minPos.x() - 30, minPos.y() - 20, 40, 20), Qt::AlignRight | Qt::AlignVCenter, QString::number(m_minimum));
-    painter.drawText(QRectF(maxPos.x(), maxPos.y() - 20, 40, 20), Qt::AlignLeft | Qt::AlignVCenter, QString::number(m_maximum));
+    painter.drawText(QRectF(maxPos.x() - 10, maxPos.y() - 20, 40, 20), Qt::AlignLeft | Qt::AlignVCenter, QString::number(m_maximum));
 }
 
 void TechArcGauge::resizeEvent(QResizeEvent *event)
