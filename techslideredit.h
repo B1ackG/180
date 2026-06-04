@@ -120,6 +120,20 @@ public:
      */
     void setRange(double min, double max);
 
+    /** @brief 滑块/数值逻辑范围（setValue、预设按钮、滑块映射） */
+    double valueRangeMinimum() const { return m_minimum; }
+    double valueRangeMaximum() const { return m_maximum; }
+
+    /** @brief 滑块两端显示的最小/最大值；同时同步数值与 LineEdit 输入范围 */
+    double displayRangeMinimum() const { return m_displayMinimum; }
+    double displayRangeMaximum() const { return m_displayMaximum; }
+    void setDisplayRange(double min, double max);
+
+    double lineEditInputMinimum() const { return m_lineEditInputMinimum; }
+    double lineEditInputMaximum() const { return m_lineEditInputMaximum; }
+    /** @brief 一般无需单独调用，输入范围由 setDisplayRange / setRange 同步 */
+    void setLineEditInputRange(double min, double max);
+
     /**
      * 使用示例:
      * @code
@@ -466,6 +480,10 @@ private:
     double m_oldValue;  // 保存旧值
     double m_minimum;
     double m_maximum;
+    double m_displayMinimum;
+    double m_displayMaximum;
+    double m_lineEditInputMinimum;
+    double m_lineEditInputMaximum;
     double m_singleStep;
     int m_precision;
     QString m_suffix;

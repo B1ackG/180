@@ -247,6 +247,7 @@ void MainWindow::initializeCoreSubsystems()
         setupAGVOAControl();
         setupAGVMoveSpeedControl();
         setupAGVAngleControl();
+        applySliderEditRuntimeSettings();
     }
 
     setupConnections();
@@ -281,6 +282,9 @@ void MainWindow::initializeCoreSubsystems()
     }
 
     applyButtonVisibilityRuntimeSettings();
+    if (!isBigFeatureEnabled("motion_control")) {
+        applySliderEditRuntimeSettings();
+    }
 }
 
 void MainWindow::initializeRegisterCache(

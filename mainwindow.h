@@ -865,18 +865,23 @@ public:
     /** @brief 应用 SliderLabel 的自定义配置到所有实例 */
     void applySliderLabelRuntimeSettings();
 
+    /** @brief 从 config.ini 应用 TechSliderEdit 显示/输入/数值范围与可见性 */
+    void applySliderEditRuntimeSettings();
+
     /** @brief 从 config.ini 刷新首页倾角卡片上的阈值说明文字 */
     void applyInclinometerDisplayRuntimeSettings();
 
     struct ControllableButtonInfo {
         QString objectName;
         QString displayText;
+        /** @brief 控件类型中文说明，用于控制台列表展示 */
+        QString widgetKind;
     };
 
-    /** @brief 主窗口内可配置可见性的按钮（含界面显示文本，按 objectName 排序） */
+    /** @brief 主窗口内可配置可见性的 Modbus 相关控件（按 objectName 排序） */
     QList<ControllableButtonInfo> controllableButtons() const;
 
-    /** @brief 从 config.ini 应用按钮可见性到主窗口控件 */
+    /** @brief 从 config.ini [ButtonVisibility] 应用控件可见性到主窗口 */
     void applyButtonVisibilityRuntimeSettings();
 
 private:

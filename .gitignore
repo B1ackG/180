@@ -37,3 +37,26 @@ documents/
 /third_party/libmodbus-aarch64/
 /third_party/libmodbus-build/
 /third_party/libmodbus*/
+
+# Added from Qt template by Assistant
+*.LOG
+*.csv
+*.log
+*.pro.user
+*_qml.cpp
+.pro.user
+.vscode/
+/third_party/*.tar.gz
+624
+ModbusTCPAssistant.pro.user
+archive/
+build_error*.txt
+build_error_*.txt
+build_output.txt
+config.ini
+docs/doxygen/html/
+docs/source_txt/
+monitor_logs/
+patch.txt
+qmlcache_loader.cpp
+res_qmlcache.qrc

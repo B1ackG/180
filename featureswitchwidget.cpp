@@ -3,6 +3,8 @@
 #include "mainwindow.h"
 #include "mappingconfig.h"
 #include "techvirtualkeyboard.h"
+#include "techslideredit.h"
+#include <algorithm>
 #include <QShowEvent>
 #include <QLabel>
 #include <QPushButton>
@@ -256,6 +258,7 @@ void FeatureSwitchWidget::loadCurrentState()
     }
     loadPollingState();
     loadSliderLimitState();
+    loadTechSliderEditState();
     loadInclinometerThresholdState();
     loadButtonVisibilityState();
 }
@@ -297,67 +300,331 @@ void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
 
 void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
 {
-    QGroupBox *limitGroup = new QGroupBox("参数范围自定义 (Parameter Limits)");
-    QVBoxLayout *limitLayout = new QVBoxLayout(limitGroup);
+    const QString lineEditStyle =
+        QStringLiteral("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px;");
 
-    // 与 MainWindow::setupSliderLabelConfigs / m_arcGauges 的 key 保持一致。
-    QStringList targetNames = {
-        "robot_ArcGauge_J1Angle",
-        "robot_ArcGauge_J2Height",
-        "robot_ArcGauge_J3Length",
-        "robot_ArcGauge_J4Angle",
-        "robot_ArcGauge_SixAxis1",
-        "robot_ArcGauge_SixAxis2",
-        "robot_ArcGauge_SixAxis3",
-        "robot_ArcGauge_SixAxis4",
-        "robot_ArcGauge_SixAxis5",
-        "robot_ArcGauge_SixAxis6",
-        "agv_park_out_trigger_length"
+    QGroupBox *arcGroup = new QGroupBox(QStringLiteral("TechArcGauge 显示与参数范围"));
+    QVBoxLayout *arcLayout = new QVBoxLayout(arcGroup);
+
+    QLabel *arcHint = new QLabel(
+        QStringLiteral("每行可单独控制环形仪表是否显示，并自定义数值 Min/Max（与主界面仪表 objectName 一致）"));
+    arcHint->setWordWrap(true);
+    arcHint->setStyleSheet(QStringLiteral("color: #88ccff; font-size: 11px;"));
+    arcLayout->addWidget(arcHint);
+
+    QHBoxLayout *arcToolbar = new QHBoxLayout();
+    QPushButton *arcShowAll = new QPushButton(QStringLiteral("仪表全部显示"));
+    QPushButton *arcHideAll = new QPushButton(QStringLiteral("仪表全部隐藏"));
+    arcToolbar->addWidget(arcShowAll);
+    arcToolbar->addWidget(arcHideAll);
+    arcToolbar->addStretch();
+    arcLayout->addLayout(arcToolbar);
+
+    const QStringList arcGaugeNames = {
+        QStringLiteral("robot_ArcGauge_J1Angle"),
+        QStringLiteral("robot_ArcGauge_J2Height"),
+        QStringLiteral("robot_ArcGauge_J3Length"),
+        QStringLiteral("robot_ArcGauge_J4Angle"),
+        QStringLiteral("robot_ArcGauge_SixAxis1"),
+        QStringLiteral("robot_ArcGauge_SixAxis2"),
+        QStringLiteral("robot_ArcGauge_SixAxis3"),
+        QStringLiteral("robot_ArcGauge_SixAxis4"),
+        QStringLiteral("robot_ArcGauge_SixAxis5"),
+        QStringLiteral("robot_ArcGauge_SixAxis6")
     };
-    QMap<QString, QString> itemLabels;
-    itemLabels["robot_ArcGauge_J1Angle"] = "悬臂角度 (J1)";
-    itemLabels["robot_ArcGauge_J2Height"] = "升降高度 (J2)";
-    itemLabels["robot_ArcGauge_J3Length"] = "总伸展长度 (J3)";
-    itemLabels["robot_ArcGauge_J4Angle"] = "末端角度 (J4)";
-    itemLabels["robot_ArcGauge_SixAxis1"] = "六轴 1";
-    itemLabels["robot_ArcGauge_SixAxis2"] = "六轴 2";
-    itemLabels["robot_ArcGauge_SixAxis3"] = "六轴 3";
-    itemLabels["robot_ArcGauge_SixAxis4"] = "六轴 4";
-    itemLabels["robot_ArcGauge_SixAxis5"] = "六轴 5";
-    itemLabels["robot_ArcGauge_SixAxis6"] = "六轴 6";
-    itemLabels["agv_park_out_trigger_length"] = "驻车伸出触发长度 (支腿长度设置框，整数)";
+    const QMap<QString, QString> arcLabels = {
+        {QStringLiteral("robot_ArcGauge_J1Angle"), QStringLiteral("悬臂角度 (J1)")},
+        {QStringLiteral("robot_ArcGauge_J2Height"), QStringLiteral("升降高度 (J2)")},
+        {QStringLiteral("robot_ArcGauge_J3Length"), QStringLiteral("总伸展长度 (J3)")},
+        {QStringLiteral("robot_ArcGauge_J4Angle"), QStringLiteral("末端角度 (J4)")},
+        {QStringLiteral("robot_ArcGauge_SixAxis1"), QStringLiteral("六轴 RX")},
+        {QStringLiteral("robot_ArcGauge_SixAxis2"), QStringLiteral("六轴 RY")},
+        {QStringLiteral("robot_ArcGauge_SixAxis3"), QStringLiteral("六轴 RZ")},
+        {QStringLiteral("robot_ArcGauge_SixAxis4"), QStringLiteral("六轴 X")},
+        {QStringLiteral("robot_ArcGauge_SixAxis5"), QStringLiteral("六轴 Y")},
+        {QStringLiteral("robot_ArcGauge_SixAxis6"), QStringLiteral("六轴 Z")}
+    };
 
-    for (const QString &name : targetNames) {
+    for (const QString &name : arcGaugeNames) {
         QHBoxLayout *row = new QHBoxLayout();
-        QString desc = itemLabels.value(name, name);
-        QLabel *lbl = new QLabel(desc + ":");
-        lbl->setFixedWidth(150);
-        row->addWidget(lbl);
+        QCheckBox *visibleCb = new QCheckBox(QStringLiteral("显示"));
+        visibleCb->setFixedWidth(56);
+
+        QLabel *lbl = new QLabel(arcLabels.value(name, name) + QStringLiteral(":"));
+        lbl->setFixedWidth(130);
 
         QLineEdit *minEdit = new QLineEdit();
-        minEdit->setPlaceholderText("最小值");
-        minEdit->setFixedWidth(80);
-        minEdit->setStyleSheet("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px;");
+        minEdit->setPlaceholderText(QStringLiteral("最小值"));
+        minEdit->setFixedWidth(72);
+        minEdit->setStyleSheet(lineEditStyle);
         minEdit->installEventFilter(this);
 
         QLineEdit *maxEdit = new QLineEdit();
-        maxEdit->setPlaceholderText("最大值");
-        maxEdit->setFixedWidth(80);
-        maxEdit->setStyleSheet("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px;");
+        maxEdit->setPlaceholderText(QStringLiteral("最大值"));
+        maxEdit->setFixedWidth(72);
+        maxEdit->setStyleSheet(lineEditStyle);
         maxEdit->installEventFilter(this);
 
-        row->addWidget(new QLabel("Min:"));
+        row->addWidget(visibleCb);
+        row->addWidget(lbl);
+        row->addWidget(new QLabel(QStringLiteral("Min:")));
         row->addWidget(minEdit);
-        row->addWidget(new QLabel(" Max:"));
+        row->addWidget(new QLabel(QStringLiteral("Max:")));
         row->addWidget(maxEdit);
         row->addStretch();
+        arcLayout->addLayout(row);
 
-        limitLayout->addLayout(row);
-        
-        m_limitEdits[name] = {minEdit, maxEdit};
+        m_arcGaugeEdits[name] = {visibleCb, minEdit, maxEdit};
     }
 
-    scrollLayout->addWidget(limitGroup);
+    connect(arcShowAll, &QPushButton::clicked, this, [this]() {
+        for (auto it = m_arcGaugeEdits.begin(); it != m_arcGaugeEdits.end(); ++it) {
+            if (it->visible) {
+                it->visible->setChecked(true);
+            }
+        }
+    });
+    connect(arcHideAll, &QPushButton::clicked, this, [this]() {
+        for (auto it = m_arcGaugeEdits.begin(); it != m_arcGaugeEdits.end(); ++it) {
+            if (it->visible) {
+                it->visible->setChecked(false);
+            }
+        }
+    });
+
+    scrollLayout->addWidget(arcGroup);
+
+    setupTechSliderEditUI(scrollLayout);
+
+    QGroupBox *otherGroup = new QGroupBox(QStringLiteral("其他参数范围"));
+    QVBoxLayout *otherLayout = new QVBoxLayout(otherGroup);
+
+    const QString parkKey = QStringLiteral("agv_park_out_trigger_length");
+    {
+        QHBoxLayout *row = new QHBoxLayout();
+        QLabel *lbl = new QLabel(
+            QStringLiteral("驻车伸出触发长度 (支腿长度设置框，整数):"));
+        lbl->setFixedWidth(280);
+        row->addWidget(lbl);
+
+        QLineEdit *minEdit = new QLineEdit();
+        minEdit->setPlaceholderText(QStringLiteral("最小值"));
+        minEdit->setFixedWidth(80);
+        minEdit->setStyleSheet(lineEditStyle);
+        minEdit->installEventFilter(this);
+
+        QLineEdit *maxEdit = new QLineEdit();
+        maxEdit->setPlaceholderText(QStringLiteral("最大值"));
+        maxEdit->setFixedWidth(80);
+        maxEdit->setStyleSheet(lineEditStyle);
+        maxEdit->installEventFilter(this);
+
+        row->addWidget(new QLabel(QStringLiteral("Min:")));
+        row->addWidget(minEdit);
+        row->addWidget(new QLabel(QStringLiteral(" Max:")));
+        row->addWidget(maxEdit);
+        row->addStretch();
+        otherLayout->addLayout(row);
+        m_limitEdits[parkKey] = {minEdit, maxEdit};
+    }
+
+    scrollLayout->addWidget(otherGroup);
+}
+
+namespace {
+struct SliderEditDefaults {
+    double displayMin = 0.0;
+    double displayMax = 100.0;
+};
+
+QMap<QString, SliderEditDefaults> builtinSliderEditDefaults()
+{
+    QMap<QString, SliderEditDefaults> defaults;
+    const auto put = [&](const char *name, double vmin, double vmax) {
+        defaults.insert(QString::fromLatin1(name), {vmin, vmax});
+    };
+    put("TechSliderEdit_HoriSupSec_RotationSpeed", 0, 5);
+    put("TechSliderEdit_HoriSupSec_MoveSpeed", 0, 20);
+    put("TechSliderEdit_VeSupSec_MoveSpeed", 0, 35);
+    put("TechSliderEdit_EOAT_RotationSpeed", 0, 100);
+    put("SEdit_AGV_MoveSpeed", 0, 100);
+    put("SEdit_AGV_Angle", -25, 25);
+    put("TechSliderEdit_Robot_RobotSpeed", 0, 100);
+    return defaults;
+}
+
+QLineEdit *makeLimitEdit(QWidget *parent, const QString &style, FeatureSwitchWidget *host)
+{
+    QLineEdit *edit = new QLineEdit(parent);
+    edit->setFixedWidth(64);
+    edit->setStyleSheet(style);
+    edit->installEventFilter(host);
+    return edit;
+}
+} // namespace
+
+void FeatureSwitchWidget::setupTechSliderEditUI(QVBoxLayout *scrollLayout)
+{
+    const QString lineEditStyle =
+        QStringLiteral("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px;");
+
+    QGroupBox *group = new QGroupBox(QStringLiteral("TechSliderEdit 显示与范围"));
+    QVBoxLayout *layout = new QVBoxLayout(group);
+
+    QLabel *hint = new QLabel(
+        QStringLiteral("每行可设置是否显示及滑块两端显示范围（Min/Max）；LineEdit 输入范围与数值范围将自动与显示范围一致"));
+    hint->setWordWrap(true);
+    hint->setStyleSheet(QStringLiteral("color: #88ccff; font-size: 11px;"));
+    layout->addWidget(hint);
+
+    QHBoxLayout *toolbar = new QHBoxLayout();
+    QPushButton *showAll = new QPushButton(QStringLiteral("滑块全部显示"));
+    QPushButton *hideAll = new QPushButton(QStringLiteral("滑块全部隐藏"));
+    toolbar->addWidget(showAll);
+    toolbar->addWidget(hideAll);
+    toolbar->addStretch();
+    layout->addLayout(toolbar);
+
+    QScrollArea *scroll = new QScrollArea(group);
+    scroll->setWidgetResizable(true);
+    scroll->setMaximumHeight(220);
+    QWidget *listHost = new QWidget();
+    QVBoxLayout *listLayout = new QVBoxLayout(listHost);
+    listLayout->setContentsMargins(0, 0, 0, 0);
+
+    MainWindow *mainWindow = qobject_cast<MainWindow*>(parent());
+    QList<TechSliderEdit*> sliders;
+    if (mainWindow) {
+        sliders = mainWindow->findChildren<TechSliderEdit*>();
+    }
+    std::sort(sliders.begin(), sliders.end(), [](TechSliderEdit *a, TechSliderEdit *b) {
+        return a->objectName() < b->objectName();
+    });
+
+    if (sliders.isEmpty()) {
+        listLayout->addWidget(new QLabel(
+            QStringLiteral("未找到 TechSliderEdit（请确认主窗口已初始化）"), listHost));
+    } else {
+        for (TechSliderEdit *slider : sliders) {
+            const QString name = slider->objectName();
+            if (name.isEmpty()) {
+                continue;
+            }
+
+            QHBoxLayout *row = new QHBoxLayout();
+            QCheckBox *visibleCb = new QCheckBox(QStringLiteral("显示"), listHost);
+            visibleCb->setFixedWidth(56);
+
+            QString title = slider->labelText().trimmed();
+            if (title.isEmpty()) {
+                title = name;
+            }
+            QLabel *lbl = new QLabel(title, listHost);
+            lbl->setFixedWidth(120);
+            lbl->setToolTip(name);
+
+            QLineEdit *displayMin = makeLimitEdit(listHost, lineEditStyle, this);
+            QLineEdit *displayMax = makeLimitEdit(listHost, lineEditStyle, this);
+
+            row->addWidget(visibleCb);
+            row->addWidget(lbl);
+            row->addWidget(new QLabel(QStringLiteral("Min:"), listHost));
+            row->addWidget(displayMin);
+            row->addWidget(new QLabel(QStringLiteral("Max:"), listHost));
+            row->addWidget(displayMax);
+            row->addStretch();
+            listLayout->addLayout(row);
+
+            m_sliderEditEdits[name] = {visibleCb, displayMin, displayMax};
+        }
+    }
+
+    scroll->setWidget(listHost);
+    layout->addWidget(scroll);
+
+    connect(showAll, &QPushButton::clicked, this, [this]() {
+        for (auto it = m_sliderEditEdits.begin(); it != m_sliderEditEdits.end(); ++it) {
+            if (it->visible) {
+                it->visible->setChecked(true);
+            }
+        }
+    });
+    connect(hideAll, &QPushButton::clicked, this, [this]() {
+        for (auto it = m_sliderEditEdits.begin(); it != m_sliderEditEdits.end(); ++it) {
+            if (it->visible) {
+                it->visible->setChecked(false);
+            }
+        }
+    });
+
+    scrollLayout->addWidget(group);
+}
+
+void FeatureSwitchWidget::loadTechSliderEditState()
+{
+    const QMap<QString, SliderEditDefaults> builtinDefaults = builtinSliderEditDefaults();
+    MainWindow *mainWindow = qobject_cast<MainWindow*>(parent());
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+
+    settings.beginGroup(QStringLiteral("TechSliderEditLimits"));
+    for (auto it = m_sliderEditEdits.begin(); it != m_sliderEditEdits.end(); ++it) {
+        const QString &name = it.key();
+        SliderEditDefaults fallback = builtinDefaults.value(name, SliderEditDefaults());
+        if (TechSliderEdit *slider = mainWindow ? mainWindow->findChild<TechSliderEdit*>(name) : nullptr) {
+            fallback.displayMin = slider->displayRangeMinimum();
+            fallback.displayMax = slider->displayRangeMaximum();
+        }
+
+        const auto read = [&](const QString &suffix, double defaultVal) -> double {
+            const QString key = name + suffix;
+            return settings.contains(key) ? settings.value(key).toDouble() : defaultVal;
+        };
+
+        if (it->displayMinEdit) {
+            it->displayMinEdit->setText(QString::number(
+                read(QStringLiteral("_display_min"), read(QStringLiteral("_value_min"), fallback.displayMin))));
+        }
+        if (it->displayMaxEdit) {
+            it->displayMaxEdit->setText(QString::number(
+                read(QStringLiteral("_display_max"), read(QStringLiteral("_value_max"), fallback.displayMax))));
+        }
+    }
+    settings.endGroup();
+
+    settings.beginGroup(QStringLiteral("ButtonVisibility"));
+    for (auto it = m_sliderEditEdits.begin(); it != m_sliderEditEdits.end(); ++it) {
+        if (it->visible) {
+            it->visible->setChecked(settings.value(it.key(), true).toBool());
+        }
+    }
+    settings.endGroup();
+}
+
+void FeatureSwitchWidget::saveTechSliderEditState()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("TechSliderEditLimits"));
+
+    for (auto it = m_sliderEditEdits.begin(); it != m_sliderEditEdits.end(); ++it) {
+        const QString &name = it.key();
+        const SliderEditEdits &edits = it.value();
+        if (edits.displayMinEdit) {
+            settings.setValue(name + QStringLiteral("_display_min"), edits.displayMinEdit->text().toDouble());
+        }
+        if (edits.displayMaxEdit) {
+            settings.setValue(name + QStringLiteral("_display_max"), edits.displayMaxEdit->text().toDouble());
+        }
+    }
+    settings.endGroup();
+
+    settings.beginGroup(QStringLiteral("ButtonVisibility"));
+    for (auto it = m_sliderEditEdits.begin(); it != m_sliderEditEdits.end(); ++it) {
+        if (it->visible) {
+            settings.setValue(it.key(), it->visible->isChecked());
+        }
+    }
+    settings.endGroup();
+    settings.sync();
 }
 
 void FeatureSwitchWidget::setupInclinometerThresholdUI(QVBoxLayout *scrollLayout)
@@ -385,10 +652,11 @@ void FeatureSwitchWidget::setupInclinometerThresholdUI(QVBoxLayout *scrollLayout
 
 void FeatureSwitchWidget::setupButtonVisibilityUI(QVBoxLayout *scrollLayout)
 {
-    m_buttonVisibilityGroup = new QGroupBox("按钮可见性 (Button Visibility)");
+    m_buttonVisibilityGroup = new QGroupBox("Modbus 控件可见性 (Button / Slider / Gauge)");
     QVBoxLayout *btnLayout = new QVBoxLayout(m_buttonVisibilityGroup);
 
-    QLabel *hint = new QLabel("自动扫描主窗口内所有已命名按钮；新添加的按钮在下次打开本控制台时自动出现");
+    QLabel *hint = new QLabel(
+        QStringLiteral("自动扫描按钮、TechSliderLabel、转向模式等；TechArcGauge / TechSliderEdit 请在上方专用分组中配置"));
     hint->setWordWrap(true);
     hint->setStyleSheet("color: #88ccff; font-size: 11px;");
     btnLayout->addWidget(hint);
@@ -449,8 +717,16 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
     settings.beginGroup(QStringLiteral("ButtonVisibility"));
 
     MappingConfig *mapping = MappingConfig::instance();
+    int rowIndex = 0;
     for (int i = 0; i < buttons.size(); ++i) {
         const MainWindow::ControllableButtonInfo &info = buttons.at(i);
+        if (info.widgetKind == QStringLiteral("环形仪表")
+            || info.objectName.startsWith(QStringLiteral("robot_ArcGauge_"))
+            || info.widgetKind == QStringLiteral("滑块输入")
+            || info.objectName.startsWith(QStringLiteral("TechSliderEdit_"))
+            || info.objectName.startsWith(QStringLiteral("SEdit_"))) {
+            continue;
+        }
         const QString &objectName = info.objectName;
         QString visibleText = info.displayText;
         if (visibleText.isEmpty()) {
@@ -459,20 +735,22 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
                 visibleText = mapped;
             }
         }
+        const QString kind = info.widgetKind.isEmpty() ? QStringLiteral("控件") : info.widgetKind;
         const QString label = visibleText.isEmpty()
-            ? objectName
-            : QString("%1  [%2]").arg(visibleText, objectName);
+            ? QString("%1  [%2]").arg(kind, objectName)
+            : QString("%1  (%2)  [%3]").arg(visibleText, kind, objectName);
         QCheckBox *cb = new QCheckBox(label, m_buttonVisibilityListHost);
         cb->setChecked(settings.value(objectName, true).toBool());
-        m_buttonVisibilityGrid->addWidget(cb, i / 2, i % 2);
+        m_buttonVisibilityGrid->addWidget(cb, rowIndex / 2, rowIndex % 2);
         m_buttonVisibilityCheckboxes[objectName] = cb;
+        ++rowIndex;
     }
 
     settings.endGroup();
 
-    if (buttons.isEmpty()) {
+    if (rowIndex == 0) {
         m_buttonVisibilityGrid->addWidget(
-            new QLabel(QStringLiteral("未找到可配置的按钮（请确认主窗口已初始化且按钮已设置 objectName）"),
+            new QLabel(QStringLiteral("未找到可配置的 Modbus 控件（请确认主窗口已初始化且控件已设置 objectName）"),
                        m_buttonVisibilityListHost),
             0, 0);
     }
@@ -482,6 +760,8 @@ void FeatureSwitchWidget::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
     refreshButtonVisibilityList();
+    loadButtonVisibilityState();
+    loadTechSliderEditState();
 }
 
 void FeatureSwitchWidget::loadInclinometerThresholdState()
@@ -521,6 +801,11 @@ void FeatureSwitchWidget::loadButtonVisibilityState()
     for (auto it = m_buttonVisibilityCheckboxes.begin(); it != m_buttonVisibilityCheckboxes.end(); ++it) {
         it.value()->setChecked(settings.value(it.key(), true).toBool());
     }
+    for (auto it = m_arcGaugeEdits.begin(); it != m_arcGaugeEdits.end(); ++it) {
+        if (it->visible) {
+            it->visible->setChecked(settings.value(it.key(), true).toBool());
+        }
+    }
     settings.endGroup();
 }
 
@@ -530,6 +815,11 @@ void FeatureSwitchWidget::saveButtonVisibilityState()
     settings.beginGroup("ButtonVisibility");
     for (auto it = m_buttonVisibilityCheckboxes.begin(); it != m_buttonVisibilityCheckboxes.end(); ++it) {
         settings.setValue(it.key(), it.value()->isChecked());
+    }
+    for (auto it = m_arcGaugeEdits.begin(); it != m_arcGaugeEdits.end(); ++it) {
+        if (it->visible) {
+            settings.setValue(it.key(), it->visible->isChecked());
+        }
     }
     settings.endGroup();
     settings.sync();
@@ -592,20 +882,27 @@ void FeatureSwitchWidget::loadSliderLimitState()
 
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("SliderLabelLimits");
-    for (auto it = m_limitEdits.begin(); it != m_limitEdits.end(); ++it) {
-        QString keyMin = QString("%1_min").arg(it.key());
-        QString keyMax = QString("%1_max").arg(it.key());
 
-        const auto range = defaultRanges.value(it.key(), qMakePair(0.0, 100.0));
-
-        QVariant minVar = settings.value(keyMin);
-        QVariant maxVar = settings.value(keyMax);
-
+    const auto loadRangeEdits = [&](const QString &key, QLineEdit *minEdit, QLineEdit *maxEdit) {
+        if (!minEdit || !maxEdit) {
+            return;
+        }
+        const QString keyMin = QString("%1_min").arg(key);
+        const QString keyMax = QString("%1_max").arg(key);
+        const auto range = defaultRanges.value(key, qMakePair(0.0, 100.0));
+        const QVariant minVar = settings.value(keyMin);
+        const QVariant maxVar = settings.value(keyMax);
         const double minVal = minVar.isValid() ? minVar.toDouble() : range.first;
         const double maxVal = maxVar.isValid() ? maxVar.toDouble() : range.second;
-        
-        it.value().minEdit->setText(QString::number(minVal));
-        it.value().maxEdit->setText(QString::number(maxVal));
+        minEdit->setText(QString::number(minVal));
+        maxEdit->setText(QString::number(maxVal));
+    };
+
+    for (auto it = m_arcGaugeEdits.begin(); it != m_arcGaugeEdits.end(); ++it) {
+        loadRangeEdits(it.key(), it->minEdit, it->maxEdit);
+    }
+    for (auto it = m_limitEdits.begin(); it != m_limitEdits.end(); ++it) {
+        loadRangeEdits(it.key(), it.value().minEdit, it.value().maxEdit);
     }
     settings.endGroup();
 }
@@ -615,14 +912,19 @@ void FeatureSwitchWidget::saveSliderLimitState()
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("SliderLabelLimits");
 
-    for (auto it = m_limitEdits.begin(); it != m_limitEdits.end(); ++it) {
-        QString keyMin = QString("%1_min").arg(it.key());
-        QString keyMax = QString("%1_max").arg(it.key());
+    const auto saveRangeEdits = [&](const QString &key, QLineEdit *minEdit, QLineEdit *maxEdit) {
+        if (!minEdit || !maxEdit) {
+            return;
+        }
+        settings.setValue(QString("%1_min").arg(key), minEdit->text().toDouble());
+        settings.setValue(QString("%1_max").arg(key), maxEdit->text().toDouble());
+    };
 
-        const double minVal = it.value().minEdit->text().toDouble();
-        const double maxVal = it.value().maxEdit->text().toDouble();
-        settings.setValue(keyMin, minVal);
-        settings.setValue(keyMax, maxVal);
+    for (auto it = m_arcGaugeEdits.begin(); it != m_arcGaugeEdits.end(); ++it) {
+        saveRangeEdits(it.key(), it->minEdit, it->maxEdit);
+    }
+    for (auto it = m_limitEdits.begin(); it != m_limitEdits.end(); ++it) {
+        saveRangeEdits(it.key(), it.value().minEdit, it.value().maxEdit);
     }
     settings.endGroup();
     settings.sync();
@@ -643,6 +945,7 @@ void FeatureSwitchWidget::onApply()
     
     // 应用滑块限制配置
     saveSliderLimitState();
+    saveTechSliderEditState();
 
     saveInclinometerThresholdState();
 

@@ -388,6 +388,53 @@ void MainWindow::saveSliderLabelRuntimeSettings() const
     settings.sync();
 }
 
+void MainWindow::applySliderEditRuntimeSettings()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    const QList<TechSliderEdit*> sliders = findChildren<TechSliderEdit*>();
+
+    settings.beginGroup(QStringLiteral("TechSliderEditLimits"));
+    for (TechSliderEdit *slider : sliders) {
+        if (!slider) {
+            continue;
+        }
+        const QString name = slider->objectName();
+        if (name.isEmpty()) {
+            continue;
+        }
+
+        const auto readBound = [&](const QString &suffix, double fallback) -> double {
+            const QString key = name + suffix;
+            return settings.contains(key) ? settings.value(key).toDouble() : fallback;
+        };
+
+        const double displayMin = readBound(QStringLiteral("_display_min"),
+            readBound(QStringLiteral("_value_min"), slider->displayRangeMinimum()));
+        const double displayMax = readBound(QStringLiteral("_display_max"),
+            readBound(QStringLiteral("_value_max"), slider->displayRangeMaximum()));
+
+        if (displayMax > displayMin) {
+            slider->setDisplayRange(displayMin, displayMax);
+        }
+    }
+    settings.endGroup();
+
+    settings.beginGroup(QStringLiteral("ButtonVisibility"));
+    for (TechSliderEdit *slider : sliders) {
+        if (!slider) {
+            continue;
+        }
+        const QString name = slider->objectName();
+        if (name.isEmpty()) {
+            continue;
+        }
+        if (settings.contains(name)) {
+            slider->setVisible(settings.value(name, true).toBool());
+        }
+    }
+    settings.endGroup();
+}
+
 void MainWindow::applySliderLabelRuntimeSettings()
 {
     // 应用到所有缓存的实例
@@ -487,35 +534,74 @@ QString buttonDisplayText(const QAbstractButton *btn)
     }
     return {};
 }
+
+/** Modbus 写入时按 TechSliderEdit 当前显示/数值范围取整钳位，避免硬编码 0~100 等旧限制 */
+int clampTechSliderEditToInt(TechSliderEdit *slider, double value)
+{
+    if (!slider) {
+        return qRound(value);
+    }
+    const int lo = qRound(qMin(slider->minimum(), slider->maximum()));
+    const int hi = qRound(qMax(slider->minimum(), slider->maximum()));
+    return qBound(lo, qRound(value), hi);
+}
 } // namespace
 
 QList<MainWindow::ControllableButtonInfo> MainWindow::controllableButtons() const
 {
-    QMap<QString, QString> byObjectName;
+    struct Entry {
+        QString displayText;
+        QString widgetKind;
+    };
+    QMap<QString, Entry> byObjectName;
     const FeatureSwitchWidget *featureSwitch = findChild<FeatureSwitchWidget*>();
 
-    const QList<QAbstractButton*> buttons = findChildren<QAbstractButton*>();
-    for (const QAbstractButton *btn : buttons) {
-        if (!btn || btn->window() != this) {
-            continue;
+    const auto tryInsert = [&](const QWidget *widget, const QString &widgetKind) {
+        if (!widget || widget->window() != this) {
+            return;
         }
-        if (isDescendantOfWidget(btn, featureSwitch)) {
-            continue;
+        if (isDescendantOfWidget(widget, featureSwitch)) {
+            return;
         }
-        const QString objectName = btn->objectName();
+        const QString objectName = widget->objectName();
         if (objectName.isEmpty()) {
-            continue;
+            return;
         }
-        const QString displayText = buttonDisplayText(btn);
-        if (!byObjectName.contains(objectName) || byObjectName.value(objectName).isEmpty()) {
-            byObjectName.insert(objectName, displayText);
+
+        QString displayText;
+        if (const auto *btn = qobject_cast<const QAbstractButton*>(widget)) {
+            displayText = buttonDisplayText(btn);
+        } else if (const auto *sliderLabel = qobject_cast<const TechSliderLabel*>(widget)) {
+            displayText = sliderLabel->labelText().trimmed();
         }
+
+        auto it = byObjectName.find(objectName);
+        if (it == byObjectName.end()) {
+            byObjectName.insert(objectName, {displayText, widgetKind});
+            return;
+        }
+        if (it->displayText.isEmpty() && !displayText.isEmpty()) {
+            it->displayText = displayText;
+        }
+        if (it->widgetKind.isEmpty() && !widgetKind.isEmpty()) {
+            it->widgetKind = widgetKind;
+        }
+    };
+
+    for (const QAbstractButton *btn : findChildren<QAbstractButton*>()) {
+        tryInsert(btn, QStringLiteral("按钮"));
+    }
+    for (const TechSliderLabel *sliderLabel : findChildren<TechSliderLabel*>()) {
+        tryInsert(sliderLabel, QStringLiteral("滑块标签"));
+    }
+    if (const SteeringModeSelector *selector = findChild<SteeringModeSelector*>()) {
+        tryInsert(selector, QStringLiteral("转向模式"));
     }
 
     QList<ControllableButtonInfo> result;
     result.reserve(byObjectName.size());
     for (auto it = byObjectName.constBegin(); it != byObjectName.constEnd(); ++it) {
-        result.append({it.key(), it.value()});
+        result.append({it.key(), it.value().displayText, it.value().widgetKind});
     }
     std::sort(result.begin(), result.end(), [](const ControllableButtonInfo &a, const ControllableButtonInfo &b) {
         return a.objectName < b.objectName;
@@ -550,19 +636,38 @@ void MainWindow::applyButtonVisibilityRuntimeSettings()
 
     const FeatureSwitchWidget *featureSwitch = findChild<FeatureSwitchWidget*>();
 
-    const QList<QAbstractButton*> buttons = findChildren<QAbstractButton*>();
-    for (QAbstractButton *btn : buttons) {
-        if (!btn || btn->window() != this) {
-            continue;
+    const auto applyIfControllable = [&](QWidget *widget) {
+        if (!widget || widget->window() != this) {
+            return;
         }
-        if (isDescendantOfWidget(btn, featureSwitch)) {
-            continue;
+        if (isDescendantOfWidget(widget, featureSwitch)) {
+            return;
         }
-        const QString objectName = btn->objectName();
+        const QString objectName = widget->objectName();
         if (objectName.isEmpty()) {
-            continue;
+            return;
         }
-        btn->setVisible(settings.value(objectName, true).toBool());
+        const bool isTarget = qobject_cast<QAbstractButton*>(widget)
+            || qobject_cast<TechSliderLabel*>(widget)
+            || qobject_cast<TechArcGauge*>(widget)
+            || qobject_cast<SteeringModeSelector*>(widget);
+        if (!isTarget) {
+            return;
+        }
+        widget->setVisible(settings.value(objectName, true).toBool());
+    };
+
+    for (QAbstractButton *btn : findChildren<QAbstractButton*>()) {
+        applyIfControllable(btn);
+    }
+    for (TechSliderLabel *sliderLabel : findChildren<TechSliderLabel*>()) {
+        applyIfControllable(sliderLabel);
+    }
+    for (TechArcGauge *gauge : findChildren<TechArcGauge*>()) {
+        applyIfControllable(gauge);
+    }
+    if (SteeringModeSelector *selector = findChild<SteeringModeSelector*>()) {
+        applyIfControllable(selector);
     }
 
     settings.endGroup();
@@ -1740,12 +1845,12 @@ void MainWindow::initSliderEditUI()
         robotSpeedSlider->setPrecision(0);
 
         connect(robotSpeedSlider, &TechSliderEdit::valueChangedWithRecord,
-                this, [this](double /*oldValue*/, double newValue) {
-                    const double speedPercent = qBound(0.0, newValue, 100.0);
-                    const int speedValue = qBound(0, static_cast<int>(qRound(speedPercent)), 100);
+                this, [this, robotSpeedSlider](double /*oldValue*/, double newValue) {
+                    const int speedValue = clampTechSliderEditToInt(robotSpeedSlider, newValue);
                     writeToMainDevice(5001, speedValue);
 
-                    qCDebug(lcMainWindow) << "RobotSpeed(%)直写地址5001, 值:" << speedValue;
+                    qCDebug(lcMainWindow) << "RobotSpeed(%)直写地址5001, 值:" << speedValue
+                             << "范围:" << robotSpeedSlider->minimum() << "~" << robotSpeedSlider->maximum();
                 });
     } else {
         qWarning() << "未找到控件: TechSliderEdit_Robot_RobotSpeed";
@@ -2719,6 +2824,7 @@ void MainWindow::setupAdminPasswordPage()
                     applyPollingRuntimeSettings();
                     loadSliderLabelRuntimeSettings();
                     applySliderLabelRuntimeSettings();
+                    applySliderEditRuntimeSettings();
                     applyParkOutTriggerLengthRuntimeSettings();
                     applyInclinometerDisplayRuntimeSettings();
                     applyButtonVisibilityRuntimeSettings();
@@ -6793,18 +6899,15 @@ void MainWindow::setupAGVMoveSpeedControl()
 
     m_editAGV_MoveSpeed = findChild<TechSliderEdit*>("SEdit_AGV_MoveSpeed");
     if (m_editAGV_MoveSpeed) {
-        // 设置参数 - 值域 0-100 mm/s
         m_editAGV_MoveSpeed->setLabelText("全向平台速度");
-        m_editAGV_MoveSpeed->setRange(0, 100);
-        m_editAGV_MoveSpeed->setValue(0);
         m_editAGV_MoveSpeed->setSuffix("mm/s");
         m_editAGV_MoveSpeed->setPrecision(0);
 
-        // 连接值变化信号
         connect(m_editAGV_MoveSpeed, &TechSliderEdit::valueChanged,
                 this, &MainWindow::onAGVMoveSpeedChanged);
 
-        qCDebug(lcMainWindow) << "AGV运动速度控件初始化完成，范围:0-100，初始值:0";
+        qCDebug(lcMainWindow) << "AGV运动速度控件初始化完成，范围:"
+             << m_editAGV_MoveSpeed->minimum() << "~" << m_editAGV_MoveSpeed->maximum();
     } else {
         qWarning() << "未找到SEdit_AGV_MoveSpeed控件";
     }
@@ -6820,19 +6923,16 @@ void MainWindow::setupAGVAngleControl()
 
     m_editAGV_Angle = findChild<TechSliderEdit*>("SEdit_AGV_Angle");
     if (m_editAGV_Angle) {
-        // 设置参数
         m_editAGV_Angle->setLabelText("底盘当前角度");
-        m_editAGV_Angle->setRange(-25, 25);
-        m_editAGV_Angle->setValue(0);
         m_editAGV_Angle->setSuffix("°");
-        m_editAGV_Angle->setPrecision(0);  // 改为0，只显示整数
-        m_editAGV_Angle->setPresetButtonsVisible(false); // 禁用预设按钮
+        m_editAGV_Angle->setPrecision(0);
+        m_editAGV_Angle->setPresetButtonsVisible(false);
 
-        // 连接值变化信号
         connect(m_editAGV_Angle, &TechSliderEdit::valueChanged,
                 this, &MainWindow::onAGVAngleChanged);
 
-        qCDebug(lcMainWindow) << "AGV转向角度控件初始化完成，范围:-25-25，初始值:0，精度:整数";
+        qCDebug(lcMainWindow) << "AGV转向角度控件初始化完成，范围:"
+             << m_editAGV_Angle->minimum() << "~" << m_editAGV_Angle->maximum();
     } else {
         qWarning() << "未找到SEdit_AGV_Angle控件";
     }
@@ -7152,7 +7252,7 @@ void MainWindow::onAGVParkBtnClicked()
 // AGV运动速度变化槽函数
 void MainWindow::onAGVMoveSpeedChanged(double value)
 {
-    const int intValue = qBound(0, static_cast<int>(qRound(value)), 100);
+    const int intValue = clampTechSliderEditToInt(m_editAGV_MoveSpeed, value);
 
     // 按需求直接写入地址3（单位:mm/s）
     // 速度控件在遥控器控制下也允许直接下发，不触发无线模式门禁弹窗。
@@ -7163,7 +7263,7 @@ void MainWindow::onAGVMoveSpeedChanged(double value)
 // AGV转向角度变化槽函数
 void MainWindow::onAGVAngleChanged(double value)
 {
-    const qint16 signedValue = static_cast<qint16>(qBound(-25, static_cast<int>(qRound(value)), 25));
+    const qint16 signedValue = static_cast<qint16>(clampTechSliderEditToInt(m_editAGV_Angle, value));
     const quint16 rawUintValue = static_cast<quint16>(signedValue);
 
     // 地址4为UINT寄存器：通过qint16->quint16显式转换，负数按16位补码发送。

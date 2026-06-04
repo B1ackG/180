@@ -40,6 +40,9 @@ private:
     void loadCurrentState();
     void setupPollingUI(QVBoxLayout *scrollLayout);
     void setupSliderLimitUI(QVBoxLayout *scrollLayout);
+    void setupTechSliderEditUI(QVBoxLayout *scrollLayout);
+    void loadTechSliderEditState();
+    void saveTechSliderEditState();
     void setupInclinometerThresholdUI(QVBoxLayout *scrollLayout);
     void setupButtonVisibilityUI(QVBoxLayout *scrollLayout);
     void refreshButtonVisibilityList();
@@ -69,7 +72,22 @@ private:
     QLineEdit *m_editTeachingWriteDeviceId;
     QCheckBox *m_cbUiStateSync;
 
-    // SliderLabel 限制输入框: key -> [minEdit, maxEdit]
+    /** TechArcGauge：显示开关 + 最小/最大范围 */
+    struct ArcGaugeEdits {
+        QCheckBox *visible = nullptr;
+        QLineEdit *minEdit = nullptr;
+        QLineEdit *maxEdit = nullptr;
+    };
+    QMap<QString, ArcGaugeEdits> m_arcGaugeEdits;
+
+    struct SliderEditEdits {
+        QCheckBox *visible = nullptr;
+        QLineEdit *displayMinEdit = nullptr;
+        QLineEdit *displayMaxEdit = nullptr;
+    };
+    QMap<QString, SliderEditEdits> m_sliderEditEdits;
+
+    /** 非环形仪表的参数范围（如驻车伸出触发长度） */
     struct LimitEdits {
         QLineEdit *minEdit;
         QLineEdit *maxEdit;

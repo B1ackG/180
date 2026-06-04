@@ -2,13 +2,17 @@
 #include <QDebug>
 #include <QLabel>
 #include <QIntValidator>
-#include <QRegularExpressionValidator>
+#include <QDoubleValidator>
 
 TechSliderEdit::TechSliderEdit(QWidget *parent)
     : QWidget{parent}, m_value(50.0)
     , m_oldValue(50.0)
     , m_minimum(0.0)
     , m_maximum(100.0)
+    , m_displayMinimum(0.0)
+    , m_displayMaximum(100.0)
+    , m_lineEditInputMinimum(0.0)
+    , m_lineEditInputMaximum(100.0)
     , m_singleStep(1.0)
     , m_precision(0)
     , m_suffix("")
@@ -169,9 +173,8 @@ void TechSliderEdit::setupConnections()
 
 void TechSliderEdit::updateRangeLabels()
 {
-    // 格式化数值显示
-    QString minText = QString::number(m_minimum, 'f', m_precision);
-    QString maxText = QString::number(m_maximum, 'f', m_precision);
+    QString minText = QString::number(m_displayMinimum, 'f', m_precision);
+    QString maxText = QString::number(m_displayMaximum, 'f', m_precision);
 
     // 如果有后缀，添加后缀
     if (!m_suffix.isEmpty()) {
@@ -308,7 +311,8 @@ void TechSliderEdit::onLineEditEditingFinished()
     double newValue = text.toDouble(&ok);
 
     if (ok) {
-        // 限制在范围内
+        if (newValue < m_lineEditInputMinimum) newValue = m_lineEditInputMinimum;
+        if (newValue > m_lineEditInputMaximum) newValue = m_lineEditInputMaximum;
         if (newValue < m_minimum) newValue = m_minimum;
         if (newValue > m_maximum) newValue = m_maximum;
         if (qAbs(newValue - m_value) > 0.0001) {
@@ -376,15 +380,14 @@ void TechSliderEdit::onSliderValueChanged(int sliderValue)
 
 void TechSliderEdit::updateLineEditValidator()
 {
-    // 根据精度设置验证器
     if (m_precision == 0) {
-        // 整数
-        m_lineEdit->setValidator(new QIntValidator(m_minimum, m_maximum, this));
+        const int lo = qRound(m_lineEditInputMinimum);
+        const int hi = qRound(m_lineEditInputMaximum);
+        m_lineEdit->setValidator(new QIntValidator(qMin(lo, hi), qMax(lo, hi), this));
     } else {
-        // 小数
-        QString pattern = QString("^-?\\d*\\.?\\d{0,%1}$").arg(m_precision);
-        m_lineEdit->setValidator(new QRegularExpressionValidator(
-            QRegularExpression(pattern), this));
+        auto *validator = new QDoubleValidator(m_lineEditInputMinimum, m_lineEditInputMaximum, m_precision, this);
+        validator->setNotation(QDoubleValidator::StandardNotation);
+        m_lineEdit->setValidator(validator);
     }
 }
 
@@ -501,12 +504,51 @@ void TechSliderEdit::setPrecision(int precision)
 
 void TechSliderEdit::setRange(double min, double max)
 {
+    if (min >= max) {
+        return;
+    }
     m_minimum = min;
     m_maximum = max;
+    m_displayMinimum = min;
+    m_displayMaximum = max;
+    m_lineEditInputMinimum = min;
+    m_lineEditInputMaximum = max;
     if (m_value < min) setValue(min);
     if (m_value > max) setValue(max);
     updateLineEditValidator();
-    updateRangeLabels();  // 新增：更新标签显示
+    updateRangeLabels();
+    updateSliderFromValue();
+}
+
+void TechSliderEdit::setDisplayRange(double min, double max)
+{
+    if (min >= max) {
+        return;
+    }
+    m_displayMinimum = min;
+    m_displayMaximum = max;
+    m_minimum = min;
+    m_maximum = max;
+    m_lineEditInputMinimum = min;
+    m_lineEditInputMaximum = max;
+    if (m_value < min) {
+        setValue(min);
+    } else if (m_value > max) {
+        setValue(max);
+    }
+    updateLineEditValidator();
+    updateRangeLabels();
+    updateSliderFromValue();
+}
+
+void TechSliderEdit::setLineEditInputRange(double min, double max)
+{
+    if (min >= max) {
+        return;
+    }
+    m_lineEditInputMinimum = min;
+    m_lineEditInputMaximum = max;
+    updateLineEditValidator();
 }
 
 void TechSliderEdit::setSingleStep(double step)
