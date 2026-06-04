@@ -1,9 +1,0 @@
-<map id="OperationRecorder::onReconnectTimeout" name="OperationRecorder::onReconnectTimeout">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,165,77"/>
-<area shape="rect" id="Node000002" href="$classOperationRecorder.html#a20308fd183b5b0dbe00ce89fcc0b823e" title=" " alt="" coords="213,37,365,77"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,55,200,55,200,60,166,60"/>
-<area shape="rect" id="Node000003" href="$classOperationRecorder.html#a60e73780538b8376d7e68e9cc09fe5a9" title=" " alt="" coords="421,5,580,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="365,43,407,37,408,42,366,49"/>
-<area shape="rect" id="Node000004" href="$classOperationRecorder.html#a37d0a54d4ebddd9ad4c248331f70a0e3" title=" " alt="" coords="413,69,588,109"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="366,66,400,71,399,77,365,71"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="MainWindow::currentSteeringModeText" name="MainWindow::currentSteeringModeText">
-<area shape="rect" id="Node000001" title="获取当前转向模式文本（用于记录）" alt="" coords="5,5,219,45"/>
-<area shape="rect" id="Node000002" href="$classSteeringModeSelector.html#a54ef17787394152a826937f0c020174d" title="功能: 根据模式枚举返回可显示的文本描述。 如何使用: 在 UI 上显示模式名称或提示文案时调用。 如何修改: 若需多语言支持，可集成翻译系统。" alt="" coords="267,5,432,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,23,253,23,253,28,219,28"/>
-</map>

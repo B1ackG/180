@@ -1,5 +1,0 @@
-<map id="TechVirtualKeyboard::setInitialText" name="TechVirtualKeyboard::setInitialText">
-<area shape="rect" id="Node000001" title="功能: 设置键盘初始显示的文本（例如用于编辑已有内容）。 如何使用: 在 showAtWidget 之前或之后调用以预填充文本。 如何修改: 若需支持光标位置或选中文本，请扩展为设置光标位置的接口。" alt="" coords="5,5,160,45"/>
-<area shape="rect" id="Node000002" href="$classTechVirtualKeyboard.html#adec0f0732c34875b1ece631d5011d732" title=" " alt="" coords="208,5,363,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,23,194,23,194,28,160,28"/>
-</map>

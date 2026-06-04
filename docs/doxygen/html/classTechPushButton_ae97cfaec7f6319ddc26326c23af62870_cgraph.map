@@ -1,7 +1,0 @@
-<map id="TechPushButton::enablePulseEffect" name="TechPushButton::enablePulseEffect">
-<area shape="rect" id="Node000001" title="启用/禁用脉冲效果" alt="" coords="5,23,217,63"/>
-<area shape="rect" id="Node000002" href="$classTechPushButton.html#a18b11452ed8913fd1174407fc0aae6ab" title="开始脉冲动画" alt="" coords="265,5,464,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,30,252,27,252,32,218,35"/>
-<area shape="rect" id="Node000003" href="$classTechPushButton.html#a1992e0832de45ad00c35a4a269e02fdb" title="停止脉冲动画" alt="" coords="267,55,463,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="218,51,253,54,253,59,217,56"/>
-</map>

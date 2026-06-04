@@ -1,5 +1,0 @@
-<map id="ModbusThreadManager::setAutoReconnect" name="ModbusThreadManager::setAutoReconnect">
-<area shape="rect" id="Node000001" title="启用/禁用自动重连" alt="" coords="5,5,180,45"/>
-<area shape="rect" id="Node000002" href="$classModbusTCPClient.html#a90ca9cb72ad7e275b3f2cdf5d8e0b128" title="使用示例:" alt="" coords="228,5,421,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,23,214,23,214,28,180,28"/>
-</map>

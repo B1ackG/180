@@ -1,9 +1,0 @@
-<map id="mappingconfig.h" name="mappingconfig.h">
-<area shape="rect" id="Node000001" title="映射配置相关的声明，用于键位/动作与内部控制信号的映射定义。" alt="" coords="72,5,203,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,80,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,33,71,72,68,68,121,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="105,79,170,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="140,31,140,65,135,65,135,31"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="194,79,265,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="154,29,205,68,202,72,150,33"/>
-</map>

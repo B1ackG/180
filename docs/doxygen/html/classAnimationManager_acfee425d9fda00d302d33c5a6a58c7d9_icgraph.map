@@ -1,7 +1,0 @@
-<map id="AnimationManager::unregisterWidget" name="AnimationManager::unregisterWidget">
-<area shape="rect" id="Node000001" title="功能: 注销已注册的控件，停止对其的动画更新。 如何使用: 在控件销毁或不再需要动画时调用以避免悬挂指针。 如何修改: 若使用弱引用，则可在内部自动回收，此处可简化为可选操作。" alt="" coords="228,37,448,77"/>
-<area shape="rect" id="Node000002" href="$classTechVirtualKeyboard.html#a2f4291bf468a6da6b9ed4359e8a0bdaf" title=" " alt="" coords="15,5,170,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,44,170,38,171,33,215,39"/>
-<area shape="rect" id="Node000003" href="$classTechVirtualKeyboard.html#a67405bef7f8750024d8c681d126e13a9" title="功能: 析构函数，释放动画与定时器等资源。 如何使用: 由 Qt 自动销毁或手动 delete。 如何修改: 若增加外部资源，请在析构中一并清理。" alt="" coords="5,69,180,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="215,76,180,81,180,75,214,71"/>
-</map>

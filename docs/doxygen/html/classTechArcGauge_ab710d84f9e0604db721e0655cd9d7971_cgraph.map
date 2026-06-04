@@ -1,7 +1,0 @@
-<map id="TechArcGauge::setSecondValue" name="TechArcGauge::setSecondValue">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,231,60"/>
-<area shape="rect" id="Node000002" href="$classTechArcGauge.html#a1909632da5478afcb36db534d575407b" title=" " alt="" coords="279,5,500,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,32,265,29,265,34,231,38"/>
-<area shape="rect" id="Node000003" href="$classTechArcGauge.html#a981d9e53252fa9ca33aa472a89ffb4e1" title=" " alt="" coords="287,55,491,95"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="231,56,274,61,273,66,231,62"/>
-</map>

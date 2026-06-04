@@ -1,7 +1,0 @@
-<map id="FeatureSwitchManager::isFeatureEnabled" name="FeatureSwitchManager::isFeatureEnabled">
-<area shape="rect" id="Node000001" title="组合检查：先检查所属大功能，再检查小功能（若提供）" alt="" coords="5,37,176,77"/>
-<area shape="rect" id="Node000002" href="$classFeatureSwitchManager.html#aa558b5e5c8c59422920a0006cc304f0e" title="检查某个大功能是否可用" alt="" coords="228,5,399,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,42,214,37,215,42,177,48"/>
-<area shape="rect" id="Node000003" href="$classFeatureSwitchManager.html#a34a3f96557e81a21f547065c8ce2608b" title="检查某个小功能是否可用" alt="" coords="224,69,403,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="177,67,211,72,210,77,176,72"/>
-</map>

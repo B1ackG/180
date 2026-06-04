@@ -1,7 +1,0 @@
-<map id="TechVirtualKeyboard::onEnterClicked" name="TechVirtualKeyboard::onEnterClicked">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,160,77"/>
-<area shape="rect" id="Node000002" href="$classTechVirtualKeyboard.html#a7408978b88d0d6fd95838fc32ba3e665" title=" " alt="" coords="208,5,389,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,43,194,38,195,43,161,49"/>
-<area shape="rect" id="Node000003" href="$classTechVirtualKeyboard.html#a44bc11e6411df3a5b2325a2dcba2e31d" title="输入确认信号" alt="" coords="221,69,376,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="161,66,208,73,207,78,160,71"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="EightyAgvApp::connectToAgv" name="EightyAgvApp::connectToAgv">
-<area shape="rect" id="Node000001" title="连接到 AGV 设备。" alt="" coords="5,5,216,31"/>
-<area shape="rect" id="Node000002" href="$classIModbusClient.html#a49a3119b3a98f434a81febae517b36ba" title="连接到指定 Modbus 主机。" alt="" coords="264,5,452,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,15,250,15,250,21,216,21"/>
-</map>

@@ -1,7 +1,0 @@
-<map id="IModbusClient::isConnected" name="IModbusClient::isConnected">
-<area shape="rect" id="Node000001" title="查询连接状态。" alt="" coords="280,31,483,56"/>
-<area shape="rect" id="Node000002" href="$classEightyAgvApp.html#a453b02994567a812efe3770c585e07f8" title="查询 AGV 是否已连接。" alt="" coords="5,5,232,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="266,35,232,32,232,26,267,30"/>
-<area shape="rect" id="Node000003" href="$classEightyAgvApp.html#a4bbd89c69a4c02c05fb9423cbe9133a5" title="发送点动请求。" alt="" coords="23,55,214,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="267,56,214,61,214,56,266,51"/>
-</map>

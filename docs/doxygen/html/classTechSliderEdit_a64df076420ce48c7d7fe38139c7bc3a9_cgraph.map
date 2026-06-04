@@ -1,9 +1,0 @@
-<map id="TechSliderEdit::updateFromModbus" name="TechSliderEdit::updateFromModbus">
-<area shape="rect" id="Node000001" title="由 Modbus 数据更新控件显示值" alt="" coords="5,37,204,77"/>
-<area shape="rect" id="Node000002" href="$classTechSliderEdit.html#aa425cc8db65cc17257f75061a8037831" title=" " alt="" coords="257,5,450,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,42,243,37,243,42,205,47"/>
-<area shape="rect" id="Node000003" href="$classTechSliderEdit.html#ac30ed3fce4100e4a54dee578d8d79fa2" title=" " alt="" coords="252,69,455,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="205,67,239,72,238,77,204,73"/>
-<area shape="rect" id="Node000004" href="$classTechSliderEdit.html#a1dfbc69ff00d41c39012cb4c39162b1b" title=" " alt="" coords="503,77,711,102"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="455,87,489,87,489,92,455,92"/>
-</map>

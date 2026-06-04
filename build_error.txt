@@ -1,9 +1,0 @@
-g++ -c -pipe -O2 -std=gnu++1z -D_REENTRANT -Wall -Wextra -fPIC -DQT_NO_DEBUG -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_CORE_LIB -I. -I/usr/include/x86_64-linux-gnu/qt5 -I/usr/include/x86_64-linux-gnu/qt5/QtWidgets -I/usr/include/x86_64-linux-gnu/qt5/QtGui -I/usr/include/x86_64-linux-gnu/qt5/QtNetwork -I/usr/include/x86_64-linux-gnu/qt5/QtCore -I. -I. -I/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++ -o main.o main.cpp
-In file included from main.cpp:2:
-mainwindow.h:395:10: error: ‘void MainWindow::setupThreadMonitorUI()’ cannot be overloaded with ‘void MainWindow::setupThreadMonitorUI()’
-  395 |     void setupThreadMonitorUI();
-      |          ^~~~~~~~~~~~~~~~~~~~
-mainwindow.h:153:10: note: previous declaration ‘void MainWindow::setupThreadMonitorUI()’
-  153 |     void setupThreadMonitorUI();
-      |          ^~~~~~~~~~~~~~~~~~~~
-make: *** [Makefile:4317：main.o] 错误 1

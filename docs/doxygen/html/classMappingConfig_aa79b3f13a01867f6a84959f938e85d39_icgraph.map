@@ -1,5 +1,0 @@
-<map id="MappingConfig::initDefaultMappings" name="MappingConfig::initDefaultMappings">
-<area shape="rect" id="Node000001" title="功能: 初始化默认映射（内置键值对）。 如何使用: 在应用启动时调用以填充默认映射表，随后可被 add* 方法覆盖。 如何修改: 将默认映射提取到配置文件以便维护，或添加多语言支持。" alt="" coords="277,5,473,45"/>
-<area shape="rect" id="Node000002" href="$classMappingConfig.html#af27e47669a4c2fcc5c7fe7b312d79f88" title="功能: 构造函数，初始化映射表。 如何使用: 通常通过单例 instance() 获取对象，不直接 new（但也支持显式创建）。 如何修改: 若需从文件或外部资源加载映射，可在构造中或单独初始化方法中添..." alt="" coords="5,13,229,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="264,28,230,28,230,23,264,23"/>
-</map>

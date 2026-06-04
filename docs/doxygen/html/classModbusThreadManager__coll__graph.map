@@ -1,8 +1,0 @@
-<map id="ModbusThreadManager" name="ModbusThreadManager">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,168,180,193"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="50,5,125,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,44,95,168,90,168,86,45"/>
-<area shape="rect" id="Node000003" href="$classModbusTCPClient.html" title=" " alt="" coords="109,80,244,105"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="114,37,164,77,160,82,111,42"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,117,106,169,102,166,154,113"/>
-</map>

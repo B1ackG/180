@@ -1,9 +1,0 @@
-<map id="TechSliderLabel::modbusAddressChanged" name="TechSliderLabel::modbusAddressChanged">
-<area shape="rect" id="Node000001" title=" " alt="" coords="764,5,999,45"/>
-<area shape="rect" id="Node000002" href="$classTechSliderLabel.html#a6fd400c3475635b65ea416a326440c58" title=" " alt="" coords="513,5,716,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="750,28,716,28,716,23,750,23"/>
-<area shape="rect" id="Node000003" href="$classModbusThreadManager.html#a7dedc2e37e8c0d51cc7998de91a616b0" title="将 TechSliderLabel 与寄存器地址关联（只读显示）" alt="" coords="291,5,465,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="500,28,465,28,465,23,500,23"/>
-<area shape="rect" id="Node000004" href="$classMainWindow.html#a2d8866ff8595174f34e112b39799c95c" title="为滑块标签分配 Modbus 地址" alt="" coords="5,5,243,45"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="277,28,243,28,243,23,277,23"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="TechVirtualKeyboard::showAtWidget" name="TechVirtualKeyboard::showAtWidget">
-<area shape="rect" id="Node000001" title="功能: 在指定的目标控件下方显示并定位虚拟键盘（自动处理屏幕边界）。 如何使用: 调用 showAtWidget(targetWidget) 来弹出键盘并定位。 如何修改: 若需要自定义定位策略，可在实..." alt="" coords="5,5,160,45"/>
-<area shape="rect" id="Node000002" href="$classTechVirtualKeyboard.html#adec0f0732c34875b1ece631d5011d732" title=" " alt="" coords="208,5,363,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,23,194,23,194,28,160,28"/>
-</map>

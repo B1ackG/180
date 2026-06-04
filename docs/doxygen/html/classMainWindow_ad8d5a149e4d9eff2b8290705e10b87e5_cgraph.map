@@ -1,7 +1,0 @@
-<map id="MainWindow::onClearRecords" name="MainWindow::onClearRecords">
-<area shape="rect" id="Node000001" title="清除记录" alt="" coords="5,13,220,38"/>
-<area shape="rect" id="Node000002" href="$classOperationRecorder.html#a5eccce2198b05689ee9ac29b44d7316c" title="清空所有记录" alt="" coords="268,5,420,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,23,254,23,254,28,220,28"/>
-<area shape="rect" id="Node000003" href="$classOperationRecorder.html#ad370803f634605addeb2318798032acc" title=" " alt="" coords="468,5,620,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="420,23,454,23,454,28,420,28"/>
-</map>

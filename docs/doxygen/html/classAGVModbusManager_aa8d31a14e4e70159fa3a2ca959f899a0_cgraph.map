@@ -1,9 +1,0 @@
-<map id="AGVModbusManager::updateFaultCodesDisplay" name="AGVModbusManager::updateFaultCodesDisplay">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,69,216,109"/>
-<area shape="rect" id="Node000002" href="$classAGVModbusManager.html#a6adec0d37945bf256b7c55249a5b1328" title=" " alt="" coords="268,5,489,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,67,281,46,282,51,196,72"/>
-<area shape="rect" id="Node000003" href="$classAGVModbusManager.html#a6fa5f7825d2c268735182edf7a3ca50f" title=" " alt="" coords="264,69,493,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="216,87,250,87,250,92,216,92"/>
-<area shape="rect" id="Node000004" href="$classAGVModbusManager.html#a45f7ab48f6a5d1531de6110fc51104d6" title=" " alt="" coords="269,133,489,173"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="196,107,282,128,281,133,195,112"/>
-</map>

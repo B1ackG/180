@@ -1,5 +1,0 @@
-<map id="MatrixKeyMonitor::runEventLoop" name="MatrixKeyMonitor::runEventLoop">
-<area shape="rect" id="Node000001" title="运行事件循环（阻塞式），通常在独立线程中使用" alt="" coords="5,13,240,38"/>
-<area shape="rect" id="Node000002" href="$classMatrixKeyMonitor.html#a4013d8ed00d784298add24595f01280f" title="状态变化（运行/停止）" alt="" coords="288,5,475,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="240,23,274,23,274,28,240,28"/>
-</map>

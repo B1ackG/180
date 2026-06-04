@@ -1,5 +1,0 @@
-<map id="ModbusThreadManager::isConnected" name="ModbusThreadManager::isConnected">
-<area shape="rect" id="Node000001" title="查询连接状态" alt="" coords="5,5,180,45"/>
-<area shape="rect" id="Node000002" href="$classModbusTCPClient.html#ac0eb40bf43e015281059b0144a928675" title="查询连接状态" alt="" coords="228,13,451,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,23,214,23,214,28,180,28"/>
-</map>

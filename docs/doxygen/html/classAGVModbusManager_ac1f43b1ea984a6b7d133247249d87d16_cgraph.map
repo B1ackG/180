@@ -1,7 +1,0 @@
-<map id="AGVModbusManager::onDisconnected" name="AGVModbusManager::onDisconnected">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,276,60"/>
-<area shape="rect" id="Node000002" href="$classAGVModbusManager.html#ac8010d1accdec2616c993f0f2be93aca" title=" " alt="" coords="324,5,576,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="274,32,310,29,311,34,275,37"/>
-<area shape="rect" id="Node000003" href="$classAGVModbusManager.html#a18916f7c0ab0603ee4b10bdd431c4730" title=" " alt="" coords="345,55,555,95"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="276,57,331,62,331,67,276,62"/>
-</map>

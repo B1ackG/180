@@ -1,7 +1,0 @@
-<map id="AGVModbusManager::readMultipleRegisters" name="AGVModbusManager::readMultipleRegisters">
-<area shape="rect" id="Node000001" title="功能: 读取一段寄存器并触发相应的处理与信号。 如何使用: 提供起始地址与数量以批量获取数据。 如何修改: 对大数量读取请分片或增加并发控制以兼容设备限制。" alt="" coords="5,35,253,75"/>
-<area shape="rect" id="Node000002" href="$classAGVModbusManager.html#ae27c44191aeb772c2f3cc29d2a45b9d6" title=" " alt="" coords="321,5,528,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="253,40,307,34,308,40,254,45"/>
-<area shape="rect" id="Node000003" href="$classAGVModbusManager.html#a1e0321a0cc3e28ba495cabbc83b193d4" title="功能: 返回当前网络连接状态。 如何使用: 用于 UI 指示或决定是否发起读写操作。 如何修改: 若支持多设备，应提供设备级别的状态查询接口。" alt="" coords="301,70,548,95"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="254,64,288,67,288,72,253,69"/>
-</map>

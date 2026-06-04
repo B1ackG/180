@@ -1,7 +1,0 @@
-<map id="ModbusVariables::addVariable" name="ModbusVariables::addVariable">
-<area shape="rect" id="Node000001" title=" " alt="" coords="548,13,767,38"/>
-<area shape="rect" id="Node000002" href="$classModbusVariables.html#a0325a1b230238f402bfcb8d270b614c2" title="使用示例:" alt="" coords="305,5,500,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="534,28,500,28,500,23,534,23"/>
-<area shape="rect" id="Node000003" href="$classModbusVariables.html#afd57f2ae38bffd7d1abb97731171c302" title="功能: 构造 ModbusVariables 实例并初始化变量表。 如何使用: 在程序启动或配置加载时创建该对象以管理变量映射。 如何修改: 若需支持多源变量表，可在构造中注入数据源或添加加载接口。" alt="" coords="5,13,257,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="292,28,258,28,258,23,292,23"/>
-</map>

@@ -1,6 +1,0 @@
-<map id="MainWindow::readBigForceRegisters" name="MainWindow::readBigForceRegisters">
-<area shape="rect" id="Node000001" title="读取大力值寄存器" alt="" coords="259,29,457,69"/>
-<area shape="rect" id="Node000002" href="$classMainWindow.html#a32f2f4cccd23a61aa2ca46759fec27a9" title="配置大量程力读取" alt="" coords="5,29,211,69"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="245,52,211,52,211,47,245,47"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="150,18,135,11,108,8,84,10,70,15,64,21,67,28,62,30,59,20,67,10,83,5,108,3,137,6,153,13"/>
-</map>

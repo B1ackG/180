@@ -1,5 +1,0 @@
-<map id="AGVModbusManager::~AGVModbusManager" name="AGVModbusManager::~AGVModbusManager">
-<area shape="rect" id="Node000001" title="功能: 析构函数，清理 socket、线程和计时器等资源。 如何使用: 由 Qt 对象树自动销毁或手动 delete。 如何修改: 增加资源时在析构中同步释放并确保线程安全。" alt="" coords="5,5,175,45"/>
-<area shape="rect" id="Node000002" href="$classAGVModbusManager.html#aa602a9b4c7c2c731bad14e4435f941e6" title="使用示例:" alt="" coords="223,5,459,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,23,209,23,209,28,175,28"/>
-</map>

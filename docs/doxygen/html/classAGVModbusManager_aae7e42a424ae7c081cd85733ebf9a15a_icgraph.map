@@ -1,5 +1,0 @@
-<map id="AGVModbusManager::onConnected" name="AGVModbusManager::onConnected">
-<area shape="rect" id="Node000001" title=" " alt="" coords="299,13,549,38"/>
-<area shape="rect" id="Node000002" href="$classAGVModbusManager.html#a588ed9c3dd720d19485e1fcc53ce6cb3" title="功能: 构造 AGVModbusManager，用于管理 AGV 专用的 Modbus 通信与数据处理。 如何使用: 在应用初始化阶段创建该管理对象并连接相应信号以接收更新。 如何修改: 若需要支持多个..." alt="" coords="5,5,251,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="285,28,251,28,251,23,285,23"/>
-</map>

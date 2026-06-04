@@ -1,5 +1,0 @@
-<map id="EightyAgvApp::isAgvConnected" name="EightyAgvApp::isAgvConnected">
-<area shape="rect" id="Node000001" title="查询 AGV 是否已连接。" alt="" coords="5,5,232,31"/>
-<area shape="rect" id="Node000002" href="$classIModbusClient.html#af3b3ecc797da932a5a657f990fcfa3e3" title="查询连接状态。" alt="" coords="280,5,483,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,15,266,15,266,21,232,21"/>
-</map>

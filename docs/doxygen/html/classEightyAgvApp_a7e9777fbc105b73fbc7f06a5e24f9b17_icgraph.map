@@ -1,7 +1,0 @@
-<map id="EightyAgvApp::alarmTriggered" name="EightyAgvApp::alarmTriggered">
-<area shape="rect" id="Node000001" title="告警触发信号。" alt="" coords="507,5,725,31"/>
-<area shape="rect" id="Node000002" href="$classEightyAgvApp.html#a79b832709490bd648a50dfd28a971391" title="AGV 通信错误后的内部回调。" alt="" coords="265,5,459,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="493,21,459,21,459,15,493,15"/>
-<area shape="rect" id="Node000003" href="$classEightyAgvApp.html#a9be128bf683fd21c872aeca9a1283472" title="构造 AGV 业务对象。" alt="" coords="5,5,217,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="252,21,218,21,218,15,252,15"/>
-</map>

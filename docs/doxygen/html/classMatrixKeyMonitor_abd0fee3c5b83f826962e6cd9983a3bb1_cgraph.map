@@ -1,9 +1,0 @@
-<map id="MatrixKeyMonitor::onSocketActivated" name="MatrixKeyMonitor::onSocketActivated">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,211,95"/>
-<area shape="rect" id="Node000002" href="$classMatrixKeyMonitor.html#a9bf605684f7c2adfc39f86066202aade" title="使用示例:" alt="" coords="259,5,479,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,53,296,31,297,36,200,58"/>
-<area shape="rect" id="Node000003" href="$classMatrixKeyMonitor.html#a0794aab2f6ea254a364b14ddb09b2d89" title=" " alt="" coords="269,55,468,95"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="211,73,256,73,256,78,211,78"/>
-<area shape="rect" id="Node000004" href="$classMatrixKeyMonitor.html#a7135516b862e5493164ae512b3bd19b0" title="原始按键事件" alt="" coords="271,119,466,159"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="191,93,274,113,273,119,190,98"/>
-</map>
