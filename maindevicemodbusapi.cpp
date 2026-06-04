@@ -1,6 +1,19 @@
 #include "maindevicemodbusapi.h"
 
+#include "featureswitchmanager.h"
 #include "modbusthreadmanager.h"
+
+namespace {
+bool mainModbusReadEnabled()
+{
+    return FeatureSwitchManager::instance()->isFeatureEnabled("modbus_main", "modbus_main.read_enabled");
+}
+
+bool mainModbusWriteEnabled()
+{
+    return FeatureSwitchManager::instance()->isFeatureEnabled("modbus_main", "modbus_main.write_enabled");
+}
+}
 
 bool MainDeviceModbusApi::isReady(const ModbusThreadManager *manager)
 {
@@ -12,6 +25,12 @@ bool MainDeviceModbusApi::writeRegister(ModbusThreadManager *manager,
                                         int value,
                                         QString *errorMessage)
 {
+    if (!mainModbusWriteEnabled()) {
+        if (errorMessage) {
+            *errorMessage = QStringLiteral("Main Modbus 写功能已关闭");
+        }
+        return false;
+    }
     if (!isReady(manager)) {
         if (errorMessage) {
             *errorMessage = QStringLiteral("主Modbus未连接");
@@ -26,6 +45,12 @@ bool MainDeviceModbusApi::writeRegisters(ModbusThreadManager *manager,
                                          const QVector<quint16> &values,
                                          QString *errorMessage)
 {
+    if (!mainModbusWriteEnabled()) {
+        if (errorMessage) {
+            *errorMessage = QStringLiteral("Main Modbus 写功能已关闭");
+        }
+        return false;
+    }
     if (!isReady(manager)) {
         if (errorMessage) {
             *errorMessage = QStringLiteral("主Modbus未连接");
@@ -46,6 +71,12 @@ bool MainDeviceModbusApi::readHoldingRegisters(ModbusThreadManager *manager,
                                                int count,
                                                QString *errorMessage)
 {
+    if (!mainModbusReadEnabled()) {
+        if (errorMessage) {
+            *errorMessage = QStringLiteral("Main Modbus 读功能已关闭");
+        }
+        return false;
+    }
     if (!isReady(manager)) {
         if (errorMessage) {
             *errorMessage = QStringLiteral("主Modbus未连接");
@@ -59,6 +90,12 @@ bool MainDeviceModbusApi::readAndDebugAddress(ModbusThreadManager *manager,
                                               int address,
                                               QString *errorMessage)
 {
+    if (!mainModbusReadEnabled()) {
+        if (errorMessage) {
+            *errorMessage = QStringLiteral("Main Modbus 读功能已关闭");
+        }
+        return false;
+    }
     if (!isReady(manager)) {
         if (errorMessage) {
             *errorMessage = QStringLiteral("主Modbus未连接");

@@ -84,7 +84,6 @@ void FeatureSwitchWidget::setupUI()
     desc["modbus_agv"] = "AGV Modbus";
     desc["motion_control"] = "运动控制";
     desc["input_devices"] = "输入设备";
-    desc["force_sensor"] = "力传感";
     desc["alarm_system"] = "报警系统";
 
     QStringList bigKeys = mgr->allBigFeatures().values();
@@ -121,8 +120,12 @@ void FeatureSwitchWidget::setupUI()
     sdesc["tcp.remote_simulator"] = "远程 TCP 模拟器 (192.168.1.70)";
     sdesc["modbus_main.polling"] = "主控轮询";
     sdesc["modbus_main.float_reading"] = "浮点解析";
+    sdesc["modbus_main.read_enabled"] = "Main Modbus 读使能";
+    sdesc["modbus_main.write_enabled"] = "Main Modbus 写使能";
     sdesc["modbus_main.read_logs"] = "主设备 Modbus 读日志";
     sdesc["modbus_main.write_logs"] = "主设备 Modbus 写日志";
+    sdesc["modbus_agv.read_enabled"] = "AGV Modbus 读使能";
+    sdesc["modbus_agv.write_enabled"] = "AGV Modbus 写使能";
     sdesc["modbus_agv.read_logs"] = "AGV Modbus 读日志";
     sdesc["modbus_agv.write_logs"] = "AGV Modbus 写日志";
     sdesc["agv.fault_codes"] = "AGV 故障码";
@@ -130,14 +133,14 @@ void FeatureSwitchWidget::setupUI()
     sdesc["motion.steering_mode"] = "转向模式";
     sdesc["motion.speed_mode"] = "速度模式";
     sdesc["motion.step_mode"] = "步进/点动";
-    sdesc["motion.force_control"] = "力控参与运动";
+    sdesc["motion.control_mode_switch"] = "控制模式切换(示教/遥控)";
+    sdesc["motion.agv_oa_switch"] = "AGV避障开关";
+    sdesc["motion.agv_park_switch"] = "AGV驻车开关";
+    sdesc["motion.agv_speed_control"] = "AGV速度调节";
+    sdesc["motion.agv_angle_control"] = "AGV角度调节";
     sdesc["input.matrix_key"] = "矩阵按键";
     sdesc["input.enable_button"] = "使能按钮";
-    sdesc["force.big_sensor"] = "大力传感器";
-    sdesc["force.small_sensor"] = "小力传感器";
-    sdesc["force.clear_zero"] = "力传感器清零";
     sdesc["alarm.emergency_stop"] = "急停报警";
-    sdesc["alarm.force_limit"] = "力控超限报警";
     sdesc["alarm.steering_switch"] = "转向模式切换报警";
     sdesc["alarm.popup"] = "报警弹窗显示";
     sdesc["alarm.status_logs"] = "报警状态周期日志";

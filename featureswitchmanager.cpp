@@ -43,7 +43,6 @@ void FeatureSwitchManager::initializeFeatureSets()
         "modbus_agv",
         "motion_control",
         "input_devices",
-        "force_sensor",
         "alarm_system"
     };
 
@@ -71,9 +70,13 @@ void FeatureSwitchManager::initializeFeatureSets()
 
         "modbus_main.polling",
         "modbus_main.float_reading",
+        "modbus_main.read_enabled",
+        "modbus_main.write_enabled",
         "modbus_main.read_logs",
         "modbus_main.write_logs",
 
+        "modbus_agv.read_enabled",
+        "modbus_agv.write_enabled",
         "modbus_agv.read_logs",
         "modbus_agv.write_logs",
 
@@ -83,17 +86,16 @@ void FeatureSwitchManager::initializeFeatureSets()
         "motion.steering_mode",
         "motion.speed_mode",
         "motion.step_mode",
-        "motion.force_control",
+        "motion.control_mode_switch",
+        "motion.agv_oa_switch",
+        "motion.agv_park_switch",
+        "motion.agv_speed_control",
+        "motion.agv_angle_control",
 
         "input.matrix_key",
         "input.enable_button",
 
-        "force.big_sensor",
-        "force.small_sensor",
-        "force.clear_zero",
-
         "alarm.emergency_stop",
-        "alarm.force_limit",
         "alarm.steering_switch",
         "alarm.popup",
         "alarm.status_logs",

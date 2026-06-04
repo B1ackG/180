@@ -114,7 +114,6 @@ public:
     // ==========================================
     // 0. 类型定义 (Type Definitions)
     // ==========================================
-    enum ForceDisplayMode { ForceDisplayBig = 0, ForceDisplaySmall = 1 };
     enum class UserRole { Operator = 0, Engineer = 1, Admin = 2, Manufacturer = 3 };
     enum ControlMode { WIRED_MODE = 128, WIRELESS_MODE = 0 };
 
@@ -293,29 +292,6 @@ public:
     // ==========================================
     // 5. 传感器与周边硬件 (Sensors & Peripherals)
     // ==========================================
-    /** @brief 创建并绑定大力值显示标签 */
-    void setupBigForceLabels();
-    /** @brief 创建并绑定小力值显示标签 */
-    void setupSmallForceLabels();
-    /** @brief 配置力传感器读取 */
-    void setupForceReading();
-    /** @brief 配置大量程力读取 */
-    void setupBigForceReading();
-    /** @brief 设置清除力值按钮 */
-    void setupForceClearButton();
-    /** @brief 设置力值显示模式切换按钮 */
-    void setupForceDisplayModeButtons();
-    /** @brief 读取大力值寄存器 */
-    void readBigForceRegisters();
-    /** @brief 读取小力值寄存器 */
-    void readSmallForceRegisters();
-    /** @brief 更新大力值标签 */
-    void updateBigForceLabel(const QString& labelName, float value);
-    /** @brief 更新小力值标签 */
-    void updateSmallForceLabel(const QString& labelName, float value);
-    /** @brief 设置力值显示模式 */
-    void setForceDisplayMode(ForceDisplayMode mode);
-
     /** @brief 更新仿真数据（开发/测试用） */
     void updateSimulation(); 
 
@@ -500,11 +476,6 @@ private slots:
      *  @param pressed 是否按下
      */
     void onMatrixKeyPressed(int keyNumber, bool pressed);
-    /** @brief 力清除按钮按下 */
-    void onForceClearPressed();
-    /** @brief 力清除按钮释放 */
-    void onForceClearReleased();
-
     // Modbus 状态反馈
     /** @brief Modbus 已连接 */
     void onModbusConnected();
@@ -551,8 +522,6 @@ private slots:
     // 其他 UI 处理
     /** @brief 控制模式按钮点击 */
     void onControlModeClicked();
-    /** @brief 切换力控制模式 */
-    void toggleForceControl();
     /** @brief AGV OA 按钮点击 */
     void onAGVOABtnClicked();
     /** @brief AGV 驻车按钮点击 */
@@ -591,12 +560,10 @@ private:
     QLabel *m_alarmLabel = nullptr;
     QTimer *m_alarmCheckTimer = nullptr;
     bool m_emergencyStopAlarm = false;
-    bool m_forceLimitAlarm = false;
     bool m_emergencyStopColumnFlag = false;
     bool m_emergencyStopChassisFlag = false;
     bool m_robotArmEmergency150Flag = false;
     bool m_agvChassisEmergency51Bit5Flag = false;
-    bool m_forceLimitFlag = false;
     bool m_isSteeringAlarmActive = false;
     bool m_isSwitchingSteeringMode = false;
     int m_targetSteeringWaitBit = -1;
@@ -657,31 +624,6 @@ private:
     bool m_mainRegister150Valid = false;
     quint16 m_mainRegister150Shadow = 0;
 
-    // ----- 六维力 -----
-    ForceDisplayMode m_forceDisplayMode = ForceDisplayBig;
-    QMap<QString, float> m_bigForceOffsets;
-    QMap<QString, float> m_smallForceOffsets;
-    QMap<QString, float> m_bigForceCurrentValues;
-    QMap<QString, float> m_smallForceCurrentValues;
-    QMap<QPair<int, int>, QPair<quint16, quint16>> m_bigForceRegisters;
-    QMap<QPair<int, int>, QPair<quint16, quint16>> m_smallForceRegisters;
-    QMap<QString, QLabel*> m_bigForceLabels;
-    QMap<QString, QLabel*> m_smallForceLabels;
-    QLabel *m_labelBigFX = nullptr;
-    QLabel *m_labelBigFY = nullptr;
-    QLabel *m_labelBigFZ = nullptr;
-    QLabel *m_labelBigMX = nullptr;
-    QLabel *m_labelBigMY = nullptr;
-    QLabel *m_labelBigMZ = nullptr;
-    QLabel *m_labelSmallFX = nullptr;
-    QLabel *m_labelSmallFY = nullptr;
-    QLabel *m_labelSmallFZ = nullptr;
-    QLabel *m_labelSmallMX = nullptr;
-    QLabel *m_labelSmallMY = nullptr;
-    QLabel *m_labelSmallMZ = nullptr;
-    QTimer* m_forceReadTimer;
-    bool m_isForcePeeled = false;
-
     // ----- 历史记录与日志 -----
     OperationRecorder *m_recorder;
     MappingConfig* m_mappingConfig;
@@ -702,7 +644,6 @@ private:
     bool m_stepModeUnknown = true;
     bool m_isJointMode = true;
     bool m_moveModeUnknown = true;
-    bool m_forcecontrolMode = false;
     QHash<int, bool> m_robotExternalKeyPressed;
     quint64 m_robotExternalWriteSeq = 0;
     int m_robotActiveKey = -1;
@@ -772,13 +713,8 @@ private:
     TechPushButton *m_techBtnAGV_Park = nullptr;
     TechSliderEdit *m_editAGV_MoveSpeed = nullptr;
     TechSliderEdit *m_editAGV_Angle = nullptr;
-    TechPushButton *m_btnForceControl = nullptr;
-    TechPushButton *m_btnBigForceControl = nullptr;
-    TechPushButton *m_btnSmallForceControl = nullptr;
-    QPushButton *m_btnForceClear = nullptr;
     QToolButton *m_controlModeBtn = nullptr;
     QToolButton *m_enableBtn = nullptr;
-    TechPushButton *m_forcecontrolModebtn = nullptr;
 
     // ==========================================
     // 10. 内部辅助函数 (Helper Methods)
@@ -828,7 +764,7 @@ private:
         const QList<QPair<int, int>> &registerPairs,
         const QString &cacheName);
 
-    /** @brief 初始化浮点与六维力寄存器及标签 */
+    /** @brief 初始化浮点寄存器缓存 */
     void initializeForceAndFloatSubsystem();
 
     /** @brief 安排延迟启动任务（开机写寄存器、轮询等） */
@@ -869,6 +805,7 @@ public:
     void applyInclinometerDisplayRuntimeSettings();
 
 private:
+    void applyModbusAccessSwitches();
     /** @brief 连接导航与页面切换相关信号 */
     void setupNavigationConnections();
 
