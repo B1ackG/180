@@ -868,7 +868,20 @@ public:
     /** @brief 从 config.ini 刷新首页倾角卡片上的阈值说明文字 */
     void applyInclinometerDisplayRuntimeSettings();
 
+    struct ControllableButtonInfo {
+        QString objectName;
+        QString displayText;
+    };
+
+    /** @brief 主窗口内可配置可见性的按钮（含界面显示文本，按 objectName 排序） */
+    QList<ControllableButtonInfo> controllableButtons() const;
+
+    /** @brief 从 config.ini 应用按钮可见性到主窗口控件 */
+    void applyButtonVisibilityRuntimeSettings();
+
 private:
+    /** @brief 权限页登录/注销后恢复与角色相关的控件可见性 */
+    void applyPermissionPageLoginState();
     /** @brief 连接导航与页面切换相关信号 */
     void setupNavigationConnections();
 

@@ -1,6 +1,9 @@
 #include "featureswitchwidget.h"
 #include "featureswitchmanager.h"
+#include "mainwindow.h"
+#include "mappingconfig.h"
 #include "techvirtualkeyboard.h"
+#include <QShowEvent>
 #include <QLabel>
 #include <QPushButton>
 #include <QScrollArea>
@@ -202,6 +205,8 @@ void FeatureSwitchWidget::setupUI()
 
     setupInclinometerThresholdUI(scrollLayout);
 
+    setupButtonVisibilityUI(scrollLayout);
+
     scrollLayout->addStretch();
 
     scroll->setWidget(scrollContent);
@@ -252,6 +257,7 @@ void FeatureSwitchWidget::loadCurrentState()
     loadPollingState();
     loadSliderLimitState();
     loadInclinometerThresholdState();
+    loadButtonVisibilityState();
 }
 
 void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
@@ -377,6 +383,107 @@ void FeatureSwitchWidget::setupInclinometerThresholdUI(QVBoxLayout *scrollLayout
     scrollLayout->addWidget(incGroup);
 }
 
+void FeatureSwitchWidget::setupButtonVisibilityUI(QVBoxLayout *scrollLayout)
+{
+    m_buttonVisibilityGroup = new QGroupBox("按钮可见性 (Button Visibility)");
+    QVBoxLayout *btnLayout = new QVBoxLayout(m_buttonVisibilityGroup);
+
+    QLabel *hint = new QLabel("自动扫描主窗口内所有已命名按钮；新添加的按钮在下次打开本控制台时自动出现");
+    hint->setWordWrap(true);
+    hint->setStyleSheet("color: #88ccff; font-size: 11px;");
+    btnLayout->addWidget(hint);
+
+    QHBoxLayout *toolbar = new QHBoxLayout();
+    QPushButton *btnShowAll = new QPushButton("全部显示");
+    QPushButton *btnHideAll = new QPushButton("全部隐藏");
+    toolbar->addWidget(btnShowAll);
+    toolbar->addWidget(btnHideAll);
+    toolbar->addStretch();
+    btnLayout->addLayout(toolbar);
+
+    QScrollArea *innerScroll = new QScrollArea();
+    innerScroll->setWidgetResizable(true);
+    innerScroll->setMaximumHeight(260);
+    m_buttonVisibilityListHost = new QWidget();
+    m_buttonVisibilityGrid = new QGridLayout(m_buttonVisibilityListHost);
+
+    innerScroll->setWidget(m_buttonVisibilityListHost);
+    btnLayout->addWidget(innerScroll);
+
+    connect(btnShowAll, &QPushButton::clicked, this, [this]() {
+        for (QCheckBox *cb : m_buttonVisibilityCheckboxes) {
+            cb->setChecked(true);
+        }
+    });
+    connect(btnHideAll, &QPushButton::clicked, this, [this]() {
+        for (QCheckBox *cb : m_buttonVisibilityCheckboxes) {
+            cb->setChecked(false);
+        }
+    });
+
+    scrollLayout->addWidget(m_buttonVisibilityGroup);
+    refreshButtonVisibilityList();
+}
+
+void FeatureSwitchWidget::refreshButtonVisibilityList()
+{
+    if (!m_buttonVisibilityGrid || !m_buttonVisibilityListHost) {
+        return;
+    }
+
+    while (QLayoutItem *item = m_buttonVisibilityGrid->takeAt(0)) {
+        if (QWidget *widget = item->widget()) {
+            widget->deleteLater();
+        }
+        delete item;
+    }
+    m_buttonVisibilityCheckboxes.clear();
+
+    MainWindow *mainWindow = qobject_cast<MainWindow*>(parent());
+    QList<MainWindow::ControllableButtonInfo> buttons;
+    if (mainWindow) {
+        buttons = mainWindow->controllableButtons();
+    }
+
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("ButtonVisibility"));
+
+    MappingConfig *mapping = MappingConfig::instance();
+    for (int i = 0; i < buttons.size(); ++i) {
+        const MainWindow::ControllableButtonInfo &info = buttons.at(i);
+        const QString &objectName = info.objectName;
+        QString visibleText = info.displayText;
+        if (visibleText.isEmpty()) {
+            const QString mapped = mapping->mapControlName(objectName);
+            if (mapped != objectName) {
+                visibleText = mapped;
+            }
+        }
+        const QString label = visibleText.isEmpty()
+            ? objectName
+            : QString("%1  [%2]").arg(visibleText, objectName);
+        QCheckBox *cb = new QCheckBox(label, m_buttonVisibilityListHost);
+        cb->setChecked(settings.value(objectName, true).toBool());
+        m_buttonVisibilityGrid->addWidget(cb, i / 2, i % 2);
+        m_buttonVisibilityCheckboxes[objectName] = cb;
+    }
+
+    settings.endGroup();
+
+    if (buttons.isEmpty()) {
+        m_buttonVisibilityGrid->addWidget(
+            new QLabel(QStringLiteral("未找到可配置的按钮（请确认主窗口已初始化且按钮已设置 objectName）"),
+                       m_buttonVisibilityListHost),
+            0, 0);
+    }
+}
+
+void FeatureSwitchWidget::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+    refreshButtonVisibilityList();
+}
+
 void FeatureSwitchWidget::loadInclinometerThresholdState()
 {
     QSettings settings("config.ini", QSettings::IniFormat);
@@ -403,6 +510,27 @@ void FeatureSwitchWidget::saveInclinometerThresholdState()
     settings.beginGroup("Inclinometer");
     settings.setValue("display_threshold_x_deg", parseBounded(m_editInclinometerThresholdX->text(), 1.0));
     settings.setValue("display_threshold_y_deg", parseBounded(m_editInclinometerThresholdY->text(), 1.0));
+    settings.endGroup();
+    settings.sync();
+}
+
+void FeatureSwitchWidget::loadButtonVisibilityState()
+{
+    QSettings settings("config.ini", QSettings::IniFormat);
+    settings.beginGroup("ButtonVisibility");
+    for (auto it = m_buttonVisibilityCheckboxes.begin(); it != m_buttonVisibilityCheckboxes.end(); ++it) {
+        it.value()->setChecked(settings.value(it.key(), true).toBool());
+    }
+    settings.endGroup();
+}
+
+void FeatureSwitchWidget::saveButtonVisibilityState()
+{
+    QSettings settings("config.ini", QSettings::IniFormat);
+    settings.beginGroup("ButtonVisibility");
+    for (auto it = m_buttonVisibilityCheckboxes.begin(); it != m_buttonVisibilityCheckboxes.end(); ++it) {
+        settings.setValue(it.key(), it.value()->isChecked());
+    }
     settings.endGroup();
     settings.sync();
 }
@@ -518,6 +646,8 @@ void FeatureSwitchWidget::onApply()
 
     saveInclinometerThresholdState();
 
+    saveButtonVisibilityState();
+
     emit runtimeSettingsChanged();
 
     this->hide(); // 立即生效后隐藏界面
@@ -533,6 +663,7 @@ void FeatureSwitchWidget::onSave()
 void FeatureSwitchWidget::onReload()
 {
     FeatureSwitchManager::instance()->reload();
+    refreshButtonVisibilityList();
     loadCurrentState();
 }
 

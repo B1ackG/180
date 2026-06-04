@@ -8,6 +8,8 @@
 class QLineEdit;
 class TechVirtualKeyboard;
 class QVBoxLayout;
+class QGroupBox;
+class QGridLayout;
 
 /**
  * @brief 功能开关管理页面 (厂家专用)
@@ -25,6 +27,7 @@ signals:
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
+    void showEvent(QShowEvent *event) override;
 
 private slots:
     void onApply();
@@ -38,12 +41,16 @@ private:
     void setupPollingUI(QVBoxLayout *scrollLayout);
     void setupSliderLimitUI(QVBoxLayout *scrollLayout);
     void setupInclinometerThresholdUI(QVBoxLayout *scrollLayout);
+    void setupButtonVisibilityUI(QVBoxLayout *scrollLayout);
+    void refreshButtonVisibilityList();
     void loadPollingState();
     void savePollingState();
     void loadSliderLimitState();
     void saveSliderLimitState();
     void loadInclinometerThresholdState();
     void saveInclinometerThresholdState();
+    void loadButtonVisibilityState();
+    void saveButtonVisibilityState();
 
     QMap<QString, QCheckBox*> m_bigCheckboxes;
     QMap<QString, QCheckBox*> m_smallCheckboxes;
@@ -71,6 +78,12 @@ private:
 
     QLineEdit *m_editInclinometerThresholdX = nullptr;
     QLineEdit *m_editInclinometerThresholdY = nullptr;
+
+    QMap<QString, QCheckBox*> m_buttonVisibilityCheckboxes;
+
+    QGroupBox *m_buttonVisibilityGroup = nullptr;
+    QWidget *m_buttonVisibilityListHost = nullptr;
+    QGridLayout *m_buttonVisibilityGrid = nullptr;
 
     TechVirtualKeyboard *m_virtualKeyboard = nullptr;
 };

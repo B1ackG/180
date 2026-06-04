@@ -236,7 +236,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <string notr="true">background-color:</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="page_Robot">
        <widget class="QWidget" name="widget_test3" native="true">
@@ -1083,6 +1083,19 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         </property>
         <property name="text">
          <string>姿态回中</string>
+        </property>
+       </widget>
+       <widget class="TechPushButton" name="techBtn_tare">
+        <property name="geometry">
+         <rect>
+          <x>330</x>
+          <y>10</y>
+          <width>151</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>去皮</string>
         </property>
        </widget>
       </widget>

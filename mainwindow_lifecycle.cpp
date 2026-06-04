@@ -279,6 +279,8 @@ void MainWindow::initializeCoreSubsystems()
         setupStepMoveControl();
         setupStepMoveLineEdits();
     }
+
+    applyButtonVisibilityRuntimeSettings();
 }
 
 void MainWindow::initializeRegisterCache(

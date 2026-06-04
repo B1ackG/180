@@ -47,6 +47,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QIntValidator>
 #include <QLineEdit>
 #include <QVector>
+#include <QAbstractButton>
 
 namespace {
 constexpr int kRuntimePersistRegister = 8193;
@@ -455,6 +456,117 @@ bool MainWindow::writeAgvHoldingRegisterBlock(int startAddress, const QVector<qu
         m_agvRegisterShadow[startAddress + i] = words.at(i);
     }
     return true;
+}
+
+namespace {
+bool isDescendantOfWidget(const QWidget *widget, const QWidget *ancestor)
+{
+    if (!widget || !ancestor) {
+        return false;
+    }
+    for (const QWidget *current = widget; current; current = current->parentWidget()) {
+        if (current == ancestor) {
+            return true;
+        }
+    }
+    return false;
+}
+
+QString buttonDisplayText(const QAbstractButton *btn)
+{
+    if (!btn) {
+        return {};
+    }
+    const QString text = btn->text().trimmed();
+    if (!text.isEmpty()) {
+        return text;
+    }
+    const QString toolTip = btn->toolTip().trimmed();
+    if (!toolTip.isEmpty()) {
+        return toolTip;
+    }
+    return {};
+}
+} // namespace
+
+QList<MainWindow::ControllableButtonInfo> MainWindow::controllableButtons() const
+{
+    QMap<QString, QString> byObjectName;
+    const FeatureSwitchWidget *featureSwitch = findChild<FeatureSwitchWidget*>();
+
+    const QList<QAbstractButton*> buttons = findChildren<QAbstractButton*>();
+    for (const QAbstractButton *btn : buttons) {
+        if (!btn || btn->window() != this) {
+            continue;
+        }
+        if (isDescendantOfWidget(btn, featureSwitch)) {
+            continue;
+        }
+        const QString objectName = btn->objectName();
+        if (objectName.isEmpty()) {
+            continue;
+        }
+        const QString displayText = buttonDisplayText(btn);
+        if (!byObjectName.contains(objectName) || byObjectName.value(objectName).isEmpty()) {
+            byObjectName.insert(objectName, displayText);
+        }
+    }
+
+    QList<ControllableButtonInfo> result;
+    result.reserve(byObjectName.size());
+    for (auto it = byObjectName.constBegin(); it != byObjectName.constEnd(); ++it) {
+        result.append({it.key(), it.value()});
+    }
+    std::sort(result.begin(), result.end(), [](const ControllableButtonInfo &a, const ControllableButtonInfo &b) {
+        return a.objectName < b.objectName;
+    });
+    return result;
+}
+
+void MainWindow::applyPermissionPageLoginState()
+{
+    const bool loggedIn = m_currentUserRole != UserRole::Operator;
+    const bool isManufacturer = m_currentUserRole == UserRole::Manufacturer;
+
+    const auto setVisibleByName = [this](const QString &name, bool visible) {
+        if (QWidget *widget = findChild<QWidget*>(name)) {
+            widget->setVisible(visible);
+        }
+    };
+
+    setVisibleByName(QStringLiteral("loginButton"), !loggedIn);
+    setVisibleByName(QStringLiteral("logoutButton"), loggedIn);
+    setVisibleByName(QStringLiteral("featureButton"), loggedIn && isManufacturer);
+    setVisibleByName(QStringLiteral("roleComboBox"), !loggedIn);
+    setVisibleByName(QStringLiteral("passwordEdit"), !loggedIn);
+    setVisibleByName(QStringLiteral("passwordHint"), !loggedIn);
+    setVisibleByName(QStringLiteral("netConfigSection"), loggedIn && isManufacturer);
+}
+
+void MainWindow::applyButtonVisibilityRuntimeSettings()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("ButtonVisibility"));
+
+    const FeatureSwitchWidget *featureSwitch = findChild<FeatureSwitchWidget*>();
+
+    const QList<QAbstractButton*> buttons = findChildren<QAbstractButton*>();
+    for (QAbstractButton *btn : buttons) {
+        if (!btn || btn->window() != this) {
+            continue;
+        }
+        if (isDescendantOfWidget(btn, featureSwitch)) {
+            continue;
+        }
+        const QString objectName = btn->objectName();
+        if (objectName.isEmpty()) {
+            continue;
+        }
+        btn->setVisible(settings.value(objectName, true).toBool());
+    }
+
+    settings.endGroup();
+    applyPermissionPageLoginState();
 }
 
 void MainWindow::applyInclinometerDisplayRuntimeSettings()
@@ -2609,6 +2721,7 @@ void MainWindow::setupAdminPasswordPage()
                     applySliderLabelRuntimeSettings();
                     applyParkOutTriggerLengthRuntimeSettings();
                     applyInclinometerDisplayRuntimeSettings();
+                    applyButtonVisibilityRuntimeSettings();
                     refreshInterlockingButtonText();
                 });
             }
@@ -5267,6 +5380,20 @@ void MainWindow::setupSliderLabelConfigs()
         allTargetPages,      // 在所有三个页面中查找
         1                    // 精度：1位小数
     };
+
+    auto addArcGaugeRangeOnly = [&](const QString &key, const QString &label, const QString &suffix,
+                                    double minVal, double maxVal, int precision) {
+        m_sliderLabelConfigs[key] = {
+            label, suffix, minVal, maxVal, 0.0, suffix,
+            -1, -1, -1, -1, false, {}, precision
+        };
+    };
+    addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis1"), QStringLiteral("RX"), QStringLiteral("°"), -15.0, 15.0, 2);
+    addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis2"), QStringLiteral("RY"), QStringLiteral("°"), -15.0, 15.0, 2);
+    addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis3"), QStringLiteral("RZ"), QStringLiteral("°"), -12.0, 12.0, 2);
+    addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis4"), QStringLiteral("X"), QStringLiteral("mm"), -110.0, 110.0, 2);
+    addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis5"), QStringLiteral("Y"), QStringLiteral("mm"), -110.0, 110.0, 2);
+    addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis6"), QStringLiteral("Z"), QStringLiteral("mm"), -90.0, 90.0, 2);
 
     qCDebug(lcMainWindow) << "SliderLabel配置初始化完成";
     qCDebug(lcMainWindow) << "每个控件都需要在以下页面中查找匹配:" << allTargetPages;
