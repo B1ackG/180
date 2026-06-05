@@ -16,6 +16,7 @@
 #include <QMessageBox>
 #include <QLineEdit>
 #include <QComboBox>
+#include <QTextEdit>
 #include <QEvent>
 #include <QSettings>
 #include <QSignalBlocker>
@@ -627,6 +628,7 @@ void FeatureSwitchWidget::setupUI()
     setupInclinometerThresholdUI(scrollLayout);
 
     setupButtonVisibilityUI(scrollLayout);
+    setupControlNameOverrideUI(scrollLayout);
 
     scrollLayout->addStretch();
 
@@ -680,6 +682,7 @@ void FeatureSwitchWidget::loadCurrentState()
     loadTechSliderEditState();
     loadInclinometerThresholdState();
     loadButtonVisibilityState();
+    loadControlNameOverrideState();
 }
 
 void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
@@ -1314,6 +1317,8 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
             QStringLiteral("无其它可配置控件"),
             m_otherVisibilityListHost), 0, 0);
     }
+
+    refreshControlNameOverrideTargets(buttons);
 }
 
 void FeatureSwitchWidget::showEvent(QShowEvent *event)
@@ -1590,6 +1595,147 @@ void FeatureSwitchWidget::saveSliderLimitState()
     settings.sync();
 }
 
+
+void FeatureSwitchWidget::setupControlNameOverrideUI(QVBoxLayout *scrollLayout)
+{
+    QGroupBox *group = new QGroupBox(QStringLiteral("控件名称自定义（拼音输入）"));
+    QVBoxLayout *layout = new QVBoxLayout(group);
+
+    QLabel *hint = new QLabel(QStringLiteral("选择控件后，在下方 QTextEdit 输入显示名称。点击输入框应弹出拼音键盘。"));
+    hint->setWordWrap(true);
+    hint->setStyleSheet(QStringLiteral("color: #88ccff; font-size: 11px;"));
+    layout->addWidget(hint);
+
+    QHBoxLayout *row = new QHBoxLayout();
+    row->addWidget(new QLabel(QStringLiteral("目标控件:")));
+    m_controlNameTargetCombo = new QComboBox(group);
+    m_controlNameTargetCombo->setMinimumWidth(320);
+    row->addWidget(m_controlNameTargetCombo, 1);
+    layout->addLayout(row);
+
+    m_controlNameEdit = new QTextEdit(group);
+    m_controlNameEdit->setObjectName(QStringLiteral("controlNameOverrideEdit"));
+    m_controlNameEdit->setPlaceholderText(QStringLiteral("请输入控件显示名称（支持汉字）"));
+    m_controlNameEdit->setFixedHeight(70);
+    m_controlNameEdit->setProperty("preferSystemIme", true);
+    if (m_controlNameEdit->viewport()) {
+        m_controlNameEdit->viewport()->setProperty("preferSystemIme", true);
+    }
+    m_controlNameEdit->setStyleSheet(QStringLiteral("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px; padding: 4px;"));
+    layout->addWidget(m_controlNameEdit);
+
+    QHBoxLayout *btnRow = new QHBoxLayout();
+    QPushButton *saveBtn = new QPushButton(QStringLiteral("保存该名称"), group);
+    btnRow->addWidget(saveBtn);
+    btnRow->addStretch();
+    layout->addLayout(btnRow);
+
+    connect(m_controlNameTargetCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) {
+        if (!m_controlNameTargetCombo || !m_controlNameEdit) {
+            return;
+        }
+        const QString objectName = m_controlNameTargetCombo->currentData().toString();
+        if (objectName.isEmpty()) {
+            m_controlNameEdit->clear();
+            return;
+        }
+        const QString text = m_controlNameOverrides.value(objectName, QString());
+        m_controlNameEdit->setPlainText(text);
+    });
+
+    connect(saveBtn, &QPushButton::clicked, this, [this]() {
+        if (!m_controlNameTargetCombo || !m_controlNameEdit) {
+            return;
+        }
+        const QString objectName = m_controlNameTargetCombo->currentData().toString().trimmed();
+        const QString displayName = m_controlNameEdit->toPlainText().trimmed();
+        if (objectName.isEmpty() || displayName.isEmpty()) {
+            QMessageBox::warning(this, QStringLiteral("提示"), QStringLiteral("请选择控件并输入名称后再保存。"));
+            return;
+        }
+        m_controlNameOverrides[objectName] = displayName;
+        MappingConfig::instance()->addControlMapping(objectName, displayName);
+        saveControlNameOverrideState();
+        QMessageBox::information(this, QStringLiteral("结果"), QStringLiteral("控件名称已保存并立即生效。"));
+    });
+
+    scrollLayout->addWidget(group);
+}
+
+void FeatureSwitchWidget::refreshControlNameOverrideTargets(const QList<MainWindow::ControllableButtonInfo> &buttons)
+{
+    if (!m_controlNameTargetCombo) {
+        return;
+    }
+
+    const QString currentObject = m_controlNameTargetCombo->currentData().toString();
+    QSignalBlocker blocker(m_controlNameTargetCombo);
+    m_controlNameTargetCombo->clear();
+
+    MappingConfig *mapping = MappingConfig::instance();
+    for (const MainWindow::ControllableButtonInfo &info : buttons) {
+        const QString objectName = info.objectName.trimmed();
+        if (objectName.isEmpty()) {
+            continue;
+        }
+        QString visibleText = info.displayText.trimmed();
+        if (visibleText.isEmpty()) {
+            visibleText = mapping->mapControlName(objectName);
+        }
+        const QString label = QStringLiteral("%1  [%2]").arg(visibleText.isEmpty() ? objectName : visibleText, objectName);
+        m_controlNameTargetCombo->addItem(label, objectName);
+    }
+
+    int idx = m_controlNameTargetCombo->findData(currentObject);
+    if (idx < 0) {
+        idx = 0;
+    }
+    if (m_controlNameTargetCombo->count() > 0) {
+        m_controlNameTargetCombo->setCurrentIndex(idx);
+    }
+
+    if (m_controlNameEdit) {
+        const QString objectName = m_controlNameTargetCombo->currentData().toString();
+        m_controlNameEdit->setPlainText(m_controlNameOverrides.value(objectName, QString()));
+    }
+}
+
+void FeatureSwitchWidget::loadControlNameOverrideState()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("ControlNameOverride"));
+    const QStringList keys = settings.childKeys();
+    m_controlNameOverrides.clear();
+    for (const QString &key : keys) {
+        const QString name = settings.value(key).toString().trimmed();
+        if (!name.isEmpty()) {
+            m_controlNameOverrides[key] = name;
+            MappingConfig::instance()->addControlMapping(key, name);
+        }
+    }
+    settings.endGroup();
+
+    if (m_controlNameEdit && m_controlNameTargetCombo) {
+        const QString objectName = m_controlNameTargetCombo->currentData().toString();
+        m_controlNameEdit->setPlainText(m_controlNameOverrides.value(objectName, QString()));
+    }
+}
+
+void FeatureSwitchWidget::saveControlNameOverrideState()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("ControlNameOverride"));
+    settings.remove(QString());
+    for (auto it = m_controlNameOverrides.begin(); it != m_controlNameOverrides.end(); ++it) {
+        if (!it.value().trimmed().isEmpty()) {
+            settings.setValue(it.key(), it.value().trimmed());
+        }
+    }
+    settings.endGroup();
+    settings.sync();
+}
+
+
 void FeatureSwitchWidget::onApply()
 {
     FeatureSwitchManager *mgr = FeatureSwitchManager::instance();
@@ -1610,6 +1756,7 @@ void FeatureSwitchWidget::onApply()
     saveInclinometerThresholdState();
 
     saveButtonVisibilityState();
+    saveControlNameOverrideState();
 
     emit runtimeSettingsChanged();
 
