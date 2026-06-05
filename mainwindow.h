@@ -557,6 +557,8 @@ private slots:
     void onAGVOABtnClicked();
     /** @brief AGV 驻车按钮点击 */
     void onAGVParkBtnClicked();
+    /** @brief 备用按钮点击（支持第二态 UI 变暗） */
+    void onSpareButtonClicked();
     /** @brief AGV 移动速度变化 */
     void onAGVMoveSpeedChanged(double value);
     /** @brief AGV 角度变化 */
@@ -770,6 +772,8 @@ private:
     QLineEdit *m_editJ4MoveStep = nullptr;
     TechPushButton *m_techBtnAGV_OA = nullptr;
     TechPushButton *m_techBtnAGV_Park = nullptr;
+    TechPushButton *m_techBtnSpare1 = nullptr;
+    TechPushButton *m_techBtnSpare2 = nullptr;
     TechSliderEdit *m_editAGV_MoveSpeed = nullptr;
     TechSliderEdit *m_editAGV_Angle = nullptr;
     TechPushButton *m_btnForceControl = nullptr;
@@ -871,11 +875,28 @@ public:
     /** @brief 从 config.ini 刷新首页倾角卡片上的阈值说明文字 */
     void applyInclinometerDisplayRuntimeSettings();
 
+    /** @brief 控制台用 Modbus 寄存器四段描述：设备 / 地址 / 位 / 值 */
+    struct ModbusRegisterSpec {
+        QString device = QStringLiteral("无");
+        QString address;
+        QString bit;
+        QString value1;
+        QString value2;
+        QString value3;
+        bool isConfigured() const {
+            return device != QStringLiteral("无") && !address.trimmed().isEmpty();
+        }
+    };
+
     struct ControllableButtonInfo {
         QString objectName;
         QString displayText;
         /** @brief 控件类型中文说明，用于控制台列表展示 */
         QString widgetKind;
+        QList<ModbusRegisterSpec> defaultReads;
+        QList<ModbusRegisterSpec> defaultWrites;
+        /** @brief 读寄存器是否用于控件状态同步 */
+        bool readForUiSync = false;
     };
 
     /** @brief 主窗口内可配置可见性的 Modbus 相关控件（按 objectName 排序） */
@@ -883,6 +904,10 @@ public:
 
     /** @brief 从 config.ini [ButtonVisibility] 应用控件可见性到主窗口 */
     void applyButtonVisibilityRuntimeSettings();
+    /** @brief 从 config.ini 应用备用按钮第二态 UI 变暗开关 */
+    void applySpareButtonRuntimeSettings();
+    /** @brief 按控制台配置执行备用按钮 Modbus 写入 */
+    void executeSpareButtonConfiguredWrites(const QString &buttonObjectName, int stateIndex);
 
 private:
     /** @brief 权限页登录/注销后恢复与角色相关的控件可见性 */
@@ -905,7 +930,7 @@ private:
     /** @brief 显示临时通知（气泡/提示条） */
     void showNotification(const QString &message);
 
-    /** @brief 与「清除报警」按钮相同的 Modbus 写入（主控 290、403） */
+    /** @brief 与「清除报警」按钮相同的 Modbus 写入（主控/AGV 290） */
     void sendRemoveWarningModbusWrites();
 
     /** @brief 获取当前页面名称 */

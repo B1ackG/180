@@ -292,6 +292,11 @@ public:
     void updateFromModbus(double value);  // 从Modbus更新值
 
     /**
+     * @brief 由虚拟键盘确认输入；超出 LineEdit 写入范围时自动钳位到极限值
+     */
+    void applyVirtualKeyboardInput(const QString &text);
+
+    /**
      * 使用示例:
      * @code
      * slider->updateFromModbus(42.0);
@@ -341,6 +346,8 @@ private:
     void updateLineEditFromValue();
     void updateRangeLabels();  // 新增：更新范围标签
     void setupPresetButtons(); // 新增：设置预设按钮样式
+    double clampLineEditInputValue(double value) const;
+    void commitLineEditInput(double rawValue);
     double sliderToValue(int sliderVal) const;
     int valueToSlider(double value) const;
     void applyTechStyle()

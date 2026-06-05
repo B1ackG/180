@@ -4,10 +4,15 @@
 #include <QWidget>
 #include <QCheckBox>
 #include <QMap>
+#include <QVector>
+
+#include "mainwindow.h"
 
 class QLineEdit;
+class QComboBox;
 class TechVirtualKeyboard;
 class QVBoxLayout;
+class QHBoxLayout;
 class QGroupBox;
 class QGridLayout;
 
@@ -55,6 +60,32 @@ private:
     void loadButtonVisibilityState();
     void saveButtonVisibilityState();
 
+    struct ModbusRegisterEdits {
+        QComboBox *device = nullptr;
+        QLineEdit *address = nullptr;
+        QLineEdit *bit = nullptr;
+        QLineEdit *value1 = nullptr;
+        QLineEdit *value2 = nullptr;
+        QLineEdit *value3 = nullptr;
+    };
+
+    struct ModbusButtonEdits {
+        QCheckBox *visible = nullptr;
+        QCheckBox *secondStateDim = nullptr;
+        QVector<ModbusRegisterEdits> reads;
+        QVector<ModbusRegisterEdits> writes;
+        bool readForUiSync = false;
+    };
+
+    ModbusRegisterEdits makeRegisterRowEdits(QWidget *parent, const QString &lineEditStyle);
+    void addModbusRegisterRow(QHBoxLayout *row,
+                              const QString &label,
+                              const ModbusRegisterEdits &edits,
+                              const QString &syncHint = QString());
+    void applyRegisterSpecToEdits(const MainWindow::ModbusRegisterSpec &spec,
+                                  ModbusRegisterEdits &edits);
+    MainWindow::ModbusRegisterSpec readRegisterSpecFromEdits(const ModbusRegisterEdits &edits) const;
+
     QMap<QString, QCheckBox*> m_bigCheckboxes;
     QMap<QString, QCheckBox*> m_smallCheckboxes;
 
@@ -97,11 +128,16 @@ private:
     QLineEdit *m_editInclinometerThresholdX = nullptr;
     QLineEdit *m_editInclinometerThresholdY = nullptr;
 
-    QMap<QString, QCheckBox*> m_buttonVisibilityCheckboxes;
+    QMap<QString, ModbusButtonEdits> m_modbusButtonEdits;
+    QMap<QString, QCheckBox*> m_otherVisibilityCheckboxes;
 
-    QGroupBox *m_buttonVisibilityGroup = nullptr;
-    QWidget *m_buttonVisibilityListHost = nullptr;
-    QGridLayout *m_buttonVisibilityGrid = nullptr;
+    QGroupBox *m_modbusButtonGroup = nullptr;
+    QWidget *m_modbusButtonListHost = nullptr;
+    QVBoxLayout *m_modbusButtonListLayout = nullptr;
+
+    QGroupBox *m_otherVisibilityGroup = nullptr;
+    QWidget *m_otherVisibilityListHost = nullptr;
+    QGridLayout *m_otherVisibilityGrid = nullptr;
 
     TechVirtualKeyboard *m_virtualKeyboard = nullptr;
 };
