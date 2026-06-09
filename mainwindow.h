@@ -238,6 +238,18 @@ public:
     void showParkingSwitchHintDialog(const QString &message);
     /** @brief 隐藏驻车切换等待提示窗 */
     void hideParkingSwitchHintDialog();
+    /** @brief 显示倾覆风险提示窗（倾角 0.8°~1°） */
+    void showInclinometerTiltRiskDialog();
+    /** @brief 隐藏倾覆风险提示窗 */
+    void hideInclinometerTiltRiskDialog();
+    /** @brief 显示高倾覆风险锁定窗（倾角 >1°，需管理员密码解锁） */
+    void showInclinometerTiltLockDialog();
+    /** @brief 隐藏高倾覆风险锁定窗 */
+    void hideInclinometerTiltLockDialog();
+    /** @brief 以模态居中方式展示倾角锁定窗（待输入密码） */
+    void presentInclinometerTiltLockModal();
+    /** @brief 以非模态右下角方式展示已解锁的倾角锁定窗 */
+    void presentInclinometerTiltLockUnlocked();
 
     // 提示信息系统
     /** @brief 更新提示内容标签 */
@@ -423,6 +435,8 @@ public:
     void updateRobotTotalPower(quint16 powerValue);
     /** @brief 更新倾角显示（AGV 151/152，寄存器值÷100） */
     void updateInclinometerValue(bool isXAxis, quint16 rawValue);
+    /** @brief 根据 X/Y 倾角刷新倾角条颜色与倾覆风险/锁定提示窗 */
+    void refreshInclinometerTiltPresentation();
     /** @brief 初始化滑块编辑 UI */
     void initSliderEditUI();
 
@@ -746,6 +760,19 @@ private:
     QLabel *m_inclinometerYValueLabel = nullptr;
     QLabel *m_inclinometerXThresholdLabel = nullptr;
     QLabel *m_inclinometerYThresholdLabel = nullptr;
+    QWidget *m_inclinometerPowerStripWidget = nullptr;
+    qreal m_inclinometerXDegree = 0.0;
+    qreal m_inclinometerYDegree = 0.0;
+    bool m_inclinometerTiltRiskInZone = false;
+    bool m_inclinometerTiltRiskAcked = false;
+    QDialog *m_inclinometerTiltRiskDialog = nullptr;
+    bool m_inclinometerTiltLockInZone = false;
+    bool m_inclinometerTiltLockUnlocked = false;
+    QDialog *m_inclinometerTiltLockDialog = nullptr;
+    QLabel *m_inclinometerTiltLockPasswordHint = nullptr;
+    QLineEdit *m_inclinometerTiltLockPasswordEdit = nullptr;
+    QLabel *m_inclinometerTiltLockErrorLabel = nullptr;
+    QPushButton *m_inclinometerTiltLockConfirmBtn = nullptr;
     QMovie* m_verticalMovie;
     QPixmap m_backgroundPixmap;
     bool m_backgroundLoaded = false;
@@ -992,7 +1019,7 @@ private:
 
     /** @brief 处理第二套 AGV 按键动作 */
     void handleAGVKey2Action(int keyNumber, bool pressed);
-    /** @brief 检查首页 ○9/○10 与转向切换用的高度/长度互锁提示语（空表示无互锁） */
+    /** @brief 检查 ○9/○10、转向切换、驻车按钮用的高度/长度互锁提示语（空表示无互锁） */
     QString robotInterlockHintMessage() const;
 
     /** @brief 获取当前转向模式文本（用于记录） */

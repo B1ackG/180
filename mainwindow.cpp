@@ -1274,6 +1274,7 @@ void MainWindow::initInclinometerAndRobotPowerStrip()
         qCWarning(lcMainWindow) << "未找到 widget_InclinometerPowerStrip，跳过倾角+总功率条初始化";
         return;
     }
+    m_inclinometerPowerStripWidget = host;
 
     if (QLayout *oldLayout = host->layout()) {
         QLayoutItem *item = nullptr;
@@ -1480,6 +1481,167 @@ void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
     const qint16 signedRaw = static_cast<qint16>(rawValue);
     const qreal degree = static_cast<qreal>(signedRaw) / 100.0;
     targetLabel->setText(QString::number(degree, 'f', 2) + QStringLiteral("°"));
+
+    if (isXAxis) {
+        m_inclinometerXDegree = degree;
+    } else {
+        m_inclinometerYDegree = degree;
+    }
+    refreshInclinometerTiltPresentation();
+}
+
+namespace {
+bool isInclinometerTiltRiskWarningDegree(qreal degree)
+{
+    const qreal absDeg = qAbs(degree);
+    return absDeg > 0.8 && absDeg <= 1.0;
+}
+
+bool isInclinometerTiltLockDegree(qreal degree)
+{
+    return qAbs(degree) > 1.0;
+}
+
+QString inclinometerPowerStripNormalStyleSheet()
+{
+    return QStringLiteral(
+        "background-color: #1A5FB4;"
+        "border: 1px solid #4FAFE8;"
+        "border-radius: 14px;");
+}
+
+QString inclinometerPowerStripWarningStyleSheet()
+{
+    return QStringLiteral(
+        "background-color: #9A7B00;"
+        "border: 1px solid #FFD966;"
+        "border-radius: 14px;");
+}
+
+QString inclinometerPowerStripAlarmStyleSheet()
+{
+    return QStringLiteral(
+        "background-color: #8B1A1A;"
+        "border: 1px solid #FF6666;"
+        "border-radius: 14px;");
+}
+
+void positionFloatingPopupCenter(QWidget *widget)
+{
+    if (!widget) {
+        return;
+    }
+    QScreen *screen = QGuiApplication::primaryScreen();
+    if (!screen) {
+        return;
+    }
+    const QRect area = screen->availableGeometry();
+    const int x = area.left() + (area.width() - widget->width()) / 2;
+    const int y = area.top() + (area.height() - widget->height()) / 2;
+    widget->move(x, y);
+}
+
+void positionFloatingPopupBottomRight(QWidget *widget, int bottomMarginPx, QWidget *avoidWidget = nullptr)
+{
+    if (!widget) {
+        return;
+    }
+    QScreen *screen = QGuiApplication::primaryScreen();
+    if (!screen) {
+        return;
+    }
+    const QRect area = screen->availableGeometry();
+    const int x = area.right() - widget->width() - 50;
+    int y = area.bottom() - widget->height() - bottomMarginPx;
+    if (avoidWidget && avoidWidget->isVisible()) {
+        y = qMin(y, avoidWidget->y() - widget->height() - 12);
+    }
+    y = qBound(area.top() + 20, y, area.bottom() - widget->height() - 20);
+    widget->move(x, y);
+}
+} // namespace
+
+void MainWindow::refreshInclinometerTiltPresentation()
+{
+    const bool inLockZone = isInclinometerTiltLockDegree(m_inclinometerXDegree)
+                         || isInclinometerTiltLockDegree(m_inclinometerYDegree);
+    const bool inWarnZone = !inLockZone
+                         && (isInclinometerTiltRiskWarningDegree(m_inclinometerXDegree)
+                             || isInclinometerTiltRiskWarningDegree(m_inclinometerYDegree));
+
+    if (m_inclinometerPowerStripWidget) {
+        if (inLockZone) {
+            m_inclinometerPowerStripWidget->setStyleSheet(inclinometerPowerStripAlarmStyleSheet());
+        } else if (inWarnZone) {
+            m_inclinometerPowerStripWidget->setStyleSheet(inclinometerPowerStripWarningStyleSheet());
+        } else {
+            m_inclinometerPowerStripWidget->setStyleSheet(inclinometerPowerStripNormalStyleSheet());
+        }
+    }
+
+    if (inLockZone != m_inclinometerTiltLockInZone) {
+        if (inLockZone) {
+            m_inclinometerTiltLockUnlocked = false;
+            m_inclinometerTiltRiskInZone = false;
+            m_inclinometerTiltRiskAcked = false;
+            hideInclinometerTiltRiskDialog();
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = QStringLiteral("报警系统");
+                record.controlName = QStringLiteral("高倾覆风险锁定");
+                record.controlType = QStringLiteral("提示窗口");
+                record.operation = QStringLiteral("报警触发");
+                record.oldValue = QString();
+                record.newValue = QStringLiteral("高倾覆风险报警！！！设备倾角过大锁定。");
+                m_recorder->addRecord(record);
+            }
+            showInclinometerTiltLockDialog();
+        } else {
+            m_inclinometerTiltLockUnlocked = false;
+            hideInclinometerTiltLockDialog();
+        }
+        m_inclinometerTiltLockInZone = inLockZone;
+    } else if (inLockZone) {
+        if (m_inclinometerTiltLockUnlocked) {
+            if (m_inclinometerTiltLockDialog && !m_inclinometerTiltLockDialog->isVisible()) {
+                presentInclinometerTiltLockUnlocked();
+            }
+        } else {
+            showInclinometerTiltLockDialog();
+        }
+    }
+
+    if (inLockZone) {
+        return;
+    }
+
+    if (inWarnZone != m_inclinometerTiltRiskInZone) {
+        if (inWarnZone) {
+            m_inclinometerTiltRiskAcked = false;
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = QStringLiteral("报警系统");
+                record.controlName = QStringLiteral("倾覆风险提示");
+                record.controlType = QStringLiteral("提示窗口");
+                record.operation = QStringLiteral("报警触发");
+                record.oldValue = QString();
+                record.newValue = QStringLiteral("倾覆风险提示！设备倾角过大。");
+                m_recorder->addRecord(record);
+            }
+            showInclinometerTiltRiskDialog();
+        } else {
+            m_inclinometerTiltRiskAcked = false;
+            hideInclinometerTiltRiskDialog();
+        }
+        m_inclinometerTiltRiskInZone = inWarnZone;
+        return;
+    }
+
+    if (inWarnZone && !m_inclinometerTiltRiskAcked) {
+        showInclinometerTiltRiskDialog();
+    }
 }
 
 //模拟速度
@@ -6833,6 +6995,15 @@ void MainWindow::onAGVParkBtnClicked()
         return;
     }
 
+    if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
+    }
+    const QString interlockHint = robotInterlockHintMessage();
+    if (!interlockHint.isEmpty()) {
+        showRobotOperationHintDialog(interlockHint);
+        return;
+    }
+
     const bool oldParkingEnabled = m_agvParkingEnabled;
     const bool targetParkingEnabled = !oldParkingEnabled;
     const int targetWaitBit = targetParkingEnabled ? 3 : 4;
@@ -9601,6 +9772,8 @@ void MainWindow::hideNonEmergencyPopups()
     hideTeachingWriteGateDeniedDialog();
     hideRobotLimitReachedDialog();
     hideRobotWeightOverloadDialog();
+    hideInclinometerTiltRiskDialog();
+    hideInclinometerTiltLockDialog();
 }
 
 void MainWindow::handleAGVRegister51Alerts(quint16 value)
@@ -9918,6 +10091,297 @@ void MainWindow::hideAgvBatteryLowDialog()
 {
     if (m_agvBatteryLowDialog && m_agvBatteryLowDialog->isVisible()) {
         m_agvBatteryLowDialog->hide();
+    }
+}
+
+void MainWindow::showInclinometerTiltRiskDialog()
+{
+    if (m_inclinometerTiltRiskAcked) {
+        return;
+    }
+    if (m_inclinometerTiltRiskDialog && m_inclinometerTiltRiskDialog->isVisible()) {
+        return;
+    }
+
+    if (!m_inclinometerTiltRiskDialog) {
+        m_inclinometerTiltRiskDialog = new QDialog(this);
+        m_inclinometerTiltRiskDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_inclinometerTiltRiskDialog->setModal(false);
+        m_inclinometerTiltRiskDialog->setObjectName(QStringLiteral("inclinometerTiltRiskDialog"));
+
+        auto *layout = new QVBoxLayout(m_inclinometerTiltRiskDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        auto *msgLabel = new QLabel(QStringLiteral("倾覆风险提示！设备倾角过大。"), m_inclinometerTiltRiskDialog);
+        msgLabel->setObjectName(QStringLiteral("inclinometerTiltRiskLabel"));
+        msgLabel->setAlignment(Qt::AlignCenter);
+        msgLabel->setWordWrap(true);
+        layout->addWidget(msgLabel);
+
+        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), m_inclinometerTiltRiskDialog);
+        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
+        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = QStringLiteral("报警系统");
+                record.controlName = QStringLiteral("倾覆风险提示");
+                record.controlType = QStringLiteral("提示窗口");
+                record.operation = QStringLiteral("用户确认");
+                record.oldValue = QStringLiteral("倾覆风险提示！设备倾角过大。");
+                record.newValue = QStringLiteral("用户点击确认，倾覆风险提示窗口隐藏");
+                m_recorder->addRecord(record);
+            }
+            m_inclinometerTiltRiskAcked = true;
+            hideInclinometerTiltRiskDialog();
+        });
+
+        m_inclinometerTiltRiskDialog->setFixedSize(400, 150);
+        m_inclinometerTiltRiskDialog->setStyleSheet(
+            QStringLiteral(
+                "#inclinometerTiltRiskDialog {"
+                "  background-color: rgba(50, 35, 0, 235);"
+                "  border: 3px solid #ffb000;"
+                "  border-radius: 10px;"
+                "}"
+                "#inclinometerTiltRiskLabel {"
+                "  color: #ffcc33;"
+                "  font-size: 20px;"
+                "  font-weight: bold;"
+                "  background-color: transparent;"
+                "}"
+                "QPushButton {"
+                "  background-color: #ffb000;"
+                "  color: #1f1f1f;"
+                "  border: 2px solid #ffd166;"
+                "  border-radius: 6px;"
+                "  padding: 8px 16px;"
+                "  font-size: 14px;"
+                "  font-weight: bold;"
+                "  min-width: 90px;"
+                "}"
+                "QPushButton:hover {"
+                "  background-color: #ffd166;"
+                "}"));
+    }
+
+    positionFloatingPopupTopRight(m_inclinometerTiltRiskDialog, 1140);
+    m_inclinometerTiltRiskDialog->show();
+    m_inclinometerTiltRiskDialog->raise();
+    m_inclinometerTiltRiskDialog->activateWindow();
+}
+
+void MainWindow::hideInclinometerTiltRiskDialog()
+{
+    if (m_inclinometerTiltRiskDialog && m_inclinometerTiltRiskDialog->isVisible()) {
+        m_inclinometerTiltRiskDialog->hide();
+    }
+}
+
+void MainWindow::presentInclinometerTiltLockUnlocked()
+{
+    if (!m_inclinometerTiltLockDialog) {
+        return;
+    }
+
+    m_inclinometerTiltLockDialog->hide();
+
+    if (m_inclinometerTiltLockPasswordHint) {
+        m_inclinometerTiltLockPasswordHint->hide();
+    }
+    if (m_inclinometerTiltLockPasswordEdit) {
+        m_inclinometerTiltLockPasswordEdit->hide();
+    }
+    if (m_inclinometerTiltLockErrorLabel) {
+        m_inclinometerTiltLockErrorLabel->hide();
+    }
+    if (m_inclinometerTiltLockConfirmBtn) {
+        m_inclinometerTiltLockConfirmBtn->hide();
+    }
+
+    m_inclinometerTiltLockDialog->setWindowModality(Qt::NonModal);
+    m_inclinometerTiltLockDialog->setModal(false);
+    m_inclinometerTiltLockDialog->setFixedSize(420, 120);
+    positionFloatingPopupBottomRight(m_inclinometerTiltLockDialog, 50, m_alarmWidget);
+    m_inclinometerTiltLockDialog->show();
+    m_inclinometerTiltLockDialog->raise();
+}
+
+void MainWindow::presentInclinometerTiltLockModal()
+{
+    if (!m_inclinometerTiltLockDialog) {
+        return;
+    }
+
+    m_inclinometerTiltLockDialog->hide();
+
+    if (m_inclinometerTiltLockPasswordHint) {
+        m_inclinometerTiltLockPasswordHint->show();
+    }
+    if (m_inclinometerTiltLockPasswordEdit) {
+        m_inclinometerTiltLockPasswordEdit->clear();
+        m_inclinometerTiltLockPasswordEdit->show();
+    }
+    if (m_inclinometerTiltLockErrorLabel) {
+        m_inclinometerTiltLockErrorLabel->hide();
+    }
+    if (m_inclinometerTiltLockConfirmBtn) {
+        m_inclinometerTiltLockConfirmBtn->show();
+    }
+
+    m_inclinometerTiltLockDialog->setWindowModality(Qt::ApplicationModal);
+    m_inclinometerTiltLockDialog->setModal(true);
+    m_inclinometerTiltLockDialog->setFixedSize(420, 240);
+    positionFloatingPopupCenter(m_inclinometerTiltLockDialog);
+    m_inclinometerTiltLockDialog->show();
+    m_inclinometerTiltLockDialog->raise();
+    m_inclinometerTiltLockDialog->activateWindow();
+    if (m_inclinometerTiltLockPasswordEdit) {
+        m_inclinometerTiltLockPasswordEdit->setFocus();
+    }
+}
+
+void MainWindow::showInclinometerTiltLockDialog()
+{
+    if (!m_inclinometerTiltLockDialog) {
+        m_inclinometerTiltLockDialog = new QDialog(nullptr);
+        m_inclinometerTiltLockDialog->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
+                                                     Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_inclinometerTiltLockDialog->setObjectName(QStringLiteral("inclinometerTiltLockDialog"));
+
+        auto *layout = new QVBoxLayout(m_inclinometerTiltLockDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        auto *msgLabel = new QLabel(QStringLiteral("高倾覆风险报警！！！设备倾角过大锁定。"),
+                                    m_inclinometerTiltLockDialog);
+        msgLabel->setObjectName(QStringLiteral("inclinometerTiltLockLabel"));
+        msgLabel->setAlignment(Qt::AlignCenter);
+        msgLabel->setWordWrap(true);
+        layout->addWidget(msgLabel);
+
+        m_inclinometerTiltLockPasswordHint = new QLabel(QStringLiteral("请输入管理员密码"),
+                                                        m_inclinometerTiltLockDialog);
+        m_inclinometerTiltLockPasswordHint->setObjectName(QStringLiteral("inclinometerTiltLockPasswordHint"));
+        m_inclinometerTiltLockPasswordHint->setAlignment(Qt::AlignCenter);
+        layout->addWidget(m_inclinometerTiltLockPasswordHint);
+
+        m_inclinometerTiltLockPasswordEdit = new QLineEdit(m_inclinometerTiltLockDialog);
+        m_inclinometerTiltLockPasswordEdit->setObjectName(QStringLiteral("inclinometerTiltLockPasswordEdit"));
+        m_inclinometerTiltLockPasswordEdit->setEchoMode(QLineEdit::Password);
+        m_inclinometerTiltLockPasswordEdit->setAlignment(Qt::AlignCenter);
+        m_inclinometerTiltLockPasswordEdit->setPlaceholderText(QStringLiteral("请输入密码"));
+        layout->addWidget(m_inclinometerTiltLockPasswordEdit);
+
+        m_inclinometerTiltLockErrorLabel = new QLabel(m_inclinometerTiltLockDialog);
+        m_inclinometerTiltLockErrorLabel->setObjectName(QStringLiteral("inclinometerTiltLockErrorLabel"));
+        m_inclinometerTiltLockErrorLabel->setAlignment(Qt::AlignCenter);
+        m_inclinometerTiltLockErrorLabel->setStyleSheet(QStringLiteral("color: #ff8888; font-size: 13px;"));
+        m_inclinometerTiltLockErrorLabel->hide();
+        layout->addWidget(m_inclinometerTiltLockErrorLabel);
+
+        m_inclinometerTiltLockConfirmBtn = new QPushButton(QStringLiteral("确认"), m_inclinometerTiltLockDialog);
+        m_inclinometerTiltLockConfirmBtn->setObjectName(QStringLiteral("inclinometerTiltLockConfirmBtn"));
+        layout->addWidget(m_inclinometerTiltLockConfirmBtn, 0, Qt::AlignCenter);
+
+        connect(m_inclinometerTiltLockConfirmBtn, &QPushButton::clicked, this, [this]() {
+            if (!m_inclinometerTiltLockPasswordEdit) {
+                return;
+            }
+            const QString password = m_inclinometerTiltLockPasswordEdit->text();
+            if (password != QStringLiteral("123")) {
+                if (m_inclinometerTiltLockErrorLabel) {
+                    m_inclinometerTiltLockErrorLabel->setText(QStringLiteral("密码错误，请重新输入"));
+                    m_inclinometerTiltLockErrorLabel->show();
+                }
+                m_inclinometerTiltLockPasswordEdit->clear();
+                m_inclinometerTiltLockPasswordEdit->setFocus();
+                return;
+            }
+
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = QStringLiteral("报警系统");
+                record.controlName = QStringLiteral("高倾覆风险锁定");
+                record.controlType = QStringLiteral("提示窗口");
+                record.operation = QStringLiteral("用户确认");
+                record.oldValue = QStringLiteral("高倾覆风险报警！！！设备倾角过大锁定。");
+                record.newValue = QStringLiteral("管理员密码验证通过，锁定窗转为非模态并移至右下角");
+                m_recorder->addRecord(record);
+            }
+
+            m_inclinometerTiltLockUnlocked = true;
+            presentInclinometerTiltLockUnlocked();
+        });
+
+        connect(m_inclinometerTiltLockPasswordEdit, &QLineEdit::returnPressed,
+                m_inclinometerTiltLockConfirmBtn, &QPushButton::click);
+        connect(m_inclinometerTiltLockPasswordEdit, &QLineEdit::textChanged, this, [this]() {
+            if (m_inclinometerTiltLockErrorLabel) {
+                m_inclinometerTiltLockErrorLabel->hide();
+            }
+        });
+
+        m_inclinometerTiltLockDialog->setFixedSize(420, 240);
+        m_inclinometerTiltLockDialog->setStyleSheet(
+            QStringLiteral(
+                "#inclinometerTiltLockDialog {"
+                "  background-color: rgba(45, 0, 0, 235);"
+                "  border: 3px solid #ff5555;"
+                "  border-radius: 10px;"
+                "}"
+                "#inclinometerTiltLockLabel {"
+                "  color: #ff8888;"
+                "  font-size: 20px;"
+                "  font-weight: bold;"
+                "  background-color: transparent;"
+                "}"
+                "#inclinometerTiltLockPasswordHint {"
+                "  color: #ffcccc;"
+                "  font-size: 14px;"
+                "  background-color: transparent;"
+                "}"
+                "#inclinometerTiltLockPasswordEdit {"
+                "  background-color: rgba(20, 0, 0, 200);"
+                "  color: #ffffff;"
+                "  border: 2px solid #ff8888;"
+                "  border-radius: 6px;"
+                "  padding: 6px;"
+                "  font-size: 14px;"
+                "}"
+                "#inclinometerTiltLockConfirmBtn {"
+                "  background-color: #ff5555;"
+                "  color: #ffffff;"
+                "  border: 2px solid #ff8888;"
+                "  border-radius: 6px;"
+                "  padding: 8px 16px;"
+                "  font-size: 14px;"
+                "  font-weight: bold;"
+                "  min-width: 90px;"
+                "}"
+                "#inclinometerTiltLockConfirmBtn:hover {"
+                "  background-color: #ff8888;"
+                "}"));
+    }
+
+    if (m_inclinometerTiltLockUnlocked) {
+        presentInclinometerTiltLockUnlocked();
+        return;
+    }
+
+    if (m_inclinometerTiltLockDialog->isVisible() && m_inclinometerTiltLockDialog->isModal()) {
+        return;
+    }
+
+    presentInclinometerTiltLockModal();
+}
+
+void MainWindow::hideInclinometerTiltLockDialog()
+{
+    if (m_inclinometerTiltLockDialog && m_inclinometerTiltLockDialog->isVisible()) {
+        m_inclinometerTiltLockDialog->hide();
     }
 }
 
