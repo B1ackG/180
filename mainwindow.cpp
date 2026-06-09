@@ -3070,10 +3070,10 @@ QString MainWindow::robotInterlockHintMessage() const
 {
     const quint16 status150 = m_mainRegister150Shadow;
     if (((status150 >> 1) & 0x01) == 1) {
-        return QStringLiteral("高度互锁，请降低高度后操作");
+        return QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。");
     }
     if (((status150 >> 2) & 0x01) == 1) {
-        return QStringLiteral("长度互锁，请缩小长度后操作");
+        return QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。");
     }
     return QString();
 }
@@ -3096,26 +3096,6 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     QString pageName = m_pageNames.value(currentPage, "未知");
     const bool isRobotPage = (currentPage == 0 || pageName == "机械臂" || pageName == "page_Robot");
     const bool isSixAxisPage = (currentPage == 3 || pageName == "六自由度" || pageName == "page_SixAxies");
-
-    // 首页外部按键提示：
-    // ○1/○2 对应主设备地址 150 的 bit1（高度互锁）；仅 ○4 受 bit2（长度互锁）限制，○3 不受长度互锁拦截。
-    // 须按位直接判断：若仅用 robotInterlockHintMessage()，在高度与长度同时触发时会始终返回高度文案，
-    // 导致 ○4 无法弹出长度互锁提示。
-    if (isRobotPage && pressed && keyNumber >= 1 && keyNumber <= 4) {
-        if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
-            MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
-        }
-
-        const quint16 s150 = m_mainRegister150Shadow;
-        if ((keyNumber == 1 || keyNumber == 2) && (((s150 >> 1) & 0x01) == 1)) {
-            showRobotOperationHintDialog(QStringLiteral("高度互锁，请降低高度后操作"));
-            return;
-        }
-        if (keyNumber == 4 && (((s150 >> 2) & 0x01) == 1)) {
-            showRobotOperationHintDialog(QStringLiteral("长度互锁，请缩小长度后操作"));
-            return;
-        }
-    }
 
     // 外部按钮逻辑门禁：
     // - 点动模式：仅允许在[关节]模式下执行；

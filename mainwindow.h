@@ -992,7 +992,7 @@ private:
 
     /** @brief 处理第二套 AGV 按键动作 */
     void handleAGVKey2Action(int keyNumber, bool pressed);
-    /** @brief 检查首页机械臂高度/长度互锁并返回提示语（空表示无互锁） */
+    /** @brief 检查首页 ○9/○10 与转向切换用的高度/长度互锁提示语（空表示无互锁） */
     QString robotInterlockHintMessage() const;
 
     /** @brief 获取当前转向模式文本（用于记录） */
