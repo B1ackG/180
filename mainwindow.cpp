@@ -9,6 +9,7 @@
 #include "mainmodbuspoller.h"
 #include "mainmodbusstatus.h"
 #include "modbuswritegate.h"
+#include "modbusstringregisters.h"
 #include <QMovie>
 #include <QDateTime>
 #include <QDebug>
@@ -931,6 +932,8 @@ void MainWindow::applyButtonVisibilityRuntimeSettings()
 
     settings.endGroup();
     applyPermissionPageLoginState();
+    loadSpareButtonNameRegisterSettings();
+    syncSpareButtonNamesFromRegisters();
     applySpareButtonRuntimeSettings();
 }
 
@@ -3161,6 +3164,8 @@ void MainWindow::setupAdminPasswordPage()
                     applyParkOutTriggerLengthRuntimeSettings();
                     applyInclinometerDisplayRuntimeSettings();
                     applyButtonVisibilityRuntimeSettings();
+                    loadSpareButtonNameRegisterSettings();
+                    syncSpareButtonNamesFromRegisters();
                     applySpareButtonRuntimeSettings();
                     refreshInterlockingButtonText();
                 });
@@ -5745,6 +5750,8 @@ void MainWindow::readMainControlSyncRegisters()
 
     // 当前位姿 X/Y/Z/AR：192.168.1.13 保持寄存器 103~118，每组 4 个寄存器为 IEEE754 双精度（与 J1~J4 解析一致）
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 103, 16);
+
+    syncSpareButtonNamesFromRegisters();
 }
 // 配置所有TechSliderLabel的参数
 void MainWindow::setupSliderLabelConfigs()
@@ -7204,16 +7211,19 @@ void MainWindow::setupAGVOAControl()
     // 备用按钮：仅 UI 两态（第二态可配置为变暗）
     m_techBtnSpare1 = findChild<TechPushButton*>(QStringLiteral("techBtn_spare_1"));
     if (m_techBtnSpare1) {
+        m_spareButtonDefaultFirstText.insert(m_techBtnSpare1->objectName(), m_techBtnSpare1->text());
         m_techBtnSpare1->setProperty("spareSecondState", false);
         m_techBtnSpare1->setProperty("spareFirstText", m_techBtnSpare1->text());
         connect(m_techBtnSpare1, &TechPushButton::clicked, this, &MainWindow::onSpareButtonClicked, Qt::UniqueConnection);
     }
     m_techBtnSpare2 = findChild<TechPushButton*>(QStringLiteral("techBtn_spare_2"));
     if (m_techBtnSpare2) {
+        m_spareButtonDefaultFirstText.insert(m_techBtnSpare2->objectName(), m_techBtnSpare2->text());
         m_techBtnSpare2->setProperty("spareSecondState", false);
         m_techBtnSpare2->setProperty("spareFirstText", m_techBtnSpare2->text());
         connect(m_techBtnSpare2, &TechPushButton::clicked, this, &MainWindow::onSpareButtonClicked, Qt::UniqueConnection);
     }
+    loadSpareButtonNameRegisterSettings();
     applySpareButtonRuntimeSettings();
 
     if (ui->LEdit_AGV_ParkOutTriggerLenght) {
@@ -7297,12 +7307,139 @@ void MainWindow::applySpareButtonRuntimeSettings()
         const QString firstText = btn->property("spareFirstText").toString().trimmed().isEmpty()
             ? btn->text()
             : btn->property("spareFirstText").toString();
-        const QString secondText = firstText + QStringLiteral(" (第二态)");
+        const QString configuredSecondText = btn->property("spareSecondText").toString().trimmed();
+        const QString secondText = configuredSecondText.isEmpty()
+            ? firstText + QStringLiteral(" (第二态)")
+            : configuredSecondText;
         const bool dimEnabled = spareButtonSecondStateDarkeningEnabled(btn->objectName());
         applyTwoStateButtonStyle(btn, secondState, dimEnabled, firstText, secondText);
     };
     applyOne(m_techBtnSpare1);
     applyOne(m_techBtnSpare2);
+}
+
+void MainWindow::loadSpareButtonNameRegisterSettings()
+{
+    m_spareButtonNameBindings.clear();
+
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("ButtonModbusMapping"));
+
+    const QStringList spareNames = {
+        QStringLiteral("techBtn_spare_1"),
+        QStringLiteral("techBtn_spare_2")
+    };
+
+    const auto parseSpec = [&settings](const QString &prefix) -> SpareButtonNameRegisterSpec {
+        SpareButtonNameRegisterSpec spec;
+        spec.device = settings.value(prefix + QStringLiteral("_device"), QStringLiteral("无")).toString().trimmed();
+        if (spec.device.isEmpty()) {
+            spec.device = QStringLiteral("无");
+        }
+        bool ok = false;
+        const int addr = settings.value(prefix + QStringLiteral("_addr")).toString().trimmed().toInt(&ok);
+        spec.startAddress = ok ? addr : -1;
+        return spec;
+    };
+
+    for (const QString &name : spareNames) {
+        SpareButtonNameRegisterBinding binding;
+        binding.state1 = parseSpec(name + QStringLiteral("_name1"));
+        binding.state2 = parseSpec(name + QStringLiteral("_name2"));
+        if (binding.state1.isConfigured() || binding.state2.isConfigured()) {
+            m_spareButtonNameBindings.insert(name, binding);
+        }
+    }
+
+    settings.endGroup();
+}
+
+bool MainWindow::readModbusUtf8StringRegisters(const QString &device,
+                                               int startAddress,
+                                               QString &textOut) const
+{
+    textOut.clear();
+    if (startAddress < 0) {
+        return false;
+    }
+
+    QVector<quint16> regs;
+    if (device == QStringLiteral("主控")) {
+        if (!MainDeviceModbusApi::readHoldingRegistersSync(m_modbusManager,
+                                                         startAddress,
+                                                         kModbusUtf8StringRegisterCount,
+                                                         regs,
+                                                         nullptr)) {
+            return false;
+        }
+    } else if (device == QStringLiteral("AGV")) {
+        if (!m_agvModbusManager || !m_agvModbusManager->isConnected()) {
+            return false;
+        }
+        if (!m_agvModbusManager->readHoldingRegistersSync(startAddress,
+                                                          kModbusUtf8StringRegisterCount,
+                                                          regs)) {
+            return false;
+        }
+    } else {
+        return false;
+    }
+
+    if (regs.size() < kModbusUtf8StringRegisterCount) {
+        return false;
+    }
+
+    textOut = decodeUtf8FromRegisters(regs);
+    return true;
+}
+
+void MainWindow::syncSpareButtonNamesFromRegisters()
+{
+    if (m_spareButtonNameBindings.isEmpty()) {
+        return;
+    }
+
+    const auto syncOne = [this](TechPushButton *btn) {
+        if (!btn) {
+            return;
+        }
+        const QString objectName = btn->objectName();
+        if (!m_spareButtonNameBindings.contains(objectName)) {
+            return;
+        }
+
+        const SpareButtonNameRegisterBinding binding = m_spareButtonNameBindings.value(objectName);
+        const QString defaultFirst = m_spareButtonDefaultFirstText.value(
+            objectName,
+            MappingConfig::instance()->mapControlName(objectName));
+
+        QString firstText = defaultFirst;
+        if (binding.state1.isConfigured()) {
+            QString decoded;
+            if (readModbusUtf8StringRegisters(binding.state1.device, binding.state1.startAddress, decoded)
+                && !decoded.isEmpty()) {
+                firstText = decoded;
+            }
+        }
+        btn->setProperty("spareFirstText", firstText);
+
+        QString secondText;
+        if (binding.state2.isConfigured()) {
+            QString decoded;
+            if (readModbusUtf8StringRegisters(binding.state2.device, binding.state2.startAddress, decoded)
+                && !decoded.isEmpty()) {
+                secondText = decoded;
+            }
+        }
+        if (secondText.isEmpty()) {
+            secondText = firstText + QStringLiteral(" (第二态)");
+        }
+        btn->setProperty("spareSecondText", secondText);
+    };
+
+    syncOne(m_techBtnSpare1);
+    syncOne(m_techBtnSpare2);
+    applySpareButtonRuntimeSettings();
 }
 
 void MainWindow::executeSpareButtonConfiguredWrites(const QString &buttonObjectName, int stateIndex)

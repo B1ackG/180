@@ -160,6 +160,11 @@ public:
      */
     bool readHoldingRegisterSync(int address, quint16 &value);
 
+    /**
+     * @brief 同步读取一段保持寄存器（阻塞，结果写入 values）
+     */
+    bool readHoldingRegistersSync(int startAddress, int count, QVector<quint16> &values);
+
     // 批量管理
     /**
      * @brief 将寄存器加入轮询列表

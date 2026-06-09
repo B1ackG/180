@@ -172,6 +172,11 @@ public:
     void readMultipleRegisters(int startAddress, int count);
 
     /**
+     * @brief 同步读取一段保持寄存器
+     */
+    bool readHoldingRegistersSync(int startAddress, int count, QVector<quint16> &values);
+
+    /**
      * 使用示例:
      * @code
      * mgr.readMultipleRegisters(100, 10);

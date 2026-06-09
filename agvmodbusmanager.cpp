@@ -476,6 +476,52 @@ void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
 }
 
 
+bool AGVModbusManager::readHoldingRegistersSync(int startAddress, int count, QVector<quint16> &values)
+{
+    if (QThread::currentThread() != thread()) {
+        bool ok = false;
+        QMetaObject::invokeMethod(this, [this, startAddress, count, &values, &ok]() {
+            ok = readHoldingRegistersSync(startAddress, count, values);
+        }, Qt::BlockingQueuedConnection);
+        return ok;
+    }
+
+    values.clear();
+    if (!isConnected() || count <= 0 || count > 125) {
+        return false;
+    }
+
+    MbReadRegistersFn readFn = m_backendReadHolding;
+    if (!readFn || !m_dynamicBackendHandle) {
+        qWarning() << "AGV动态库读失败: 缺少读取函数";
+        return false;
+    }
+
+    values.resize(count);
+    const int readCount = readFn(m_dynamicBackendHandle,
+                                 startAddress,
+                                 count,
+                                 values.data(),
+                                 values.size());
+    if (readCount <= 0) {
+        qWarning() << "AGV动态库同步读失败 地址:" << startAddress << "数量:" << count;
+        const QString reason = QStringLiteral("AGV动态库同步读取失败 address=%1 count=%2")
+                                   .arg(startAddress)
+                                   .arg(count);
+        handleCommunicationFailure(reason);
+        values.clear();
+        return false;
+    }
+
+    const int actualCount = qMin(readCount, count);
+    values.resize(actualCount);
+    for (int i = 0; i < actualCount; ++i) {
+        m_registerValues[startAddress + i] = values.at(i);
+    }
+    return true;
+}
+
+
 void AGVModbusManager::processBitVariables(int address, quint16 value)
 {
     // 处理位变量（每个位对应一个BOOL变量）

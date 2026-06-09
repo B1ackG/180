@@ -168,6 +168,60 @@ MainWindow::ModbusRegisterSpec loadRegisterSpec(QSettings &settings,
 
 constexpr int kMaxModbusTargetsPerDirection = 3;
 
+QComboBox *makeSpareNameDeviceCombo(QWidget *parent)
+{
+    auto *combo = new QComboBox(parent);
+    combo->addItems({QStringLiteral("无"), QStringLiteral("主控"), QStringLiteral("AGV")});
+    combo->setFixedWidth(58);
+    return combo;
+}
+
+QLineEdit *makeSpareNameAddrEdit(QWidget *parent, const QString &lineEditStyle)
+{
+    auto *edit = new QLineEdit(parent);
+    edit->setPlaceholderText(QStringLiteral("起始寄存器"));
+    edit->setFixedWidth(88);
+    edit->setStyleSheet(lineEditStyle);
+    return edit;
+}
+
+void applySpareNameRegisterToEdits(QComboBox *device,
+                                   QLineEdit *addr,
+                                   const QString &deviceValue,
+                                   const QString &addrValue)
+{
+    if (!device || !addr) {
+        return;
+    }
+    QSignalBlocker blockerDevice(device);
+    QSignalBlocker blockerAddr(addr);
+    const int deviceIndex = device->findText(deviceValue.trimmed().isEmpty() ? QStringLiteral("无") : deviceValue.trimmed());
+    device->setCurrentIndex(deviceIndex >= 0 ? deviceIndex : 0);
+    addr->setText(addrValue.trimmed());
+    const bool enabled = device->currentText() != QStringLiteral("无");
+    addr->setEnabled(enabled);
+    if (!enabled) {
+        addr->clear();
+    }
+}
+
+void wireSpareNameRegisterRow(QComboBox *device, QLineEdit *addr)
+{
+    if (!device || !addr) {
+        return;
+    }
+    const auto updateEnabled = [device, addr]() {
+        const bool enabled = device->currentText() != QStringLiteral("无");
+        addr->setEnabled(enabled);
+        if (!enabled) {
+            addr->clear();
+        }
+    };
+    QObject::connect(device, QOverload<int>::of(&QComboBox::currentIndexChanged), device,
+            [updateEnabled](int) { updateEnabled(); });
+    updateEnabled();
+}
+
 QList<MainWindow::ModbusRegisterSpec> loadRegisterSpecs(QSettings &settings,
                                                         const QString &basePrefix,
                                                         const QList<MainWindow::ModbusRegisterSpec> &fallbacks)
@@ -1239,6 +1293,10 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
             cardLayout->addLayout(titleRow);
 
             QCheckBox *secondStateDimCb = nullptr;
+            QComboBox *nameState1Device = nullptr;
+            QLineEdit *nameState1Addr = nullptr;
+            QComboBox *nameState2Device = nullptr;
+            QLineEdit *nameState2Addr = nullptr;
             if (objectName == QStringLiteral("techBtn_spare_1")
                 || objectName == QStringLiteral("techBtn_spare_2")) {
                 settings.beginGroup(QStringLiteral("ButtonSecondStateDarkening"));
@@ -1249,6 +1307,45 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
                 secondStateDimCb->setChecked(dimEnabled);
                 secondStateDimCb->setStyleSheet(QStringLiteral("color: #ffdd88;"));
                 cardLayout->addWidget(secondStateDimCb);
+
+                QLabel *nameHint = new QLabel(
+                    QStringLiteral("多态名称：Modbus UTF-8 字符串，从起始寄存器起连续读 15 个寄存器（高字节在前，与 ModbusTCPAssistant 一致）"),
+                    card);
+                nameHint->setWordWrap(true);
+                nameHint->setStyleSheet(QStringLiteral("color: #77ddee; font-size: 10px;"));
+                cardLayout->addWidget(nameHint);
+
+                nameState1Device = makeSpareNameDeviceCombo(card);
+                nameState1Addr = makeSpareNameAddrEdit(card, lineEditStyle);
+                nameState1Addr->installEventFilter(this);
+                wireSpareNameRegisterRow(nameState1Device, nameState1Addr);
+                QHBoxLayout *name1Row = new QHBoxLayout();
+                name1Row->addWidget(new QLabel(QStringLiteral("第1态名称"), card));
+                name1Row->addWidget(nameState1Device);
+                name1Row->addWidget(new QLabel(QStringLiteral("起始寄存器"), card));
+                name1Row->addWidget(nameState1Addr);
+                name1Row->addStretch();
+                cardLayout->addLayout(name1Row);
+                applySpareNameRegisterToEdits(nameState1Device,
+                                              nameState1Addr,
+                                              settings.value(objectName + QStringLiteral("_name1_device"), QStringLiteral("无")).toString(),
+                                              settings.value(objectName + QStringLiteral("_name1_addr")).toString());
+
+                nameState2Device = makeSpareNameDeviceCombo(card);
+                nameState2Addr = makeSpareNameAddrEdit(card, lineEditStyle);
+                nameState2Addr->installEventFilter(this);
+                wireSpareNameRegisterRow(nameState2Device, nameState2Addr);
+                QHBoxLayout *name2Row = new QHBoxLayout();
+                name2Row->addWidget(new QLabel(QStringLiteral("第2态名称"), card));
+                name2Row->addWidget(nameState2Device);
+                name2Row->addWidget(new QLabel(QStringLiteral("起始寄存器"), card));
+                name2Row->addWidget(nameState2Addr);
+                name2Row->addStretch();
+                cardLayout->addLayout(name2Row);
+                applySpareNameRegisterToEdits(nameState2Device,
+                                              nameState2Addr,
+                                              settings.value(objectName + QStringLiteral("_name2_device"), QStringLiteral("无")).toString(),
+                                              settings.value(objectName + QStringLiteral("_name2_addr")).toString());
             }
 
             QLabel *mappingHint = new QLabel(
@@ -1292,7 +1389,17 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
             }
 
             m_modbusButtonListLayout->addWidget(card);
-            m_modbusButtonEdits[objectName] = {visibleCb, secondStateDimCb, readEditsList, writeEditsList, info.readForUiSync};
+            m_modbusButtonEdits[objectName] = {
+                visibleCb,
+                secondStateDimCb,
+                readEditsList,
+                writeEditsList,
+                info.readForUiSync,
+                nameState1Device,
+                nameState1Addr,
+                nameState2Device,
+                nameState2Addr
+            };
             settings.endGroup();
             ++modbusCount;
         } else {
@@ -1395,6 +1502,18 @@ void FeatureSwitchWidget::loadButtonVisibilityState()
         for (int idx = 0; idx < writeCount; ++idx) {
             applyRegisterSpecToEdits(writeSpecs.at(idx), it->writes[idx]);
         }
+        if (it->nameState1Device && it->nameState1Addr) {
+            applySpareNameRegisterToEdits(it->nameState1Device,
+                                          it->nameState1Addr,
+                                          settings.value(it.key() + QStringLiteral("_name1_device"), QStringLiteral("无")).toString(),
+                                          settings.value(it.key() + QStringLiteral("_name1_addr")).toString());
+        }
+        if (it->nameState2Device && it->nameState2Addr) {
+            applySpareNameRegisterToEdits(it->nameState2Device,
+                                          it->nameState2Addr,
+                                          settings.value(it.key() + QStringLiteral("_name2_device"), QStringLiteral("无")).toString(),
+                                          settings.value(it.key() + QStringLiteral("_name2_addr")).toString());
+        }
     }
     settings.endGroup();
 
@@ -1476,6 +1595,15 @@ void FeatureSwitchWidget::saveButtonVisibilityState()
                 settings.setValue(writePrefixBase + QStringLiteral("_value"), writeSpec.value1);
                 settings.setValue(writePrefixBase, composeLegacyRegisterString(writeSpec));
             }
+        }
+
+        if (it->nameState1Device && it->nameState1Addr) {
+            settings.setValue(name + QStringLiteral("_name1_device"), it->nameState1Device->currentText());
+            settings.setValue(name + QStringLiteral("_name1_addr"), it->nameState1Addr->text().trimmed());
+        }
+        if (it->nameState2Device && it->nameState2Addr) {
+            settings.setValue(name + QStringLiteral("_name2_device"), it->nameState2Device->currentText());
+            settings.setValue(name + QStringLiteral("_name2_addr"), it->nameState2Addr->text().trimmed());
         }
     }
     settings.endGroup();

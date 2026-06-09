@@ -80,6 +80,10 @@ private:
         QVector<ModbusRegisterEdits> reads;
         QVector<ModbusRegisterEdits> writes;
         bool readForUiSync = false;
+        QComboBox *nameState1Device = nullptr;
+        QLineEdit *nameState1Addr = nullptr;
+        QComboBox *nameState2Device = nullptr;
+        QLineEdit *nameState2Addr = nullptr;
     };
 
     ModbusRegisterEdits makeRegisterRowEdits(QWidget *parent, const QString &lineEditStyle);

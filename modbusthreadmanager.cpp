@@ -487,6 +487,24 @@ bool ModbusThreadManager::readHoldingRegisters(int startAddress, int count)
     return m_modbusClient->readHoldingRegisters(startAddress, count);
 }
 
+bool ModbusThreadManager::readHoldingRegistersSync(int startAddress, int count, QVector<quint16> &values)
+{
+    if (QThread::currentThread() != thread()) {
+        bool ok = false;
+        QMetaObject::invokeMethod(this, [this, startAddress, count, &values, &ok]() {
+            ok = readHoldingRegistersSync(startAddress, count, values);
+        }, Qt::BlockingQueuedConnection);
+        return ok;
+    }
+
+    values.clear();
+    if (!m_modbusClient || !m_modbusClient->isConnected()) {
+        qWarning() << "Modbus客户端未连接，无法同步读取保持寄存器";
+        return false;
+    }
+    return m_modbusClient->readHoldingRegistersSync(startAddress, count, values);
+}
+
 bool ModbusThreadManager::readInputRegisters(int startAddress, int count)
 {
     if (QThread::currentThread() != thread()) {

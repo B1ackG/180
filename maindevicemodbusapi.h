@@ -68,6 +68,12 @@ public:
                                      int count,
                                      QString *errorMessage = nullptr);
 
+    static bool readHoldingRegistersSync(ModbusThreadManager *manager,
+                                         int startAddress,
+                                         int count,
+                                         QVector<quint16> &values,
+                                         QString *errorMessage = nullptr);
+
     /**
      * @brief 读取并调试输出指定地址。
      * @param manager 线程管理器。

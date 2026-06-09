@@ -776,6 +776,24 @@ private:
     TechPushButton *m_techBtnAGV_Park = nullptr;
     TechPushButton *m_techBtnSpare1 = nullptr;
     TechPushButton *m_techBtnSpare2 = nullptr;
+
+    struct SpareButtonNameRegisterSpec {
+        QString device;
+        int startAddress = -1;
+        bool isConfigured() const {
+            return !device.isEmpty()
+                && device != QStringLiteral("无")
+                && startAddress >= 0;
+        }
+    };
+
+    struct SpareButtonNameRegisterBinding {
+        SpareButtonNameRegisterSpec state1;
+        SpareButtonNameRegisterSpec state2;
+    };
+
+    QHash<QString, SpareButtonNameRegisterBinding> m_spareButtonNameBindings;
+    QHash<QString, QString> m_spareButtonDefaultFirstText;
     TechSliderEdit *m_editAGV_MoveSpeed = nullptr;
     TechSliderEdit *m_editAGV_Angle = nullptr;
     TechPushButton *m_btnForceControl = nullptr;
@@ -908,10 +926,18 @@ public:
     void applyButtonVisibilityRuntimeSettings();
     /** @brief 从 config.ini 应用备用按钮第二态 UI 变暗开关 */
     void applySpareButtonRuntimeSettings();
+    /** @brief 从 config.ini 加载备用按钮多态名称寄存器配置 */
+    void loadSpareButtonNameRegisterSettings();
+    /** @brief 从 Modbus 字符串寄存器同步备用按钮多态显示名称 */
+    void syncSpareButtonNamesFromRegisters();
     /** @brief 按控制台配置执行备用按钮 Modbus 写入 */
     void executeSpareButtonConfiguredWrites(const QString &buttonObjectName, int stateIndex);
 
 private:
+    bool readModbusUtf8StringRegisters(const QString &device,
+                                       int startAddress,
+                                       QString &textOut) const;
+
     /** @brief 权限页登录/注销后恢复与角色相关的控件可见性 */
     void applyPermissionPageLoginState();
     /** @brief 连接导航与页面切换相关信号 */
