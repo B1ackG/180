@@ -210,6 +210,42 @@ QPair<int, int> parkOutTriggerLengthLimitsFromSettings()
     }
     return {lo, hi};
 }
+
+QPair<int, int> weightOverloadLimitRangeFromSettings()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("SliderLabelLimits"));
+    int lo = qRound(settings.value(QStringLiteral("weight_overload_limit_min"), 0).toDouble());
+    int hi = qRound(settings.value(QStringLiteral("weight_overload_limit_max"), 350).toDouble());
+    settings.endGroup();
+    if (hi < lo) {
+        qSwap(lo, hi);
+    }
+    lo = qBound(0, lo, 1000000);
+    hi = qBound(0, hi, 1000000);
+    if (lo > hi) {
+        qSwap(lo, hi);
+    }
+    return {lo, hi};
+}
+
+QPair<int, int> weightLockLimitRangeFromSettings()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("SliderLabelLimits"));
+    int lo = qRound(settings.value(QStringLiteral("weight_lock_limit_min"), 0).toDouble());
+    int hi = qRound(settings.value(QStringLiteral("weight_lock_limit_max"), 400).toDouble());
+    settings.endGroup();
+    if (hi < lo) {
+        qSwap(lo, hi);
+    }
+    lo = qBound(0, lo, 1000000);
+    hi = qBound(0, hi, 1000000);
+    if (lo > hi) {
+        qSwap(lo, hi);
+    }
+    return {lo, hi};
+}
 } // namespace
 
 // 主控保持寄存器快照（先于使用它的成员函数定义，供 applyCachedMainControlSyncRegistersToUi 等使用）
@@ -440,6 +476,48 @@ void MainWindow::applyParkOutTriggerLengthRuntimeSettings()
     const int clamped = qBound(lim.first, cur, lim.second);
     if (clamped != cur) {
         ed->setText(QString::number(clamped));
+    }
+}
+
+void MainWindow::applyWeightThresholdRuntimeSettings()
+{
+    const QPair<int, int> overloadLim = weightOverloadLimitRangeFromSettings();
+    const QPair<int, int> lockLim = weightLockLimitRangeFromSettings();
+
+    if (m_weightOverloadLimitEdit) {
+        if (!m_weightOverloadLimitValidator) {
+            m_weightOverloadLimitValidator = new QIntValidator(this);
+            m_weightOverloadLimitEdit->setValidator(m_weightOverloadLimitValidator);
+        }
+        m_weightOverloadLimitValidator->setRange(overloadLim.first, overloadLim.second);
+
+        bool ok = false;
+        const int cur = m_weightOverloadLimitEdit->text().trimmed().toInt(&ok);
+        if (ok) {
+            const int clamped = qBound(overloadLim.first, cur, overloadLim.second);
+            if (clamped != cur) {
+                const QSignalBlocker blocker(m_weightOverloadLimitEdit);
+                m_weightOverloadLimitEdit->setText(QString::number(clamped));
+            }
+        }
+    }
+
+    if (m_weightLockLimitEdit) {
+        if (!m_weightLockLimitValidator) {
+            m_weightLockLimitValidator = new QIntValidator(this);
+            m_weightLockLimitEdit->setValidator(m_weightLockLimitValidator);
+        }
+        m_weightLockLimitValidator->setRange(lockLim.first, lockLim.second);
+
+        bool ok = false;
+        const int cur = m_weightLockLimitEdit->text().trimmed().toInt(&ok);
+        if (ok) {
+            const int clamped = qBound(lockLim.first, cur, lockLim.second);
+            if (clamped != cur) {
+                const QSignalBlocker blocker(m_weightLockLimitEdit);
+                m_weightLockLimitEdit->setText(QString::number(clamped));
+            }
+        }
     }
 }
 
@@ -2477,6 +2555,42 @@ void MainWindow::setupAdminPasswordPage()
     netMainLayout->addLayout(row2Layout);
     netConfigSection->setVisible(false); // 默认隐藏
 
+    // 负载阈值配置（管理员登录后可见）
+    QWidget *weightThresholdSection = new QWidget(container);
+    weightThresholdSection->setObjectName(QStringLiteral("weightThresholdSection"));
+    QVBoxLayout *weightMainLayout = new QVBoxLayout(weightThresholdSection);
+    weightMainLayout->setContentsMargins(0, 0, 0, 0);
+    weightMainLayout->setSpacing(10);
+
+    const QString weightLabelStyle = QStringLiteral(
+        "color: #00ffff; font-family: 'Microsoft YaHei UI'; font-size: 14px;");
+    const QString weightEditStyle = QStringLiteral(
+        "QLineEdit { background: rgba(0, 0, 0, 100); border: 1px solid #00c8ff;"
+        " color: #ffaa00; border-radius: 4px; padding: 6px 10px; min-width: 200px; }");
+
+    QLabel *overloadLimitLabel = new QLabel(QStringLiteral("负载超限阈值"), weightThresholdSection);
+    overloadLimitLabel->setStyleSheet(weightLabelStyle);
+    QLineEdit *weightOverloadLimitEdit = new QLineEdit(weightThresholdSection);
+    weightOverloadLimitEdit->setObjectName(QStringLiteral("weightOverloadLimitEdit"));
+    weightOverloadLimitEdit->setAlignment(Qt::AlignCenter);
+    weightOverloadLimitEdit->setStyleSheet(weightEditStyle);
+    m_weightOverloadLimitEdit = weightOverloadLimitEdit;
+
+    QLabel *lockLimitLabel = new QLabel(QStringLiteral("负载超重阈值"), weightThresholdSection);
+    lockLimitLabel->setStyleSheet(weightLabelStyle);
+    QLineEdit *weightLockLimitEdit = new QLineEdit(weightThresholdSection);
+    weightLockLimitEdit->setObjectName(QStringLiteral("weightLockLimitEdit"));
+    weightLockLimitEdit->setAlignment(Qt::AlignCenter);
+    weightLockLimitEdit->setStyleSheet(weightEditStyle);
+    m_weightLockLimitEdit = weightLockLimitEdit;
+
+    weightMainLayout->addWidget(overloadLimitLabel);
+    weightMainLayout->addWidget(weightOverloadLimitEdit);
+    weightMainLayout->addSpacing(8);
+    weightMainLayout->addWidget(lockLimitLabel);
+    weightMainLayout->addWidget(weightLockLimitEdit);
+    weightThresholdSection->setVisible(false);
+
     // 错误提示
     QLabel *errorLabel = new QLabel("", container);
     errorLabel->setObjectName("errorLabel");
@@ -2496,6 +2610,7 @@ void MainWindow::setupAdminPasswordPage()
     containerLayout->addWidget(loginButton);
     containerLayout->addWidget(featureButton);
     containerLayout->addWidget(netConfigSection); // 厂家登录后可见（包含本地IP及模拟器配置）
+    containerLayout->addWidget(weightThresholdSection); // 管理员登录后可见
     containerLayout->addWidget(logoutButton);
     containerLayout->addSpacing(15);
     containerLayout->addWidget(errorLabel);
@@ -2644,8 +2759,110 @@ void MainWindow::setupAdminPasswordPage()
         }
     });
 
+    applyWeightThresholdRuntimeSettings();
+
+    connect(weightOverloadLimitEdit, &QLineEdit::editingFinished, this,
+            [this, weightOverloadLimitEdit, weightLockLimitEdit]() {
+        bool ok = false;
+        const QPair<int, int> overloadLim = weightOverloadLimitRangeFromSettings();
+        int value = weightOverloadLimitEdit->text().trimmed().toInt(&ok);
+        if (!ok) {
+            if (ui && ui->statusBar) {
+                ui->statusBar->showMessage(QStringLiteral("负载超限阈值无效，请输入整数"), 3000);
+            }
+            if (g_registerCache.contains(5004)) {
+                const QSignalBlocker blocker(weightOverloadLimitEdit);
+                weightOverloadLimitEdit->setText(QString::number(g_registerCache.value(5004)));
+            }
+            return;
+        }
+        const int rawOverload = value;
+        value = qBound(overloadLim.first, value, overloadLim.second);
+        if (value != rawOverload) {
+            const QSignalBlocker blocker(weightOverloadLimitEdit);
+            weightOverloadLimitEdit->setText(QString::number(value));
+        }
+        bool lockOk = false;
+        int lockValue = weightLockLimitEdit->text().trimmed().toInt(&lockOk);
+        if (!lockOk && g_registerCache.contains(5005)) {
+            lockValue = static_cast<int>(g_registerCache.value(5005));
+            lockOk = true;
+        }
+        if (lockOk && value > lockValue) {
+            if (g_registerCache.contains(5004)) {
+                const QSignalBlocker blocker(weightOverloadLimitEdit);
+                weightOverloadLimitEdit->setText(QString::number(g_registerCache.value(5004)));
+            }
+            showNotification(QStringLiteral("负载超限阈值不能大于负载超重阈值"));
+            return;
+        }
+        writeToMainDevice(5004, value);
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = QStringLiteral("权限验证");
+            record.controlName = QStringLiteral("负载超限阈值");
+            record.controlType = QStringLiteral("AdminConfig");
+            record.operation = QStringLiteral("write_register");
+            record.oldValue = QString();
+            record.newValue = QStringLiteral("已向主控寄存器5004写入%1").arg(value);
+            m_recorder->addRecord(record);
+        }
+        showNotification(QStringLiteral("负载超限阈值已写入主控5004: %1").arg(value));
+    });
+
+    connect(weightLockLimitEdit, &QLineEdit::editingFinished, this,
+            [this, weightOverloadLimitEdit, weightLockLimitEdit]() {
+        bool ok = false;
+        const QPair<int, int> lockLim = weightLockLimitRangeFromSettings();
+        int value = weightLockLimitEdit->text().trimmed().toInt(&ok);
+        if (!ok) {
+            if (ui && ui->statusBar) {
+                ui->statusBar->showMessage(QStringLiteral("负载超重阈值无效，请输入整数"), 3000);
+            }
+            if (g_registerCache.contains(5005)) {
+                const QSignalBlocker blocker(weightLockLimitEdit);
+                weightLockLimitEdit->setText(QString::number(g_registerCache.value(5005)));
+            }
+            return;
+        }
+        const int rawLock = value;
+        value = qBound(lockLim.first, value, lockLim.second);
+        if (value != rawLock) {
+            const QSignalBlocker blocker(weightLockLimitEdit);
+            weightLockLimitEdit->setText(QString::number(value));
+        }
+        bool overloadOk = false;
+        int overloadValue = weightOverloadLimitEdit->text().trimmed().toInt(&overloadOk);
+        if (!overloadOk && g_registerCache.contains(5004)) {
+            overloadValue = static_cast<int>(g_registerCache.value(5004));
+            overloadOk = true;
+        }
+        if (overloadOk && value < overloadValue) {
+            if (g_registerCache.contains(5005)) {
+                const QSignalBlocker blocker(weightLockLimitEdit);
+                weightLockLimitEdit->setText(QString::number(g_registerCache.value(5005)));
+            }
+            showNotification(QStringLiteral("负载超限阈值不能大于负载超重阈值"));
+            return;
+        }
+        writeToMainDevice(5005, value);
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = QStringLiteral("权限验证");
+            record.controlName = QStringLiteral("负载超重阈值");
+            record.controlType = QStringLiteral("AdminConfig");
+            record.operation = QStringLiteral("write_register");
+            record.oldValue = QString();
+            record.newValue = QStringLiteral("已向主控寄存器5005写入%1").arg(value);
+            m_recorder->addRecord(record);
+        }
+        showNotification(QStringLiteral("负载超重阈值已写入主控5005: %1").arg(value));
+    });
+
     // 连接登录按钮
-    connect(loginButton, &QPushButton::clicked, this, [this, roleComboBox, passwordEdit, errorLabel, titleLabel, loginButton, logoutButton, hintLabel, featureButton, netConfigSection, ipHostEdit, simHostEdit]() {
+    connect(loginButton, &QPushButton::clicked, this, [this, roleComboBox, passwordEdit, errorLabel, titleLabel, loginButton, logoutButton, hintLabel, featureButton, netConfigSection, weightThresholdSection, ipHostEdit, simHostEdit]() {
         QString password = passwordEdit->text();
         UserRole selectedRole = static_cast<UserRole>(roleComboBox->currentData().toInt());
         QString roleName = roleComboBox->currentText();
@@ -2695,6 +2912,7 @@ void MainWindow::setupAdminPasswordPage()
             logoutButton->setVisible(true);
             featureButton->setVisible(m_currentUserRole == UserRole::Manufacturer);
             netConfigSection->setVisible(m_currentUserRole == UserRole::Manufacturer);
+            weightThresholdSection->setVisible(m_currentUserRole == UserRole::Admin);
             errorLabel->setVisible(false);
             passwordEdit->clear();
 
@@ -2722,7 +2940,7 @@ void MainWindow::setupAdminPasswordPage()
     });
 
     // 连接注销按钮
-    connect(logoutButton, &QPushButton::clicked, this, [this, titleLabel, roleComboBox, passwordEdit, hintLabel, loginButton, logoutButton, errorLabel, featureButton, netConfigSection]() {
+    connect(logoutButton, &QPushButton::clicked, this, [this, titleLabel, roleComboBox, passwordEdit, hintLabel, loginButton, logoutButton, errorLabel, featureButton, netConfigSection, weightThresholdSection]() {
         // 记录注销
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
@@ -2746,6 +2964,7 @@ void MainWindow::setupAdminPasswordPage()
         logoutButton->setVisible(false);
         featureButton->setVisible(false);
         netConfigSection->setVisible(false);
+        weightThresholdSection->setVisible(false);
         errorLabel->setVisible(false);
         
         showNotification("已注销，当前为操作员权限");
@@ -2770,6 +2989,7 @@ void MainWindow::setupAdminPasswordPage()
                     loadSliderLabelRuntimeSettings();
                     applySliderLabelRuntimeSettings();
                     applyParkOutTriggerLengthRuntimeSettings();
+                    applyWeightThresholdRuntimeSettings();
                     applyInclinometerDisplayRuntimeSettings();
                     refreshInterlockingButtonText();
                 });
@@ -3245,12 +3465,17 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 {
     // 获取当前页面
     int currentPage = ui->StackedWidget->currentIndex();
+    // 负载超重锁定（150.bit7）仍有效时：拦截全部外部按键
+    if (pressed && isRobotWeightLockGateActive()) {
+        blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：该外部按键操作已无效"));
+        return;
+    }
     // 超载仍有效且用户已点「确认」关窗后：拦截外部按键（首页 ○3/○4 除外），并再次弹出超载提示
     if (pressed && m_robotWeightOverload150Bit3Flag && m_robotWeightOverloadUserAckedWhileActive) {
         const bool firstPageOverloadExempt = (currentPage == 0 && (keyNumber == 3 || keyNumber == 4));
         if (!firstPageOverloadExempt) {
             showRobotWeightOverloadDialog();
-            ui->statusBar->showMessage(QStringLiteral("重量超载：该外部按键操作已无效"), 3000);
+            ui->statusBar->showMessage(QStringLiteral("负载超限：该外部按键操作已无效"), 3000);
             return;
         }
     }
@@ -4674,6 +4899,18 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         applyRobotSpeedUiFromRegister130(value);
     }
 
+    if (allowUiStateSync && address == 5004 && m_weightOverloadLimitEdit) {
+        const QPair<int, int> lim = weightOverloadLimitRangeFromSettings();
+        const QSignalBlocker blocker(m_weightOverloadLimitEdit);
+        m_weightOverloadLimitEdit->setText(QString::number(qBound(lim.first, static_cast<int>(value), lim.second)));
+    }
+
+    if (allowUiStateSync && address == 5005 && m_weightLockLimitEdit) {
+        const QPair<int, int> lim = weightLockLimitRangeFromSettings();
+        const QSignalBlocker blocker(m_weightLockLimitEdit);
+        m_weightLockLimitEdit->setText(QString::number(qBound(lim.first, static_cast<int>(value), lim.second)));
+    }
+
     if (address == 134) {
         updateRobotTotalPower(value);
     }
@@ -4821,19 +5058,49 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                 OperationRecord record;
                 record.timestamp = QDateTime::currentDateTime();
                 record.pageName = "提示系统";
-                record.controlName = "重量超载提示";
+                record.controlName = "负载超限提示";
                 record.controlType = "提示窗口";
                 record.operation = weightOverload ? "提示触发" : "提示解除";
                 record.oldValue = "";
-                record.newValue = weightOverload ? "检测到重量超载" : "重量超载提示已解除";
+                record.newValue = weightOverload ? "检测到负载超限" : "负载超限提示已解除";
                 m_recorder->addRecord(record);
             }
             if (weightOverload) {
                 m_robotWeightOverloadUserAckedWhileActive = false;
-                showRobotWeightOverloadDialog();
+                if (!m_robotWeightLock150Bit7Flag) {
+                    showRobotWeightOverloadDialog();
+                }
             } else {
                 hideRobotWeightOverloadDialog();
                 m_robotWeightOverloadUserAckedWhileActive = false;
+            }
+        }
+
+        const bool weightLock = (((value >> 7) & 0x01) == 1);
+        if (weightLock != m_robotWeightLock150Bit7Flag) {
+            m_robotWeightLock150Bit7Flag = weightLock;
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = QStringLiteral("提示系统");
+                record.controlName = QStringLiteral("负载超重锁定");
+                record.controlType = QStringLiteral("提示窗口");
+                record.operation = weightLock ? QStringLiteral("提示触发") : QStringLiteral("提示解除");
+                record.oldValue = QString();
+                record.newValue = weightLock ? QStringLiteral("检测到负载超重锁定")
+                                             : QStringLiteral("负载超重锁定已解除");
+                m_recorder->addRecord(record);
+            }
+            if (weightLock) {
+                m_robotWeightLockUserAckedWhileActive = false;
+                hideRobotWeightOverloadDialog();
+                showRobotWeightLockDialog();
+            } else {
+                hideRobotWeightLockDialog();
+                m_robotWeightLockUserAckedWhileActive = false;
+                if (m_robotWeightOverload150Bit3Flag) {
+                    showRobotWeightOverloadDialog();
+                }
             }
         }
 
@@ -5334,6 +5601,9 @@ void MainWindow::readMainControlSyncRegisters()
 
     // 当前位姿 X/Y/Z/AR：192.168.1.13 保持寄存器 103~118，每组 4 个寄存器为 IEEE754 双精度（与 J1~J4 解析一致）
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 103, 16);
+
+    // 管理员负载阈值：5004 负载超限、5005 负载超重
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 5004, 2);
 }
 // 配置所有TechSliderLabel的参数
 void MainWindow::setupSliderLabelConfigs()
@@ -6660,6 +6930,11 @@ void MainWindow::writeToMainDevice(int address, int value)
 }
 void MainWindow::onControlModeClicked()
 {
+    if (isRobotWeightLockGateActive()) {
+        blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：控制模式切换已无效"));
+        return;
+    }
+
     // 切换控制模式
     if (m_controlMode == WIRED_MODE) {
         m_controlMode = WIRELESS_MODE;
@@ -7004,6 +7279,11 @@ void MainWindow::onAGVParkBtnClicked()
         return;
     }
 
+    if (isRobotWeightLockGateActive()) {
+        blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：驻车操作已无效"));
+        return;
+    }
+
     const bool oldParkingEnabled = m_agvParkingEnabled;
     const bool targetParkingEnabled = !oldParkingEnabled;
     const int targetWaitBit = targetParkingEnabled ? 3 : 4;
@@ -7187,6 +7467,25 @@ void MainWindow::onAGVMoveSpeedChanged(double value)
 // AGV转向角度变化槽函数
 void MainWindow::onAGVAngleChanged(double value)
 {
+    if (isRobotWeightLockGateActive()) {
+        blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：底盘当前角度调整已无效"));
+        if (m_editAGV_Angle) {
+            double revertValue = 0;
+            if (m_agvRegisterShadow.contains(154)) {
+                revertValue = qBound(m_editAGV_Angle->minimum(),
+                                     static_cast<double>(m_agvRegisterShadow.value(154)),
+                                     m_editAGV_Angle->maximum());
+            } else if (m_agvRegisterShadow.contains(4)) {
+                revertValue = qBound(m_editAGV_Angle->minimum(),
+                                     static_cast<double>(static_cast<qint16>(m_agvRegisterShadow.value(4))),
+                                     m_editAGV_Angle->maximum());
+            }
+            const QSignalBlocker blocker(m_editAGV_Angle);
+            m_editAGV_Angle->setValue(revertValue);
+        }
+        return;
+    }
+
     const qint16 signedValue = static_cast<qint16>(qBound(-25, static_cast<int>(qRound(value)), 25));
     const quint16 rawUintValue = static_cast<quint16>(signedValue);
 
@@ -7397,9 +7696,22 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
 
     QLabel *steeringLabel = ui && ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarSteeringLabel") : nullptr;
 
+    if (isRobotWeightLockGateActive()) {
+        blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：底盘转向模式切换已无效"));
+        if (m_steeringModeSelector) {
+            const QSignalBlocker blocker(m_steeringModeSelector);
+            m_steeringModeSelector->setCurrentMode(m_lastSteeringMode);
+        }
+        if (steeringLabel && m_steeringModeSelector) {
+            steeringLabel->setText(QStringLiteral("转向:%1").arg(m_steeringModeSelector->modeText(m_lastSteeringMode)));
+            steeringLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
+        }
+        return;
+    }
+
     if (m_robotWeightOverload150Bit3Flag && m_robotWeightOverloadUserAckedWhileActive) {
         showRobotWeightOverloadDialog();
-        showNotification(QStringLiteral("重量超载：底盘转向模式切换已无效"));
+        showNotification(QStringLiteral("负载超限：底盘转向模式切换已无效"));
         if (m_steeringModeSelector) {
             const QSignalBlocker blocker(m_steeringModeSelector);
             m_steeringModeSelector->setCurrentMode(m_lastSteeringMode);
@@ -9475,6 +9787,9 @@ void MainWindow::setupAlarmSystem()
     m_agvStationOffline51Bit1Flag = false;
     m_agvDriveFault51Bit2Flag = false;
     m_agvBatteryLow51Bit0Flag = false;
+    m_robotWeightOverload150Bit3Flag = false;
+    m_robotWeightLock150Bit7Flag = false;
+    m_robotWeightLockUserAckedWhileActive = false;
     m_robotAxisSyncDeviation150Bit6Flag = false;
     m_robotPositiveLimit102Bit2Flag = false;
     m_robotNegativeLimit102Bit3Flag = false;
@@ -9772,6 +10087,7 @@ void MainWindow::hideNonEmergencyPopups()
     hideTeachingWriteGateDeniedDialog();
     hideRobotLimitReachedDialog();
     hideRobotWeightOverloadDialog();
+    hideRobotWeightLockDialog();
     hideInclinometerTiltRiskDialog();
     hideInclinometerTiltLockDialog();
 }
@@ -10739,7 +11055,7 @@ void MainWindow::showRobotWeightOverloadDialog()
         m_robotWeightOverloadLabel = new QLabel(m_robotWeightOverloadWidget);
         m_robotWeightOverloadLabel->setAlignment(Qt::AlignCenter);
         m_robotWeightOverloadLabel->setWordWrap(true);
-        m_robotWeightOverloadLabel->setText(QStringLiteral("重量超载"));
+        m_robotWeightOverloadLabel->setText(QStringLiteral("负载超限，注意倾覆风险！"));
         layout->addWidget(m_robotWeightOverloadLabel);
 
         m_robotWeightOverloadConfirmBtn = new QPushButton(QStringLiteral("确认"), m_robotWeightOverloadWidget);
@@ -10791,11 +11107,11 @@ void MainWindow::onRobotWeightOverloadConfirmClicked()
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
         record.pageName = QStringLiteral("提示系统");
-        record.controlName = QStringLiteral("重量超载提示");
+        record.controlName = QStringLiteral("负载超限提示");
         record.controlType = QStringLiteral("提示窗口");
         record.operation = QStringLiteral("用户确认");
         record.oldValue = QString();
-        record.newValue = QStringLiteral("用户确认重量超载提示，已向主控(192.168.1.13)寄存器290写入1");
+        record.newValue = QStringLiteral("用户确认负载超限提示，已向主控(192.168.1.13)寄存器290写入1");
         m_recorder->addRecord(record);
     }
 }
@@ -10804,6 +11120,107 @@ void MainWindow::hideRobotWeightOverloadDialog()
 {
     if (m_robotWeightOverloadWidget && m_robotWeightOverloadWidget->isVisible()) {
         m_robotWeightOverloadWidget->hide();
+    }
+}
+
+bool MainWindow::isRobotWeightLockGateActive() const
+{
+    return m_robotWeightLock150Bit7Flag;
+}
+
+void MainWindow::blockRobotWeightLockOperation(const QString &hint)
+{
+    m_robotWeightLockUserAckedWhileActive = false;
+    showRobotWeightLockDialog();
+    if (ui && ui->statusBar) {
+        ui->statusBar->showMessage(hint, 3000);
+    }
+}
+
+void MainWindow::showRobotWeightLockDialog()
+{
+    if (m_robotWeightLockUserAckedWhileActive) {
+        return;
+    }
+
+    if (!m_robotWeightLockWidget) {
+        m_robotWeightLockWidget = new QWidget(nullptr);
+        m_robotWeightLockWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
+                                                  Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_robotWeightLockWidget->setObjectName(QStringLiteral("robotWeightLockWidget"));
+
+        QVBoxLayout *layout = new QVBoxLayout(m_robotWeightLockWidget);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(8);
+
+        m_robotWeightLockLabel = new QLabel(m_robotWeightLockWidget);
+        m_robotWeightLockLabel->setAlignment(Qt::AlignCenter);
+        m_robotWeightLockLabel->setWordWrap(true);
+        m_robotWeightLockLabel->setText(QStringLiteral("负载超重锁定，需应急解锁！"));
+        layout->addWidget(m_robotWeightLockLabel);
+
+        m_robotWeightLockConfirmBtn = new QPushButton(QStringLiteral("确认"), m_robotWeightLockWidget);
+        m_robotWeightLockConfirmBtn->setObjectName(QStringLiteral("robotWeightLockConfirmBtn"));
+        layout->addWidget(m_robotWeightLockConfirmBtn, 0, Qt::AlignCenter);
+        connect(m_robotWeightLockConfirmBtn, &QPushButton::clicked,
+                this, &MainWindow::onRobotWeightLockConfirmClicked);
+
+        m_robotWeightLockWidget->setFixedSize(360, 168);
+        m_robotWeightLockWidget->setStyleSheet(
+            "#robotWeightLockWidget {"
+            "  background-color: rgba(45, 0, 0, 232);"
+            "  border: 3px solid #ff5555;"
+            "  border-radius: 10px;"
+            "}"
+            "QLabel {"
+            "  color: #ffb3b3;"
+            "  font-size: 22px;"
+            "  font-weight: bold;"
+            "  background: transparent;"
+            "}"
+            "#robotWeightLockConfirmBtn {"
+            "  background-color: #ffaa00;"
+            "  color: #2b1800;"
+            "  border: 2px solid #ffd166;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 90px;"
+            "}"
+            "#robotWeightLockConfirmBtn:hover {"
+            "  background-color: #ffd166;"
+            "}");
+    }
+
+    positionFloatingPopupTopRight(m_robotWeightLockWidget, 1020);
+    m_robotWeightLockWidget->show();
+    m_robotWeightLockWidget->raise();
+    m_robotWeightLockWidget->activateWindow();
+}
+
+void MainWindow::onRobotWeightLockConfirmClicked()
+{
+    writeToMainDevice(290, 1);
+    if (m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = QStringLiteral("提示系统");
+        record.controlName = QStringLiteral("负载超重锁定");
+        record.controlType = QStringLiteral("提示窗口");
+        record.operation = QStringLiteral("用户确认");
+        record.oldValue = QString();
+        record.newValue = QStringLiteral("用户确认负载超重锁定提示，已向主控(192.168.1.13)寄存器290写入1");
+        m_recorder->addRecord(record);
+    }
+    m_robotWeightLockUserAckedWhileActive = true;
+    hideRobotWeightLockDialog();
+}
+
+void MainWindow::hideRobotWeightLockDialog()
+{
+    if (m_robotWeightLockWidget && m_robotWeightLockWidget->isVisible()) {
+        m_robotWeightLockWidget->hide();
     }
 }
 

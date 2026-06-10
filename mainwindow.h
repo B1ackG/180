@@ -222,10 +222,18 @@ public:
     void hideWirelessModeWarningDialog();
     /** @brief 校验示教写门禁，未通过时弹出互锁提示并返回 false */
     bool verifyTeachingWriteGateOrShowDialog();
-    /** @brief 显示重量超载提示窗（150.bit3=1） */
+    /** @brief 显示负载超限预警窗（150.bit3=1） */
     void showRobotWeightOverloadDialog();
-    /** @brief 隐藏重量超载提示窗（150.bit3=0） */
+    /** @brief 隐藏负载超限预警窗（150.bit3=0） */
     void hideRobotWeightOverloadDialog();
+    /** @brief 显示负载超重锁定窗（150.bit7=1） */
+    void showRobotWeightLockDialog();
+    /** @brief 隐藏负载超重锁定窗（150.bit7=0） */
+    void hideRobotWeightLockDialog();
+    /** @brief 150.bit7 锁定态是否生效（拦截外部键/转向/控制模式/驻车/底盘当前角度） */
+    bool isRobotWeightLockGateActive() const;
+    /** @brief bit7 锁定态下拦截操作并再次弹出锁定窗 */
+    void blockRobotWeightLockOperation(const QString &hint);
     /** @brief 显示主副轴位置偏差提示窗（150.bit6=1），急停全屏清理时不隐藏 */
     void showRobotAxisSyncDeviationDialog();
     /** @brief 隐藏主副轴位置偏差提示窗（150.bit6=0） */
@@ -286,6 +294,8 @@ public:
                               bool bypassWirelessWarning = false);
     /** @brief 驻车伸出触发长度输入：从 config.ini 应用允许范围与校验器 */
     void applyParkOutTriggerLengthRuntimeSettings();
+    /** @brief 按功能控制台配置更新管理员负载阈值输入范围 */
+    void applyWeightThresholdRuntimeSettings();
     /** @brief 连续写 AGV 保持寄存器并更新 m_agvRegisterShadow */
     bool writeAgvHoldingRegisterBlock(int startAddress, const QVector<quint16> &words);
     
@@ -451,8 +461,10 @@ private slots:
     void onEnableButtonError(const QString &error);
     /** @brief 测试报警按钮点击回调 */
     void onTestAlarmButtonClicked();
-    /** @brief 重量超载提示窗「确认」：写主控290=1并进入已确认门禁态 */
+    /** @brief 负载超限预警窗「确认」：写主控290=1并进入已确认门禁态 */
     void onRobotWeightOverloadConfirmClicked();
+    /** @brief 负载超重锁定窗「确认」：写主控290=1并隐藏弹窗 */
+    void onRobotWeightLockConfirmClicked();
     /** @brief 主副轴偏差窗「开始同步」：主控290=1，527.bit5=1（读改写） */
     void onRobotAxisSyncStartClicked();
     /** @brief 非 AGV 滑块编辑值变化回调
@@ -618,6 +630,7 @@ private:
     bool m_agvDriveFault51Bit2Flag = false;
     bool m_agvBatteryLow51Bit0Flag = false;
     bool m_robotWeightOverload150Bit3Flag = false;
+    bool m_robotWeightLock150Bit7Flag = false;
     bool m_robotAxisSyncDeviation150Bit6Flag = false;
     bool m_robotPositiveLimit102Bit2Flag = false;
     bool m_robotNegativeLimit102Bit3Flag = false;
@@ -639,6 +652,11 @@ private:
     QPushButton *m_robotWeightOverloadConfirmBtn = nullptr;
     /** @brief 150.bit3 仍为超载时用户已点确认关闭提示窗，用于拦截后续外部操作直至超载解除 */
     bool m_robotWeightOverloadUserAckedWhileActive = false;
+    QWidget *m_robotWeightLockWidget = nullptr;
+    QLabel *m_robotWeightLockLabel = nullptr;
+    QPushButton *m_robotWeightLockConfirmBtn = nullptr;
+    /** @brief 150.bit7 仍为锁定时用户已点确认关窗，被禁操作尝试时重置并再次弹出 */
+    bool m_robotWeightLockUserAckedWhileActive = false;
     QWidget *m_robotAxisSyncDeviationWidget = nullptr;
     QLabel *m_robotAxisSyncDeviationLabel = nullptr;
     QPushButton *m_robotAxisSyncDeviationStartBtn = nullptr;
@@ -668,6 +686,8 @@ private:
     bool m_agvParkingEnabled = false;
     QMap<int, quint16> m_agvRegisterShadow;
     QIntValidator *m_parkOutTriggerLengthValidator = nullptr;
+    QIntValidator *m_weightOverloadLimitValidator = nullptr;
+    QIntValidator *m_weightLockLimitValidator = nullptr;
     bool m_mainRegister150Valid = false;
     quint16 m_mainRegister150Shadow = 0;
 
@@ -799,6 +819,8 @@ private:
     TechPushButton *m_techBtnAGV_Park = nullptr;
     TechSliderEdit *m_editAGV_MoveSpeed = nullptr;
     TechSliderEdit *m_editAGV_Angle = nullptr;
+    QLineEdit *m_weightOverloadLimitEdit = nullptr;
+    QLineEdit *m_weightLockLimitEdit = nullptr;
     TechPushButton *m_btnForceControl = nullptr;
     TechPushButton *m_btnBigForceControl = nullptr;
     TechPushButton *m_btnSmallForceControl = nullptr;
