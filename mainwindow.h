@@ -246,6 +246,10 @@ public:
     void showParkingSwitchHintDialog(const QString &message);
     /** @brief 隐藏驻车切换等待提示窗 */
     void hideParkingSwitchHintDialog();
+    /** @brief 显示支腿异常驻车操作弹窗（51.bit7=1 时） */
+    void showParkingLegAbnormalDialog();
+    /** @brief 隐藏支腿异常驻车操作弹窗 */
+    void hideParkingLegAbnormalDialog();
     /** @brief 显示倾覆风险提示窗（倾角 0.8°~1°） */
     void showInclinometerTiltRiskDialog();
     /** @brief 隐藏倾覆风险提示窗 */
@@ -639,6 +643,8 @@ private:
     bool m_agvBatteryLowAcked = false;
     QDialog *m_parkingSwitchHintDialog = nullptr;
     QLabel *m_parkingSwitchHintLabel = nullptr;
+    QDialog *m_parkingLegAbnormalDialog = nullptr;
+    QLineEdit *m_parkingLegAbnormalLengthEdit = nullptr;
     QWidget *m_agvStationOfflineAlarmWidget = nullptr;
     QLabel *m_agvStationOfflineAlarmLabel = nullptr;
     QWidget *m_agvDriveFaultAlarmWidget = nullptr;
@@ -684,6 +690,7 @@ private:
     QLabel *m_agvFaultsLabel;
     bool m_agvOaEnabled = true;
     bool m_agvParkingEnabled = false;
+    bool m_agvLegAbnormal51Bit7Flag = false;
     QMap<int, quint16> m_agvRegisterShadow;
     QIntValidator *m_parkOutTriggerLengthValidator = nullptr;
     QIntValidator *m_weightOverloadLimitValidator = nullptr;
@@ -916,6 +923,17 @@ public:
 
     /** @brief 从 config.ini 刷新首页倾角卡片上的阈值说明文字 */
     void applyInclinometerDisplayRuntimeSettings();
+
+    /** @brief 将驻车按钮更新为开启/关闭外观（支腿异常态下不更新主按钮） */
+    void applyAGVParkingButtonUi(bool enabled);
+    /** @brief 将驻车按钮与状态栏更新为支腿异常外观 */
+    void applyAGVParkingLegAbnormalUi();
+    /** @brief 将状态栏驻车标签更新为开/关 */
+    void applyAGVParkingStatusBarUi(bool enabled);
+    /** @brief 驻车切换失败后按当前异常态恢复 UI */
+    void restoreParkingUiAfterFailure(bool enabled);
+    /** @brief 执行驻车开启/关闭 Modbus 写入与等待确认；legLengthMm&lt;0 时从主页面输入框读取 */
+    void executeAGVParkingSwitch(bool targetEnabled, int legLengthMm = -1);
 
 private:
     /** @brief 连接导航与页面切换相关信号 */

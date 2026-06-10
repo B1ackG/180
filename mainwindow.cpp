@@ -6520,8 +6520,64 @@ void MainWindow::setupEnableButton()
     ui->statusBar->showMessage("使能按钮监控已启动", 3000);
 }
 
+void MainWindow::applyAGVParkingButtonUi(bool enabled)
+{
+    if (!m_techBtnAGV_Park || m_agvLegAbnormal51Bit7Flag) {
+        return;
+    }
+    m_techBtnAGV_Park->setText(enabled ? QStringLiteral("驻车开启") : QStringLiteral("驻车关闭"));
+    m_techBtnAGV_Park->setPrimaryColor(enabled ? QColor("#00C8FF") : QColor("#7F8C8D"));
+    m_techBtnAGV_Park->setGlowColor(enabled ? QColor(0, 200, 255, 180) : QColor(127, 140, 141, 100));
+}
+
+void MainWindow::applyAGVParkingLegAbnormalUi()
+{
+    if (m_techBtnAGV_Park) {
+        m_techBtnAGV_Park->setText(QStringLiteral("支腿异常"));
+        m_techBtnAGV_Park->setPrimaryColor(QColor("#FF6600"));
+        m_techBtnAGV_Park->setGlowColor(QColor(255, 102, 0, 180));
+    }
+
+    QLabel *parkLabel = ui && ui->statusBar
+                             ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarParkLabel"))
+                             : nullptr;
+    if (parkLabel) {
+        parkLabel->setText(QStringLiteral("支腿异常"));
+        parkLabel->setStyleSheet(QStringLiteral("color: #FF6600; font-weight: bold; font-size: 11px;"));
+    }
+}
+
+void MainWindow::applyAGVParkingStatusBarUi(bool enabled)
+{
+    if (m_agvLegAbnormal51Bit7Flag) {
+        return;
+    }
+
+    QLabel *parkLabel = ui && ui->statusBar
+                             ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarParkLabel"))
+                             : nullptr;
+    if (parkLabel) {
+        parkLabel->setText(enabled ? QStringLiteral("驻车开") : QStringLiteral("驻车关"));
+        parkLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+                                     .arg(enabled ? "#00C8FF" : "#7F8C8D"));
+    }
+}
+
+void MainWindow::restoreParkingUiAfterFailure(bool enabled)
+{
+    if (m_agvLegAbnormal51Bit7Flag) {
+        applyAGVParkingLegAbnormalUi();
+    } else {
+        applyAGVParkingButtonUi(enabled);
+        applyAGVParkingStatusBarUi(enabled);
+    }
+}
+
 void MainWindow::syncAGVParkingStateFromRegister51(quint16 value)
 {
+    const bool bit7 = (((value >> 7) & 0x01) == 1);
+    m_agvLegAbnormal51Bit7Flag = bit7;
+
     const bool bit3 = (((value >> 3) & 0x01) == 1);
     const bool bit4 = (((value >> 4) & 0x01) == 1);
 
@@ -6535,23 +6591,19 @@ void MainWindow::syncAGVParkingStateFromRegister51(quint16 value)
         return;
     }
 
+    if (bit7) {
+        applyAGVParkingLegAbnormalUi();
+        if (bit3 != bit4) {
+            m_agvParkingEnabled = bit3 && !bit4;
+        }
+        return;
+    }
+
     if (bit3 != bit4) {
         const bool parkingEnabled = bit3 && !bit4;
         m_agvParkingEnabled = parkingEnabled;
-        if (m_techBtnAGV_Park) {
-            m_techBtnAGV_Park->setText(parkingEnabled ? "驻车开启" : "驻车关闭");
-            m_techBtnAGV_Park->setPrimaryColor(parkingEnabled ? QColor("#00C8FF") : QColor("#7F8C8D"));
-            m_techBtnAGV_Park->setGlowColor(parkingEnabled ? QColor(0, 200, 255, 180) : QColor(127, 140, 141, 100));
-        }
-
-        QLabel *parkLabel = ui && ui->statusBar
-                                 ? ui->statusBar->findChild<QLabel*>("statusBarParkLabel")
-                                 : nullptr;
-        if (parkLabel) {
-            parkLabel->setText(parkingEnabled ? "驻车开" : "驻车关");
-            parkLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
-                                         .arg(parkingEnabled ? "#00C8FF" : "#7F8C8D"));
-        }
+        applyAGVParkingButtonUi(parkingEnabled);
+        applyAGVParkingStatusBarUi(parkingEnabled);
     }
 }
 
@@ -7038,9 +7090,7 @@ void MainWindow::setupAGVOAControl()
     m_techBtnAGV_Park = findChild<TechPushButton*>("techBtn_AGV_Park");
     if (m_techBtnAGV_Park) {
         m_agvParkingEnabled = false;
-        m_techBtnAGV_Park->setText("驻车关闭");
-        m_techBtnAGV_Park->setPrimaryColor(QColor("#7F8C8D"));
-        m_techBtnAGV_Park->setGlowColor(QColor(127, 140, 141, 100));
+        applyAGVParkingButtonUi(false);
 
         connect(m_techBtnAGV_Park, &TechPushButton::clicked,
             this, &MainWindow::onAGVParkBtnClicked,
@@ -7257,6 +7307,163 @@ void MainWindow::onAGVOABtnClicked()
     });
 }
 
+void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengthMm)
+{
+    const bool oldParkingEnabled = m_agvParkingEnabled;
+    const int targetWaitBit = targetParkingEnabled ? 3 : 4;
+
+    if (targetParkingEnabled) {
+        const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
+        int mm = legLengthMm;
+        if (mm < 0) {
+            QLineEdit *lenEdit = ui ? ui->LEdit_AGV_ParkOutTriggerLenght : nullptr;
+            bool lenOk = false;
+            mm = lenEdit ? lenEdit->text().trimmed().toInt(&lenOk) : 0;
+            if (!lenOk) {
+                mm = 1100;
+            }
+        }
+        const int clampedMm = qBound(lim.first, mm, lim.second);
+
+        QLineEdit *mainLenEdit = ui ? ui->LEdit_AGV_ParkOutTriggerLenght : nullptr;
+        if (mainLenEdit) {
+            mainLenEdit->setText(QString::number(clampedMm));
+        }
+        if (m_parkingLegAbnormalLengthEdit) {
+            m_parkingLegAbnormalLengthEdit->setText(QString::number(clampedMm));
+        }
+
+        const auto wordsArr = doubleToRegistersGHEFCDAB(static_cast<double>(clampedMm));
+        const QVector<quint16> parkLenWords = {wordsArr[0], wordsArr[1], wordsArr[2], wordsArr[3]};
+
+        if (!writeAgvHoldingRegisterBlock(kAgvParkOutTriggerLengthRegStart, parkLenWords)) {
+            m_agvParkingEnabled = oldParkingEnabled;
+            restoreParkingUiAfterFailure(oldParkingEnabled);
+
+            ui->statusBar->showMessage(QStringLiteral("驻车伸出长度写入寄存器5014~5017失败，未开启驻车"), 4000);
+            OperationRecord failRecord;
+            failRecord.timestamp = QDateTime::currentDateTime();
+            failRecord.pageName = QStringLiteral("AGV控制");
+            failRecord.controlName = QStringLiteral("驻车伸出长度写入失败");
+            failRecord.controlType = "";
+            failRecord.operation = "";
+            failRecord.oldValue = "";
+            failRecord.newValue = "";
+            m_recorder->addRecord(failRecord);
+            return;
+        }
+    }
+
+    const bool writeOk = targetParkingEnabled
+                             ? writeAGVRegisterBits(0,
+                                                    {
+                                                        qMakePair(9, true),
+                                                        qMakePair(10, false),
+                                                    },
+                                                    QStringLiteral("驻车开启"))
+                             : writeAGVRegisterBits(0,
+                                                    {
+                                                        qMakePair(9, false),
+                                                        qMakePair(10, true),
+                                                    },
+                                                    QStringLiteral("驻车关闭"));
+
+    if (!writeOk) {
+        m_agvParkingEnabled = oldParkingEnabled;
+        restoreParkingUiAfterFailure(oldParkingEnabled);
+
+        ui->statusBar->showMessage(QStringLiteral("AGV驻车指令发送失败"), 3000);
+        OperationRecord failRecord;
+        failRecord.timestamp = QDateTime::currentDateTime();
+        failRecord.pageName = QStringLiteral("AGV控制");
+        failRecord.controlName = QStringLiteral("驻车指令发送失败");
+        failRecord.controlType = "";
+        failRecord.operation = "";
+        failRecord.oldValue = "";
+        failRecord.newValue = "";
+        m_recorder->addRecord(failRecord);
+        return;
+    }
+
+    m_agvParkingEnabled = targetParkingEnabled;
+
+    if (!m_agvLegAbnormal51Bit7Flag) {
+        applyAGVParkingButtonUi(targetParkingEnabled);
+        applyAGVParkingStatusBarUi(targetParkingEnabled);
+    }
+
+    ui->statusBar->showMessage(targetParkingEnabled ? QStringLiteral("AGV驻车开启")
+                                                    : QStringLiteral("AGV驻车关闭"),
+                               2000);
+
+    if (QTimer *oldTimer = findChild<QTimer*>(QStringLiteral("parkingSwitchWaitTimer"))) {
+        oldTimer->stop();
+        oldTimer->deleteLater();
+    }
+
+    setProperty("parkingSwitchWaiting", true);
+    setProperty("parkingTargetBit", targetWaitBit);
+    setProperty("parkingTargetEnabled", targetParkingEnabled);
+
+    showParkingSwitchHintDialog(QStringLiteral("正在切换驻车模式"));
+
+    auto *parkingWaitTimer = new QTimer(this);
+    parkingWaitTimer->setObjectName(QStringLiteral("parkingSwitchWaitTimer"));
+    parkingWaitTimer->setInterval(300);
+    const qint64 parkingSwitchBeginMs = QDateTime::currentMSecsSinceEpoch();
+
+    connect(parkingWaitTimer, &QTimer::timeout, this,
+            [this, parkingWaitTimer, targetWaitBit, targetParkingEnabled, parkingSwitchBeginMs]() {
+                if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
+                    m_agvModbusManager->readMultipleRegisters(51, 1);
+                }
+
+                if (m_agvRegisterShadow.contains(51)) {
+                    const quint16 reg51 = m_agvRegisterShadow.value(51);
+                    const bool targetBitSet = (((reg51 >> targetWaitBit) & 0x01) == 1);
+                    if (targetBitSet) {
+                        parkingWaitTimer->stop();
+                        parkingWaitTimer->deleteLater();
+                        setProperty("parkingSwitchWaiting", false);
+                        setProperty("parkingTargetBit", -1);
+                        hideParkingSwitchHintDialog();
+
+                        OperationRecord okRecord;
+                        okRecord.timestamp = QDateTime::currentDateTime();
+                        okRecord.pageName = QStringLiteral("AGV控制");
+                        okRecord.controlName = targetParkingEnabled
+                                                     ? QStringLiteral("驻车模式已开启")
+                                                     : QStringLiteral("驻车模式已关闭");
+                        okRecord.controlType = "";
+                        okRecord.operation = "";
+                        okRecord.oldValue = "";
+                        okRecord.newValue = "";
+                        m_recorder->addRecord(okRecord);
+                        return;
+                    }
+                }
+
+                if (QDateTime::currentMSecsSinceEpoch() - parkingSwitchBeginMs >= 90000) {
+                    parkingWaitTimer->stop();
+                    parkingWaitTimer->deleteLater();
+                    setProperty("parkingSwitchWaiting", false);
+                    setProperty("parkingTargetBit", -1);
+                    hideParkingSwitchHintDialog();
+
+                    OperationRecord timeoutRecord;
+                    timeoutRecord.timestamp = QDateTime::currentDateTime();
+                    timeoutRecord.pageName = QStringLiteral("AGV控制");
+                    timeoutRecord.controlName = QStringLiteral("驻车模式90秒已超时");
+                    timeoutRecord.controlType = "";
+                    timeoutRecord.operation = "";
+                    timeoutRecord.oldValue = "";
+                    timeoutRecord.newValue = "";
+                    m_recorder->addRecord(timeoutRecord);
+                }
+            });
+    parkingWaitTimer->start();
+}
+
 void MainWindow::onAGVParkBtnClicked()
 {
     if (m_controlMode != WIRED_MODE) {
@@ -7284,173 +7491,12 @@ void MainWindow::onAGVParkBtnClicked()
         return;
     }
 
-    const bool oldParkingEnabled = m_agvParkingEnabled;
-    const bool targetParkingEnabled = !oldParkingEnabled;
-    const int targetWaitBit = targetParkingEnabled ? 3 : 4;
-
-    if (targetParkingEnabled) {
-        QLineEdit *lenEdit = ui ? ui->LEdit_AGV_ParkOutTriggerLenght : nullptr;
-        const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
-        bool lenOk = false;
-        int mm = lenEdit ? lenEdit->text().trimmed().toInt(&lenOk) : 0;
-        if (!lenOk) {
-            mm = 1100;
-        }
-        const int clampedMm = qBound(lim.first, mm, lim.second);
-        if (lenEdit && (clampedMm != mm || !lenOk)) {
-            lenEdit->setText(QString::number(clampedMm));
-        }
-
-        const auto wordsArr = doubleToRegistersGHEFCDAB(static_cast<double>(clampedMm));
-        const QVector<quint16> parkLenWords = {wordsArr[0], wordsArr[1], wordsArr[2], wordsArr[3]};
-
-        if (!writeAgvHoldingRegisterBlock(kAgvParkOutTriggerLengthRegStart, parkLenWords)) {
-            m_agvParkingEnabled = oldParkingEnabled;
-            if (m_techBtnAGV_Park) {
-                m_techBtnAGV_Park->setText(oldParkingEnabled ? "驻车开启" : "驻车关闭");
-                m_techBtnAGV_Park->setPrimaryColor(oldParkingEnabled ? QColor("#00C8FF") : QColor("#7F8C8D"));
-                m_techBtnAGV_Park->setGlowColor(oldParkingEnabled ? QColor(0, 200, 255, 180)
-                                                                  : QColor(127, 140, 141, 100));
-            }
-
-            ui->statusBar->showMessage("驻车伸出长度写入寄存器5014~5017失败，未开启驻车", 4000);
-            OperationRecord failRecord;
-            failRecord.timestamp = QDateTime::currentDateTime();
-            failRecord.pageName = "AGV控制";
-            failRecord.controlName = QStringLiteral("驻车伸出长度写入失败");
-            failRecord.controlType = "";
-            failRecord.operation = "";
-            failRecord.oldValue = "";
-            failRecord.newValue = "";
-            m_recorder->addRecord(failRecord);
-            return;
-        }
-    }
-
-    const bool writeOk = targetParkingEnabled
-                             ? writeAGVRegisterBits(0,
-                                                    {
-                                                        qMakePair(9, true),
-                                                        qMakePair(10, false),
-                                                    },
-                                                    "驻车开启")
-                             : writeAGVRegisterBits(0,
-                                                    {
-                                                        qMakePair(9, false),
-                                                        qMakePair(10, true),
-                                                    },
-                                                    "驻车关闭");
-
-    if (!writeOk) {
-        m_agvParkingEnabled = oldParkingEnabled;
-        if (m_techBtnAGV_Park) {
-            m_techBtnAGV_Park->setText(oldParkingEnabled ? "驻车开启" : "驻车关闭");
-            m_techBtnAGV_Park->setPrimaryColor(oldParkingEnabled ? QColor("#00C8FF") : QColor("#7F8C8D"));
-            m_techBtnAGV_Park->setGlowColor(oldParkingEnabled ? QColor(0, 200, 255, 180)
-                                                              : QColor(127, 140, 141, 100));
-        }
-
-        ui->statusBar->showMessage("AGV驻车指令发送失败", 3000);
-        OperationRecord failRecord;
-        failRecord.timestamp = QDateTime::currentDateTime();
-        failRecord.pageName = "AGV控制";
-        failRecord.controlName = QStringLiteral("驻车指令发送失败");
-        failRecord.controlType = "";
-        failRecord.operation = "";
-        failRecord.oldValue = "";
-        failRecord.newValue = "";
-        m_recorder->addRecord(failRecord);
+    if (m_agvLegAbnormal51Bit7Flag) {
+        showParkingLegAbnormalDialog();
         return;
     }
 
-    m_agvParkingEnabled = targetParkingEnabled;
-
-    if (targetParkingEnabled) {
-        m_techBtnAGV_Park->setText("驻车开启");
-        m_techBtnAGV_Park->setPrimaryColor(QColor("#00C8FF"));
-        m_techBtnAGV_Park->setGlowColor(QColor(0, 200, 255, 180));
-        ui->statusBar->showMessage("AGV驻车开启", 2000);
-    } else {
-        m_techBtnAGV_Park->setText("驻车关闭");
-        m_techBtnAGV_Park->setPrimaryColor(QColor("#7F8C8D"));
-        m_techBtnAGV_Park->setGlowColor(QColor(127, 140, 141, 100));
-        ui->statusBar->showMessage("AGV驻车关闭", 2000);
-    }
-
-    QLabel *parkLabel = ui && ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarParkLabel") : nullptr;
-    if (parkLabel) {
-        parkLabel->setText(targetParkingEnabled ? "驻车开" : "驻车关");
-        parkLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
-                                     .arg(targetParkingEnabled ? "#00C8FF" : "#7F8C8D"));
-    }
-
-    // 与底盘模式切换一致：驻车切换期间显示等待提示，直到51寄存器目标位为1。
-    if (QTimer *oldTimer = findChild<QTimer*>("parkingSwitchWaitTimer")) {
-        oldTimer->stop();
-        oldTimer->deleteLater();
-    }
-
-    setProperty("parkingSwitchWaiting", true);
-    setProperty("parkingTargetBit", targetWaitBit);
-    setProperty("parkingTargetEnabled", targetParkingEnabled);
-
-    showParkingSwitchHintDialog(QStringLiteral("正在切换驻车模式"));
-
-    auto *parkingWaitTimer = new QTimer(this);
-    parkingWaitTimer->setObjectName("parkingSwitchWaitTimer");
-    parkingWaitTimer->setInterval(300);
-    const qint64 parkingSwitchBeginMs = QDateTime::currentMSecsSinceEpoch();
-
-    connect(parkingWaitTimer, &QTimer::timeout, this,
-            [this, parkingWaitTimer, targetWaitBit, targetParkingEnabled, parkingSwitchBeginMs]() {
-                if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
-                    m_agvModbusManager->readMultipleRegisters(51, 1);
-                }
-
-                if (m_agvRegisterShadow.contains(51)) {
-                    const quint16 reg51 = m_agvRegisterShadow.value(51);
-                    const bool targetBitSet = (((reg51 >> targetWaitBit) & 0x01) == 1);
-                    if (targetBitSet) {
-                        parkingWaitTimer->stop();
-                        parkingWaitTimer->deleteLater();
-                        setProperty("parkingSwitchWaiting", false);
-                        setProperty("parkingTargetBit", -1);
-                        hideParkingSwitchHintDialog();
-
-                        OperationRecord okRecord;
-                        okRecord.timestamp = QDateTime::currentDateTime();
-                        okRecord.pageName = "AGV控制";
-                        okRecord.controlName = targetParkingEnabled
-                                                     ? QStringLiteral("驻车模式已开启")
-                                                     : QStringLiteral("驻车模式已关闭");
-                        okRecord.controlType = "";
-                        okRecord.operation = "";
-                        okRecord.oldValue = "";
-                        okRecord.newValue = "";
-                        m_recorder->addRecord(okRecord);
-                        return;
-                    }
-                }
-
-                if (QDateTime::currentMSecsSinceEpoch() - parkingSwitchBeginMs >= 90000) {
-                    parkingWaitTimer->stop();
-                    parkingWaitTimer->deleteLater();
-                    setProperty("parkingSwitchWaiting", false);
-                    setProperty("parkingTargetBit", -1);
-                    hideParkingSwitchHintDialog();
-
-                    OperationRecord timeoutRecord;
-                    timeoutRecord.timestamp = QDateTime::currentDateTime();
-                    timeoutRecord.pageName = "AGV控制";
-                    timeoutRecord.controlName = QStringLiteral("驻车模式90秒已超时");
-                    timeoutRecord.controlType = "";
-                    timeoutRecord.operation = "";
-                    timeoutRecord.oldValue = "";
-                    timeoutRecord.newValue = "";
-                    m_recorder->addRecord(timeoutRecord);
-                }
-            });
-    parkingWaitTimer->start();
+    executeAGVParkingSwitch(!m_agvParkingEnabled);
 }
 
 // AGV运动速度变化槽函数
@@ -10079,6 +10125,7 @@ void MainWindow::hideNonEmergencyPopups()
     setProperty("parkingTargetEnabled", false);
 
     hideParkingSwitchHintDialog();
+    hideParkingLegAbnormalDialog();
     hideAgvStationOfflineAlarm();
     hideAgvDriveFaultAlarm();
     hideAgvBatteryLowDialog();
@@ -10275,6 +10322,144 @@ void MainWindow::hideParkingSwitchHintDialog()
 {
     if (m_parkingSwitchHintDialog && m_parkingSwitchHintDialog->isVisible()) {
         m_parkingSwitchHintDialog->hide();
+    }
+}
+
+void MainWindow::showParkingLegAbnormalDialog()
+{
+    if (!m_parkingLegAbnormalDialog) {
+        m_parkingLegAbnormalDialog = new QDialog(this);
+        m_parkingLegAbnormalDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_parkingLegAbnormalDialog->setModal(true);
+        m_parkingLegAbnormalDialog->setObjectName(QStringLiteral("parkingLegAbnormalDialog"));
+
+        auto *layout = new QVBoxLayout(m_parkingLegAbnormalDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        auto *titleLabel = new QLabel(QStringLiteral("支腿异常"), m_parkingLegAbnormalDialog);
+        titleLabel->setObjectName(QStringLiteral("parkingLegAbnormalTitleLabel"));
+        titleLabel->setAlignment(Qt::AlignCenter);
+        layout->addWidget(titleLabel);
+
+        auto *lengthLabel = new QLabel(QStringLiteral("支腿长度设置"), m_parkingLegAbnormalDialog);
+        lengthLabel->setObjectName(QStringLiteral("parkingLegAbnormalLengthLabel"));
+        lengthLabel->setAlignment(Qt::AlignCenter);
+        layout->addWidget(lengthLabel);
+
+        m_parkingLegAbnormalLengthEdit = new QLineEdit(m_parkingLegAbnormalDialog);
+        m_parkingLegAbnormalLengthEdit->setObjectName(QStringLiteral("parkingLegAbnormalLengthEdit"));
+        layout->addWidget(m_parkingLegAbnormalLengthEdit);
+
+        auto *enableBtn = new QPushButton(QStringLiteral("驻车开启"), m_parkingLegAbnormalDialog);
+        enableBtn->setObjectName(QStringLiteral("parkingLegAbnormalEnableBtn"));
+        layout->addWidget(enableBtn);
+
+        auto *disableBtn = new QPushButton(QStringLiteral("驻车关闭"), m_parkingLegAbnormalDialog);
+        disableBtn->setObjectName(QStringLiteral("parkingLegAbnormalDisableBtn"));
+        layout->addWidget(disableBtn);
+
+        connect(m_parkingLegAbnormalLengthEdit, &QLineEdit::editingFinished, this, [this]() {
+            if (!m_parkingLegAbnormalLengthEdit) {
+                return;
+            }
+            const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
+            bool ok = false;
+            int v = m_parkingLegAbnormalLengthEdit->text().trimmed().toInt(&ok);
+            if (!ok) {
+                v = 1100;
+            }
+            const int c = qBound(lim.first, v, lim.second);
+            if (c != v || !ok) {
+                m_parkingLegAbnormalLengthEdit->setText(QString::number(c));
+            }
+        });
+
+        connect(enableBtn, &QPushButton::clicked, this, [this]() {
+            if (!m_parkingLegAbnormalLengthEdit) {
+                return;
+            }
+            const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
+            bool ok = false;
+            int v = m_parkingLegAbnormalLengthEdit->text().trimmed().toInt(&ok);
+            if (!ok) {
+                v = 1100;
+            }
+            const int clampedMm = qBound(lim.first, v, lim.second);
+            m_parkingLegAbnormalLengthEdit->setText(QString::number(clampedMm));
+            if (ui && ui->LEdit_AGV_ParkOutTriggerLenght) {
+                ui->LEdit_AGV_ParkOutTriggerLenght->setText(QString::number(clampedMm));
+            }
+            hideParkingLegAbnormalDialog();
+            executeAGVParkingSwitch(true, clampedMm);
+        });
+
+        connect(disableBtn, &QPushButton::clicked, this, [this]() {
+            hideParkingLegAbnormalDialog();
+            executeAGVParkingSwitch(false);
+        });
+
+        m_parkingLegAbnormalDialog->setFixedSize(360, 280);
+        m_parkingLegAbnormalDialog->setStyleSheet(
+            "#parkingLegAbnormalDialog {"
+            "  background-color: rgba(30, 0, 0, 230);"
+            "  border: 3px solid #FF6600;"
+            "  border-radius: 10px;"
+            "}"
+            "#parkingLegAbnormalTitleLabel,"
+            "#parkingLegAbnormalLengthLabel {"
+            "  color: #FF6600;"
+            "  font-size: 18px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "#parkingLegAbnormalLengthEdit {"
+            "  color: #FFFFFF;"
+            "  background-color: rgba(0, 0, 0, 120);"
+            "  border: 2px solid #FF6600;"
+            "  border-radius: 6px;"
+            "  padding: 6px;"
+            "  font-size: 16px;"
+            "}"
+            "QPushButton {"
+            "  background-color: #FF6600;"
+            "  color: #202020;"
+            "  border: 2px solid #FF9933;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 100px;"
+            "}"
+            "QPushButton:hover {"
+            "  background-color: #FF9933;"
+            "  border-color: #FF6600;"
+            "}");
+    }
+
+    const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
+    if (!m_parkOutTriggerLengthValidator) {
+        m_parkOutTriggerLengthValidator = new QIntValidator(this);
+    }
+    m_parkOutTriggerLengthValidator->setRange(lim.first, lim.second);
+    if (m_parkingLegAbnormalLengthEdit) {
+        m_parkingLegAbnormalLengthEdit->setValidator(m_parkOutTriggerLengthValidator);
+        QString initialText = QStringLiteral("1100");
+        if (ui && ui->LEdit_AGV_ParkOutTriggerLenght
+            && !ui->LEdit_AGV_ParkOutTriggerLenght->text().trimmed().isEmpty()) {
+            initialText = ui->LEdit_AGV_ParkOutTriggerLenght->text().trimmed();
+        }
+        m_parkingLegAbnormalLengthEdit->setText(initialText);
+    }
+
+    positionFloatingPopupTopRight(m_parkingLegAbnormalDialog, 500);
+    m_parkingLegAbnormalDialog->exec();
+}
+
+void MainWindow::hideParkingLegAbnormalDialog()
+{
+    if (m_parkingLegAbnormalDialog && m_parkingLegAbnormalDialog->isVisible()) {
+        m_parkingLegAbnormalDialog->done(QDialog::Rejected);
     }
 }
 
