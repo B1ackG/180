@@ -306,7 +306,9 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
         "robot_ArcGauge_SixAxis4",
         "robot_ArcGauge_SixAxis5",
         "robot_ArcGauge_SixAxis6",
-        "agv_park_out_trigger_length"
+        "agv_park_out_trigger_length",
+        "weight_overload_limit",
+        "weight_lock_limit"
     };
     QMap<QString, QString> itemLabels;
     itemLabels["robot_ArcGauge_J1Angle"] = "悬臂角度 (J1)";
@@ -320,6 +322,8 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
     itemLabels["robot_ArcGauge_SixAxis5"] = "六轴 5";
     itemLabels["robot_ArcGauge_SixAxis6"] = "六轴 6";
     itemLabels["agv_park_out_trigger_length"] = "驻车伸出触发长度 (支腿长度设置框，整数)";
+    itemLabels["weight_overload_limit"] = "负载超限阈值 (管理员页，整数)";
+    itemLabels["weight_lock_limit"] = "负载超重阈值 (管理员页，整数)";
 
     for (const QString &name : targetNames) {
         QHBoxLayout *row = new QHBoxLayout();
@@ -459,7 +463,9 @@ void FeatureSwitchWidget::loadSliderLimitState()
         {"robot_ArcGauge_SixAxis4", qMakePair(-110.0, 110.0)},
         {"robot_ArcGauge_SixAxis5", qMakePair(-110.0, 110.0)},
         {"robot_ArcGauge_SixAxis6", qMakePair(-90.0, 90.0)},
-        {"agv_park_out_trigger_length", qMakePair(100.0, 1100.0)}
+        {"agv_park_out_trigger_length", qMakePair(100.0, 1100.0)},
+        {"weight_overload_limit", qMakePair(0.0, 350.0)},
+        {"weight_lock_limit", qMakePair(0.0, 400.0)}
     };
 
     QSettings settings("config.ini", QSettings::IniFormat);
