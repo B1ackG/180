@@ -1127,7 +1127,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     // 处理LineEdit点击事件
     if (event->type() == QEvent::MouseButtonPress) {
         QLineEdit *lineEdit = qobject_cast<QLineEdit*>(obj);
-        if (lineEdit && lineEdit->isEnabled() && this->isAncestorOf(lineEdit)) {
+        const bool isMainWindowLineEdit = lineEdit && this->isAncestorOf(lineEdit);
+        const bool isTiltLockPasswordEdit = lineEdit && lineEdit == m_inclinometerTiltLockPasswordEdit;
+        if (lineEdit && lineEdit->isEnabled() && (isMainWindowLineEdit || isTiltLockPasswordEdit)) {
             // // 检查是否为管理员页面的密码输入框
             // if (lineEdit->objectName() == "passwordEdit") {
             //     // 对于密码框，我们可能需要特殊处理
@@ -10773,6 +10775,9 @@ void MainWindow::showInclinometerTiltLockDialog()
         m_inclinometerTiltLockPasswordEdit->setEchoMode(QLineEdit::Password);
         m_inclinometerTiltLockPasswordEdit->setAlignment(Qt::AlignCenter);
         m_inclinometerTiltLockPasswordEdit->setPlaceholderText(QStringLiteral("请输入密码"));
+        if (m_virtualKeyboard) {
+            m_inclinometerTiltLockPasswordEdit->installEventFilter(this);
+        }
         layout->addWidget(m_inclinometerTiltLockPasswordEdit);
 
         m_inclinometerTiltLockErrorLabel = new QLabel(m_inclinometerTiltLockDialog);
