@@ -3518,6 +3518,14 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：该外部按键操作已无效"));
         return;
     }
+    // 支腿异常（51.bit7=1）时：拦截全部外部按键，并确保异常操作弹窗可见
+    if (m_agvLegAbnormal51Bit7Flag) {
+        if (pressed) {
+            updateParkingLegAbnormalDialogVisibility();
+            ui->statusBar->showMessage(QStringLiteral("支腿异常：该外部按键操作已无效"), 3000);
+        }
+        return;
+    }
     // 超载仍有效且用户已点「确认」关窗后：拦截外部按键（首页 ○3/○4 除外），并再次弹出超载提示
     if (pressed && m_robotWeightOverload150Bit3Flag && m_robotWeightOverloadUserAckedWhileActive) {
         const bool firstPageOverloadExempt = (currentPage == 0 && (keyNumber == 3 || keyNumber == 4));
@@ -6644,15 +6652,14 @@ void MainWindow::syncAGVParkingStateFromRegister51(quint16 value)
         if (bit3 != bit4) {
             m_agvParkingEnabled = bit3 && !bit4;
         }
-        return;
-    }
-
-    if (bit3 != bit4) {
+    } else if (bit3 != bit4) {
         const bool parkingEnabled = bit3 && !bit4;
         m_agvParkingEnabled = parkingEnabled;
         applyAGVParkingButtonUi(parkingEnabled);
         applyAGVParkingStatusBarUi(parkingEnabled);
     }
+
+    updateParkingLegAbnormalDialogVisibility();
 }
 
 void MainWindow::syncAGVSteeringModeFromRegister155(quint16 value)
@@ -7453,6 +7460,8 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
         oldTimer->deleteLater();
     }
 
+    hideParkingLegAbnormalDialog();
+
     setProperty("parkingSwitchWaiting", true);
     setProperty("parkingTargetBit", targetWaitBit);
     setProperty("parkingTargetEnabled", targetParkingEnabled);
@@ -7479,6 +7488,7 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
                         setProperty("parkingSwitchWaiting", false);
                         setProperty("parkingTargetBit", -1);
                         hideParkingSwitchHintDialog();
+                        updateParkingLegAbnormalDialogVisibility();
 
                         OperationRecord okRecord;
                         okRecord.timestamp = QDateTime::currentDateTime();
@@ -7501,6 +7511,7 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
                     setProperty("parkingSwitchWaiting", false);
                     setProperty("parkingTargetBit", -1);
                     hideParkingSwitchHintDialog();
+                    updateParkingLegAbnormalDialogVisibility();
 
                     OperationRecord timeoutRecord;
                     timeoutRecord.timestamp = QDateTime::currentDateTime();
@@ -7543,13 +7554,18 @@ void MainWindow::onAGVParkBtnClicked()
         return;
     }
 
+    // 预计负载空值提示仅由主驻车按钮触发；支腿异常弹窗内开/关驻车不检查
     if (isEstimatedWeightEmpty()) {
         showExpectedLoadEmptyDialog();
         return;
     }
 
     if (m_agvLegAbnormal51Bit7Flag) {
-        showParkingLegAbnormalDialog();
+        updateParkingLegAbnormalDialogVisibility();
+        if (m_parkingLegAbnormalDialog) {
+            m_parkingLegAbnormalDialog->raise();
+            m_parkingLegAbnormalDialog->activateWindow();
+        }
         return;
     }
 
@@ -10388,6 +10404,7 @@ bool MainWindow::isEstimatedWeightEmpty() const
            || ui->LEdit_AGV_EstimatedWeight->text().trimmed().isEmpty();
 }
 
+// 仅 onAGVParkBtnClicked 调用；支腿异常弹窗开/关驻车豁免预计负载检查
 void MainWindow::showExpectedLoadEmptyDialog()
 {
     if (!m_expectedLoadEmptyDialog) {
@@ -10442,6 +10459,26 @@ void MainWindow::showExpectedLoadEmptyDialog()
 
     positionFloatingPopupTopRight(m_expectedLoadEmptyDialog, 560);
     m_expectedLoadEmptyDialog->exec();
+}
+
+void MainWindow::updateParkingLegAbnormalDialogVisibility()
+{
+    if (m_agvLegAbnormal51Bit7Flag && !property("parkingSwitchWaiting").toBool()) {
+        if (m_parkingLegAbnormalDialog && m_parkingLegAbnormalDialog->isVisible()) {
+            return;
+        }
+        QTimer::singleShot(0, this, [this]() {
+            if (!m_agvLegAbnormal51Bit7Flag || property("parkingSwitchWaiting").toBool()) {
+                return;
+            }
+            if (m_parkingLegAbnormalDialog && m_parkingLegAbnormalDialog->isVisible()) {
+                return;
+            }
+            showParkingLegAbnormalDialog();
+        });
+    } else {
+        hideParkingLegAbnormalDialog();
+    }
 }
 
 void MainWindow::showParkingLegAbnormalDialog()
@@ -10502,10 +10539,6 @@ void MainWindow::showParkingLegAbnormalDialog()
         });
 
         connect(enableBtn, &QPushButton::clicked, this, [this]() {
-            if (isEstimatedWeightEmpty()) {
-                showExpectedLoadEmptyDialog();
-                return;
-            }
             if (!m_parkingLegAbnormalLengthEdit) {
                 return;
             }
@@ -10522,10 +10555,6 @@ void MainWindow::showParkingLegAbnormalDialog()
         });
 
         connect(disableBtn, &QPushButton::clicked, this, [this]() {
-            if (isEstimatedWeightEmpty()) {
-                showExpectedLoadEmptyDialog();
-                return;
-            }
             hideParkingLegAbnormalDialog();
             executeAGVParkingSwitch(false);
         });
@@ -10582,13 +10611,15 @@ void MainWindow::showParkingLegAbnormalDialog()
     }
 
     positionFloatingPopupTopRight(m_parkingLegAbnormalDialog, 500);
-    m_parkingLegAbnormalDialog->exec();
+    m_parkingLegAbnormalDialog->show();
+    m_parkingLegAbnormalDialog->raise();
+    m_parkingLegAbnormalDialog->activateWindow();
 }
 
 void MainWindow::hideParkingLegAbnormalDialog()
 {
     if (m_parkingLegAbnormalDialog && m_parkingLegAbnormalDialog->isVisible()) {
-        m_parkingLegAbnormalDialog->done(QDialog::Rejected);
+        m_parkingLegAbnormalDialog->hide();
     }
 }
 

@@ -250,6 +250,8 @@ public:
     void showParkingLegAbnormalDialog();
     /** @brief 隐藏支腿异常驻车操作弹窗 */
     void hideParkingLegAbnormalDialog();
+    /** @brief 按 bit7 与驻车切换状态更新支腿异常弹窗显隐（与切换提示窗互斥） */
+    void updateParkingLegAbnormalDialogVisibility();
     /** @brief 显示预计负载为空提示窗（确认后关闭） */
     void showExpectedLoadEmptyDialog();
     /** @brief 主页面预计负载输入是否为空 */

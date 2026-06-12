@@ -672,14 +672,14 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         <property name="geometry">
          <rect>
           <x>220</x>
-          <y>440</y>
-          <width>111</width>
-          <height>90</height>
+          <y>450</y>
+          <width>151</width>
+          <height>81</height>
          </rect>
         </property>
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <item>
-          <widget class="QLabel" name="Lbl_AGV_EstimatedWeight">
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="0">
+          <widget class="QLabel" name="Lbl_AGV_EstimatedWeight1">
            <property name="styleSheet">
             <string notr="true">QLabel {
     background: transparent;
@@ -701,7 +701,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="1" column="0">
           <widget class="QLineEdit" name="LEdit_AGV_EstimatedWeight">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -711,6 +711,29 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
            </property>
            <property name="text">
             <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLabel" name="Lbl_AGV_EstimatedWeight1_2">
+           <property name="styleSheet">
+            <string notr="true">QLabel {
+    background: transparent;
+    font-family: 'Segoe UI', 'Microsoft YaHei';
+    font-size: 13px;
+    font-weight: bold;
+    color: #00c8ff;
+    padding: 0px 5px;
+}</string>
+           </property>
+           <property name="text">
+            <string>KG</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
