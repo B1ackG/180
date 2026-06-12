@@ -1,5 +1,0 @@
-<map id="ModbusTCPClient::pollRegisters" name="ModbusTCPClient::pollRegisters">
-<area shape="rect" id="Node000001" title=" " alt="" coords="309,5,537,31"/>
-<area shape="rect" id="Node000002" href="$classModbusTCPClient.html#a7a1b13f361534cbc1fc3fb35580b90c0" title="构造 ModbusTCPClient" alt="" coords="5,5,261,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="296,21,261,21,261,15,296,15"/>
-</map>

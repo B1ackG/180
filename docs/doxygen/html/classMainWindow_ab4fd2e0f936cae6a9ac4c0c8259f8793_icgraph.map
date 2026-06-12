@@ -1,5 +1,0 @@
-<map id="MainWindow::pollModbusVariables" name="MainWindow::pollModbusVariables">
-<area shape="rect" id="Node000001" title="立即轮询 Modbus 变量" alt="" coords="292,5,540,31"/>
-<area shape="rect" id="Node000002" href="$classMainWindow.html#a392ce4cf4ed909720a3d9a88ca796eba" title="启动 Modbus 轮询" alt="" coords="5,5,244,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="278,21,244,21,244,15,278,15"/>
-</map>

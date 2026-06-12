@@ -15,6 +15,10 @@ moc_predefs.h
 
 # Project specific
 ModbusTCPAssistant
+libmodbus_backend.so
+feature_switches.ini
+docs/[0-9]*.json
+.venv/
 *.user
 *.user.*
 *.pro.user*

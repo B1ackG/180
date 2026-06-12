@@ -1,5 +1,0 @@
-<map id="MainWindow::onTcpConnectionStatusChanged" name="MainWindow::onTcpConnectionStatusChanged">
-<area shape="rect" id="Node000001" title="TCP 连接状态变更回调" alt="" coords="5,5,228,45"/>
-<area shape="rect" id="Node000002" href="$classMainWindow.html#ad9d8c581087891f346c722209577216c" title="显示临时通知（气泡/提示条）" alt="" coords="276,13,499,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,23,262,23,262,28,228,28"/>
-</map>

@@ -1,9 +1,0 @@
-<map id="ModbusTCPClient::connected" name="ModbusTCPClient::connected">
-<area shape="rect" id="Node000001" title="使用示例（测试/调试）:" alt="" coords="585,42,796,67"/>
-<area shape="rect" id="Node000002" href="$classModbusThreadManager.html#afe2268ae681e8c8ab9bbd396f516688f" title=" " alt="" coords="332,5,515,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="571,44,515,38,515,33,572,39"/>
-<area shape="rect" id="Node000003" href="$classModbusTCPClient.html#a81d0ae457cbf5cf91c686729cc539dde" title=" " alt="" coords="309,70,537,95"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="572,70,538,73,537,68,572,64"/>
-<area shape="rect" id="Node000004" href="$classModbusTCPClient.html#a7a1b13f361534cbc1fc3fb35580b90c0" title="构造 ModbusTCPClient" alt="" coords="5,70,261,95"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="296,85,261,85,261,80,296,80"/>
-</map>

@@ -1,9 +1,0 @@
-<map id="TechSliderLabel::sliderToValue" name="TechSliderLabel::sliderToValue">
-<area shape="rect" id="Node000001" title=" " alt="" coords="777,5,959,45"/>
-<area shape="rect" id="Node000002" href="$classTechSliderLabel.html#a20e76cbe3e35a76f8f5110d49b3a0e83" title=" " alt="" coords="545,5,729,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="764,28,729,28,729,23,764,23"/>
-<area shape="rect" id="Node000003" href="$classTechSliderLabel.html#aff4a891b36e70b10fbd4f088155dbff4" title=" " alt="" coords="251,13,497,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="532,28,497,28,497,23,532,23"/>
-<area shape="rect" id="Node000004" href="$classTechSliderLabel.html#a106e5fb25c568a3f7ab30a56260a8e76" title="构造 TechSliderLabel 控件" alt="" coords="5,5,203,45"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="237,28,203,28,203,23,237,23"/>
-</map>

@@ -1,9 +1,0 @@
-<map id="TechPushButton::updateNormalEffect" name="TechPushButton::updateNormalEffect">
-<area shape="rect" id="Node000001" title=" " alt="" coords="501,31,728,71"/>
-<area shape="rect" id="Node000002" href="$classTechPushButton.html#a96ae434ff1070bccf73c4a3684c931a3" title=" " alt="" coords="273,13,427,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="487,41,427,35,428,30,488,36"/>
-<area shape="rect" id="Node000004" href="$classTechPushButton.html#ac9ff8d4f28f741a8b60476a4e8a6b57c" title=" " alt="" coords="247,62,453,87"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="488,65,454,68,453,63,487,60"/>
-<area shape="rect" id="Node000003" href="$classTechPushButton.html#ac559b5cb94df9e4caa3c691c75fd308d" title="构造 TechPushButton" alt="" coords="5,5,199,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="259,28,199,28,199,23,259,23"/>
-</map>

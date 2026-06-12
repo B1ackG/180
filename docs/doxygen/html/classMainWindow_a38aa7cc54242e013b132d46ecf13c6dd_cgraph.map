@@ -1,5 +1,0 @@
-<map id="MainWindow::onSaveRecords" name="MainWindow::onSaveRecords">
-<area shape="rect" id="Node000001" title="保存记录" alt="" coords="5,13,219,38"/>
-<area shape="rect" id="Node000002" href="$classOperationRecorder.html#a17d44e5ee508bd444036191d3f47e8e6" title="将记录保存为 JSON 文件" alt="" coords="267,5,419,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="219,23,253,23,253,28,219,28"/>
-</map>

@@ -1,5 +1,0 @@
-<map id="IModbusClient::writeSingleRegister" name="IModbusClient::writeSingleRegister">
-<area shape="rect" id="Node000001" title="写入单个保持寄存器。" alt="" coords="244,5,440,45"/>
-<area shape="rect" id="Node000002" href="$classEightyAgvApp.html#a4bbd89c69a4c02c05fb9423cbe9133a5" title="发送点动请求。" alt="" coords="5,13,196,38"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,28,196,28,196,23,231,23"/>
-</map>

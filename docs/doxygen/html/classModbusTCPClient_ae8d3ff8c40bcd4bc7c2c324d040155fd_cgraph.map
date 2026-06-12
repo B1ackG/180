@@ -1,7 +1,0 @@
-<map id="ModbusTCPClient::updateRegisterValue" name="ModbusTCPClient::updateRegisterValue">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,37,248,77"/>
-<area shape="rect" id="Node000002" href="$classModbusTCPClient.html#ad7492554eda57d0648d85accad33912c" title=" " alt="" coords="296,5,489,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="248,40,282,36,283,41,248,45"/>
-<area shape="rect" id="Node000003" href="$classModbusTCPClient.html#a895a58d4a8fdb1cc7bdc96048648e1f5" title=" " alt="" coords="296,69,489,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="248,69,283,73,282,79,248,75"/>
-</map>

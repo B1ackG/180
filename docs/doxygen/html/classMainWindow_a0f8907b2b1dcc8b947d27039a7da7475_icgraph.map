@@ -1,9 +1,0 @@
-<map id="MainWindow::onAGVAngleChanged" name="MainWindow::onAGVAngleChanged">
-<area shape="rect" id="Node000001" title="AGV 角度变化" alt="" coords="759,13,1009,38"/>
-<area shape="rect" id="Node000002" href="$classMainWindow.html#a7625a1c596346b3592fda2f39cc0b604" title="初始化 AGV 角度控制" alt="" coords="497,5,711,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="745,28,711,28,711,23,745,23"/>
-<area shape="rect" id="Node000003" href="$classMainWindow.html#ad57bfa690bd649e9b5b43552d4f5673c" title="初始化业务子系统（通信、线程、样式、控制）" alt="" coords="251,5,449,45"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="484,28,449,28,449,23,484,23"/>
-<area shape="rect" id="Node000004" href="$classMainWindow.html#a996c5a2b6f77944776856f08ec30858d" title="构造 MainWindow 并初始化内部状态与 UI" alt="" coords="5,13,203,38"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="237,28,203,28,203,23,237,23"/>
-</map>

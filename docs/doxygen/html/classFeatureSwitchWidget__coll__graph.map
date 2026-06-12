@@ -1,8 +1,0 @@
-<map id="FeatureSwitchWidget" name="FeatureSwitchWidget">
-<area shape="rect" id="Node000001" title="功能开关管理页面 (厂家专用) 允许实时调整大/小功能的启用状态，并支持保存到配置文件。" alt="" coords="5,168,165,193"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="41,5,119,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,44,88,168,82,168,78,45"/>
-<area shape="rect" id="Node000003" href="$classTechVirtualKeyboard.html" title=" " alt="" coords="101,80,256,105"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="108,37,164,77,161,82,105,41"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,117,100,169,97,165,154,113"/>
-</map>

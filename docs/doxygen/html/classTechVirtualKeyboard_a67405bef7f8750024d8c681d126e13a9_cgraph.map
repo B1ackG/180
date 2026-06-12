@@ -1,7 +1,0 @@
-<map id="TechVirtualKeyboard::~TechVirtualKeyboard" name="TechVirtualKeyboard::~TechVirtualKeyboard">
-<area shape="rect" id="Node000001" title="功能: 析构函数，释放动画与定时器等资源。 如何使用: 由 Qt 自动销毁或手动 delete。 如何修改: 若增加外部资源，请在析构中一并清理。" alt="" coords="5,27,180,67"/>
-<area shape="rect" id="Node000002" href="$classAnimationManager.html#a7b55a1f9d04cf1952debcbabd81afb14" title="功能: 获取 AnimationManager 单例，用于统一管理 UI 动画定时更新。 如何使用: 调用 AnimationManager::instance() 并通过 registerWidget..." alt="" coords="233,5,443,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,34,220,29,220,35,181,40"/>
-<area shape="rect" id="Node000003" href="$classAnimationManager.html#acfee425d9fda00d302d33c5a6a58c7d9" title="功能: 注销已注册的控件，停止对其的动画更新。 如何使用: 在控件销毁或不再需要动画时调用以避免悬挂指针。 如何修改: 若使用弱引用，则可在内部自动回收，此处可简化为可选操作。" alt="" coords="228,55,448,95"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,55,215,59,214,64,180,60"/>
-</map>

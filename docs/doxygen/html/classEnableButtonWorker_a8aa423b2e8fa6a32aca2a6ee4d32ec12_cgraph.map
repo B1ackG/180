@@ -1,5 +1,0 @@
-<map id="EnableButtonWorker::~EnableButtonWorker" name="EnableButtonWorker::~EnableButtonWorker">
-<area shape="rect" id="Node000001" title="功能: 析构函数，停止轮询并释放资源。 如何使用: 对象被销毁时自动调用，不需手动调用。 如何修改: 若增加外部资源，确保在析构中正确关闭。" alt="" coords="5,5,179,45"/>
-<area shape="rect" id="Node000002" href="$classEnableButtonWorker.html#aef52df8ccdec6fba60f8cb90b5af06ec" title="使用示例:" alt="" coords="227,5,381,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,23,213,23,213,28,179,28"/>
-</map>

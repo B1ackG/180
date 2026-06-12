@@ -1,9 +1,0 @@
-<map id="TechArcGauge::setMaximum" name="TechArcGauge::setMaximum">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,213,56"/>
-<area shape="rect" id="Node000002" href="$classTechArcGauge.html#a1a2879196d5ba6758e4777627d5b7fe9" title=" " alt="" coords="261,31,440,56"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,41,248,41,248,46,214,46"/>
-<area shape="rect" id="Node000003" href="$classTechArcGauge.html#a1909632da5478afcb36db534d575407b" title=" " alt="" coords="488,5,709,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="440,32,474,28,474,33,440,37"/>
-<area shape="rect" id="Node000004" href="$classTechArcGauge.html#aadaec246643f3154a0a3de600c79c862" title=" " alt="" coords="491,55,706,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="440,49,478,53,477,58,440,55"/>
-</map>

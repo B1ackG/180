@@ -1,5 +1,0 @@
-<map id="ModbusThreadManager::unregisterSliderLabel" name="ModbusThreadManager::unregisterSliderLabel">
-<area shape="rect" id="Node000001" title="注销标签与地址的关联" alt="" coords="228,5,403,45"/>
-<area shape="rect" id="Node000002" href="$classModbusThreadManager.html#af65cf7dc906db8db12524b4f71dc58f3" title="根据地址注销标签关联" alt="" coords="5,5,180,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,28,180,28,180,23,214,23"/>
-</map>

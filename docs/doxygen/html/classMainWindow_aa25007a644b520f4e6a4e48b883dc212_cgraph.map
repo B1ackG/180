@@ -1,5 +1,0 @@
-<map id="MainWindow::onExportRecords" name="MainWindow::onExportRecords">
-<area shape="rect" id="Node000001" title="导出记录" alt="" coords="5,13,228,38"/>
-<area shape="rect" id="Node000002" href="$classOperationRecorder.html#a17db0b4cb00a286c9509b170dfcf6ff1" title="导出为可读文本文件" alt="" coords="276,5,428,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,23,262,23,262,28,228,28"/>
-</map>
