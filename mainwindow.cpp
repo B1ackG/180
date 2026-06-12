@@ -1129,7 +1129,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         QLineEdit *lineEdit = qobject_cast<QLineEdit*>(obj);
         const bool isMainWindowLineEdit = lineEdit && this->isAncestorOf(lineEdit);
         const bool isTiltLockPasswordEdit = lineEdit && lineEdit == m_inclinometerTiltLockPasswordEdit;
-        if (lineEdit && lineEdit->isEnabled() && (isMainWindowLineEdit || isTiltLockPasswordEdit)) {
+        const bool isParkingLegAbnormalLengthEdit = lineEdit && lineEdit == m_parkingLegAbnormalLengthEdit;
+        if (lineEdit && lineEdit->isEnabled()
+            && (isMainWindowLineEdit || isTiltLockPasswordEdit || isParkingLegAbnormalLengthEdit)) {
             // // 检查是否为管理员页面的密码输入框
             // if (lineEdit->objectName() == "passwordEdit") {
             //     // 对于密码框，我们可能需要特殊处理
@@ -10351,6 +10353,9 @@ void MainWindow::showParkingLegAbnormalDialog()
 
         m_parkingLegAbnormalLengthEdit = new QLineEdit(m_parkingLegAbnormalDialog);
         m_parkingLegAbnormalLengthEdit->setObjectName(QStringLiteral("parkingLegAbnormalLengthEdit"));
+        if (m_virtualKeyboard) {
+            m_parkingLegAbnormalLengthEdit->installEventFilter(this);
+        }
         layout->addWidget(m_parkingLegAbnormalLengthEdit);
 
         auto *enableBtn = new QPushButton(QStringLiteral("驻车开启"), m_parkingLegAbnormalDialog);
@@ -10371,9 +10376,32 @@ void MainWindow::showParkingLegAbnormalDialog()
             if (!ok) {
                 v = 1100;
             }
-            const int c = qBound(lim.first, v, lim.second);
-            if (c != v || !ok) {
-                m_parkingLegAbnormalLengthEdit->setText(QString::number(c));
+            const int clampedMm = qBound(lim.first, v, lim.second);
+            m_parkingLegAbnormalLengthEdit->setText(QString::number(clampedMm));
+            if (ui && ui->LEdit_AGV_ParkOutTriggerLenght) {
+                ui->LEdit_AGV_ParkOutTriggerLenght->setText(QString::number(clampedMm));
+            }
+
+            const auto wordsArr = doubleToRegistersGHEFCDAB(static_cast<double>(clampedMm));
+            const QVector<quint16> parkLenWords = {wordsArr[0], wordsArr[1], wordsArr[2], wordsArr[3]};
+            if (!writeAgvHoldingRegisterBlock(kAgvParkOutTriggerLengthRegStart, parkLenWords)) {
+                if (ui && ui->statusBar) {
+                    ui->statusBar->showMessage(QStringLiteral("支腿长度写入寄存器5014~5017失败"), 4000);
+                }
+                OperationRecord failRecord;
+                failRecord.timestamp = QDateTime::currentDateTime();
+                failRecord.pageName = QStringLiteral("AGV控制");
+                failRecord.controlName = QStringLiteral("支腿异常长度写入失败");
+                failRecord.controlType = "";
+                failRecord.operation = "";
+                failRecord.oldValue = "";
+                failRecord.newValue = QString::number(clampedMm);
+                m_recorder->addRecord(failRecord);
+                return;
+            }
+
+            if (ui && ui->statusBar) {
+                ui->statusBar->showMessage(QStringLiteral("支腿长度已写入AGV5014~5017"), 2000);
             }
         });
 
