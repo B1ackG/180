@@ -679,7 +679,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
-          <widget class="QLabel" name="Lbl_AGV_ParkOutTriggerLenght">
+          <widget class="QLabel" name="Lbl_AGV_EstimatedWeight">
            <property name="styleSheet">
             <string notr="true">QLabel {
     background: transparent;
@@ -691,7 +691,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
 }</string>
            </property>
            <property name="text">
-            <string>支腿长度设置</string>
+            <string>预计负载重量</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignBottom|Qt::AlignHCenter</set>
@@ -702,7 +702,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
           </widget>
          </item>
          <item>
-          <widget class="QLineEdit" name="LEdit_AGV_ParkOutTriggerLenght">
+          <widget class="QLineEdit" name="LEdit_AGV_EstimatedWeight">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
              <horstretch>0</horstretch>
@@ -710,7 +710,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
             </sizepolicy>
            </property>
            <property name="text">
-            <string>1100</string>
+            <string/>
            </property>
           </widget>
          </item>

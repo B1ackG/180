@@ -250,6 +250,10 @@ public:
     void showParkingLegAbnormalDialog();
     /** @brief 隐藏支腿异常驻车操作弹窗 */
     void hideParkingLegAbnormalDialog();
+    /** @brief 显示预计负载为空提示窗（确认后关闭） */
+    void showExpectedLoadEmptyDialog();
+    /** @brief 主页面预计负载输入是否为空 */
+    bool isEstimatedWeightEmpty() const;
     /** @brief 显示倾覆风险提示窗（倾角 0.8°~1°） */
     void showInclinometerTiltRiskDialog();
     /** @brief 隐藏倾覆风险提示窗 */
@@ -296,6 +300,8 @@ public:
                               const QList<QPair<int, bool>> &bitUpdates,
                               const QString &scene = QString(),
                               bool bypassWirelessWarning = false);
+    /** @brief 主页面预计负载输入：应用 0~500 范围与校验器 */
+    void applyEstimatedWeightRuntimeSettings();
     /** @brief 驻车伸出触发长度输入：从 config.ini 应用允许范围与校验器 */
     void applyParkOutTriggerLengthRuntimeSettings();
     /** @brief 按功能控制台配置更新管理员负载阈值输入范围 */
@@ -645,6 +651,7 @@ private:
     QLabel *m_parkingSwitchHintLabel = nullptr;
     QDialog *m_parkingLegAbnormalDialog = nullptr;
     QLineEdit *m_parkingLegAbnormalLengthEdit = nullptr;
+    QDialog *m_expectedLoadEmptyDialog = nullptr;
     QWidget *m_agvStationOfflineAlarmWidget = nullptr;
     QLabel *m_agvStationOfflineAlarmLabel = nullptr;
     QWidget *m_agvDriveFaultAlarmWidget = nullptr;
@@ -692,6 +699,7 @@ private:
     bool m_agvParkingEnabled = false;
     bool m_agvLegAbnormal51Bit7Flag = false;
     QMap<int, quint16> m_agvRegisterShadow;
+    QIntValidator *m_estimatedWeightValidator = nullptr;
     QIntValidator *m_parkOutTriggerLengthValidator = nullptr;
     QIntValidator *m_weightOverloadLimitValidator = nullptr;
     QIntValidator *m_weightLockLimitValidator = nullptr;
@@ -932,7 +940,7 @@ public:
     void applyAGVParkingStatusBarUi(bool enabled);
     /** @brief 驻车切换失败后按当前异常态恢复 UI */
     void restoreParkingUiAfterFailure(bool enabled);
-    /** @brief 执行驻车开启/关闭 Modbus 写入与等待确认；legLengthMm&lt;0 时从主页面输入框读取 */
+    /** @brief 执行驻车开启/关闭 Modbus 写入与等待确认；legLengthMm&lt;0 时从支腿异常弹窗输入框读取 */
     void executeAGVParkingSwitch(bool targetEnabled, int legLengthMm = -1);
 
 private:

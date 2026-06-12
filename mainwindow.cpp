@@ -192,6 +192,12 @@ bool isInsideSteeringModeSelector(const QWidget *widget)
 
 namespace {
 constexpr int kAgvParkOutTriggerLengthRegStart = 5014;
+constexpr int kAgvEstimatedWeightReg = 157;
+
+QPair<int, int> estimatedWeightLimits()
+{
+    return {0, 500};
+}
 
 QPair<int, int> parkOutTriggerLengthLimitsFromSettings()
 {
@@ -454,9 +460,38 @@ void MainWindow::applySliderLabelRuntimeSettings()
     }
 }
 
+void MainWindow::applyEstimatedWeightRuntimeSettings()
+{
+    QLineEdit *ed = ui ? ui->LEdit_AGV_EstimatedWeight : nullptr;
+    if (!ed) {
+        return;
+    }
+    const QPair<int, int> lim = estimatedWeightLimits();
+    if (!m_estimatedWeightValidator) {
+        m_estimatedWeightValidator = new QIntValidator(this);
+        ed->setValidator(m_estimatedWeightValidator);
+    }
+    m_estimatedWeightValidator->setRange(lim.first, lim.second);
+
+    const QString text = ed->text().trimmed();
+    if (text.isEmpty()) {
+        return;
+    }
+    bool ok = false;
+    const int cur = text.toInt(&ok);
+    if (!ok) {
+        ed->clear();
+        return;
+    }
+    const int clamped = qBound(lim.first, cur, lim.second);
+    if (clamped != cur) {
+        ed->setText(QString::number(clamped));
+    }
+}
+
 void MainWindow::applyParkOutTriggerLengthRuntimeSettings()
 {
-    QLineEdit *ed = ui ? ui->LEdit_AGV_ParkOutTriggerLenght : nullptr;
+    QLineEdit *ed = m_parkingLegAbnormalLengthEdit;
     if (!ed) {
         return;
     }
@@ -1124,6 +1159,14 @@ void MainWindow::paintEvent(QPaintEvent *)
 // 修改事件过滤器(虚拟键盘)
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
+    if (obj == m_parkingLegAbnormalLengthEdit
+        && (event->type() == QEvent::KeyPress || event->type() == QEvent::KeyRelease)) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+        if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter) {
+            return true;
+        }
+    }
+
     // 处理LineEdit点击事件
     if (event->type() == QEvent::MouseButtonPress) {
         QLineEdit *lineEdit = qobject_cast<QLineEdit*>(obj);
@@ -2992,6 +3035,7 @@ void MainWindow::setupAdminPasswordPage()
                     applyPollingRuntimeSettings();
                     loadSliderLabelRuntimeSettings();
                     applySliderLabelRuntimeSettings();
+                    applyEstimatedWeightRuntimeSettings();
                     applyParkOutTriggerLengthRuntimeSettings();
                     applyWeightThresholdRuntimeSettings();
                     applyInclinometerDisplayRuntimeSettings();
@@ -7105,27 +7149,35 @@ void MainWindow::setupAGVOAControl()
         qWarning() << "未找到techBtn_AGV_Park按钮";
     }
 
-    if (ui->LEdit_AGV_ParkOutTriggerLenght) {
-        if (ui->LEdit_AGV_ParkOutTriggerLenght->text().trimmed().isEmpty()) {
-            ui->LEdit_AGV_ParkOutTriggerLenght->setText(QStringLiteral("1100"));
-        }
-        applyParkOutTriggerLengthRuntimeSettings();
-        connect(ui->LEdit_AGV_ParkOutTriggerLenght, &QLineEdit::editingFinished, this, [this]() {
-            if (!ui || !ui->LEdit_AGV_ParkOutTriggerLenght) {
+    if (ui->LEdit_AGV_EstimatedWeight) {
+        applyEstimatedWeightRuntimeSettings();
+        connect(ui->LEdit_AGV_EstimatedWeight, &QLineEdit::editingFinished, this, [this]() {
+            if (!ui || !ui->LEdit_AGV_EstimatedWeight) {
                 return;
             }
-            const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
+            const QString text = ui->LEdit_AGV_EstimatedWeight->text().trimmed();
+            if (text.isEmpty()) {
+                return;
+            }
+            const QPair<int, int> lim = estimatedWeightLimits();
             bool ok = false;
-            int v = ui->LEdit_AGV_ParkOutTriggerLenght->text().trimmed().toInt(&ok);
+            int v = text.toInt(&ok);
             if (!ok) {
-                v = 1100;
+                ui->LEdit_AGV_EstimatedWeight->clear();
+                return;
             }
             const int c = qBound(lim.first, v, lim.second);
             if (c != v || !ok) {
-                ui->LEdit_AGV_ParkOutTriggerLenght->setText(QString::number(c));
+                ui->LEdit_AGV_EstimatedWeight->setText(QString::number(c));
+            }
+            if (!writeToAGVDevice(kAgvEstimatedWeightReg, c)) {
+                if (ui->statusBar) {
+                    ui->statusBar->showMessage(QStringLiteral("预计负载写入寄存器157失败"), 4000);
+                }
             }
         }, Qt::UniqueConnection);
     }
+
 }
 
 // 设置AGV运动速度控制
@@ -7320,7 +7372,7 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
         const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
         int mm = legLengthMm;
         if (mm < 0) {
-            QLineEdit *lenEdit = ui ? ui->LEdit_AGV_ParkOutTriggerLenght : nullptr;
+            QLineEdit *lenEdit = m_parkingLegAbnormalLengthEdit;
             bool lenOk = false;
             mm = lenEdit ? lenEdit->text().trimmed().toInt(&lenOk) : 0;
             if (!lenOk) {
@@ -7329,10 +7381,6 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
         }
         const int clampedMm = qBound(lim.first, mm, lim.second);
 
-        QLineEdit *mainLenEdit = ui ? ui->LEdit_AGV_ParkOutTriggerLenght : nullptr;
-        if (mainLenEdit) {
-            mainLenEdit->setText(QString::number(clampedMm));
-        }
         if (m_parkingLegAbnormalLengthEdit) {
             m_parkingLegAbnormalLengthEdit->setText(QString::number(clampedMm));
         }
@@ -7492,6 +7540,11 @@ void MainWindow::onAGVParkBtnClicked()
 
     if (isRobotWeightLockGateActive()) {
         blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：驻车操作已无效"));
+        return;
+    }
+
+    if (isEstimatedWeightEmpty()) {
+        showExpectedLoadEmptyDialog();
         return;
     }
 
@@ -10329,6 +10382,68 @@ void MainWindow::hideParkingSwitchHintDialog()
     }
 }
 
+bool MainWindow::isEstimatedWeightEmpty() const
+{
+    return !ui || !ui->LEdit_AGV_EstimatedWeight
+           || ui->LEdit_AGV_EstimatedWeight->text().trimmed().isEmpty();
+}
+
+void MainWindow::showExpectedLoadEmptyDialog()
+{
+    if (!m_expectedLoadEmptyDialog) {
+        m_expectedLoadEmptyDialog = new QDialog(this);
+        m_expectedLoadEmptyDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_expectedLoadEmptyDialog->setModal(true);
+        m_expectedLoadEmptyDialog->setObjectName(QStringLiteral("expectedLoadEmptyDialog"));
+
+        auto *layout = new QVBoxLayout(m_expectedLoadEmptyDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        auto *msgLabel = new QLabel(QStringLiteral("预计负载不能为空"), m_expectedLoadEmptyDialog);
+        msgLabel->setObjectName(QStringLiteral("expectedLoadEmptyLabel"));
+        msgLabel->setAlignment(Qt::AlignCenter);
+        msgLabel->setWordWrap(true);
+        layout->addWidget(msgLabel);
+
+        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), m_expectedLoadEmptyDialog);
+        confirmBtn->setObjectName(QStringLiteral("expectedLoadEmptyConfirmBtn"));
+        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
+        connect(confirmBtn, &QPushButton::clicked, m_expectedLoadEmptyDialog, &QDialog::accept);
+
+        m_expectedLoadEmptyDialog->setFixedSize(360, 150);
+        m_expectedLoadEmptyDialog->setStyleSheet(
+            "#expectedLoadEmptyDialog {"
+            "  background-color: rgba(30, 0, 0, 230);"
+            "  border: 3px solid #FF6600;"
+            "  border-radius: 10px;"
+            "}"
+            "#expectedLoadEmptyLabel {"
+            "  color: #FF6600;"
+            "  font-size: 18px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "#expectedLoadEmptyConfirmBtn {"
+            "  background-color: #FF6600;"
+            "  color: #202020;"
+            "  border: 2px solid #FF9933;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 100px;"
+            "}"
+            "#expectedLoadEmptyConfirmBtn:hover {"
+            "  background-color: #FF9933;"
+            "  border-color: #FF6600;"
+            "}");
+    }
+
+    positionFloatingPopupTopRight(m_expectedLoadEmptyDialog, 560);
+    m_expectedLoadEmptyDialog->exec();
+}
+
 void MainWindow::showParkingLegAbnormalDialog()
 {
     if (!m_parkingLegAbnormalDialog) {
@@ -10352,7 +10467,7 @@ void MainWindow::showParkingLegAbnormalDialog()
         layout->addWidget(lengthLabel);
 
         m_parkingLegAbnormalLengthEdit = new QLineEdit(m_parkingLegAbnormalDialog);
-        m_parkingLegAbnormalLengthEdit->setObjectName(QStringLiteral("parkingLegAbnormalLengthEdit"));
+        m_parkingLegAbnormalLengthEdit->setObjectName(QStringLiteral("LEdit_AGV_ParkOutTriggerLenght"));
         if (m_virtualKeyboard) {
             m_parkingLegAbnormalLengthEdit->installEventFilter(this);
         }
@@ -10360,10 +10475,14 @@ void MainWindow::showParkingLegAbnormalDialog()
 
         auto *enableBtn = new QPushButton(QStringLiteral("驻车开启"), m_parkingLegAbnormalDialog);
         enableBtn->setObjectName(QStringLiteral("parkingLegAbnormalEnableBtn"));
+        enableBtn->setAutoDefault(false);
+        enableBtn->setDefault(false);
         layout->addWidget(enableBtn);
 
         auto *disableBtn = new QPushButton(QStringLiteral("驻车关闭"), m_parkingLegAbnormalDialog);
         disableBtn->setObjectName(QStringLiteral("parkingLegAbnormalDisableBtn"));
+        disableBtn->setAutoDefault(false);
+        disableBtn->setDefault(false);
         layout->addWidget(disableBtn);
 
         connect(m_parkingLegAbnormalLengthEdit, &QLineEdit::editingFinished, this, [this]() {
@@ -10377,35 +10496,16 @@ void MainWindow::showParkingLegAbnormalDialog()
                 v = 1100;
             }
             const int clampedMm = qBound(lim.first, v, lim.second);
-            m_parkingLegAbnormalLengthEdit->setText(QString::number(clampedMm));
-            if (ui && ui->LEdit_AGV_ParkOutTriggerLenght) {
-                ui->LEdit_AGV_ParkOutTriggerLenght->setText(QString::number(clampedMm));
-            }
-
-            const auto wordsArr = doubleToRegistersGHEFCDAB(static_cast<double>(clampedMm));
-            const QVector<quint16> parkLenWords = {wordsArr[0], wordsArr[1], wordsArr[2], wordsArr[3]};
-            if (!writeAgvHoldingRegisterBlock(kAgvParkOutTriggerLengthRegStart, parkLenWords)) {
-                if (ui && ui->statusBar) {
-                    ui->statusBar->showMessage(QStringLiteral("支腿长度写入寄存器5014~5017失败"), 4000);
-                }
-                OperationRecord failRecord;
-                failRecord.timestamp = QDateTime::currentDateTime();
-                failRecord.pageName = QStringLiteral("AGV控制");
-                failRecord.controlName = QStringLiteral("支腿异常长度写入失败");
-                failRecord.controlType = "";
-                failRecord.operation = "";
-                failRecord.oldValue = "";
-                failRecord.newValue = QString::number(clampedMm);
-                m_recorder->addRecord(failRecord);
-                return;
-            }
-
-            if (ui && ui->statusBar) {
-                ui->statusBar->showMessage(QStringLiteral("支腿长度已写入AGV5014~5017"), 2000);
+            if (clampedMm != v || !ok) {
+                m_parkingLegAbnormalLengthEdit->setText(QString::number(clampedMm));
             }
         });
 
         connect(enableBtn, &QPushButton::clicked, this, [this]() {
+            if (isEstimatedWeightEmpty()) {
+                showExpectedLoadEmptyDialog();
+                return;
+            }
             if (!m_parkingLegAbnormalLengthEdit) {
                 return;
             }
@@ -10417,14 +10517,15 @@ void MainWindow::showParkingLegAbnormalDialog()
             }
             const int clampedMm = qBound(lim.first, v, lim.second);
             m_parkingLegAbnormalLengthEdit->setText(QString::number(clampedMm));
-            if (ui && ui->LEdit_AGV_ParkOutTriggerLenght) {
-                ui->LEdit_AGV_ParkOutTriggerLenght->setText(QString::number(clampedMm));
-            }
             hideParkingLegAbnormalDialog();
             executeAGVParkingSwitch(true, clampedMm);
         });
 
         connect(disableBtn, &QPushButton::clicked, this, [this]() {
+            if (isEstimatedWeightEmpty()) {
+                showExpectedLoadEmptyDialog();
+                return;
+            }
             hideParkingLegAbnormalDialog();
             executeAGVParkingSwitch(false);
         });
@@ -10443,7 +10544,7 @@ void MainWindow::showParkingLegAbnormalDialog()
             "  font-weight: bold;"
             "  background-color: transparent;"
             "}"
-            "#parkingLegAbnormalLengthEdit {"
+            "#LEdit_AGV_ParkOutTriggerLenght {"
             "  color: #FFFFFF;"
             "  background-color: rgba(0, 0, 0, 120);"
             "  border: 2px solid #FF6600;"
@@ -10474,12 +10575,10 @@ void MainWindow::showParkingLegAbnormalDialog()
     m_parkOutTriggerLengthValidator->setRange(lim.first, lim.second);
     if (m_parkingLegAbnormalLengthEdit) {
         m_parkingLegAbnormalLengthEdit->setValidator(m_parkOutTriggerLengthValidator);
-        QString initialText = QStringLiteral("1100");
-        if (ui && ui->LEdit_AGV_ParkOutTriggerLenght
-            && !ui->LEdit_AGV_ParkOutTriggerLenght->text().trimmed().isEmpty()) {
-            initialText = ui->LEdit_AGV_ParkOutTriggerLenght->text().trimmed();
+        if (m_parkingLegAbnormalLengthEdit->text().trimmed().isEmpty()) {
+            m_parkingLegAbnormalLengthEdit->setText(QStringLiteral("1100"));
         }
-        m_parkingLegAbnormalLengthEdit->setText(initialText);
+        applyParkOutTriggerLengthRuntimeSettings();
     }
 
     positionFloatingPopupTopRight(m_parkingLegAbnormalDialog, 500);
