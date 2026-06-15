@@ -2374,9 +2374,9 @@ void MainWindow::onSaveRecords()
 
     if (!filename.isEmpty()) {
         if (m_recorder->saveToFile(filename)) {
-            QMessageBox::information(this, "成功", "操作记录已保存");
+            showToast(QStringLiteral("操作记录已保存"), ToastKind::Success);
         } else {
-            QMessageBox::warning(this, "错误", "保存失败");
+            showToast(QStringLiteral("保存失败"), ToastKind::Warning);
         }
     }
 }
@@ -2388,9 +2388,9 @@ void MainWindow::onExportRecords()
 
     if (!filename.isEmpty()) {
         if (m_recorder->exportToText(filename)) {
-            QMessageBox::information(this, "成功", "操作报告已导出");
+            showToast(QStringLiteral("操作报告已导出"), ToastKind::Success);
         } else {
-            QMessageBox::warning(this, "错误", "导出失败");
+            showToast(QStringLiteral("导出失败"), ToastKind::Warning);
         }
     }
 }
@@ -3067,6 +3067,143 @@ void MainWindow::showNotification(const QString &message)
     if (!platform.contains("wayland")) {
         QToolTip::showText(QCursor::pos(), message, nullptr, QRect(), 2000);
     }
+}
+
+void MainWindow::showToast(const QString &message, ToastKind kind, int durationMs)
+{
+    const QString text = message.trimmed();
+    if (text.isEmpty()) {
+        return;
+    }
+
+    const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
+    if (text == m_lastToastMessage && (nowMs - m_lastToastMs) < 800) {
+        return;
+    }
+    m_lastToastMessage = text;
+    m_lastToastMs = nowMs;
+
+    if (ui && ui->statusBar) {
+        ui->statusBar->showMessage(text, durationMs);
+    }
+
+    while (m_toasts.size() >= 5) {
+        dismissToast(m_toasts.first().widget);
+    }
+
+    auto *toast = new QWidget(nullptr);
+    toast->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+    toast->setAttribute(Qt::WA_DeleteOnClose);
+    toast->setObjectName(QStringLiteral("toastWidget"));
+    toast->setStyleSheet(toastStyleSheet(kind));
+
+    auto *layout = new QVBoxLayout(toast);
+    layout->setContentsMargins(16, 12, 16, 12);
+    layout->setSpacing(0);
+
+    auto *label = new QLabel(text, toast);
+    label->setObjectName(QStringLiteral("toastLabel"));
+    label->setWordWrap(true);
+    label->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+    layout->addWidget(label);
+
+    const int lineCount = qMax(1, text.count(QLatin1Char('\n')) + 1);
+    const int height = qBound(76, 54 + lineCount * 24, 150);
+    toast->setFixedSize(380, height);
+
+    auto *timer = new QTimer(this);
+    timer->setSingleShot(true);
+    connect(timer, &QTimer::timeout, this, [this, toast]() {
+        dismissToast(toast);
+    });
+
+    m_toasts.append({toast, timer, text});
+    repositionToasts();
+    toast->show();
+    toast->raise();
+    timer->start(qMax(1000, durationMs));
+}
+
+void MainWindow::dismissToast(QWidget *toast)
+{
+    if (!toast) {
+        return;
+    }
+
+    for (int i = 0; i < m_toasts.size(); ++i) {
+        if (m_toasts.at(i).widget == toast) {
+            if (m_toasts.at(i).timer) {
+                m_toasts.at(i).timer->stop();
+                m_toasts.at(i).timer->deleteLater();
+            }
+            m_toasts.removeAt(i);
+            break;
+        }
+    }
+
+    toast->close();
+    repositionToasts();
+}
+
+void MainWindow::repositionToasts()
+{
+    QScreen *screen = QGuiApplication::primaryScreen();
+    if (!screen) {
+        return;
+    }
+
+    const QRect area = screen->availableGeometry();
+    constexpr int kRightMargin = 40;
+    constexpr int kBottomMargin = 40;
+    constexpr int kSpacing = 12;
+    int bottom = area.bottom() - kBottomMargin;
+
+    for (int i = m_toasts.size() - 1; i >= 0; --i) {
+        QWidget *toast = m_toasts.at(i).widget;
+        if (!toast) {
+            continue;
+        }
+        const int x = area.right() - toast->width() - kRightMargin;
+        const int y = bottom - toast->height();
+        toast->move(x, qMax(area.top() + 20, y));
+        bottom = y - kSpacing;
+    }
+}
+
+QString MainWindow::toastStyleSheet(ToastKind kind) const
+{
+    QString borderColor = QStringLiteral("#4da3ff");
+    QString textColor = QStringLiteral("#d8ecff");
+    QString backgroundColor = QStringLiteral("rgba(20, 30, 50, 238)");
+
+    switch (kind) {
+    case ToastKind::Success:
+        borderColor = QStringLiteral("#55cc77");
+        textColor = QStringLiteral("#ddffea");
+        backgroundColor = QStringLiteral("rgba(16, 48, 28, 238)");
+        break;
+    case ToastKind::Warning:
+        borderColor = QStringLiteral("#ffaa00");
+        textColor = QStringLiteral("#fff0c2");
+        backgroundColor = QStringLiteral("rgba(58, 38, 0, 238)");
+        break;
+    case ToastKind::Info:
+        break;
+    }
+
+    return QStringLiteral(
+               "#toastWidget {"
+               "  background-color: %1;"
+               "  border: 2px solid %2;"
+               "  border-radius: 10px;"
+               "}"
+               "#toastLabel {"
+               "  color: %3;"
+               "  font-size: 18px;"
+               "  font-weight: bold;"
+               "  background-color: transparent;"
+               "}")
+        .arg(backgroundColor, borderColor, textColor);
 }
 
 // 辅助函数：根据记录类型获取颜色
@@ -8213,12 +8350,12 @@ void MainWindow::onSendAllRecords()
     }
 
     if (!m_tcpTransmissionEnabled) {
-        QMessageBox::warning(this, "警告", "请先启用TCP传输");
+        showToast(QStringLiteral("请先启用TCP传输"), ToastKind::Warning);
         return;
     }
 
     if (!m_recorder->isTcpConnected()) {
-        QMessageBox::warning(this, "警告", "TCP连接未建立，无法发送记录");
+        showToast(QStringLiteral("TCP连接未建立，无法发送记录"), ToastKind::Warning);
         return;
     }
 
@@ -9975,6 +10112,9 @@ void MainWindow::checkAlarmConditions()
 
     // 2. 统一更新显示
     updateAlarmDisplay();
+    if (m_agvBatteryLow51Bit0Flag) {
+        showAgvBatteryLowDialog();
+    }
 
     if (alarmStatusLogsEnabled) {
         qCDebug(lcMainWindow) << "=== 报警检查结束 ===";
@@ -10271,11 +10411,10 @@ void MainWindow::handleAGVRegister51Alerts(quint16 value)
             m_recorder->addRecord(record);
         }
         if (batteryLow) {
-            if (!m_agvBatteryLowAcked) {
-                showAgvBatteryLowDialog();
-            }
+            showAgvBatteryLowDialog();
         } else {
             m_agvBatteryLowAcked = false;
+            m_lastBatteryLowToastMs = 0;
             hideAgvBatteryLowDialog();
         }
     }
@@ -10407,58 +10546,7 @@ bool MainWindow::isEstimatedWeightEmpty() const
 // 仅 onAGVParkBtnClicked 调用；支腿异常弹窗开/关驻车豁免预计负载检查
 void MainWindow::showExpectedLoadEmptyDialog()
 {
-    if (!m_expectedLoadEmptyDialog) {
-        m_expectedLoadEmptyDialog = new QDialog(this);
-        m_expectedLoadEmptyDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_expectedLoadEmptyDialog->setModal(true);
-        m_expectedLoadEmptyDialog->setObjectName(QStringLiteral("expectedLoadEmptyDialog"));
-
-        auto *layout = new QVBoxLayout(m_expectedLoadEmptyDialog);
-        layout->setContentsMargins(20, 15, 20, 15);
-        layout->setSpacing(10);
-
-        auto *msgLabel = new QLabel(QStringLiteral("预计负载不能为空"), m_expectedLoadEmptyDialog);
-        msgLabel->setObjectName(QStringLiteral("expectedLoadEmptyLabel"));
-        msgLabel->setAlignment(Qt::AlignCenter);
-        msgLabel->setWordWrap(true);
-        layout->addWidget(msgLabel);
-
-        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), m_expectedLoadEmptyDialog);
-        confirmBtn->setObjectName(QStringLiteral("expectedLoadEmptyConfirmBtn"));
-        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
-        connect(confirmBtn, &QPushButton::clicked, m_expectedLoadEmptyDialog, &QDialog::accept);
-
-        m_expectedLoadEmptyDialog->setFixedSize(360, 150);
-        m_expectedLoadEmptyDialog->setStyleSheet(
-            "#expectedLoadEmptyDialog {"
-            "  background-color: rgba(30, 0, 0, 230);"
-            "  border: 3px solid #FF6600;"
-            "  border-radius: 10px;"
-            "}"
-            "#expectedLoadEmptyLabel {"
-            "  color: #FF6600;"
-            "  font-size: 18px;"
-            "  font-weight: bold;"
-            "  background-color: transparent;"
-            "}"
-            "#expectedLoadEmptyConfirmBtn {"
-            "  background-color: #FF6600;"
-            "  color: #202020;"
-            "  border: 2px solid #FF9933;"
-            "  border-radius: 6px;"
-            "  padding: 8px 16px;"
-            "  font-size: 14px;"
-            "  font-weight: bold;"
-            "  min-width: 100px;"
-            "}"
-            "#expectedLoadEmptyConfirmBtn:hover {"
-            "  background-color: #FF9933;"
-            "  border-color: #FF6600;"
-            "}");
-    }
-
-    positionFloatingPopupTopRight(m_expectedLoadEmptyDialog, 560);
-    m_expectedLoadEmptyDialog->exec();
+    showToast(QStringLiteral("预计负载不能为空"), ToastKind::Warning);
 }
 
 void MainWindow::updateParkingLegAbnormalDialogVisibility()
@@ -10681,71 +10769,14 @@ void MainWindow::hideAgvDriveFaultAlarm()
 
 void MainWindow::showAgvBatteryLowDialog()
 {
-    if (!m_agvBatteryLowDialog) {
-        m_agvBatteryLowDialog = new QDialog(this);
-        m_agvBatteryLowDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_agvBatteryLowDialog->setModal(false);
-        m_agvBatteryLowDialog->setObjectName("agvBatteryLowDialog");
-
-        QVBoxLayout *layout = new QVBoxLayout(m_agvBatteryLowDialog);
-        layout->setContentsMargins(20, 15, 20, 15);
-        layout->setSpacing(10);
-
-        QLabel *msgLabel = new QLabel("电池电量低，请充电", m_agvBatteryLowDialog);
-        msgLabel->setAlignment(Qt::AlignCenter);
-        msgLabel->setWordWrap(true);
-        layout->addWidget(msgLabel);
-
-        QPushButton *confirmBtn = new QPushButton("确认", m_agvBatteryLowDialog);
-        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
-        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
-            if (m_recorder) {
-                OperationRecord record;
-                record.timestamp = QDateTime::currentDateTime();
-                record.pageName = "提示系统";
-                record.controlName = "低电量提示";
-                record.controlType = "提示窗口";
-                record.operation = "用户确认";
-                record.oldValue = "电池电量低，请充电";
-                record.newValue = "用户点击确认，窗口隐藏";
-                m_recorder->addRecord(record);
-            }
-            m_agvBatteryLowAcked = true;
-            hideAgvBatteryLowDialog();
-        });
-
-        m_agvBatteryLowDialog->setFixedSize(360, 150);
-        m_agvBatteryLowDialog->setStyleSheet(
-            "#agvBatteryLowDialog {"
-            "  background-color: rgba(50, 35, 0, 235);"
-            "  border: 3px solid #ffb000;"
-            "  border-radius: 10px;"
-            "}"
-            "QLabel {"
-            "  color: #ffcc33;"
-            "  font-size: 20px;"
-            "  font-weight: bold;"
-            "  background-color: transparent;"
-            "}"
-            "QPushButton {"
-            "  background-color: #ffb000;"
-            "  color: #1f1f1f;"
-            "  border: 2px solid #ffd166;"
-            "  border-radius: 6px;"
-            "  padding: 8px 16px;"
-            "  font-size: 14px;"
-            "  font-weight: bold;"
-            "  min-width: 90px;"
-            "}"
-            "QPushButton:hover {"
-            "  background-color: #ffd166;"
-            "}");
+    constexpr qint64 kBatteryLowToastIntervalMs = 30000;
+    const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
+    if (m_lastBatteryLowToastMs > 0 && (nowMs - m_lastBatteryLowToastMs) < kBatteryLowToastIntervalMs) {
+        return;
     }
 
-    positionFloatingPopupTopRight(m_agvBatteryLowDialog, 340);
-    m_agvBatteryLowDialog->show();
-    m_agvBatteryLowDialog->raise();
-    m_agvBatteryLowDialog->activateWindow();
+    m_lastBatteryLowToastMs = nowMs;
+    showToast(QStringLiteral("电池电量低，请充电"), ToastKind::Warning, 5000);
 }
 
 void MainWindow::hideAgvBatteryLowDialog()
@@ -11063,75 +11094,7 @@ void MainWindow::showRobotOperationHintDialog(const QString &message)
         m_recorder->addRecord(record);
     }
 
-    if (!m_robotOperationHintDialog) {
-        m_robotOperationHintDialog = new QDialog(this);
-        m_robotOperationHintDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_robotOperationHintDialog->setModal(false);
-        m_robotOperationHintDialog->setObjectName("robotOperationHintDialog");
-
-        QVBoxLayout *layout = new QVBoxLayout(m_robotOperationHintDialog);
-        layout->setContentsMargins(20, 15, 20, 15);
-        layout->setSpacing(10);
-
-        QLabel *msgLabel = new QLabel(m_robotOperationHintDialog);
-        msgLabel->setObjectName("robotOperationHintLabel");
-        msgLabel->setAlignment(Qt::AlignCenter);
-        msgLabel->setWordWrap(true);
-        layout->addWidget(msgLabel);
-
-        QPushButton *confirmBtn = new QPushButton("确定", m_robotOperationHintDialog);
-        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
-        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
-            if (m_recorder) {
-                OperationRecord record;
-                record.timestamp = QDateTime::currentDateTime();
-                record.pageName = "提示系统";
-                record.controlName = "外部按键操作提示";
-                record.controlType = "提示窗口";
-                record.operation = "用户确认";
-                record.oldValue = "";
-                record.newValue = "用户点击确定，提示窗口隐藏";
-                m_recorder->addRecord(record);
-            }
-            hideRobotOperationHintDialog();
-        });
-
-        m_robotOperationHintDialog->setFixedSize(380, 150);
-        m_robotOperationHintDialog->setStyleSheet(
-            "#robotOperationHintDialog {"
-            "  background-color: rgba(20, 30, 50, 235);"
-            "  border: 3px solid #4da3ff;"
-            "  border-radius: 10px;"
-            "}"
-            "#robotOperationHintLabel {"
-            "  color: #8ec5ff;"
-            "  font-size: 20px;"
-            "  font-weight: bold;"
-            "  background-color: transparent;"
-            "}"
-            "QPushButton {"
-            "  background-color: #4da3ff;"
-            "  color: #102030;"
-            "  border: 2px solid #8ec5ff;"
-            "  border-radius: 6px;"
-            "  padding: 8px 16px;"
-            "  font-size: 14px;"
-            "  font-weight: bold;"
-            "  min-width: 90px;"
-            "}"
-            "QPushButton:hover {"
-            "  background-color: #8ec5ff;"
-            "}");
-    }
-
-    if (QLabel *msgLabel = m_robotOperationHintDialog->findChild<QLabel*>("robotOperationHintLabel")) {
-        msgLabel->setText(message);
-    }
-
-    positionFloatingPopupTopRight(m_robotOperationHintDialog, 500);
-    m_robotOperationHintDialog->show();
-    m_robotOperationHintDialog->raise();
-    m_robotOperationHintDialog->activateWindow();
+    showToast(message, ToastKind::Info);
 }
 
 void MainWindow::hideRobotOperationHintDialog()
@@ -11144,65 +11107,7 @@ void MainWindow::hideRobotOperationHintDialog()
 void MainWindow::showTeachingWriteGateDeniedDialog()
 {
     hideWirelessModeWarningDialog();
-
-    if (!m_teachingWriteGateDeniedDialog) {
-        m_teachingWriteGateDeniedDialog = new QDialog(this);
-        m_teachingWriteGateDeniedDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_teachingWriteGateDeniedDialog->setModal(false);
-        m_teachingWriteGateDeniedDialog->setObjectName("teachingWriteGateDeniedDialog");
-
-        auto *layout = new QVBoxLayout(m_teachingWriteGateDeniedDialog);
-        layout->setContentsMargins(20, 15, 20, 15);
-        layout->setSpacing(10);
-
-        auto *msgLabel = new QLabel(m_teachingWriteGateDeniedDialog);
-        msgLabel->setObjectName("teachingWriteGateDeniedLabel");
-        msgLabel->setAlignment(Qt::AlignCenter);
-        msgLabel->setWordWrap(true);
-        msgLabel->setText(ModbusWriteGate::teachingGateUserDialogMessage());
-        layout->addWidget(msgLabel);
-
-        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), m_teachingWriteGateDeniedDialog);
-        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
-        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
-            hideTeachingWriteGateDeniedDialog();
-        });
-
-        m_teachingWriteGateDeniedDialog->setFixedSize(380, 150);
-        m_teachingWriteGateDeniedDialog->setStyleSheet(
-            "#teachingWriteGateDeniedDialog {"
-            "  background-color: rgba(20, 30, 50, 235);"
-            "  border: 3px solid #4da3ff;"
-            "  border-radius: 10px;"
-            "}"
-            "#teachingWriteGateDeniedLabel {"
-            "  color: #8ec5ff;"
-            "  font-size: 20px;"
-            "  font-weight: bold;"
-            "  background-color: transparent;"
-            "}"
-            "QPushButton {"
-            "  background-color: #4da3ff;"
-            "  color: #102030;"
-            "  border: 2px solid #8ec5ff;"
-            "  border-radius: 6px;"
-            "  padding: 8px 16px;"
-            "  font-size: 14px;"
-            "  font-weight: bold;"
-            "  min-width: 90px;"
-            "}"
-            "QPushButton:hover {"
-            "  background-color: #8ec5ff;"
-            "}");
-    }
-
-    if (auto *lbl = m_teachingWriteGateDeniedDialog->findChild<QLabel*>("teachingWriteGateDeniedLabel")) {
-        lbl->setText(ModbusWriteGate::teachingGateUserDialogMessage());
-    }
-    positionFloatingPopupTopRight(m_teachingWriteGateDeniedDialog, 660);
-    m_teachingWriteGateDeniedDialog->show();
-    m_teachingWriteGateDeniedDialog->raise();
-    m_teachingWriteGateDeniedDialog->activateWindow();
+    showToast(ModbusWriteGate::teachingGateUserDialogMessage(), ToastKind::Warning);
 }
 
 void MainWindow::hideTeachingWriteGateDeniedDialog()
@@ -11308,76 +11213,7 @@ void MainWindow::showRobotLimitReachedDialog(const QString &message)
         m_recorder->addRecord(record);
     }
 
-    if (!m_robotLimitReachedDialog) {
-        m_robotLimitReachedDialog = new QDialog(this);
-        m_robotLimitReachedDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_robotLimitReachedDialog->setModal(false);
-        m_robotLimitReachedDialog->setObjectName("robotLimitReachedDialog");
-
-        QVBoxLayout *layout = new QVBoxLayout(m_robotLimitReachedDialog);
-        layout->setContentsMargins(20, 15, 20, 15);
-        layout->setSpacing(10);
-
-        m_robotLimitReachedLabel = new QLabel(m_robotLimitReachedDialog);
-        m_robotLimitReachedLabel->setObjectName("robotLimitReachedLabel");
-        m_robotLimitReachedLabel->setAlignment(Qt::AlignCenter);
-        m_robotLimitReachedLabel->setWordWrap(true);
-        layout->addWidget(m_robotLimitReachedLabel);
-
-        QPushButton *confirmBtn = new QPushButton("确认", m_robotLimitReachedDialog);
-        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
-        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
-            sendRemoveWarningModbusWrites();
-            if (m_recorder) {
-                OperationRecord record;
-                record.timestamp = QDateTime::currentDateTime();
-                record.pageName = "提示系统";
-                record.controlName = "主控限位提示";
-                record.controlType = "提示窗口";
-                record.operation = "用户确认";
-                record.oldValue = "";
-                record.newValue = "用户点击确认，限位提示窗口隐藏（已发送与清除报警相同的 Modbus）";
-                m_recorder->addRecord(record);
-            }
-            hideRobotLimitReachedDialog();
-        });
-
-        m_robotLimitReachedDialog->setFixedSize(360, 150);
-        m_robotLimitReachedDialog->setStyleSheet(
-            "#robotLimitReachedDialog {"
-            "  background-color: rgba(45, 24, 0, 235);"
-            "  border: 3px solid #ffaa00;"
-            "  border-radius: 10px;"
-            "}"
-            "#robotLimitReachedLabel {"
-            "  color: #ffd166;"
-            "  font-size: 22px;"
-            "  font-weight: bold;"
-            "  background-color: transparent;"
-            "}"
-            "QPushButton {"
-            "  background-color: #ffaa00;"
-            "  color: #2b1800;"
-            "  border: 2px solid #ffd166;"
-            "  border-radius: 6px;"
-            "  padding: 8px 16px;"
-            "  font-size: 14px;"
-            "  font-weight: bold;"
-            "  min-width: 90px;"
-            "}"
-            "QPushButton:hover {"
-            "  background-color: #ffd166;"
-            "}");
-    }
-
-    if (m_robotLimitReachedLabel) {
-        m_robotLimitReachedLabel->setText(message);
-    }
-
-    positionFloatingPopupTopRight(m_robotLimitReachedDialog, 820);
-    m_robotLimitReachedDialog->show();
-    m_robotLimitReachedDialog->raise();
-    m_robotLimitReachedDialog->activateWindow();
+    showToast(message, ToastKind::Warning, 5000);
 }
 
 void MainWindow::hideRobotLimitReachedDialog()

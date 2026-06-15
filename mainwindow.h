@@ -608,6 +608,14 @@ signals:
     void modbusValueChangedForAlarm();
 
 private:
+    enum class ToastKind : quint8 { Info, Success, Warning };
+
+    struct ToastEntry {
+        QWidget *widget = nullptr;
+        QTimer *timer = nullptr;
+        QString message;
+    };
+
     // ==========================================
     // 9. 私有成员变量 (Private Data Members)
     // ==========================================
@@ -740,6 +748,10 @@ private:
     bool m_tcpTransmissionEnabled;
     QString m_lastNotificationMessage;
     qint64 m_lastNotificationMs = 0;
+    QVector<ToastEntry> m_toasts;
+    QString m_lastToastMessage;
+    qint64 m_lastToastMs = 0;
+    qint64 m_lastBatteryLowToastMs = 0;
     QString m_lastTcpErrorNotification;
     qint64 m_lastTcpErrorNotificationMs = 0;
     QSet<int> m_agvDisconnectedWarnedAddresses;
@@ -963,6 +975,14 @@ private:
 
     /** @brief 显示临时通知（气泡/提示条） */
     void showNotification(const QString &message);
+    /** @brief 显示右下角自动隐藏 Toast */
+    void showToast(const QString &message, ToastKind kind = ToastKind::Info, int durationMs = 3500);
+    /** @brief 隐藏指定 Toast 并重排剩余项 */
+    void dismissToast(QWidget *toast);
+    /** @brief 重排右下角 Toast 栈 */
+    void repositionToasts();
+    /** @brief 根据类型生成 Toast 样式 */
+    QString toastStyleSheet(ToastKind kind) const;
 
     /** @brief 与「清除报警」按钮相同的 Modbus 写入（主控 290、403） */
     void sendRemoveWarningModbusWrites();

@@ -1,4 +1,4 @@
-#include "featureswitchmanager.h"
+        #include "featureswitchmanager.h"
 
 #include <QApplication>
 #include <QDir>

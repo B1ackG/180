@@ -197,6 +197,18 @@ MainWindow::~MainWindow()
         qDebug() << "报警窗口已清理";
     }
 
+    for (int i = 0; i < m_toasts.size(); ++i) {
+        const ToastEntry &entry = m_toasts.at(i);
+        if (entry.timer) {
+            entry.timer->stop();
+            entry.timer->deleteLater();
+        }
+        if (entry.widget) {
+            entry.widget->close();
+        }
+    }
+    m_toasts.clear();
+
     delete m_verticalMovie;
     delete ui;
 
