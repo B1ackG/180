@@ -3188,6 +3188,29 @@ void MainWindow::dismissToast(QWidget *toast)
     updateToastHostVisibility();
 }
 
+void MainWindow::dismissToastByMessage(const QString &message)
+{
+    const QString text = message.trimmed();
+    if (text.isEmpty()) {
+        return;
+    }
+
+    for (int i = m_toasts.size() - 1; i >= 0; --i) {
+        if (m_toasts.at(i).message == text) {
+            dismissToast(m_toasts.at(i).widget);
+        }
+    }
+}
+
+void MainWindow::dismissOperationHintToasts()
+{
+    dismissToastByMessage(QStringLiteral("当前设置速度为0"));
+    dismissToastByMessage(QStringLiteral("当前未设置步进值"));
+    dismissToastByMessage(ModbusWriteGate::teachingGateUserDialogMessage());
+    dismissToastByMessage(QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。"));
+    dismissToastByMessage(QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。"));
+}
+
 void MainWindow::ensureToastHost()
 {
     // Toasts are positioned individually as MainWindow children so empty stack
@@ -10445,11 +10468,8 @@ void MainWindow::hideNonEmergencyPopups()
     hideAgvStationOfflineAlarm();
     hideAgvDriveFaultAlarm();
     hideAgvBatteryLowDialog();
-    hideRobotOperationHintDialog();
-    hideZeroSpeedOperationHintDialog();
-    hideUnconfiguredStepValueHintDialog();
+    dismissOperationHintToasts();
     hideWirelessModeWarningDialog();
-    hideTeachingWriteGateDeniedDialog();
     hideRobotLimitReachedDialog();
     hideRobotWeightOverloadDialog();
     hideRobotWeightLockDialog();
@@ -11187,8 +11207,7 @@ void MainWindow::hideInclinometerTiltLockDialog()
 
 void MainWindow::showRobotOperationHintDialog(const QString &message)
 {
-    hideZeroSpeedOperationHintDialog();
-    hideUnconfiguredStepValueHintDialog();
+    dismissOperationHintToasts();
 
     if (m_recorder) {
         OperationRecord record;
@@ -11202,14 +11221,13 @@ void MainWindow::showRobotOperationHintDialog(const QString &message)
         m_recorder->addRecord(record);
     }
 
-    showToast(message, ToastKind::Info);
+    showToast(message, ToastKind::Warning);
 }
 
 void MainWindow::hideRobotOperationHintDialog()
 {
-    if (m_robotOperationHintDialog && m_robotOperationHintDialog->isVisible()) {
-        m_robotOperationHintDialog->hide();
-    }
+    dismissToastByMessage(QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。"));
+    dismissToastByMessage(QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。"));
 }
 
 void MainWindow::maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, bool pressed)
@@ -11256,13 +11274,9 @@ void MainWindow::showZeroSpeedOperationHintDialog()
     static const QString kHintText = QStringLiteral("当前设置速度为0");
     static const QString kHistoryText = QStringLiteral("操作者在速度为0时操作");
 
-    const bool wasVisible = m_zeroSpeedOperationHintDialog
-                            && m_zeroSpeedOperationHintDialog->isVisible();
+    dismissOperationHintToasts();
 
-    hideRobotOperationHintDialog();
-    hideUnconfiguredStepValueHintDialog();
-
-    if (!wasVisible && m_recorder) {
+    if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
         record.pageName = QStringLiteral("提示系统");
@@ -11274,78 +11288,12 @@ void MainWindow::showZeroSpeedOperationHintDialog()
         m_recorder->addRecord(record);
     }
 
-    if (!m_zeroSpeedOperationHintDialog) {
-        m_zeroSpeedOperationHintDialog = new QDialog(this);
-        m_zeroSpeedOperationHintDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_zeroSpeedOperationHintDialog->setModal(false);
-        m_zeroSpeedOperationHintDialog->setObjectName(QStringLiteral("zeroSpeedOperationHintDialog"));
-
-        auto *layout = new QVBoxLayout(m_zeroSpeedOperationHintDialog);
-        layout->setContentsMargins(20, 15, 20, 15);
-        layout->setSpacing(10);
-
-        auto *msgLabel = new QLabel(kHintText, m_zeroSpeedOperationHintDialog);
-        msgLabel->setObjectName(QStringLiteral("zeroSpeedOperationHintLabel"));
-        msgLabel->setAlignment(Qt::AlignCenter);
-        msgLabel->setWordWrap(true);
-        layout->addWidget(msgLabel);
-
-        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), m_zeroSpeedOperationHintDialog);
-        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
-        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
-            hideZeroSpeedOperationHintDialog();
-        });
-
-        m_zeroSpeedOperationHintDialog->setFixedSize(380, 150);
-        m_zeroSpeedOperationHintDialog->setStyleSheet(
-            "#zeroSpeedOperationHintDialog {"
-            "  background-color: rgba(20, 30, 50, 235);"
-            "  border: 3px solid #4da3ff;"
-            "  border-radius: 10px;"
-            "}"
-            "#zeroSpeedOperationHintLabel {"
-            "  color: #8ec5ff;"
-            "  font-size: 20px;"
-            "  font-weight: bold;"
-            "  background-color: transparent;"
-            "}"
-            "QPushButton {"
-            "  background-color: #4da3ff;"
-            "  color: #102030;"
-            "  border: 2px solid #8ec5ff;"
-            "  border-radius: 6px;"
-            "  padding: 8px 16px;"
-            "  font-size: 14px;"
-            "  font-weight: bold;"
-            "  min-width: 90px;"
-            "}"
-            "QPushButton:hover {"
-            "  background-color: #8ec5ff;"
-            "}");
-    }
-
-    if (!m_zeroSpeedOperationHintTimer) {
-        m_zeroSpeedOperationHintTimer = new QTimer(this);
-        m_zeroSpeedOperationHintTimer->setSingleShot(true);
-        connect(m_zeroSpeedOperationHintTimer, &QTimer::timeout,
-                this, &MainWindow::hideZeroSpeedOperationHintDialog);
-    }
-    m_zeroSpeedOperationHintTimer->start(5000);
-
-    positionFloatingPopupTopRight(m_zeroSpeedOperationHintDialog, 420);
-    m_zeroSpeedOperationHintDialog->show();
-    m_zeroSpeedOperationHintDialog->raise();
-    m_zeroSpeedOperationHintDialog->activateWindow();
+    showToast(kHintText, ToastKind::Warning);
 }
 
 void MainWindow::hideZeroSpeedOperationHintDialog()
 {
-    if (m_zeroSpeedOperationHintTimer) {
-        m_zeroSpeedOperationHintTimer->stop();
-    }
-    if (m_zeroSpeedOperationHintDialog && m_zeroSpeedOperationHintDialog->isVisible()) {
-        m_zeroSpeedOperationHintDialog->hide();
-    }
+    dismissToastByMessage(QStringLiteral("当前设置速度为0"));
 }
 
 namespace {
@@ -11414,13 +11362,9 @@ void MainWindow::showUnconfiguredStepValueHintDialog()
     static const QString kHintText = QStringLiteral("当前未设置步进值");
     static const QString kHistoryText = QStringLiteral("操作者在未设置步进值时操作");
 
-    const bool wasVisible = m_unconfiguredStepValueHintDialog
-                            && m_unconfiguredStepValueHintDialog->isVisible();
+    dismissOperationHintToasts();
 
-    hideRobotOperationHintDialog();
-    hideZeroSpeedOperationHintDialog();
-
-    if (!wasVisible && m_recorder) {
+    if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
         record.pageName = QStringLiteral("提示系统");
@@ -11432,91 +11376,24 @@ void MainWindow::showUnconfiguredStepValueHintDialog()
         m_recorder->addRecord(record);
     }
 
-    if (!m_unconfiguredStepValueHintDialog) {
-        m_unconfiguredStepValueHintDialog = new QDialog(this);
-        m_unconfiguredStepValueHintDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_unconfiguredStepValueHintDialog->setModal(false);
-        m_unconfiguredStepValueHintDialog->setObjectName(QStringLiteral("unconfiguredStepValueHintDialog"));
-
-        auto *layout = new QVBoxLayout(m_unconfiguredStepValueHintDialog);
-        layout->setContentsMargins(20, 15, 20, 15);
-        layout->setSpacing(10);
-
-        auto *msgLabel = new QLabel(kHintText, m_unconfiguredStepValueHintDialog);
-        msgLabel->setObjectName(QStringLiteral("unconfiguredStepValueHintLabel"));
-        msgLabel->setAlignment(Qt::AlignCenter);
-        msgLabel->setWordWrap(true);
-        layout->addWidget(msgLabel);
-
-        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), m_unconfiguredStepValueHintDialog);
-        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
-        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
-            hideUnconfiguredStepValueHintDialog();
-        });
-
-        m_unconfiguredStepValueHintDialog->setFixedSize(380, 150);
-        m_unconfiguredStepValueHintDialog->setStyleSheet(
-            "#unconfiguredStepValueHintDialog {"
-            "  background-color: rgba(20, 30, 50, 235);"
-            "  border: 3px solid #4da3ff;"
-            "  border-radius: 10px;"
-            "}"
-            "#unconfiguredStepValueHintLabel {"
-            "  color: #8ec5ff;"
-            "  font-size: 20px;"
-            "  font-weight: bold;"
-            "  background-color: transparent;"
-            "}"
-            "QPushButton {"
-            "  background-color: #4da3ff;"
-            "  color: #102030;"
-            "  border: 2px solid #8ec5ff;"
-            "  border-radius: 6px;"
-            "  padding: 8px 16px;"
-            "  font-size: 14px;"
-            "  font-weight: bold;"
-            "  min-width: 90px;"
-            "}"
-            "QPushButton:hover {"
-            "  background-color: #8ec5ff;"
-            "}");
-    }
-
-    if (!m_unconfiguredStepValueHintTimer) {
-        m_unconfiguredStepValueHintTimer = new QTimer(this);
-        m_unconfiguredStepValueHintTimer->setSingleShot(true);
-        connect(m_unconfiguredStepValueHintTimer, &QTimer::timeout,
-                this, &MainWindow::hideUnconfiguredStepValueHintDialog);
-    }
-    m_unconfiguredStepValueHintTimer->start(5000);
-
-    positionFloatingPopupTopRight(m_unconfiguredStepValueHintDialog, 460);
-    m_unconfiguredStepValueHintDialog->show();
-    m_unconfiguredStepValueHintDialog->raise();
-    m_unconfiguredStepValueHintDialog->activateWindow();
+    showToast(kHintText, ToastKind::Warning);
 }
 
 void MainWindow::hideUnconfiguredStepValueHintDialog()
 {
-    if (m_unconfiguredStepValueHintTimer) {
-        m_unconfiguredStepValueHintTimer->stop();
-    }
-    if (m_unconfiguredStepValueHintDialog && m_unconfiguredStepValueHintDialog->isVisible()) {
-        m_unconfiguredStepValueHintDialog->hide();
-    }
+    dismissToastByMessage(QStringLiteral("当前未设置步进值"));
 }
 
 void MainWindow::showTeachingWriteGateDeniedDialog()
 {
     hideWirelessModeWarningDialog();
+    dismissOperationHintToasts();
     showToast(ModbusWriteGate::teachingGateUserDialogMessage(), ToastKind::Warning);
 }
 
 void MainWindow::hideTeachingWriteGateDeniedDialog()
 {
-    if (m_teachingWriteGateDeniedDialog && m_teachingWriteGateDeniedDialog->isVisible()) {
-        m_teachingWriteGateDeniedDialog->hide();
-    }
+    dismissToastByMessage(ModbusWriteGate::teachingGateUserDialogMessage());
 }
 
 bool MainWindow::verifyTeachingWriteGateOrShowDialog()

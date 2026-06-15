@@ -691,12 +691,6 @@ private:
     QWidget *m_agvDriveFaultAlarmWidget = nullptr;
     QLabel *m_agvDriveFaultAlarmLabel = nullptr;
     QDialog *m_agvBatteryLowDialog = nullptr;
-    QDialog *m_robotOperationHintDialog = nullptr;
-    QDialog *m_zeroSpeedOperationHintDialog = nullptr;
-    QTimer *m_zeroSpeedOperationHintTimer = nullptr;
-    QDialog *m_unconfiguredStepValueHintDialog = nullptr;
-    QTimer *m_unconfiguredStepValueHintTimer = nullptr;
-    QDialog *m_teachingWriteGateDeniedDialog = nullptr;
     QDialog *m_wirelessModeWarningDialog = nullptr;
     QWidget *m_robotWeightOverloadWidget = nullptr;
     QLabel *m_robotWeightOverloadLabel = nullptr;
@@ -1015,6 +1009,10 @@ private:
     QString robotLimitToastMessage(bool positiveLimit) const;
     /** @brief 隐藏指定 Toast 并重排剩余项 */
     void dismissToast(QWidget *toast);
+    /** @brief 按文案关闭匹配的 Toast */
+    void dismissToastByMessage(const QString &message);
+    /** @brief 关闭零速度/步进值/示教写门禁/互锁等操作提示 Toast */
+    void dismissOperationHintToasts();
     /** @brief 确保 Toast 宿主容器已创建 */
     void ensureToastHost();
     /** @brief 将 Toast 宿主容器定位到主窗口右下角 */
