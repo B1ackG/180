@@ -322,6 +322,7 @@ void MainWindow::loadPollingRuntimeSettings()
     settings.beginGroup("Network");
     m_agvHost = settings.value("agv_host", "192.168.1.88").toString();
     m_agvPort = static_cast<quint16>(settings.value("agv_port", 502).toUInt());
+    m_remoteSimulatorHost = settings.value("remote_simulator_host", "192.168.1.70").toString();
     settings.endGroup();
 
     m_mainModbusPollIntervalMs = qBound(50, m_mainModbusPollIntervalMs, 60000);
@@ -357,6 +358,7 @@ void MainWindow::savePollingRuntimeSettings() const
     settings.beginGroup("Network");
     settings.setValue("agv_host", m_agvHost);
     settings.setValue("agv_port", m_agvPort);
+    settings.setValue("remote_simulator_host", m_remoteSimulatorHost);
     settings.endGroup();
     settings.sync();
 }
@@ -2578,12 +2580,28 @@ void MainWindow::setupAdminPasswordPage()
 
     // 第二行：远程模拟器
     QHBoxLayout *row2Layout = new QHBoxLayout();
-    QLabel *simPrefix = new QLabel("远程模拟器: 192.168.1.", netConfigSection);
+    QLabel *simPrefix = new QLabel("远程模拟器: 192.168.", netConfigSection);
     simPrefix->setStyleSheet("color: #00ffff; font-family: 'Microsoft YaHei UI'; font-size: 14px;");
+    const QStringList simIpParts = m_remoteSimulatorHost.split(QLatin1Char('.'));
+    const QString simSubnetDefault = simIpParts.size() >= 3 ? simIpParts.at(2) : QStringLiteral("1");
+    const QString simHostDefault = simIpParts.size() >= 4 ? simIpParts.at(3) : QStringLiteral("70");
+
+    QLineEdit *simSubnetEdit = new QLineEdit(netConfigSection);
+    simSubnetEdit->setObjectName("simSubnetEdit");
+    simSubnetEdit->setPlaceholderText("1");
+    simSubnetEdit->setText(simSubnetDefault);
+    simSubnetEdit->setFixedWidth(40);
+    simSubnetEdit->setAlignment(Qt::AlignCenter);
+    simSubnetEdit->setValidator(new QIntValidator(0, 255, simSubnetEdit));
+    simSubnetEdit->setStyleSheet("QLineEdit { background: rgba(0, 0, 0, 100); border: 1px solid #00c8ff; color: #ffaa00; border-radius: 4px; }");
+
+    QLabel *simDotLabel = new QLabel(".", netConfigSection);
+    simDotLabel->setStyleSheet("color: #00ffff; font-family: 'Microsoft YaHei UI'; font-size: 14px;");
+
     QLineEdit *simHostEdit = new QLineEdit(netConfigSection);
     simHostEdit->setObjectName("simHostEdit");
     simHostEdit->setPlaceholderText("70");
-    simHostEdit->setText("70");
+    simHostEdit->setText(simHostDefault);
     simHostEdit->setFixedWidth(40);
     simHostEdit->setAlignment(Qt::AlignCenter);
     simHostEdit->setValidator(new QIntValidator(0, 255, simHostEdit));
@@ -2594,6 +2612,8 @@ void MainWindow::setupAdminPasswordPage()
     simApplyBtn->setStyleSheet("QPushButton { background-color: #004466; border: 1px solid #00c8ff; color: white; border-radius: 4px; font-size: 12px; }");
 
     row2Layout->addWidget(simPrefix);
+    row2Layout->addWidget(simSubnetEdit);
+    row2Layout->addWidget(simDotLabel);
     row2Layout->addWidget(simHostEdit);
     row2Layout->addWidget(simApplyBtn);
     row2Layout->addStretch();
@@ -2798,11 +2818,12 @@ void MainWindow::setupAdminPasswordPage()
     });
 
     // 连接 模拟器 IP 确认按钮
-    connect(simApplyBtn, &QPushButton::clicked, this, [this, simHostEdit]() {
-        QString text = simHostEdit->text();
-        if (!text.isEmpty()) {
-            updateSimulatorHost(text);
-            showNotification("模拟器 IP 已更新: 192.168.1." + text);
+    connect(simApplyBtn, &QPushButton::clicked, this, [this, simSubnetEdit, simHostEdit]() {
+        const QString subnetText = simSubnetEdit->text().trimmed();
+        const QString hostText = simHostEdit->text().trimmed();
+        if (!subnetText.isEmpty() && !hostText.isEmpty()) {
+            updateSimulatorHost(subnetText, hostText);
+            showNotification(QStringLiteral("模拟器 IP 已更新: 192.168.%1.%2").arg(subnetText, hostText));
         }
     });
 
@@ -2909,7 +2930,7 @@ void MainWindow::setupAdminPasswordPage()
     });
 
     // 连接登录按钮
-    connect(loginButton, &QPushButton::clicked, this, [this, roleComboBox, passwordEdit, errorLabel, titleLabel, loginButton, logoutButton, hintLabel, featureButton, netConfigSection, weightThresholdSection, ipHostEdit, simHostEdit]() {
+    connect(loginButton, &QPushButton::clicked, this, [this, roleComboBox, passwordEdit, errorLabel, titleLabel, loginButton, logoutButton, hintLabel, featureButton, netConfigSection, weightThresholdSection, ipHostEdit]() {
         QString password = passwordEdit->text();
         UserRole selectedRole = static_cast<UserRole>(roleComboBox->currentData().toInt());
         QString roleName = roleComboBox->currentText();
@@ -4530,7 +4551,8 @@ void MainWindow::setupModbusManager()
 
     const MainModbusEndpoint endpoint = MainModbusConnector::selectEndpoint(
         isFeatureEnabled("tcp_transmission", "tcp.local_simulator"),
-        isFeatureEnabled("tcp_transmission", "tcp.remote_simulator"));
+        isFeatureEnabled("tcp_transmission", "tcp.remote_simulator"),
+        m_remoteSimulatorHost);
     if (endpoint.host == "127.0.0.1") {
         qCDebug(lcMainWindow) << "启用本机 TCP 模拟器模式：主设备 ->" << endpoint.host << ":" << endpoint.port;
     } else if (endpoint.port == 5020) {
@@ -6154,7 +6176,7 @@ void MainWindow::setupAGVModbus()
         agvPort = 5021;
         qCDebug(lcMainWindow) << "启用本机 TCP 模拟器模式：AGV ->" << agvHost << ":" << agvPort;
     } else if (isFeatureEnabled("tcp_transmission", "tcp.remote_simulator")) {
-        agvHost = "192.168.1.70";
+        agvHost = m_remoteSimulatorHost;
         agvPort = 5021;
         qCDebug(lcMainWindow) << "启用远程 TCP 模拟器模式：AGV ->" << agvHost << ":" << agvPort;
     }
@@ -8309,9 +8331,26 @@ void MainWindow::updateTcpServerHost(const QString &hostSuffix)
     }
 }
 
-void MainWindow::updateSimulatorHost(const QString &hostSuffix)
+void MainWindow::updateSimulatorHost(const QString &subnetOctet, const QString &hostOctet)
 {
-    QString newIp = "192.168.1." + hostSuffix;
+    bool subnetOk = false;
+    bool hostOk = false;
+    const int subnet = subnetOctet.trimmed().toInt(&subnetOk);
+    const int host = hostOctet.trimmed().toInt(&hostOk);
+    if (!subnetOk || !hostOk || subnet < 0 || subnet > 255 || host < 0 || host > 255) {
+        showNotification(QStringLiteral("模拟器 IP 无效，请输入 0-255"));
+        return;
+    }
+
+    const QString newIp = QStringLiteral("192.168.%1.%2").arg(subnet).arg(host);
+    m_remoteSimulatorHost = newIp;
+
+    QSettings settings("config.ini", QSettings::IniFormat);
+    settings.beginGroup("Network");
+    settings.setValue("remote_simulator_host", m_remoteSimulatorHost);
+    settings.endGroup();
+    settings.sync();
+
     qCDebug(lcMainWindow) << "尝试更新模拟器IP为:" << newIp;
 
     // 如果当前处于远程模拟器模式，则重新连接以使新 IP 生效

@@ -153,6 +153,7 @@ bool performSystemChecks(QSplashScreen* splash, MainWindow* mainWindow) {
     networkSettings.beginGroup("Network");
     QString agvCheckIp = networkSettings.value("agv_host", "192.168.1.88").toString();
     int agvCheckPort = networkSettings.value("agv_port", 502).toInt();
+    const QString remoteSimulatorHost = networkSettings.value("remote_simulator_host", "192.168.1.70").toString();
     networkSettings.endGroup();
     agvCheckPort = qBound(1, agvCheckPort, 65535);
 
@@ -162,9 +163,9 @@ bool performSystemChecks(QSplashScreen* splash, MainWindow* mainWindow) {
         agvCheckIp = "127.0.0.1";
         agvCheckPort = 5021;
     } else if (featureSwitch->isFeatureEnabled("tcp_transmission", "tcp.remote_simulator")) {
-        mainCheckIp = "192.168.1.70";
+        mainCheckIp = remoteSimulatorHost;
         mainCheckPort = 5020;
-        agvCheckIp = "192.168.1.70";
+        agvCheckIp = remoteSimulatorHost;
         agvCheckPort = 5021;
     }
 

@@ -429,8 +429,8 @@ public:
     /** @brief 启用或禁用 TCP 传输 */
     void enableTcpTransmission(bool enabled);    /** @brief 更新TCP服务器IP（仅修改主机号） */
     void updateTcpServerHost(const QString &hostSuffix);
-    /** @brief 更新模拟器IP主机号（192.168.1.XXX） */
-    void updateSimulatorHost(const QString &hostSuffix);
+    /** @brief 更新远程模拟器 IP（192.168.x.xx） */
+    void updateSimulatorHost(const QString &subnetOctet, const QString &hostOctet);
     // ==========================================
     // 仪表盘辅助
     // ==========================================
@@ -787,6 +787,7 @@ private:
     int m_agvReconnectIntervalMs = 5000;
     QString m_agvHost = "192.168.1.88";
     quint16 m_agvPort = 502;
+    QString m_remoteSimulatorHost = "192.168.1.70";
 
     // ----- 其他组件与 UI 指针缓存 -----
     TechVirtualKeyboard *m_virtualKeyboard;
