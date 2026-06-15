@@ -215,6 +215,14 @@ public:
     void showRobotOperationHintDialog(const QString &message);
     /** @brief 隐藏首页操作提示窗 */
     void hideRobotOperationHintDialog();
+    /** @brief 首页外部按键在速度为0时的提示窗（与互锁提示窗解耦） */
+    void showZeroSpeedOperationHintDialog();
+    /** @brief 隐藏速度为0提示窗 */
+    void hideZeroSpeedOperationHintDialog();
+    /** @brief 步进模式下外部按键在步进值未设置时的提示窗 */
+    void showUnconfiguredStepValueHintDialog();
+    /** @brief 隐藏步进值未设置提示窗 */
+    void hideUnconfiguredStepValueHintDialog();
     /** @brief 示教写门禁触发时的提示窗（样式仿高度互锁提示） */
     void showTeachingWriteGateDeniedDialog();
     /** @brief 隐藏示教写门禁提示窗 */
@@ -684,6 +692,10 @@ private:
     QLabel *m_agvDriveFaultAlarmLabel = nullptr;
     QDialog *m_agvBatteryLowDialog = nullptr;
     QDialog *m_robotOperationHintDialog = nullptr;
+    QDialog *m_zeroSpeedOperationHintDialog = nullptr;
+    QTimer *m_zeroSpeedOperationHintTimer = nullptr;
+    QDialog *m_unconfiguredStepValueHintDialog = nullptr;
+    QTimer *m_unconfiguredStepValueHintTimer = nullptr;
     QDialog *m_teachingWriteGateDeniedDialog = nullptr;
     QDialog *m_wirelessModeWarningDialog = nullptr;
     QWidget *m_robotWeightOverloadWidget = nullptr;
@@ -1114,6 +1126,10 @@ private:
     
     /** @brief 处理 AGV 按键动作 */
     void handleAGVKeyAction(int keyNumber, bool pressed);
+    /** @brief 首页外部按键按下且对应速度为0时弹出提示 */
+    void maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, bool pressed);
+    /** @brief 步进模式下外部按键按下且步进值为空或0时弹出提示 */
+    void maybeShowUnconfiguredStepValueHintForExternalKey(int keyNumber, bool pressed);
 
     /** @brief 处理第二套 AGV 按键动作 */
     void handleAGVKey2Action(int keyNumber, bool pressed);

@@ -3798,6 +3798,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         }
 
         if (!m_stepModeUnknown && m_stepModeEnabled) {
+            maybeShowUnconfiguredStepValueHintForExternalKey(keyNumber, pressed);
             if (!pressed) {
                 m_sixAxisExternalKeyPressed[keyNumber] = false;
                 if (m_sixAxisActiveKey == keyNumber) {
@@ -4171,7 +4172,9 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         };
 
         if (keyNumber >= 1 && keyNumber <= 8) {
+            maybeShowZeroSpeedHintForHomePageExternalKey(keyNumber, pressed);
             if (m_stepModeEnabled) {
+                maybeShowUnconfiguredStepValueHintForExternalKey(keyNumber, pressed);
                 const int axisIndex = (keyNumber - 1) / 2;   // 0~3
                 const bool isOddKey = (keyNumber % 2) == 1;  // 奇数键为反向
                 const int keyMappedTargetReg = 500 + axisIndex;
@@ -4406,6 +4409,8 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         return;
     }
 
+    maybeShowZeroSpeedHintForHomePageExternalKey(keyNumber, pressed);
+
     if (pressed) {
         if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
             MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
@@ -4423,6 +4428,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
     }
 
     if (m_stepModeEnabled) {
+        maybeShowUnconfiguredStepValueHintForExternalKey(keyNumber, pressed);
         if (!pressed) {
             m_robotExternalKeyPressed[keyNumber] = false;
             maybeClearFirstPageStepValueIfAllExternalKeysReleased();
@@ -7843,6 +7849,8 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         return;
     }
 
+    maybeShowZeroSpeedHintForHomePageExternalKey(keyNumber, pressed);
+
     if (pressed) {
         if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
             MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
@@ -7860,6 +7868,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
     }
 
     if (m_stepModeEnabled) {
+        maybeShowUnconfiguredStepValueHintForExternalKey(keyNumber, pressed);
         if (!pressed) {
             m_robotExternalKeyPressed[keyNumber] = false;
             maybeClearFirstPageStepValueIfAllExternalKeysReleased();
@@ -10437,6 +10446,8 @@ void MainWindow::hideNonEmergencyPopups()
     hideAgvDriveFaultAlarm();
     hideAgvBatteryLowDialog();
     hideRobotOperationHintDialog();
+    hideZeroSpeedOperationHintDialog();
+    hideUnconfiguredStepValueHintDialog();
     hideWirelessModeWarningDialog();
     hideTeachingWriteGateDeniedDialog();
     hideRobotLimitReachedDialog();
@@ -11176,6 +11187,9 @@ void MainWindow::hideInclinometerTiltLockDialog()
 
 void MainWindow::showRobotOperationHintDialog(const QString &message)
 {
+    hideZeroSpeedOperationHintDialog();
+    hideUnconfiguredStepValueHintDialog();
+
     if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
@@ -11195,6 +11209,300 @@ void MainWindow::hideRobotOperationHintDialog()
 {
     if (m_robotOperationHintDialog && m_robotOperationHintDialog->isVisible()) {
         m_robotOperationHintDialog->hide();
+    }
+}
+
+void MainWindow::maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, bool pressed)
+{
+    if (!pressed) {
+        return;
+    }
+    if (!ui || !ui->TBtn_HomePage || !ui->TBtn_HomePage->isChecked()) {
+        return;
+    }
+    if (!ui->StackedWidget) {
+        return;
+    }
+    const QWidget *currentPageWidget = ui->StackedWidget->currentWidget();
+    if (!currentPageWidget
+        || currentPageWidget->objectName() != QStringLiteral("page_Robot")) {
+        return;
+    }
+    if (m_stepModeUnknown || m_stepModeEnabled) {
+        return;
+    }
+
+    bool speedIsZero = false;
+    if (keyNumber >= 1 && keyNumber <= 8) {
+        speedIsZero = (getSliderEditValue(QStringLiteral("TechSliderEdit_Robot_RobotSpeed")) <= 0.0);
+    } else if (keyNumber == 9 || keyNumber == 10) {
+        const double agvSpeed = m_editAGV_MoveSpeed
+                                      ? m_editAGV_MoveSpeed->value()
+                                      : getSliderEditValue(QStringLiteral("SEdit_AGV_MoveSpeed"));
+        speedIsZero = (agvSpeed <= 0.0);
+    } else {
+        return;
+    }
+
+    if (!speedIsZero) {
+        return;
+    }
+
+    showZeroSpeedOperationHintDialog();
+}
+
+void MainWindow::showZeroSpeedOperationHintDialog()
+{
+    static const QString kHintText = QStringLiteral("当前设置速度为0");
+    static const QString kHistoryText = QStringLiteral("操作者在速度为0时操作");
+
+    const bool wasVisible = m_zeroSpeedOperationHintDialog
+                            && m_zeroSpeedOperationHintDialog->isVisible();
+
+    hideRobotOperationHintDialog();
+    hideUnconfiguredStepValueHintDialog();
+
+    if (!wasVisible && m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = QStringLiteral("提示系统");
+        record.controlName = QStringLiteral("速度为0操作提示");
+        record.controlType = QStringLiteral("提示窗口");
+        record.operation = QStringLiteral("提示触发");
+        record.oldValue = QString();
+        record.newValue = kHistoryText;
+        m_recorder->addRecord(record);
+    }
+
+    if (!m_zeroSpeedOperationHintDialog) {
+        m_zeroSpeedOperationHintDialog = new QDialog(this);
+        m_zeroSpeedOperationHintDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_zeroSpeedOperationHintDialog->setModal(false);
+        m_zeroSpeedOperationHintDialog->setObjectName(QStringLiteral("zeroSpeedOperationHintDialog"));
+
+        auto *layout = new QVBoxLayout(m_zeroSpeedOperationHintDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        auto *msgLabel = new QLabel(kHintText, m_zeroSpeedOperationHintDialog);
+        msgLabel->setObjectName(QStringLiteral("zeroSpeedOperationHintLabel"));
+        msgLabel->setAlignment(Qt::AlignCenter);
+        msgLabel->setWordWrap(true);
+        layout->addWidget(msgLabel);
+
+        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), m_zeroSpeedOperationHintDialog);
+        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
+        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
+            hideZeroSpeedOperationHintDialog();
+        });
+
+        m_zeroSpeedOperationHintDialog->setFixedSize(380, 150);
+        m_zeroSpeedOperationHintDialog->setStyleSheet(
+            "#zeroSpeedOperationHintDialog {"
+            "  background-color: rgba(20, 30, 50, 235);"
+            "  border: 3px solid #4da3ff;"
+            "  border-radius: 10px;"
+            "}"
+            "#zeroSpeedOperationHintLabel {"
+            "  color: #8ec5ff;"
+            "  font-size: 20px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "QPushButton {"
+            "  background-color: #4da3ff;"
+            "  color: #102030;"
+            "  border: 2px solid #8ec5ff;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 90px;"
+            "}"
+            "QPushButton:hover {"
+            "  background-color: #8ec5ff;"
+            "}");
+    }
+
+    if (!m_zeroSpeedOperationHintTimer) {
+        m_zeroSpeedOperationHintTimer = new QTimer(this);
+        m_zeroSpeedOperationHintTimer->setSingleShot(true);
+        connect(m_zeroSpeedOperationHintTimer, &QTimer::timeout,
+                this, &MainWindow::hideZeroSpeedOperationHintDialog);
+    }
+    m_zeroSpeedOperationHintTimer->start(5000);
+
+    positionFloatingPopupTopRight(m_zeroSpeedOperationHintDialog, 420);
+    m_zeroSpeedOperationHintDialog->show();
+    m_zeroSpeedOperationHintDialog->raise();
+    m_zeroSpeedOperationHintDialog->activateWindow();
+}
+
+void MainWindow::hideZeroSpeedOperationHintDialog()
+{
+    if (m_zeroSpeedOperationHintTimer) {
+        m_zeroSpeedOperationHintTimer->stop();
+    }
+    if (m_zeroSpeedOperationHintDialog && m_zeroSpeedOperationHintDialog->isVisible()) {
+        m_zeroSpeedOperationHintDialog->hide();
+    }
+}
+
+namespace {
+
+bool stepEditValueIsEmptyOrZero(const QLineEdit *edit)
+{
+    if (!edit) {
+        return true;
+    }
+    const QString text = edit->text().trimmed();
+    if (text.isEmpty()) {
+        return true;
+    }
+    bool ok = false;
+    const double value = text.toDouble(&ok);
+    return !ok || qFuzzyIsNull(value);
+}
+
+} // namespace
+
+void MainWindow::maybeShowUnconfiguredStepValueHintForExternalKey(int keyNumber, bool pressed)
+{
+    if (!pressed) {
+        return;
+    }
+    if (m_stepModeUnknown || !m_stepModeEnabled) {
+        return;
+    }
+    if (!ui || !ui->StackedWidget) {
+        return;
+    }
+
+    const QWidget *currentPageWidget = ui->StackedWidget->currentWidget();
+    if (!currentPageWidget) {
+        return;
+    }
+
+    const QLineEdit *stepEdit = nullptr;
+    const QString pageObjectName = currentPageWidget->objectName();
+    if (pageObjectName == QStringLiteral("page_Robot")) {
+        if (!ui->TBtn_HomePage || !ui->TBtn_HomePage->isChecked()) {
+            return;
+        }
+        if (keyNumber < 1 || keyNumber > 10) {
+            return;
+        }
+        stepEdit = m_stepValueEdit;
+    } else if (pageObjectName == QStringLiteral("page_SixAxies")) {
+        if (keyNumber < 1 || keyNumber > 12) {
+            return;
+        }
+        stepEdit = findChild<QLineEdit*>(QStringLiteral("lineEdit_SixAxies_StepValue"));
+    } else {
+        return;
+    }
+
+    if (!stepEditValueIsEmptyOrZero(stepEdit)) {
+        return;
+    }
+
+    showUnconfiguredStepValueHintDialog();
+}
+
+void MainWindow::showUnconfiguredStepValueHintDialog()
+{
+    static const QString kHintText = QStringLiteral("当前未设置步进值");
+    static const QString kHistoryText = QStringLiteral("操作者在未设置步进值时操作");
+
+    const bool wasVisible = m_unconfiguredStepValueHintDialog
+                            && m_unconfiguredStepValueHintDialog->isVisible();
+
+    hideRobotOperationHintDialog();
+    hideZeroSpeedOperationHintDialog();
+
+    if (!wasVisible && m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = QStringLiteral("提示系统");
+        record.controlName = QStringLiteral("步进值未设置操作提示");
+        record.controlType = QStringLiteral("提示窗口");
+        record.operation = QStringLiteral("提示触发");
+        record.oldValue = QString();
+        record.newValue = kHistoryText;
+        m_recorder->addRecord(record);
+    }
+
+    if (!m_unconfiguredStepValueHintDialog) {
+        m_unconfiguredStepValueHintDialog = new QDialog(this);
+        m_unconfiguredStepValueHintDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_unconfiguredStepValueHintDialog->setModal(false);
+        m_unconfiguredStepValueHintDialog->setObjectName(QStringLiteral("unconfiguredStepValueHintDialog"));
+
+        auto *layout = new QVBoxLayout(m_unconfiguredStepValueHintDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        auto *msgLabel = new QLabel(kHintText, m_unconfiguredStepValueHintDialog);
+        msgLabel->setObjectName(QStringLiteral("unconfiguredStepValueHintLabel"));
+        msgLabel->setAlignment(Qt::AlignCenter);
+        msgLabel->setWordWrap(true);
+        layout->addWidget(msgLabel);
+
+        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), m_unconfiguredStepValueHintDialog);
+        layout->addWidget(confirmBtn, 0, Qt::AlignCenter);
+        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
+            hideUnconfiguredStepValueHintDialog();
+        });
+
+        m_unconfiguredStepValueHintDialog->setFixedSize(380, 150);
+        m_unconfiguredStepValueHintDialog->setStyleSheet(
+            "#unconfiguredStepValueHintDialog {"
+            "  background-color: rgba(20, 30, 50, 235);"
+            "  border: 3px solid #4da3ff;"
+            "  border-radius: 10px;"
+            "}"
+            "#unconfiguredStepValueHintLabel {"
+            "  color: #8ec5ff;"
+            "  font-size: 20px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "QPushButton {"
+            "  background-color: #4da3ff;"
+            "  color: #102030;"
+            "  border: 2px solid #8ec5ff;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 90px;"
+            "}"
+            "QPushButton:hover {"
+            "  background-color: #8ec5ff;"
+            "}");
+    }
+
+    if (!m_unconfiguredStepValueHintTimer) {
+        m_unconfiguredStepValueHintTimer = new QTimer(this);
+        m_unconfiguredStepValueHintTimer->setSingleShot(true);
+        connect(m_unconfiguredStepValueHintTimer, &QTimer::timeout,
+                this, &MainWindow::hideUnconfiguredStepValueHintDialog);
+    }
+    m_unconfiguredStepValueHintTimer->start(5000);
+
+    positionFloatingPopupTopRight(m_unconfiguredStepValueHintDialog, 460);
+    m_unconfiguredStepValueHintDialog->show();
+    m_unconfiguredStepValueHintDialog->raise();
+    m_unconfiguredStepValueHintDialog->activateWindow();
+}
+
+void MainWindow::hideUnconfiguredStepValueHintDialog()
+{
+    if (m_unconfiguredStepValueHintTimer) {
+        m_unconfiguredStepValueHintTimer->stop();
+    }
+    if (m_unconfiguredStepValueHintDialog && m_unconfiguredStepValueHintDialog->isVisible()) {
+        m_unconfiguredStepValueHintDialog->hide();
     }
 }
 

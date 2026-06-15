@@ -652,9 +652,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                 <height>44</height>
                </size>
               </property>
-              <property name="text">
-               <string>1</string>
-              </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
               </property>
@@ -1078,9 +1075,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                 <width>64</width>
                 <height>44</height>
                </size>
-              </property>
-              <property name="text">
-               <string>1</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
