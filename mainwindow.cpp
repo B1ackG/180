@@ -47,6 +47,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QIntValidator>
 #include <QLineEdit>
 #include <QVector>
+#include <QResizeEvent>
 
 namespace {
 constexpr int kRuntimePersistRegister = 8193;
@@ -3090,7 +3091,10 @@ void MainWindow::showNotification(const QString &message)
     }
 }
 
-void MainWindow::showToast(const QString &message, ToastKind kind, int durationMs)
+void MainWindow::showToast(const QString &message,
+                           ToastKind kind,
+                           int durationMs,
+                           const std::function<void()> &onDismissed)
 {
     const QString text = message.trimmed();
     if (text.isEmpty()) {
@@ -3098,51 +3102,69 @@ void MainWindow::showToast(const QString &message, ToastKind kind, int durationM
     }
 
     const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
-    if (text == m_lastToastMessage && (nowMs - m_lastToastMs) < 800) {
+    if (text == m_lastToastMessage && (nowMs - m_lastToastMs) < kToastDuplicateWindowMs) {
         return;
+    }
+    for (int i = 0; i < m_toasts.size(); ++i) {
+        if (m_toasts.at(i).message == text) {
+            return;
+        }
     }
     m_lastToastMessage = text;
     m_lastToastMs = nowMs;
 
+    const int toastDurationMs = durationMs > 0
+                                    ? durationMs
+                                    : (kind == ToastKind::Warning
+                                           ? kToastWarningDurationMs
+                                           : kToastDefaultDurationMs);
     if (ui && ui->statusBar) {
-        ui->statusBar->showMessage(text, durationMs);
+        ui->statusBar->showMessage(text, toastDurationMs);
     }
 
-    while (m_toasts.size() >= 5) {
+    while (m_toasts.size() >= kToastMaxCount) {
         dismissToast(m_toasts.first().widget);
     }
 
-    auto *toast = new QWidget(nullptr);
-    toast->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-    toast->setAttribute(Qt::WA_DeleteOnClose);
+    auto *toast = new QWidget(this);
     toast->setObjectName(QStringLiteral("toastWidget"));
+    toast->setAttribute(Qt::WA_StyledBackground);
+    toast->setFocusPolicy(Qt::NoFocus);
     toast->setStyleSheet(toastStyleSheet(kind));
 
-    auto *layout = new QVBoxLayout(toast);
-    layout->setContentsMargins(16, 12, 16, 12);
-    layout->setSpacing(0);
+    auto *layout = new QHBoxLayout(toast);
+    layout->setContentsMargins(14, 10, 12, 10);
+    layout->setSpacing(12);
 
     auto *label = new QLabel(text, toast);
     label->setObjectName(QStringLiteral("toastLabel"));
+    label->setFocusPolicy(Qt::NoFocus);
     label->setWordWrap(true);
     label->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
-    layout->addWidget(label);
+    label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    layout->addWidget(label, 1);
+
+    auto *confirmBtn = new QPushButton(QStringLiteral("确认"), toast);
+    confirmBtn->setObjectName(QStringLiteral("toastConfirmBtn"));
+    confirmBtn->setAutoDefault(false);
+    confirmBtn->setDefault(false);
+    confirmBtn->setFocusPolicy(Qt::NoFocus);
+    confirmBtn->setFixedSize(76, 34);
+    layout->addWidget(confirmBtn, 0, Qt::AlignVCenter);
 
     const int lineCount = qMax(1, text.count(QLatin1Char('\n')) + 1);
-    const int height = qBound(76, 54 + lineCount * 24, 150);
-    toast->setFixedSize(380, height);
+    const int height = qBound(kToastMinHeight, 38 + lineCount * 24, kToastMaxHeight);
+    toast->setFixedSize(kToastWidth, height);
 
-    auto *timer = new QTimer(this);
-    timer->setSingleShot(true);
-    connect(timer, &QTimer::timeout, this, [this, toast]() {
+    connect(confirmBtn, &QPushButton::clicked, this, [this, toast, onDismissed]() {
         dismissToast(toast);
+        if (onDismissed) {
+            onDismissed();
+        }
     });
 
-    m_toasts.append({toast, timer, text});
-    repositionToasts();
-    toast->show();
-    toast->raise();
-    timer->start(qMax(1000, durationMs));
+    m_toasts.append({toast, nullptr, text});
+    updateToastHostVisibility();
 }
 
 void MainWindow::dismissToast(QWidget *toast)
@@ -3162,51 +3184,70 @@ void MainWindow::dismissToast(QWidget *toast)
         }
     }
 
-    toast->close();
-    repositionToasts();
+    toast->deleteLater();
+    updateToastHostVisibility();
 }
 
-void MainWindow::repositionToasts()
+void MainWindow::ensureToastHost()
 {
-    QScreen *screen = QGuiApplication::primaryScreen();
-    if (!screen) {
+    // Toasts are positioned individually as MainWindow children so empty stack
+    // gaps never block clicks on the underlying UI.
+}
+
+void MainWindow::repositionToastHost()
+{
+    if (m_toasts.isEmpty()) {
         return;
     }
 
-    const QRect area = screen->availableGeometry();
-    constexpr int kRightMargin = 40;
-    constexpr int kBottomMargin = 40;
-    constexpr int kSpacing = 12;
-    int bottom = area.bottom() - kBottomMargin;
+    const QRect area = rect();
+    const int x = qMax(area.left(), area.right() - kToastWidth - kToastRightMargin + 1);
+    int bottom = area.bottom() - kToastBottomMargin + 1;
 
+    // Newest toast is last in m_toasts and sits closest to the bottom-right.
     for (int i = m_toasts.size() - 1; i >= 0; --i) {
         QWidget *toast = m_toasts.at(i).widget;
         if (!toast) {
             continue;
         }
-        const int x = area.right() - toast->width() - kRightMargin;
-        const int y = bottom - toast->height();
-        toast->move(x, qMax(area.top() + 20, y));
-        bottom = y - kSpacing;
+        const int y = qMax(area.top(), bottom - toast->height());
+        toast->move(x, y);
+        toast->show();
+        toast->raise();
+        bottom = y - kToastSpacing;
     }
+}
+
+void MainWindow::updateToastHostVisibility()
+{
+    repositionToastHost();
+}
+
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    QMainWindow::resizeEvent(event);
+    repositionToastHost();
 }
 
 QString MainWindow::toastStyleSheet(ToastKind kind) const
 {
     QString borderColor = QStringLiteral("#4da3ff");
-    QString textColor = QStringLiteral("#d8ecff");
-    QString backgroundColor = QStringLiteral("rgba(20, 30, 50, 238)");
+    QString textColor = QStringLiteral("#e8f3ff");
+    QString backgroundColor = QStringLiteral("rgba(18, 28, 42, 218)");
+    QString buttonTextColor = QStringLiteral("#102030");
 
     switch (kind) {
     case ToastKind::Success:
-        borderColor = QStringLiteral("#55cc77");
-        textColor = QStringLiteral("#ddffea");
-        backgroundColor = QStringLiteral("rgba(16, 48, 28, 238)");
+        borderColor = QStringLiteral("#5ed98a");
+        textColor = QStringLiteral("#e9fff0");
+        backgroundColor = QStringLiteral("rgba(18, 52, 30, 218)");
+        buttonTextColor = QStringLiteral("#102818");
         break;
     case ToastKind::Warning:
-        borderColor = QStringLiteral("#ffaa00");
-        textColor = QStringLiteral("#fff0c2");
-        backgroundColor = QStringLiteral("rgba(58, 38, 0, 238)");
+        borderColor = QStringLiteral("#ffb84d");
+        textColor = QStringLiteral("#fff3d1");
+        backgroundColor = QStringLiteral("rgba(62, 42, 6, 222)");
+        buttonTextColor = QStringLiteral("#2f1f00");
         break;
     case ToastKind::Info:
         break;
@@ -3215,16 +3256,33 @@ QString MainWindow::toastStyleSheet(ToastKind kind) const
     return QStringLiteral(
                "#toastWidget {"
                "  background-color: %1;"
-               "  border: 2px solid %2;"
-               "  border-radius: 10px;"
+               "  border: 1px solid %2;"
+               "  border-radius: 9px;"
                "}"
                "#toastLabel {"
                "  color: %3;"
-               "  font-size: 18px;"
-               "  font-weight: bold;"
+               "  font-size: 16px;"
+               "  font-weight: 600;"
+               "  line-height: 22px;"
                "  background-color: transparent;"
+               "  padding-right: 4px;"
+               "}"
+               "#toastConfirmBtn {"
+               "  background-color: %2;"
+               "  color: %4;"
+               "  border: none;"
+               "  border-radius: 6px;"
+               "  padding: 0;"
+               "  font-size: 14px;"
+               "  font-weight: 600;"
+               "  min-width: 76px;"
+               "  min-height: 34px;"
+               "}"
+               "#toastConfirmBtn:pressed {"
+               "  background-color: %3;"
+               "  color: %4;"
                "}")
-        .arg(backgroundColor, borderColor, textColor);
+        .arg(backgroundColor, borderColor, textColor, buttonTextColor);
 }
 
 // 辅助函数：根据记录类型获取颜色
@@ -5386,20 +5444,14 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         if (positiveLimitReached != m_robotPositiveLimit102Bit2Flag) {
             m_robotPositiveLimit102Bit2Flag = positiveLimitReached;
             if (positiveLimitReached) {
-                showRobotLimitReachedDialog(QStringLiteral("正限位到达"));
-            } else if (m_robotLimitDialogTrigger == RobotLimitDialogTrigger::Positive
-                       && m_robotLimitReachedDialog && m_robotLimitReachedDialog->isVisible()) {
-                hideRobotLimitReachedDialog();
+                showRobotLimitReachedDialog(true);
             }
         }
 
         if (negativeLimitReached != m_robotNegativeLimit102Bit3Flag) {
             m_robotNegativeLimit102Bit3Flag = negativeLimitReached;
             if (negativeLimitReached) {
-                showRobotLimitReachedDialog(QStringLiteral("负限位到达"));
-            } else if (m_robotLimitDialogTrigger == RobotLimitDialogTrigger::Negative
-                       && m_robotLimitReachedDialog && m_robotLimitReachedDialog->isVisible()) {
-                hideRobotLimitReachedDialog();
+                showRobotLimitReachedDialog(false);
             }
         }
 
@@ -5819,6 +5871,9 @@ void MainWindow::readMainControlSyncRegisters()
 
     // 管理员负载阈值：5004 负载超限、5005 负载超重
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 5004, 2);
+
+    // 当前运动目标轴：500（1~4=J1~J4，5=六自由度），供限位 Toast 文案使用
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 500, 1);
 }
 // 配置所有TechSliderLabel的参数
 void MainWindow::setupSliderLabelConfigs()
@@ -11230,15 +11285,28 @@ void MainWindow::hideWirelessModeWarningDialog()
     }
 }
 
-void MainWindow::showRobotLimitReachedDialog(const QString &message)
+QString MainWindow::robotLimitToastMessage(bool positiveLimit) const
 {
-    if (message.contains(QStringLiteral("正限位"))) {
-        m_robotLimitDialogTrigger = RobotLimitDialogTrigger::Positive;
-    } else if (message.contains(QStringLiteral("负限位"))) {
-        m_robotLimitDialogTrigger = RobotLimitDialogTrigger::Negative;
+    const int axisCode = static_cast<int>(g_registerCache.value(500, 0));
+    QString axisLabel;
+    if (axisCode >= 1 && axisCode <= 4) {
+        axisLabel = QStringLiteral("J%1轴").arg(axisCode);
+    } else if (axisCode == 5) {
+        axisLabel = QStringLiteral("六自由度");
     } else {
-        m_robotLimitDialogTrigger = RobotLimitDialogTrigger::None;
+        axisLabel = QStringLiteral("未知轴");
     }
+
+    const QString limitDir = positiveLimit ? QStringLiteral("正") : QStringLiteral("负");
+    return QStringLiteral("%1到达%2限位").arg(axisLabel, limitDir);
+}
+
+void MainWindow::showRobotLimitReachedDialog(bool positiveLimit)
+{
+    m_robotLimitDialogTrigger = positiveLimit ? RobotLimitDialogTrigger::Positive
+                                              : RobotLimitDialogTrigger::Negative;
+
+    const QString message = robotLimitToastMessage(positiveLimit);
 
     if (m_recorder) {
         OperationRecord record;
@@ -11252,13 +11320,21 @@ void MainWindow::showRobotLimitReachedDialog(const QString &message)
         m_recorder->addRecord(record);
     }
 
-    showToast(message, ToastKind::Warning, 5000);
+    const int toastCountBefore = m_toasts.size();
+    showToast(message, ToastKind::Warning, 5000, [this]() {
+        m_robotLimitToastWidget = nullptr;
+        m_robotLimitDialogTrigger = RobotLimitDialogTrigger::None;
+    });
+    if (m_toasts.size() > toastCountBefore) {
+        m_robotLimitToastWidget = m_toasts.last().widget;
+    }
 }
 
 void MainWindow::hideRobotLimitReachedDialog()
 {
-    if (m_robotLimitReachedDialog && m_robotLimitReachedDialog->isVisible()) {
-        m_robotLimitReachedDialog->hide();
+    if (m_robotLimitToastWidget) {
+        dismissToast(m_robotLimitToastWidget);
+        m_robotLimitToastWidget = nullptr;
     }
     m_robotLimitDialogTrigger = RobotLimitDialogTrigger::None;
 }

@@ -44,8 +44,10 @@
 #include <QCheckBox>
 #include <QGroupBox>
 #include <QVector>
+#include <QVBoxLayout>
 
 class QIntValidator;
+class QResizeEvent;
 #include <QProgressBar>
 #include <QQuickWidget>
 #include <QQuickItem>
@@ -53,6 +55,7 @@ class QIntValidator;
 #include <QElapsedTimer>
 #include <QSet>
 #include <QHash>
+#include <functional>
 #include "poseprovider.h"
 
 QT_BEGIN_NAMESPACE
@@ -238,8 +241,8 @@ public:
     void showRobotAxisSyncDeviationDialog();
     /** @brief 隐藏主副轴位置偏差提示窗（150.bit6=0） */
     void hideRobotAxisSyncDeviationDialog();
-    /** @brief 显示主控限位提示窗（102.bit2/bit3=1） */
-    void showRobotLimitReachedDialog(const QString &message);
+    /** @brief 显示主控限位 Toast（102.bit2/bit3=1） */
+    void showRobotLimitReachedDialog(bool positiveLimit);
     /** @brief 隐藏主控限位提示窗 */
     void hideRobotLimitReachedDialog();
     /** @brief 显示驻车切换等待提示窗（与报警窗解耦） */
@@ -607,8 +610,21 @@ private slots:
 signals:
     void modbusValueChangedForAlarm();
 
+protected:
+    void resizeEvent(QResizeEvent *event) override;
+
 private:
     enum class ToastKind : quint8 { Info, Success, Warning };
+    static constexpr int kToastWidth = 420;
+    static constexpr int kToastRightMargin = 32;
+    static constexpr int kToastBottomMargin = 32;
+    static constexpr int kToastSpacing = 10;
+    static constexpr int kToastMaxCount = 4;
+    static constexpr int kToastDuplicateWindowMs = 1200;
+    static constexpr int kToastDefaultDurationMs = 3000;
+    static constexpr int kToastWarningDurationMs = 5000;
+    static constexpr int kToastMinHeight = 72;
+    static constexpr int kToastMaxHeight = 132;
 
     struct ToastEntry {
         QWidget *widget = nullptr;
@@ -683,9 +699,9 @@ private:
     QWidget *m_robotAxisSyncDeviationWidget = nullptr;
     QLabel *m_robotAxisSyncDeviationLabel = nullptr;
     QPushButton *m_robotAxisSyncDeviationStartBtn = nullptr;
-    QDialog *m_robotLimitReachedDialog = nullptr;
-    QLabel *m_robotLimitReachedLabel = nullptr;
-    /** @brief 当前限位提示窗对应的 102 限位来源（用于位清零后自动关闭） */
+    /** @brief 当前限位 Toast 控件（用于清理与确认后复位） */
+    QWidget *m_robotLimitToastWidget = nullptr;
+    /** @brief 当前限位 Toast 对应的 102 限位来源 */
     enum class RobotLimitDialogTrigger : quint8 { None, Positive, Negative };
     RobotLimitDialogTrigger m_robotLimitDialogTrigger = RobotLimitDialogTrigger::None;
 
@@ -748,6 +764,8 @@ private:
     bool m_tcpTransmissionEnabled;
     QString m_lastNotificationMessage;
     qint64 m_lastNotificationMs = 0;
+    QWidget *m_toastHost = nullptr;
+    QVBoxLayout *m_toastLayout = nullptr;
     QVector<ToastEntry> m_toasts;
     QString m_lastToastMessage;
     qint64 m_lastToastMs = 0;
@@ -976,12 +994,21 @@ private:
 
     /** @brief 显示临时通知（气泡/提示条） */
     void showNotification(const QString &message);
-    /** @brief 显示右下角自动隐藏 Toast */
-    void showToast(const QString &message, ToastKind kind = ToastKind::Info, int durationMs = 3500);
+    /** @brief 显示右下角 Toast（可选 onDismissed 在确认关闭后调用） */
+    void showToast(const QString &message,
+                   ToastKind kind = ToastKind::Info,
+                   int durationMs = 0,
+                   const std::function<void()> &onDismissed = nullptr);
+    /** @brief 按寄存器 500 生成正负限位 Toast 文案 */
+    QString robotLimitToastMessage(bool positiveLimit) const;
     /** @brief 隐藏指定 Toast 并重排剩余项 */
     void dismissToast(QWidget *toast);
-    /** @brief 重排右下角 Toast 栈 */
-    void repositionToasts();
+    /** @brief 确保 Toast 宿主容器已创建 */
+    void ensureToastHost();
+    /** @brief 将 Toast 宿主容器定位到主窗口右下角 */
+    void repositionToastHost();
+    /** @brief 根据 Toast 数量更新宿主容器显隐 */
+    void updateToastHostVisibility();
     /** @brief 根据类型生成 Toast 样式 */
     QString toastStyleSheet(ToastKind kind) const;
 
