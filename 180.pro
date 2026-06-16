@@ -29,6 +29,7 @@ SOURCES += \
     matrixkeythreadmanager.cpp \
     modbustcpclient.cpp \
     modbusthreadmanager.cpp \
+    modbusstringregisters.cpp \
     modbuswritegate.cpp \
     modbusvariables.cpp \
     operationrecorder.cpp \
@@ -40,6 +41,7 @@ SOURCES += \
     techslideredit.cpp \
     techsliderlabel.cpp \
     techspeedgauge.cpp \
+    techpinyinkeyboard.cpp \
     techvirtualkeyboard.cpp
 
 HEADERS += \
@@ -60,6 +62,7 @@ HEADERS += \
     matrixkeythreadmanager.h \
     modbustcpclient.h \
     modbusthreadmanager.h \
+    modbusstringregisters.h \
     modbuswritegate.h \
     modbusvariables.h \
     operationrecorder.h \
@@ -71,6 +74,7 @@ HEADERS += \
     techslideredit.h \
     techsliderlabel.h \
     techspeedgauge.h \
+    techpinyinkeyboard.h \
     techvirtualkeyboard.h \
     batterywidget.h
 

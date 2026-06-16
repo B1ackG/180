@@ -44,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_currentUserRole(UserRole::Operator)
     , m_stepModeEnabled(false)
     , m_virtualKeyboard(nullptr)
+    , m_pinyinKeyboard(nullptr)
     , m_keyManager(new MatrixKeyThreadManager(this))
     , m_steeringModeSelector(nullptr)
     , m_speedModeSelector(nullptr)
@@ -242,6 +243,7 @@ void MainWindow::initializeCoreSubsystems()
         setupAGVOAControl();
         setupAGVMoveSpeedControl();
         setupAGVAngleControl();
+        applySliderEditRuntimeSettings();
     }
 
     setupConnections();
@@ -273,6 +275,11 @@ void MainWindow::initializeCoreSubsystems()
     if (isFeatureEnabled("motion_control", "motion.step_mode")) {
         setupStepMoveControl();
         setupStepMoveLineEdits();
+    }
+
+    applyButtonVisibilityRuntimeSettings();
+    if (!isBigFeatureEnabled("motion_control")) {
+        applySliderEditRuntimeSettings();
     }
 }
 

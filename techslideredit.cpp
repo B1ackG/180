@@ -2,13 +2,17 @@
 #include <QDebug>
 #include <QLabel>
 #include <QIntValidator>
-#include <QRegularExpressionValidator>
+#include <QDoubleValidator>
 
 TechSliderEdit::TechSliderEdit(QWidget *parent)
     : QWidget{parent}, m_value(50.0)
     , m_oldValue(50.0)
     , m_minimum(0.0)
     , m_maximum(100.0)
+    , m_displayMinimum(0.0)
+    , m_displayMaximum(100.0)
+    , m_lineEditInputMinimum(0.0)
+    , m_lineEditInputMaximum(100.0)
     , m_singleStep(1.0)
     , m_precision(0)
     , m_suffix("")
@@ -94,7 +98,10 @@ void TechSliderEdit::setupUI()
     m_label->setFixedWidth(120);
 
     m_lineEdit->setFixedWidth(50);
-    m_lineEdit->setPlaceholderText("输入数值");
+    m_lineEdit->setPlaceholderText("点击输入");
+    m_lineEdit->setReadOnly(true);
+    m_lineEdit->setFocusPolicy(Qt::StrongFocus);
+    m_lineEdit->setCursor(Qt::PointingHandCursor);
 
     m_firstRowLayout->addWidget(m_label);
     m_firstRowLayout->addWidget(m_lineEdit);
@@ -169,9 +176,8 @@ void TechSliderEdit::setupConnections()
 
 void TechSliderEdit::updateRangeLabels()
 {
-    // 格式化数值显示
-    QString minText = QString::number(m_minimum, 'f', m_precision);
-    QString maxText = QString::number(m_maximum, 'f', m_precision);
+    QString minText = QString::number(m_displayMinimum, 'f', m_precision);
+    QString maxText = QString::number(m_displayMaximum, 'f', m_precision);
 
     // 如果有后缀，添加后缀
     if (!m_suffix.isEmpty()) {
@@ -262,18 +268,28 @@ void TechSliderEdit::resizeEvent(QResizeEvent *event)
 bool TechSliderEdit::eventFilter(QObject *watched, QEvent *event)
 {
     if (watched == m_lineEdit) {
-        if (event->type() == QEvent::FocusIn) {
-            // 获得焦点时增强辉光效果
+        switch (event->type()) {
+        case QEvent::KeyPress:
+        case QEvent::KeyRelease:
+        case QEvent::ShortcutOverride:
+        case QEvent::InputMethod:
+        case QEvent::ContextMenu:
+        case QEvent::Drop:
+            return true;
+        case QEvent::FocusIn:
             if (m_glowEnabled && m_shadowEffect) {
                 m_shadowEffect->setBlurRadius(25);
                 m_shadowEffect->setColor(m_glowColor.lighter(120));
             }
-        } else if (event->type() == QEvent::FocusOut) {
-            // 失去焦点时恢复辉光效果
+            break;
+        case QEvent::FocusOut:
             if (m_glowEnabled && m_shadowEffect) {
                 m_shadowEffect->setBlurRadius(15);
                 m_shadowEffect->setColor(m_glowColor);
             }
+            break;
+        default:
+            break;
         }
     }
     return QWidget::eventFilter(watched, event);
@@ -296,31 +312,65 @@ void TechSliderEdit::onLineEditTextChanged()
     // 实时验证，但不立即更新滑块（等待编辑完成）
 }
 
-void TechSliderEdit::onLineEditEditingFinished()
+double TechSliderEdit::clampLineEditInputValue(double value) const
 {
-    QString text = m_lineEdit->text();
-    if (text.isEmpty()) {
-        m_lineEdit->setText(QString::number(m_value, 'f', m_precision));
+    double clamped = qBound(m_lineEditInputMinimum, value, m_lineEditInputMaximum);
+    if (m_precision > 0) {
+        clamped = qRound(clamped * m_conversionFactor) / static_cast<double>(m_conversionFactor);
+    } else {
+        clamped = qRound(clamped);
+    }
+    return qBound(m_lineEditInputMinimum, clamped, m_lineEditInputMaximum);
+}
+
+void TechSliderEdit::commitLineEditInput(double rawValue)
+{
+    double newValue = clampLineEditInputValue(rawValue);
+    newValue = qBound(m_minimum, newValue, m_maximum);
+
+    if (qAbs(newValue - m_value) > 0.0001) {
+        m_oldValue = m_value;
+        m_lastChangeSource = QStringLiteral("edit");
+        setValue(newValue);
+        emit valueChangedWithRecord(m_oldValue, m_value);
+    } else {
+        updateLineEditFromValue();
+    }
+    emit editingFinished();
+}
+
+void TechSliderEdit::applyVirtualKeyboardInput(const QString &text)
+{
+    const QString trimmed = text.trimmed();
+    if (trimmed.isEmpty()) {
+        updateLineEditFromValue();
         return;
     }
 
-    bool ok;
-    double newValue = text.toDouble(&ok);
+    bool ok = false;
+    const double raw = trimmed.toDouble(&ok);
+    if (!ok) {
+        updateLineEditFromValue();
+        return;
+    }
 
+    commitLineEditInput(raw);
+}
+
+void TechSliderEdit::onLineEditEditingFinished()
+{
+    const QString text = m_lineEdit->text();
+    if (text.isEmpty()) {
+        updateLineEditFromValue();
+        return;
+    }
+
+    bool ok = false;
+    const double newValue = text.toDouble(&ok);
     if (ok) {
-        // 限制在范围内
-        if (newValue < m_minimum) newValue = m_minimum;
-        if (newValue > m_maximum) newValue = m_maximum;
-        if (qAbs(newValue - m_value) > 0.0001) {
-            m_oldValue = m_value;  // 保存旧值
-            m_lastChangeSource = "edit";
-            setValue(newValue);
-            emit valueChangedWithRecord(m_oldValue, m_value);  // 发出带记录的信号
-        }
-        emit editingFinished();
+        commitLineEditInput(newValue);
     } else {
-        // 恢复原值
-        m_lineEdit->setText(QString::number(m_value, 'f', m_precision));
+        updateLineEditFromValue();
     }
 }
 
@@ -376,15 +426,14 @@ void TechSliderEdit::onSliderValueChanged(int sliderValue)
 
 void TechSliderEdit::updateLineEditValidator()
 {
-    // 根据精度设置验证器
     if (m_precision == 0) {
-        // 整数
-        m_lineEdit->setValidator(new QIntValidator(m_minimum, m_maximum, this));
+        const int lo = qRound(m_lineEditInputMinimum);
+        const int hi = qRound(m_lineEditInputMaximum);
+        m_lineEdit->setValidator(new QIntValidator(qMin(lo, hi), qMax(lo, hi), this));
     } else {
-        // 小数
-        QString pattern = QString("^-?\\d*\\.?\\d{0,%1}$").arg(m_precision);
-        m_lineEdit->setValidator(new QRegularExpressionValidator(
-            QRegularExpression(pattern), this));
+        auto *validator = new QDoubleValidator(m_lineEditInputMinimum, m_lineEditInputMaximum, m_precision, this);
+        validator->setNotation(QDoubleValidator::StandardNotation);
+        m_lineEdit->setValidator(validator);
     }
 }
 
@@ -501,12 +550,51 @@ void TechSliderEdit::setPrecision(int precision)
 
 void TechSliderEdit::setRange(double min, double max)
 {
+    if (min >= max) {
+        return;
+    }
     m_minimum = min;
     m_maximum = max;
+    m_displayMinimum = min;
+    m_displayMaximum = max;
+    m_lineEditInputMinimum = min;
+    m_lineEditInputMaximum = max;
     if (m_value < min) setValue(min);
     if (m_value > max) setValue(max);
     updateLineEditValidator();
-    updateRangeLabels();  // 新增：更新标签显示
+    updateRangeLabels();
+    updateSliderFromValue();
+}
+
+void TechSliderEdit::setDisplayRange(double min, double max)
+{
+    if (min >= max) {
+        return;
+    }
+    m_displayMinimum = min;
+    m_displayMaximum = max;
+    m_minimum = min;
+    m_maximum = max;
+    m_lineEditInputMinimum = min;
+    m_lineEditInputMaximum = max;
+    if (m_value < min) {
+        setValue(min);
+    } else if (m_value > max) {
+        setValue(max);
+    }
+    updateLineEditValidator();
+    updateRangeLabels();
+    updateSliderFromValue();
+}
+
+void TechSliderEdit::setLineEditInputRange(double min, double max)
+{
+    if (min >= max) {
+        return;
+    }
+    m_lineEditInputMinimum = min;
+    m_lineEditInputMaximum = max;
+    updateLineEditValidator();
 }
 
 void TechSliderEdit::setSingleStep(double step)

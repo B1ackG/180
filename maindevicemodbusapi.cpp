@@ -86,6 +86,22 @@ bool MainDeviceModbusApi::readHoldingRegisters(ModbusThreadManager *manager,
     return manager->readHoldingRegisters(startAddress, count);
 }
 
+bool MainDeviceModbusApi::readHoldingRegistersSync(ModbusThreadManager *manager,
+                                                   int startAddress,
+                                                   int count,
+                                                   QVector<quint16> &values,
+                                                   QString *errorMessage)
+{
+    values.clear();
+    if (!isReady(manager)) {
+        if (errorMessage) {
+            *errorMessage = QStringLiteral("主Modbus未连接");
+        }
+        return false;
+    }
+    return manager->readHoldingRegistersSync(startAddress, count, values);
+}
+
 bool MainDeviceModbusApi::readAndDebugAddress(ModbusThreadManager *manager,
                                               int address,
                                               QString *errorMessage)

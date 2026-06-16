@@ -9,6 +9,7 @@
 #include "mainmodbuspoller.h"
 #include "mainmodbusstatus.h"
 #include "modbuswritegate.h"
+#include "modbusstringregisters.h"
 #include <QMovie>
 #include <QDateTime>
 #include <QDebug>
@@ -31,6 +32,8 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QToolTip>
 #include <QButtonGroup>
 #include <QGuiApplication>
+#include <QInputMethod>
+#include <QPointer>
 #include <QSignalBlocker>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -46,8 +49,10 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QSocketNotifier>
 #include <QIntValidator>
 #include <QLineEdit>
+#include <QTextEdit>
 #include <QVector>
 #include <QResizeEvent>
+#include <QAbstractButton>
 
 namespace {
 constexpr int kRuntimePersistRegister = 8193;
@@ -432,6 +437,53 @@ void MainWindow::saveSliderLabelRuntimeSettings() const
     settings.sync();
 }
 
+void MainWindow::applySliderEditRuntimeSettings()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    const QList<TechSliderEdit*> sliders = findChildren<TechSliderEdit*>();
+
+    settings.beginGroup(QStringLiteral("TechSliderEditLimits"));
+    for (TechSliderEdit *slider : sliders) {
+        if (!slider) {
+            continue;
+        }
+        const QString name = slider->objectName();
+        if (name.isEmpty()) {
+            continue;
+        }
+
+        const auto readBound = [&](const QString &suffix, double fallback) -> double {
+            const QString key = name + suffix;
+            return settings.contains(key) ? settings.value(key).toDouble() : fallback;
+        };
+
+        const double displayMin = readBound(QStringLiteral("_display_min"),
+            readBound(QStringLiteral("_value_min"), slider->displayRangeMinimum()));
+        const double displayMax = readBound(QStringLiteral("_display_max"),
+            readBound(QStringLiteral("_value_max"), slider->displayRangeMaximum()));
+
+        if (displayMax > displayMin) {
+            slider->setDisplayRange(displayMin, displayMax);
+        }
+    }
+    settings.endGroup();
+
+    settings.beginGroup(QStringLiteral("ButtonVisibility"));
+    for (TechSliderEdit *slider : sliders) {
+        if (!slider) {
+            continue;
+        }
+        const QString name = slider->objectName();
+        if (name.isEmpty()) {
+            continue;
+        }
+        if (settings.contains(name)) {
+            slider->setVisible(settings.value(name, true).toBool());
+        }
+    }
+    settings.endGroup();
+}
+
 void MainWindow::applySliderLabelRuntimeSettings()
 {
     // 应用到所有缓存的实例
@@ -575,6 +627,434 @@ bool MainWindow::writeAgvHoldingRegisterBlock(int startAddress, const QVector<qu
         m_agvRegisterShadow[startAddress + i] = words.at(i);
     }
     return true;
+}
+
+namespace {
+bool isDescendantOfWidget(const QWidget *widget, const QWidget *ancestor)
+{
+    if (!widget || !ancestor) {
+        return false;
+    }
+    for (const QWidget *current = widget; current; current = current->parentWidget()) {
+        if (current == ancestor) {
+            return true;
+        }
+    }
+    return false;
+}
+
+QString buttonDisplayText(const QAbstractButton *btn)
+{
+    if (!btn) {
+        return {};
+    }
+    const QString text = btn->text().trimmed();
+    if (!text.isEmpty()) {
+        return text;
+    }
+    const QString toolTip = btn->toolTip().trimmed();
+    if (!toolTip.isEmpty()) {
+        return toolTip;
+    }
+    return {};
+}
+
+/** Modbus 写入时按 TechSliderEdit 当前显示/数值范围取整钳位，避免硬编码 0~100 等旧限制 */
+int clampTechSliderEditToInt(TechSliderEdit *slider, double value)
+{
+    if (!slider) {
+        return qRound(value);
+    }
+    const int lo = qRound(qMin(slider->minimum(), slider->maximum()));
+    const int hi = qRound(qMax(slider->minimum(), slider->maximum()));
+    return qBound(lo, qRound(value), hi);
+}
+
+bool spareButtonSecondStateDarkeningEnabled(const QString &objectName)
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("ButtonSecondStateDarkening"));
+    const bool enabled = settings.value(objectName, true).toBool();
+    settings.endGroup();
+    return enabled;
+}
+
+void applyTwoStateButtonStyle(TechPushButton *button,
+                              bool secondState,
+                              bool dimSecondState,
+                              const QString &firstStateText,
+                              const QString &secondStateText)
+{
+    if (!button) {
+        return;
+    }
+    const bool useDark = secondState && dimSecondState;
+    button->setText(secondState ? secondStateText : firstStateText);
+    button->setPrimaryColor(useDark ? QColor("#7F8C8D") : QColor("#00C8FF"));
+    button->setGlowColor(useDark ? QColor(127, 140, 141, 100) : QColor(0, 200, 255, 180));
+}
+
+MainWindow::ModbusRegisterSpec readWriteSpecFromSettings(QSettings &settings,
+                                                         const QString &prefix)
+{
+    MainWindow::ModbusRegisterSpec spec;
+    if (!(settings.contains(prefix + QStringLiteral("_device")) || settings.contains(prefix))) {
+        return spec;
+    }
+
+    spec.device = settings.value(prefix + QStringLiteral("_device"), QStringLiteral("无")).toString().trimmed();
+    if (spec.device.isEmpty()) {
+        spec.device = QStringLiteral("无");
+    }
+    spec.address = settings.value(prefix + QStringLiteral("_addr")).toString().trimmed();
+    spec.bit = settings.value(prefix + QStringLiteral("_bit")).toString().trimmed();
+    if (spec.bit.startsWith(QStringLiteral("bit"), Qt::CaseInsensitive)) {
+        spec.bit = spec.bit.mid(3).trimmed();
+    }
+
+    spec.value1 = settings.value(prefix + QStringLiteral("_value1"),
+                                 settings.value(prefix + QStringLiteral("_value")).toString()).toString().trimmed();
+    spec.value2 = settings.value(prefix + QStringLiteral("_value2")).toString().trimmed();
+    spec.value3 = settings.value(prefix + QStringLiteral("_value3")).toString().trimmed();
+    return spec;
+}
+
+QList<MainWindow::ModbusRegisterSpec> spareButtonWriteSpecsFromSettings(const QString &buttonObjectName)
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("ButtonModbusMapping"));
+
+    QList<MainWindow::ModbusRegisterSpec> specs;
+    for (int idx = 1; idx <= 3; ++idx) {
+        const QString prefix = QStringLiteral("%1_write_%2").arg(buttonObjectName).arg(idx);
+        const MainWindow::ModbusRegisterSpec spec = readWriteSpecFromSettings(settings, prefix);
+        if (spec.isConfigured()) {
+            specs.append(spec);
+        }
+    }
+    if (specs.isEmpty()) {
+        const MainWindow::ModbusRegisterSpec legacy = readWriteSpecFromSettings(
+            settings, buttonObjectName + QStringLiteral("_write"));
+        if (legacy.isConfigured()) {
+            specs.append(legacy);
+        }
+    }
+
+    settings.endGroup();
+    return specs;
+}
+
+QString pickStateValue(const MainWindow::ModbusRegisterSpec &spec, int stateIndex)
+{
+    if (stateIndex <= 1) {
+        return spec.value1.trimmed();
+    }
+    if (stateIndex == 2) {
+        return spec.value2.trimmed().isEmpty() ? spec.value1.trimmed() : spec.value2.trimmed();
+    }
+    return spec.value3.trimmed().isEmpty() ? spec.value1.trimmed() : spec.value3.trimmed();
+}
+
+struct DefaultModbusBinding {
+    QList<MainWindow::ModbusRegisterSpec> reads;
+    QList<MainWindow::ModbusRegisterSpec> writes;
+    bool readForUiSync = false;
+};
+
+MainWindow::ModbusRegisterSpec makeModbusSpec(const QString &device,
+                                              const QString &address,
+                                              const QString &bit = QString(),
+                                              const QString &value1 = QString(),
+                                              const QString &value2 = QString(),
+                                              const QString &value3 = QString())
+{
+    MainWindow::ModbusRegisterSpec spec;
+    spec.device = device;
+    spec.address = address;
+    spec.bit = bit;
+    spec.value1 = value1;
+    spec.value2 = value2;
+    spec.value3 = value3;
+    return spec;
+}
+
+QList<MainWindow::ModbusRegisterSpec> makeSpecList(std::initializer_list<MainWindow::ModbusRegisterSpec> list)
+{
+    QList<MainWindow::ModbusRegisterSpec> out;
+    for (const auto &spec : list) {
+        out.append(spec);
+    }
+    return out;
+}
+
+const QMap<QString, DefaultModbusBinding> &knownButtonModbusBindings()
+{
+    static const QMap<QString, DefaultModbusBinding> bindings = {
+        {QStringLiteral("TBtn_Interlocking"), {
+            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("8192"), QString(), QStringLiteral("1"), QStringLiteral("0"))}),
+            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("8192"), QString(), QStringLiteral("1"), QStringLiteral("0"))}),
+            true}},
+        {QStringLiteral("TBtn_ControlMode"), {
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("100"), QString(), QStringLiteral("1"), QStringLiteral("2"))}),
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("500"), QString(), QStringLiteral("1"), QStringLiteral("2"))}),
+            true}},
+        {QStringLiteral("techBtn_AGV_OA"), {
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("50"), QStringLiteral("13"), QStringLiteral("0"), QStringLiteral("1"))}),
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("1"), QStringLiteral("0"))}),
+            true}},
+        {QStringLiteral("techBtn_AGV_Park"), {
+            makeSpecList({
+                makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("51"), QStringLiteral("3"), QStringLiteral("1"), QStringLiteral("0")),
+                makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("51"), QStringLiteral("4"), QStringLiteral("0"), QStringLiteral("1"))
+            }),
+            makeSpecList({
+                makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("0"), QStringLiteral("3"), QStringLiteral("1"), QStringLiteral("0")),
+                makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("0"), QStringLiteral("4"), QStringLiteral("0"), QStringLiteral("1")),
+                makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("5014"), QString(), QStringLiteral("驻车长度参数"))
+            }),
+            true}},
+        {QStringLiteral("btn_ForceControl"), {
+            {},
+            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("400"), QString(), QStringLiteral("1"), QStringLiteral("0"))}),
+            false}},
+        {QStringLiteral("techBtn_resetSixAxies"), {
+            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("615"), QStringLiteral("1"), QStringLiteral("1"))}),
+            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("615"), QStringLiteral("1"), QStringLiteral("1"))}),
+            false}},
+        {QStringLiteral("techBtn_spare_1"), {
+            {},
+            {},
+            false}},
+        {QStringLiteral("techBtn_spare_2"), {
+            {},
+            {},
+            false}},
+        {QStringLiteral("Btn_bigForceControl"), {
+            {},
+            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("404"), QString(), QStringLiteral("0"))}),
+            false}},
+        {QStringLiteral("Btn_smallForceControl"), {
+            {},
+            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("404"), QString(), QStringLiteral("1"))}),
+            false}},
+        {QStringLiteral("btnFrontBack"), {
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("155"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2"))}),
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("0"))}),
+            true}},
+        {QStringLiteral("btnFrontOnly"), {
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("155"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2"))}),
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("1"))}),
+            true}},
+        {QStringLiteral("btnParallel"), {
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("155"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2"))}),
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("2"))}),
+            true}},
+        {QStringLiteral("btnLateral"), {
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("155"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2"))}),
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("3"))}),
+            true}},
+        {QStringLiteral("btnRotate"), {
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("155"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2"))}),
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("4"))}),
+            true}},
+        {QStringLiteral("steeringModeSelector"), {
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("155"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2/3/4"))}),
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2/3/4"))}),
+            true}},
+        {QStringLiteral("TBtn_MoveMode"), {
+            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("126"), QString(), QStringLiteral("1"), QStringLiteral("2"))}),
+            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("525"), QString(), QStringLiteral("2"), QStringLiteral("1"))}),
+            true}},
+        {QStringLiteral("TBtn_RemoveWarning"), {
+            {},
+            makeSpecList({
+                makeModbusSpec(QStringLiteral("主控"), QStringLiteral("290"), QString(), QStringLiteral("1")),
+                makeModbusSpec(QStringLiteral("主控"), QStringLiteral("403"), QString(), QStringLiteral("0"))
+            }),
+            false}},
+    };
+    return bindings;
+}
+
+DefaultModbusBinding modbusBindingForControllable(const QString &objectName,
+                                                    const TechSliderLabel *sliderLabel)
+{
+    const auto &known = knownButtonModbusBindings();
+    const auto it = known.find(objectName);
+    if (it != known.end()) {
+        return it.value();
+    }
+
+    if (sliderLabel && sliderLabel->modbusAddress() >= 0) {
+        return {
+            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QString::number(sliderLabel->modbusAddress()))}),
+            {},
+            true
+        };
+    }
+
+    return {};
+}
+} // namespace
+
+QList<MainWindow::ControllableButtonInfo> MainWindow::controllableButtons() const
+{
+    struct Entry {
+        QString displayText;
+        QString widgetKind;
+        QList<ModbusRegisterSpec> defaultReads;
+        QList<ModbusRegisterSpec> defaultWrites;
+        bool readForUiSync = false;
+    };
+    QMap<QString, Entry> byObjectName;
+    const FeatureSwitchWidget *featureSwitch = findChild<FeatureSwitchWidget*>();
+
+    const auto tryInsert = [&](const QWidget *widget, const QString &widgetKind) {
+        if (!widget || widget->window() != this) {
+            return;
+        }
+        // 转向模式组内的子按钮不单独暴露到控制台，统一由 steeringModeSelector 本体控制显示。
+        if (qobject_cast<const QAbstractButton*>(widget) && isInsideSteeringModeSelector(widget)) {
+            return;
+        }
+        if (isDescendantOfWidget(widget, featureSwitch)) {
+            return;
+        }
+        const QString objectName = widget->objectName();
+        if (objectName.isEmpty()) {
+            return;
+        }
+
+        QString displayText;
+        const TechSliderLabel *sliderLabel = qobject_cast<const TechSliderLabel*>(widget);
+        if (const auto *btn = qobject_cast<const QAbstractButton*>(widget)) {
+            displayText = buttonDisplayText(btn);
+        } else if (sliderLabel) {
+            displayText = sliderLabel->labelText().trimmed();
+        }
+
+        const DefaultModbusBinding binding = modbusBindingForControllable(objectName, sliderLabel);
+
+        auto it = byObjectName.find(objectName);
+        if (it == byObjectName.end()) {
+            byObjectName.insert(objectName, {
+                displayText,
+                widgetKind,
+                binding.reads,
+                binding.writes,
+                binding.readForUiSync
+            });
+            return;
+        }
+        if (it->displayText.isEmpty() && !displayText.isEmpty()) {
+            it->displayText = displayText;
+        }
+        if (it->widgetKind.isEmpty() && !widgetKind.isEmpty()) {
+            it->widgetKind = widgetKind;
+        }
+        if (it->defaultReads.isEmpty() && !binding.reads.isEmpty()) {
+            it->defaultReads = binding.reads;
+            it->readForUiSync = binding.readForUiSync;
+        }
+        if (it->defaultWrites.isEmpty() && !binding.writes.isEmpty()) {
+            it->defaultWrites = binding.writes;
+        }
+    };
+
+    for (const QAbstractButton *btn : findChildren<QAbstractButton*>()) {
+        tryInsert(btn, QStringLiteral("按钮"));
+    }
+    for (const TechSliderLabel *sliderLabel : findChildren<TechSliderLabel*>()) {
+        tryInsert(sliderLabel, QStringLiteral("滑块标签"));
+    }
+    if (const SteeringModeSelector *selector = findChild<SteeringModeSelector*>()) {
+        tryInsert(selector, QStringLiteral("转向模式"));
+    }
+
+    QList<ControllableButtonInfo> result;
+    result.reserve(byObjectName.size());
+    for (auto it = byObjectName.constBegin(); it != byObjectName.constEnd(); ++it) {
+        result.append({
+            it.key(),
+            it.value().displayText,
+            it.value().widgetKind,
+            it.value().defaultReads,
+            it.value().defaultWrites,
+            it.value().readForUiSync
+        });
+    }
+    std::sort(result.begin(), result.end(), [](const ControllableButtonInfo &a, const ControllableButtonInfo &b) {
+        return a.objectName < b.objectName;
+    });
+    return result;
+}
+
+void MainWindow::applyPermissionPageLoginState()
+{
+    const bool loggedIn = m_currentUserRole != UserRole::Operator;
+    const bool isManufacturer = m_currentUserRole == UserRole::Manufacturer;
+
+    const auto setVisibleByName = [this](const QString &name, bool visible) {
+        if (QWidget *widget = findChild<QWidget*>(name)) {
+            widget->setVisible(visible);
+        }
+    };
+
+    setVisibleByName(QStringLiteral("loginButton"), !loggedIn);
+    setVisibleByName(QStringLiteral("logoutButton"), loggedIn);
+    setVisibleByName(QStringLiteral("featureButton"), loggedIn && isManufacturer);
+    setVisibleByName(QStringLiteral("roleComboBox"), !loggedIn);
+    setVisibleByName(QStringLiteral("passwordEdit"), !loggedIn);
+    setVisibleByName(QStringLiteral("passwordHint"), !loggedIn);
+    setVisibleByName(QStringLiteral("netConfigSection"), loggedIn && isManufacturer);
+}
+
+void MainWindow::applyButtonVisibilityRuntimeSettings()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("ButtonVisibility"));
+
+    const FeatureSwitchWidget *featureSwitch = findChild<FeatureSwitchWidget*>();
+
+    const auto applyIfControllable = [&](QWidget *widget) {
+        if (!widget || widget->window() != this) {
+            return;
+        }
+        if (isDescendantOfWidget(widget, featureSwitch)) {
+            return;
+        }
+        const QString objectName = widget->objectName();
+        if (objectName.isEmpty()) {
+            return;
+        }
+        const bool isTarget = qobject_cast<QAbstractButton*>(widget)
+            || qobject_cast<TechSliderLabel*>(widget)
+            || qobject_cast<TechArcGauge*>(widget)
+            || qobject_cast<SteeringModeSelector*>(widget);
+        if (!isTarget) {
+            return;
+        }
+        widget->setVisible(settings.value(objectName, true).toBool());
+    };
+
+    for (QAbstractButton *btn : findChildren<QAbstractButton*>()) {
+        applyIfControllable(btn);
+    }
+    for (TechSliderLabel *sliderLabel : findChildren<TechSliderLabel*>()) {
+        applyIfControllable(sliderLabel);
+    }
+    for (TechArcGauge *gauge : findChildren<TechArcGauge*>()) {
+        applyIfControllable(gauge);
+    }
+    if (SteeringModeSelector *selector = findChild<SteeringModeSelector*>()) {
+        applyIfControllable(selector);
+    }
+
+    settings.endGroup();
+    applyPermissionPageLoginState();
+    loadSpareButtonNameRegisterSettings();
+    syncSpareButtonNamesFromRegisters();
+    applySpareButtonRuntimeSettings();
 }
 
 void MainWindow::applyModbusAccessSwitches()
@@ -1171,6 +1651,62 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         && (event->type() == QEvent::KeyPress || event->type() == QEvent::KeyRelease)) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
         if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter) {
+            return true;
+        }
+    }
+
+    if (event->type() == QEvent::MouseButtonPress && m_pinyinKeyboard) {
+        QTextEdit *textEdit = qobject_cast<QTextEdit*>(obj);
+        if (!textEdit) {
+            if (QWidget *widgetObj = qobject_cast<QWidget*>(obj)) {
+                textEdit = qobject_cast<QTextEdit*>(widgetObj->parentWidget());
+            }
+        }
+        if (textEdit && textEdit->isEnabled() && !textEdit->isReadOnly() && this->isAncestorOf(textEdit)) {
+            if (textEdit->property("preferSystemIme").toBool()) {
+                textEdit->setFocus(Qt::MouseFocusReason);
+                QGuiApplication::inputMethod()->show();
+                QPointer<QTextEdit> targetTextEdit(textEdit);
+                QTimer::singleShot(300, this, [this, targetTextEdit]() {
+                    if (!targetTextEdit || !m_pinyinKeyboard) {
+                        return;
+                    }
+                    if (!QGuiApplication::inputMethod()->isVisible()) {
+                        m_pinyinKeyboard->setTargetTextEdit(targetTextEdit);
+                        m_pinyinKeyboard->showAtWidget(targetTextEdit);
+                    }
+                });
+                return false;
+            }
+            m_pinyinKeyboard->setTargetTextEdit(textEdit);
+            m_pinyinKeyboard->showAtWidget(textEdit);
+            return true;
+        }
+
+        QPlainTextEdit *plainTextEdit = qobject_cast<QPlainTextEdit*>(obj);
+        if (!plainTextEdit) {
+            if (QWidget *widgetObj = qobject_cast<QWidget*>(obj)) {
+                plainTextEdit = qobject_cast<QPlainTextEdit*>(widgetObj->parentWidget());
+            }
+        }
+        if (plainTextEdit && plainTextEdit->isEnabled() && !plainTextEdit->isReadOnly() && this->isAncestorOf(plainTextEdit)) {
+            if (plainTextEdit->property("preferSystemIme").toBool()) {
+                plainTextEdit->setFocus(Qt::MouseFocusReason);
+                QGuiApplication::inputMethod()->show();
+                QPointer<QPlainTextEdit> targetPlainTextEdit(plainTextEdit);
+                QTimer::singleShot(300, this, [this, targetPlainTextEdit]() {
+                    if (!targetPlainTextEdit || !m_pinyinKeyboard) {
+                        return;
+                    }
+                    if (!QGuiApplication::inputMethod()->isVisible()) {
+                        m_pinyinKeyboard->setTargetPlainTextEdit(targetPlainTextEdit);
+                        m_pinyinKeyboard->showAtWidget(targetPlainTextEdit);
+                    }
+                });
+                return false;
+            }
+            m_pinyinKeyboard->setTargetPlainTextEdit(plainTextEdit);
+            m_pinyinKeyboard->showAtWidget(plainTextEdit);
             return true;
         }
     }
@@ -1923,12 +2459,12 @@ void MainWindow::initSliderEditUI()
         robotSpeedSlider->setPrecision(0);
 
         connect(robotSpeedSlider, &TechSliderEdit::valueChangedWithRecord,
-                this, [this](double /*oldValue*/, double newValue) {
-                    const double speedPercent = qBound(0.0, newValue, 100.0);
-                    const int speedValue = qBound(0, static_cast<int>(qRound(speedPercent)), 100);
+                this, [this, robotSpeedSlider](double /*oldValue*/, double newValue) {
+                    const int speedValue = clampTechSliderEditToInt(robotSpeedSlider, newValue);
                     writeToMainDevice(5001, speedValue);
 
-                    qCDebug(lcMainWindow) << "RobotSpeed(%)直写地址5001, 值:" << speedValue;
+                    qCDebug(lcMainWindow) << "RobotSpeed(%)直写地址5001, 值:" << speedValue
+                             << "范围:" << robotSpeedSlider->minimum() << "~" << robotSpeedSlider->maximum();
                 });
     } else {
         qWarning() << "未找到控件: TechSliderEdit_Robot_RobotSpeed";
@@ -2073,11 +2609,28 @@ void MainWindow::setupVirtualKeyboard()
 
     // 创建虚拟键盘
     m_virtualKeyboard = new TechVirtualKeyboard(this);
+    m_pinyinKeyboard = new TechPinyinKeyboard(this);
 
     // 为所有LineEdit安装事件过滤器
     QList<QLineEdit*> allLineEdits = this->findChildren<QLineEdit*>();
     for (QLineEdit *edit : allLineEdits) {
         edit->installEventFilter(this);
+    }
+
+    const QList<QTextEdit*> allTextEdits = this->findChildren<QTextEdit*>();
+    for (QTextEdit *edit : allTextEdits) {
+        edit->installEventFilter(this);
+        if (edit->viewport()) {
+            edit->viewport()->installEventFilter(this);
+        }
+    }
+
+    const QList<QPlainTextEdit*> allPlainTextEdits = this->findChildren<QPlainTextEdit*>();
+    for (QPlainTextEdit *edit : allPlainTextEdits) {
+        edit->installEventFilter(this);
+        if (edit->viewport()) {
+            edit->viewport()->installEventFilter(this);
+        }
     }
 }
 
@@ -3064,9 +3617,14 @@ void MainWindow::setupAdminPasswordPage()
                     applySliderLabelRuntimeSettings();
                     applyEstimatedWeightRuntimeSettings();
                     applyModbusAccessSwitches();
+                    applySliderEditRuntimeSettings();
                     applyParkOutTriggerLengthRuntimeSettings();
                     applyWeightThresholdRuntimeSettings();
                     applyInclinometerDisplayRuntimeSettings();
+                    applyButtonVisibilityRuntimeSettings();
+                    loadSpareButtonNameRegisterSettings();
+                    syncSpareButtonNamesFromRegisters();
+                    applySpareButtonRuntimeSettings();
                     refreshInterlockingButtonText();
                 });
             }
@@ -5831,6 +6389,7 @@ void MainWindow::readMainControlSyncRegisters()
 
     // 当前运动目标轴：500（1~4=J1~J4，5=六自由度），供限位 Toast 文案使用
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 500, 1);
+    syncSpareButtonNamesFromRegisters();
 }
 // 配置所有TechSliderLabel的参数
 void MainWindow::setupSliderLabelConfigs()
@@ -5906,6 +6465,20 @@ void MainWindow::setupSliderLabelConfigs()
         allTargetPages,      // 在所有三个页面中查找
         1                    // 精度：1位小数
     };
+
+    auto addArcGaugeRangeOnly = [&](const QString &key, const QString &label, const QString &suffix,
+                                    double minVal, double maxVal, int precision) {
+        m_sliderLabelConfigs[key] = {
+            label, suffix, minVal, maxVal, 0.0, suffix,
+            -1, -1, -1, -1, false, {}, precision
+        };
+    };
+    addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis1"), QStringLiteral("RX"), QStringLiteral("°"), -15.0, 15.0, 2);
+    addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis2"), QStringLiteral("RY"), QStringLiteral("°"), -15.0, 15.0, 2);
+    addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis3"), QStringLiteral("RZ"), QStringLiteral("°"), -12.0, 12.0, 2);
+    addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis4"), QStringLiteral("X"), QStringLiteral("mm"), -110.0, 110.0, 2);
+    addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis5"), QStringLiteral("Y"), QStringLiteral("mm"), -110.0, 110.0, 2);
+    addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis6"), QStringLiteral("Z"), QStringLiteral("mm"), -90.0, 90.0, 2);
 
     qCDebug(lcMainWindow) << "SliderLabel配置初始化完成";
     qCDebug(lcMainWindow) << "每个控件都需要在以下页面中查找匹配:" << allTargetPages;
@@ -7346,6 +7919,24 @@ void MainWindow::setupAGVOAControl()
         qWarning() << "未找到techBtn_AGV_Park按钮";
     }
 
+    // 备用按钮：仅 UI 两态（第二态可配置为变暗）
+    m_techBtnSpare1 = findChild<TechPushButton*>(QStringLiteral("techBtn_spare_1"));
+    if (m_techBtnSpare1) {
+        m_spareButtonDefaultFirstText.insert(m_techBtnSpare1->objectName(), m_techBtnSpare1->text());
+        m_techBtnSpare1->setProperty("spareSecondState", false);
+        m_techBtnSpare1->setProperty("spareFirstText", m_techBtnSpare1->text());
+        connect(m_techBtnSpare1, &TechPushButton::clicked, this, &MainWindow::onSpareButtonClicked, Qt::UniqueConnection);
+    }
+    m_techBtnSpare2 = findChild<TechPushButton*>(QStringLiteral("techBtn_spare_2"));
+    if (m_techBtnSpare2) {
+        m_spareButtonDefaultFirstText.insert(m_techBtnSpare2->objectName(), m_techBtnSpare2->text());
+        m_techBtnSpare2->setProperty("spareSecondState", false);
+        m_techBtnSpare2->setProperty("spareFirstText", m_techBtnSpare2->text());
+        connect(m_techBtnSpare2, &TechPushButton::clicked, this, &MainWindow::onSpareButtonClicked, Qt::UniqueConnection);
+    }
+    loadSpareButtonNameRegisterSettings();
+    applySpareButtonRuntimeSettings();
+
     if (ui->LEdit_AGV_EstimatedWeight) {
         applyEstimatedWeightRuntimeSettings();
         connect(ui->LEdit_AGV_EstimatedWeight, &QLineEdit::editingFinished, this, [this]() {
@@ -7386,18 +7977,15 @@ void MainWindow::setupAGVMoveSpeedControl()
 
     m_editAGV_MoveSpeed = findChild<TechSliderEdit*>("SEdit_AGV_MoveSpeed");
     if (m_editAGV_MoveSpeed) {
-        // 设置参数 - 值域 0-100 mm/s
         m_editAGV_MoveSpeed->setLabelText("全向平台速度");
-        m_editAGV_MoveSpeed->setRange(0, 100);
-        m_editAGV_MoveSpeed->setValue(0);
         m_editAGV_MoveSpeed->setSuffix("mm/s");
         m_editAGV_MoveSpeed->setPrecision(0);
 
-        // 连接值变化信号
         connect(m_editAGV_MoveSpeed, &TechSliderEdit::valueChanged,
                 this, &MainWindow::onAGVMoveSpeedChanged);
 
-        qCDebug(lcMainWindow) << "AGV运动速度控件初始化完成，范围:0-100，初始值:0";
+        qCDebug(lcMainWindow) << "AGV运动速度控件初始化完成，范围:"
+             << m_editAGV_MoveSpeed->minimum() << "~" << m_editAGV_MoveSpeed->maximum();
     } else {
         qWarning() << "未找到SEdit_AGV_MoveSpeed控件";
     }
@@ -7413,22 +8001,238 @@ void MainWindow::setupAGVAngleControl()
 
     m_editAGV_Angle = findChild<TechSliderEdit*>("SEdit_AGV_Angle");
     if (m_editAGV_Angle) {
-        // 设置参数
         m_editAGV_Angle->setLabelText("底盘当前角度");
-        m_editAGV_Angle->setRange(-25, 25);
-        m_editAGV_Angle->setValue(0);
         m_editAGV_Angle->setSuffix("°");
-        m_editAGV_Angle->setPrecision(0);  // 改为0，只显示整数
-        m_editAGV_Angle->setPresetButtonsVisible(false); // 禁用预设按钮
+        m_editAGV_Angle->setPrecision(0);
+        m_editAGV_Angle->setPresetButtonsVisible(false);
 
-        // 连接值变化信号
         connect(m_editAGV_Angle, &TechSliderEdit::valueChanged,
                 this, &MainWindow::onAGVAngleChanged);
 
-        qCDebug(lcMainWindow) << "AGV转向角度控件初始化完成，范围:-25-25，初始值:0，精度:整数";
+        qCDebug(lcMainWindow) << "AGV转向角度控件初始化完成，范围:"
+             << m_editAGV_Angle->minimum() << "~" << m_editAGV_Angle->maximum();
     } else {
         qWarning() << "未找到SEdit_AGV_Angle控件";
     }
+}
+
+void MainWindow::applySpareButtonRuntimeSettings()
+{
+    auto applyOne = [](TechPushButton *btn) {
+        if (!btn) {
+            return;
+        }
+        const bool secondState = btn->property("spareSecondState").toBool();
+        const QString firstText = btn->property("spareFirstText").toString().trimmed().isEmpty()
+            ? btn->text()
+            : btn->property("spareFirstText").toString();
+        const QString configuredSecondText = btn->property("spareSecondText").toString().trimmed();
+        const QString secondText = configuredSecondText.isEmpty()
+            ? firstText + QStringLiteral(" (第二态)")
+            : configuredSecondText;
+        const bool dimEnabled = spareButtonSecondStateDarkeningEnabled(btn->objectName());
+        applyTwoStateButtonStyle(btn, secondState, dimEnabled, firstText, secondText);
+    };
+    applyOne(m_techBtnSpare1);
+    applyOne(m_techBtnSpare2);
+}
+
+void MainWindow::loadSpareButtonNameRegisterSettings()
+{
+    m_spareButtonNameBindings.clear();
+
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("ButtonModbusMapping"));
+
+    const QStringList spareNames = {
+        QStringLiteral("techBtn_spare_1"),
+        QStringLiteral("techBtn_spare_2")
+    };
+
+    const auto parseSpec = [&settings](const QString &prefix) -> SpareButtonNameRegisterSpec {
+        SpareButtonNameRegisterSpec spec;
+        spec.device = settings.value(prefix + QStringLiteral("_device"), QStringLiteral("无")).toString().trimmed();
+        if (spec.device.isEmpty()) {
+            spec.device = QStringLiteral("无");
+        }
+        bool ok = false;
+        const int addr = settings.value(prefix + QStringLiteral("_addr")).toString().trimmed().toInt(&ok);
+        spec.startAddress = ok ? addr : -1;
+        return spec;
+    };
+
+    for (const QString &name : spareNames) {
+        SpareButtonNameRegisterBinding binding;
+        binding.state1 = parseSpec(name + QStringLiteral("_name1"));
+        binding.state2 = parseSpec(name + QStringLiteral("_name2"));
+        if (binding.state1.isConfigured() || binding.state2.isConfigured()) {
+            m_spareButtonNameBindings.insert(name, binding);
+        }
+    }
+
+    settings.endGroup();
+}
+
+bool MainWindow::readModbusUtf8StringRegisters(const QString &device,
+                                               int startAddress,
+                                               QString &textOut) const
+{
+    textOut.clear();
+    if (startAddress < 0) {
+        return false;
+    }
+
+    QVector<quint16> regs;
+    if (device == QStringLiteral("主控")) {
+        if (!MainDeviceModbusApi::readHoldingRegistersSync(m_modbusManager,
+                                                         startAddress,
+                                                         kModbusUtf8StringRegisterCount,
+                                                         regs,
+                                                         nullptr)) {
+            return false;
+        }
+    } else if (device == QStringLiteral("AGV")) {
+        if (!m_agvModbusManager || !m_agvModbusManager->isConnected()) {
+            return false;
+        }
+        if (!m_agvModbusManager->readHoldingRegistersSync(startAddress,
+                                                          kModbusUtf8StringRegisterCount,
+                                                          regs)) {
+            return false;
+        }
+    } else {
+        return false;
+    }
+
+    if (regs.size() < kModbusUtf8StringRegisterCount) {
+        return false;
+    }
+
+    textOut = decodeUtf8FromRegisters(regs);
+    return true;
+}
+
+void MainWindow::syncSpareButtonNamesFromRegisters()
+{
+    if (m_spareButtonNameBindings.isEmpty()) {
+        return;
+    }
+
+    const auto syncOne = [this](TechPushButton *btn) {
+        if (!btn) {
+            return;
+        }
+        const QString objectName = btn->objectName();
+        if (!m_spareButtonNameBindings.contains(objectName)) {
+            return;
+        }
+
+        const SpareButtonNameRegisterBinding binding = m_spareButtonNameBindings.value(objectName);
+        const QString defaultFirst = m_spareButtonDefaultFirstText.value(
+            objectName,
+            MappingConfig::instance()->mapControlName(objectName));
+
+        QString firstText = defaultFirst;
+        if (binding.state1.isConfigured()) {
+            QString decoded;
+            if (readModbusUtf8StringRegisters(binding.state1.device, binding.state1.startAddress, decoded)
+                && !decoded.isEmpty()) {
+                firstText = decoded;
+            }
+        }
+        btn->setProperty("spareFirstText", firstText);
+
+        QString secondText;
+        if (binding.state2.isConfigured()) {
+            QString decoded;
+            if (readModbusUtf8StringRegisters(binding.state2.device, binding.state2.startAddress, decoded)
+                && !decoded.isEmpty()) {
+                secondText = decoded;
+            }
+        }
+        if (secondText.isEmpty()) {
+            secondText = firstText + QStringLiteral(" (第二态)");
+        }
+        btn->setProperty("spareSecondText", secondText);
+    };
+
+    syncOne(m_techBtnSpare1);
+    syncOne(m_techBtnSpare2);
+    applySpareButtonRuntimeSettings();
+}
+
+void MainWindow::executeSpareButtonConfiguredWrites(const QString &buttonObjectName, int stateIndex)
+{
+    const QList<ModbusRegisterSpec> specs = spareButtonWriteSpecsFromSettings(buttonObjectName);
+    if (specs.isEmpty()) {
+        return;
+    }
+
+    auto parseInt = [](const QString &text, int &out) -> bool {
+        bool ok = false;
+        out = text.trimmed().toInt(&ok);
+        return ok;
+    };
+
+    for (const ModbusRegisterSpec &spec : specs) {
+        int address = 0;
+        if (!parseInt(spec.address, address)) {
+            continue;
+        }
+        const QString valueText = pickStateValue(spec, stateIndex);
+        int valueInt = 0;
+        const bool hasValue = parseInt(valueText, valueInt);
+
+        const bool isAgv = spec.device == QStringLiteral("AGV");
+        const bool isMain = spec.device == QStringLiteral("主控");
+
+        int bitIndex = -1;
+        const bool hasBit = parseInt(spec.bit, bitIndex) && bitIndex >= 0 && bitIndex <= 15;
+
+        if (hasBit && !hasValue) {
+            continue;
+        }
+
+        if (isAgv) {
+            if (hasBit) {
+                writeAGVRegisterBits(address, {qMakePair(bitIndex, valueInt != 0)},
+                                     QStringLiteral("备用按钮%1状态%2").arg(buttonObjectName).arg(stateIndex));
+            } else if (hasValue) {
+                writeToAGVDevice(address, valueInt, true);
+            }
+        } else if (isMain) {
+            if (hasBit) {
+                if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
+                    continue;
+                }
+                quint16 cur = 0;
+                if (!m_modbusManager->readSingleRegister(address, cur)) {
+                    continue;
+                }
+                quint16 next = cur;
+                if (valueInt != 0) {
+                    next = static_cast<quint16>(next | (static_cast<quint16>(1u) << bitIndex));
+                } else {
+                    next = static_cast<quint16>(next & ~(static_cast<quint16>(1u) << bitIndex));
+                }
+                writeToMainDevice(address, next);
+            } else if (hasValue) {
+                writeToMainDevice(address, valueInt);
+            }
+        }
+    }
+}
+
+void MainWindow::onSpareButtonClicked()
+{
+    TechPushButton *btn = qobject_cast<TechPushButton*>(sender());
+    if (!btn) {
+        return;
+    }
+    const bool secondState = !btn->property("spareSecondState").toBool();
+    btn->setProperty("spareSecondState", secondState);
+    applySpareButtonRuntimeSettings();
+    executeSpareButtonConfiguredWrites(btn->objectName(), secondState ? 2 : 1);
 }
 
 // AGV避障开关按钮点击槽函数
@@ -7790,7 +8594,7 @@ void MainWindow::onAGVMoveSpeedChanged(double value)
         return;
     }
 
-    const int intValue = qBound(0, static_cast<int>(qRound(value)), 100);
+    const int intValue = clampTechSliderEditToInt(m_editAGV_MoveSpeed, value);
 
     // 按需求直接写入地址3（单位:mm/s）
     // 速度控件在遥控器控制下也允许直接下发，不触发无线模式门禁弹窗。
@@ -7823,7 +8627,7 @@ void MainWindow::onAGVAngleChanged(double value)
         return;
     }
 
-    const qint16 signedValue = static_cast<qint16>(qBound(-25, static_cast<int>(qRound(value)), 25));
+    const qint16 signedValue = static_cast<qint16>(clampTechSliderEditToInt(m_editAGV_Angle, value));
     const quint16 rawUintValue = static_cast<quint16>(signedValue);
 
     // 地址4为UINT寄存器：通过qint16->quint16显式转换，负数按16位补码发送。
@@ -9516,8 +10320,9 @@ void MainWindow::recordSixAxisJogExternalKey(int keyNumber, bool pressed)
 
 void MainWindow::sendRemoveWarningModbusWrites()
 {
-    // 写入 290 清除报警（与「清除报警」按钮一致）
+    // 写入 290 清除报警：主控与 AGV 均写 1
     writeToMainDevice(290, 1);
+    writeToAGVDevice(290, 1);
 }
 
 // 修改：原有的清除报警按钮函数

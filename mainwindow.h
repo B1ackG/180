@@ -19,6 +19,7 @@
 #include "techpushbutton.h"
 #include "techspeedgauge.h"
 #include "techslideredit.h"
+#include "techpinyinkeyboard.h"
 #include "techvirtualkeyboard.h"
 #include "operationrecorder.h"
 #include "mappingconfig.h"
@@ -583,6 +584,8 @@ private slots:
     void onAGVOABtnClicked();
     /** @brief AGV 驻车按钮点击 */
     void onAGVParkBtnClicked();
+    /** @brief 备用按钮点击（支持第二态 UI 变暗） */
+    void onSpareButtonClicked();
     /** @brief AGV 移动速度变化 */
     void onAGVMoveSpeedChanged(double value);
     /** @brief AGV 角度变化 */
@@ -764,6 +767,7 @@ private:
 
     // ----- 其他组件与 UI 指针缓存 -----
     TechVirtualKeyboard *m_virtualKeyboard;
+    TechPinyinKeyboard *m_pinyinKeyboard;
     MatrixKeyThreadManager *m_keyManager;
     SteeringModeSelector *m_steeringModeSelector = nullptr;
     SteeringMode m_lastSteeringMode = STEER_FRONT_BACK;
@@ -820,6 +824,26 @@ private:
     QLineEdit *m_editJ4MoveStep = nullptr;
     TechPushButton *m_techBtnAGV_OA = nullptr;
     TechPushButton *m_techBtnAGV_Park = nullptr;
+    TechPushButton *m_techBtnSpare1 = nullptr;
+    TechPushButton *m_techBtnSpare2 = nullptr;
+
+    struct SpareButtonNameRegisterSpec {
+        QString device;
+        int startAddress = -1;
+        bool isConfigured() const {
+            return !device.isEmpty()
+                && device != QStringLiteral("无")
+                && startAddress >= 0;
+        }
+    };
+
+    struct SpareButtonNameRegisterBinding {
+        SpareButtonNameRegisterSpec state1;
+        SpareButtonNameRegisterSpec state2;
+    };
+
+    QHash<QString, SpareButtonNameRegisterBinding> m_spareButtonNameBindings;
+    QHash<QString, QString> m_spareButtonDefaultFirstText;
     TechSliderEdit *m_editAGV_MoveSpeed = nullptr;
     TechSliderEdit *m_editAGV_Angle = nullptr;
     QLineEdit *m_weightOverloadLimitEdit = nullptr;
@@ -912,6 +936,9 @@ public:
     /** @brief 应用 SliderLabel 的自定义配置到所有实例 */
     void applySliderLabelRuntimeSettings();
 
+    /** @brief 从 config.ini 应用 TechSliderEdit 显示/输入/数值范围与可见性 */
+    void applySliderEditRuntimeSettings();
+
     /** @brief 从 config.ini 刷新首页倾角卡片上的阈值说明文字 */
     void applyInclinometerDisplayRuntimeSettings();
 
@@ -926,8 +953,52 @@ public:
     /** @brief 执行驻车开启/关闭 Modbus 写入与等待确认；legLengthMm&lt;0 时从支腿异常弹窗输入框读取 */
     void executeAGVParkingSwitch(bool targetEnabled, int legLengthMm = -1);
 
+    /** @brief 控制台用 Modbus 寄存器四段描述：设备 / 地址 / 位 / 值 */
+    struct ModbusRegisterSpec {
+        QString device = QStringLiteral("无");
+        QString address;
+        QString bit;
+        QString value1;
+        QString value2;
+        QString value3;
+        bool isConfigured() const {
+            return device != QStringLiteral("无") && !address.trimmed().isEmpty();
+        }
+    };
+
+    struct ControllableButtonInfo {
+        QString objectName;
+        QString displayText;
+        /** @brief 控件类型中文说明，用于控制台列表展示 */
+        QString widgetKind;
+        QList<ModbusRegisterSpec> defaultReads;
+        QList<ModbusRegisterSpec> defaultWrites;
+        /** @brief 读寄存器是否用于控件状态同步 */
+        bool readForUiSync = false;
+    };
+
+    /** @brief 主窗口内可配置可见性的 Modbus 相关控件（按 objectName 排序） */
+    QList<ControllableButtonInfo> controllableButtons() const;
+
+    /** @brief 从 config.ini [ButtonVisibility] 应用控件可见性到主窗口 */
+    void applyButtonVisibilityRuntimeSettings();
+    /** @brief 从 config.ini 应用备用按钮第二态 UI 变暗开关 */
+    void applySpareButtonRuntimeSettings();
+    /** @brief 从 config.ini 加载备用按钮多态名称寄存器配置 */
+    void loadSpareButtonNameRegisterSettings();
+    /** @brief 从 Modbus 字符串寄存器同步备用按钮多态显示名称 */
+    void syncSpareButtonNamesFromRegisters();
+    /** @brief 按控制台配置执行备用按钮 Modbus 写入 */
+    void executeSpareButtonConfiguredWrites(const QString &buttonObjectName, int stateIndex);
+
 private:
     void applyModbusAccessSwitches();
+    bool readModbusUtf8StringRegisters(const QString &device,
+                                       int startAddress,
+                                       QString &textOut) const;
+
+    /** @brief 权限页登录/注销后恢复与角色相关的控件可见性 */
+    void applyPermissionPageLoginState();
     /** @brief 连接导航与页面切换相关信号 */
     void setupNavigationConnections();
 
@@ -969,7 +1040,7 @@ private:
     /** @brief 根据类型生成 Toast 样式 */
     QString toastStyleSheet(ToastKind kind) const;
 
-    /** @brief 与「清除报警」按钮相同的 Modbus 写入（主控 290、403） */
+    /** @brief 与「清除报警」按钮相同的 Modbus 写入（主控/AGV 290） */
     void sendRemoveWarningModbusWrites();
 
     /** @brief 获取当前页面名称 */

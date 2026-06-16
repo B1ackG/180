@@ -59,6 +59,11 @@ public:
     bool readSingleRegister(int address, quint16 &value);
 
     /**
+     * @brief 同步读取一段保持寄存器
+     */
+    bool readHoldingRegistersSync(int startAddress, int count, QVector<quint16> &values);
+
+    /**
      * 使用示例:
      * @code
      * quint16 v;

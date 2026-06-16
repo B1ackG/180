@@ -1,4 +1,5 @@
 #include "techvirtualkeyboard.h"
+#include "techslideredit.h"
 #include "animationmanager.h"
 #include <QPainter>
 #include <QLinearGradient>
@@ -462,25 +463,31 @@ void TechVirtualKeyboard::onButtonClicked()
 
 void TechVirtualKeyboard::onEnterClicked()
 {
-    // 确认输入，将内容传递给目标LineEdit
     if (m_targetLineEdit && m_isEditing) {
-        m_targetLineEdit->setText(m_currentText);
+        TechSliderEdit *sliderEdit = nullptr;
+        for (QWidget *parent = m_targetLineEdit->parentWidget(); parent; parent = parent->parentWidget()) {
+            sliderEdit = qobject_cast<TechSliderEdit*>(parent);
+            if (sliderEdit) {
+                break;
+            }
+        }
 
-        // 发送回车键事件给目标LineEdit
-        QKeyEvent *enterEvent = new QKeyEvent(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
-        QApplication::postEvent(m_targetLineEdit, enterEvent);
+        if (sliderEdit) {
+            sliderEdit->applyVirtualKeyboardInput(m_currentText);
+            m_targetLineEdit->clearFocus();
+            emit inputConfirmed(m_currentText);
+        } else {
+            m_targetLineEdit->setText(m_currentText);
 
-        // 清除焦点，防止继续输入
-        m_targetLineEdit->clearFocus();
+            QKeyEvent *enterEvent = new QKeyEvent(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
+            QApplication::postEvent(m_targetLineEdit, enterEvent);
 
-        // 发射确认信号
-        emit inputConfirmed(m_currentText);
+            m_targetLineEdit->clearFocus();
+            emit inputConfirmed(m_currentText);
+        }
     }
 
-    // 隐藏键盘
     hide();
-
-    // 应用按钮按下效果
     applyButtonPressEffect(m_buttonEnter);
 }
 

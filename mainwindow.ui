@@ -181,38 +181,53 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
 </string>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="2">
-     <spacer name="horizontalSpacer_3">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>300</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="1" column="3" colspan="8">
-     <widget class="QLabel" name="label_StatusTip">
+    <item row="2" column="1" colspan="4">
+     <widget class="QLabel" name="label_Home">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
-        <horstretch>1</horstretch>
-        <verstretch>0</verstretch>
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
        </sizepolicy>
       </property>
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>30</height>
-       </size>
+      <property name="font">
+       <font>
+        <pointsize>-1</pointsize>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font-size: 22px;
+    letter-spacing: 1px;
+    line-height: 1.3;
+    
+    /* 白色文字配蓝色边框 */
+    color: #ffffff;
+    border-left: 5px solid qlineargradient(
+        x1: 0, y1: 0, x2: 0, y2: 1,
+        stop: 0 #00aaff,
+        stop: 1 #0066cc
+    );
+    
+    
+    /* 背景效果 */
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 0,
+        stop: 0 rgba(0, 60, 120, 0.2),
+        stop: 0.5 rgba(0, 40, 80, 0.1),
+        stop: 1 rgba(0, 60, 120, 0.2)
+    );
+    
+    /* 布局 */
+    padding: 2px 3px;
+    margin: 10px 0 6px 0;
+    border-radius: 0 6px 6px 0;
+    
+    /* 装饰性下划线 */
+    border-bottom: 1px solid rgba(0, 150, 255, 0.3);
+    </string>
       </property>
       <property name="text">
-       <string>TextLabel</string>
+       <string>辅助装配系统</string>
       </property>
      </widget>
     </item>
@@ -262,7 +277,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <widget class="QWidget" name="widget_test2" native="true">
         <property name="geometry">
          <rect>
-          <x>280</x>
+          <x>260</x>
           <y>180</y>
           <width>150</width>
           <height>150</height>
@@ -736,6 +751,29 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          </item>
         </layout>
        </widget>
+       <widget class="TechPushButton" name="techBtn_spare_2">
+        <property name="geometry">
+         <rect>
+          <x>520</x>
+          <y>260</y>
+          <width>151</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>去皮</string>
+        </property>
+       </widget>
+       <widget class="QTextEdit" name="textEdit">
+        <property name="geometry">
+         <rect>
+          <x>410</x>
+          <y>20</y>
+          <width>104</width>
+          <height>70</height>
+         </rect>
+        </property>
+       </widget>
        <zorder>lab_Overall</zorder>
        <zorder>widget_test3</zorder>
        <zorder>widget_test4</zorder>
@@ -752,6 +790,8 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <zorder>widget_InclinometerPowerStrip</zorder>
        <zorder>groupBox_StepMove</zorder>
        <zorder>widget</zorder>
+       <zorder>techBtn_spare_2</zorder>
+       <zorder>textEdit</zorder>
       </widget>
       <widget class="QWidget" name="page_HistoryRecord">
        <widget class="QQuickWidget" name="quickWidget_HistoryList">
@@ -1102,55 +1142,160 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          <string>姿态回中</string>
         </property>
        </widget>
+       <widget class="TechPushButton" name="techBtn_spare_1">
+        <property name="geometry">
+         <rect>
+          <x>330</x>
+          <y>10</y>
+          <width>151</width>
+          <height>51</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>去皮</string>
+        </property>
+       </widget>
       </widget>
      </widget>
     </item>
-    <item row="6" column="12" colspan="2">
-     <widget class="QGroupBox" name="groupBox_4">
+    <item row="6" column="1" colspan="3">
+     <widget class="QGroupBox" name="groupBox">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+        <horstretch>5</horstretch>
         <verstretch>1</verstretch>
        </sizepolicy>
       </property>
+      <property name="minimumSize">
+       <size>
+        <width>432</width>
+        <height>0</height>
+       </size>
+      </property>
       <property name="title">
-       <string>安全开关</string>
+       <string>页面导航</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
-        <widget class="QToolButton" name="TBtn_RemoveWarning">
+        <widget class="QToolButton" name="TBtn_HomePage">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>1</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>44</height>
-          </size>
-         </property>
          <property name="font">
           <font>
-           <pointsize>11</pointsize>
            <bold>true</bold>
           </font>
          </property>
          <property name="text">
-          <string>清除报错</string>
+          <string>主页</string>
          </property>
          <property name="icon">
           <iconset resource="res.qrc">
-           <normaloff>:/Picture/RemoveWarning.png</normaloff>:/Picture/RemoveWarning.png</iconset>
+           <normaloff>:/Picture/home2.png</normaloff>:/Picture/home2.png</iconset>
          </property>
          <property name="iconSize">
           <size>
-           <width>24</width>
-           <height>24</height>
+           <width>22</width>
+           <height>22</height>
+          </size>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="TBtn_PermissionPage">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>权限</string>
+         </property>
+         <property name="icon">
+          <iconset resource="res.qrc">
+           <normaloff>:/Picture/permission.png</normaloff>:/Picture/permission.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>22</width>
+           <height>22</height>
+          </size>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="TBtn_HistoryRecord">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>历史记录</string>
+         </property>
+         <property name="icon">
+          <iconset resource="res.qrc">
+           <normaloff>:/Picture/history.png</normaloff>:/Picture/history.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>22</width>
+           <height>22</height>
+          </size>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="TBtn_SixAxies">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>六自由度</string>
+         </property>
+         <property name="icon">
+          <iconset resource="res.qrc">
+           <normaloff>:/Picture/home2.png</normaloff>:/Picture/home2.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>22</width>
+           <height>22</height>
           </size>
          </property>
          <property name="toolButtonStyle">
@@ -1161,8 +1306,27 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
       </layout>
      </widget>
     </item>
-    <item row="1" column="13">
-     <spacer name="horizontalSpacer_5">
+    <item row="1" column="3" colspan="8">
+     <widget class="QLabel" name="label_StatusTip">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+        <horstretch>1</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>30</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <spacer name="horizontalSpacer_2">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -1171,7 +1335,39 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
       </property>
       <property name="sizeHint" stdset="0">
        <size>
-        <width>50</width>
+        <width>70</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="1" column="11">
+     <spacer name="horizontalSpacer_4">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>150</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="1" column="2">
+     <spacer name="horizontalSpacer_3">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeType">
+       <enum>QSizePolicy::Fixed</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>300</width>
         <height>20</height>
        </size>
       </property>
@@ -1347,6 +1543,69 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
       </layout>
      </widget>
     </item>
+    <item row="2" column="6" colspan="6">
+     <widget class="QQuickWidget" name="quickWidget_DeviceCoordPanel">
+      <property name="resizeMode">
+       <enum>QQuickWidget::SizeRootObjectToView</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="12" colspan="2">
+     <widget class="QGroupBox" name="groupBox_4">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="title">
+       <string>安全开关</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QToolButton" name="TBtn_RemoveWarning">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>44</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>11</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>清除报错</string>
+         </property>
+         <property name="icon">
+          <iconset resource="res.qrc">
+           <normaloff>:/Picture/RemoveWarning.png</normaloff>:/Picture/RemoveWarning.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
     <item row="1" column="1">
      <spacer name="horizontalSpacer">
       <property name="orientation">
@@ -1363,8 +1622,8 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
       </property>
      </spacer>
     </item>
-    <item row="1" column="11">
-     <spacer name="horizontalSpacer_4">
+    <item row="1" column="13">
+     <spacer name="horizontalSpacer_5">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -1373,175 +1632,11 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
       </property>
       <property name="sizeHint" stdset="0">
        <size>
-        <width>150</width>
+        <width>50</width>
         <height>20</height>
        </size>
       </property>
      </spacer>
-    </item>
-    <item row="1" column="0">
-     <spacer name="horizontalSpacer_2">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeType">
-       <enum>QSizePolicy::Fixed</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>70</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="6" column="1" colspan="3">
-     <widget class="QGroupBox" name="groupBox">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-        <horstretch>5</horstretch>
-        <verstretch>1</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>432</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="title">
-       <string>页面导航</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QToolButton" name="TBtn_HomePage">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>1</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="font">
-          <font>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>主页</string>
-         </property>
-         <property name="icon">
-          <iconset resource="res.qrc">
-           <normaloff>:/Picture/home2.png</normaloff>:/Picture/home2.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>22</width>
-           <height>22</height>
-          </size>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="TBtn_PermissionPage">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>1</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="font">
-          <font>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>权限</string>
-         </property>
-         <property name="icon">
-          <iconset resource="res.qrc">
-           <normaloff>:/Picture/permission.png</normaloff>:/Picture/permission.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>22</width>
-           <height>22</height>
-          </size>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="TBtn_HistoryRecord">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>1</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="font">
-          <font>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>历史记录</string>
-         </property>
-         <property name="icon">
-          <iconset resource="res.qrc">
-           <normaloff>:/Picture/history.png</normaloff>:/Picture/history.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>22</width>
-           <height>22</height>
-          </size>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QToolButton" name="TBtn_SixAxies">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>1</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="font">
-          <font>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>六自由度</string>
-         </property>
-         <property name="icon">
-          <iconset resource="res.qrc">
-           <normaloff>:/Picture/home2.png</normaloff>:/Picture/home2.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>22</width>
-           <height>22</height>
-          </size>
-         </property>
-         <property name="toolButtonStyle">
-          <enum>Qt::ToolButtonTextBesideIcon</enum>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
     </item>
     <item row="1" column="12">
      <spacer name="horizontalSpacer_6">
@@ -1558,63 +1653,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        </size>
       </property>
      </spacer>
-    </item>
-    <item row="2" column="1" colspan="4">
-     <widget class="QLabel" name="label_Home">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>1</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>-1</pointsize>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">font-size: 22px;
-    letter-spacing: 1px;
-    line-height: 1.3;
-    
-    /* 白色文字配蓝色边框 */
-    color: #ffffff;
-    border-left: 5px solid qlineargradient(
-        x1: 0, y1: 0, x2: 0, y2: 1,
-        stop: 0 #00aaff,
-        stop: 1 #0066cc
-    );
-    
-    
-    /* 背景效果 */
-    background: qlineargradient(
-        x1: 0, y1: 0, x2: 1, y2: 0,
-        stop: 0 rgba(0, 60, 120, 0.2),
-        stop: 0.5 rgba(0, 40, 80, 0.1),
-        stop: 1 rgba(0, 60, 120, 0.2)
-    );
-    
-    /* 布局 */
-    padding: 2px 3px;
-    margin: 10px 0 6px 0;
-    border-radius: 0 6px 6px 0;
-    
-    /* 装饰性下划线 */
-    border-bottom: 1px solid rgba(0, 150, 255, 0.3);
-    </string>
-      </property>
-      <property name="text">
-       <string>辅助装配系统</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="6" colspan="6">
-     <widget class="QQuickWidget" name="quickWidget_DeviceCoordPanel">
-      <property name="resizeMode">
-       <enum>QQuickWidget::SizeRootObjectToView</enum>
-      </property>
-     </widget>
     </item>
    </layout>
   </widget>

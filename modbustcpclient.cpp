@@ -342,18 +342,47 @@ bool ModbusTCPClient::writeMultipleRegisters(int startAddress, const QVector<qui
 
 bool ModbusTCPClient::readHoldingRegisterSync(int address, quint16 &value)
 {
-    if (!isConnected()) {
+    QVector<quint16> values;
+    if (!readHoldingRegistersSync(address, 1, values) || values.isEmpty()) {
         return false;
     }
-    if (!readHoldingRegisters(address, 1)) {
+    value = values.first();
+    return true;
+}
+
+bool ModbusTCPClient::readHoldingRegistersSync(int startAddress, int count, QVector<quint16> &values)
+{
+    values.clear();
+    if (!isConnected() || count <= 0 || count > 125) {
         return false;
     }
-    QMutexLocker locker(&m_mutex);
-    const auto it = m_registers.constFind(address);
-    if (it == m_registers.constEnd()) {
+
+    if (!m_backendReadHolding || !m_dynamicBackendHandle) {
+        qWarning() << "[Modbus动态库读失败] 未找到读取函数";
         return false;
     }
-    value = it->value;
+
+    values.resize(count);
+    const int readCount = m_backendReadHolding(m_dynamicBackendHandle,
+                                               startAddress,
+                                               count,
+                                               values.data(),
+                                               values.size());
+    if (readCount <= 0) {
+        const QString reason = QStringLiteral("动态库同步读取失败 address=%1 count=%2")
+                                   .arg(startAddress)
+                                   .arg(count);
+        qWarning() << "[Modbus动态库读失败] 地址:" << startAddress << "数量:" << count;
+        handleCommunicationFailure(reason);
+        values.clear();
+        return false;
+    }
+
+    const int actualCount = qMin(readCount, count);
+    values.resize(actualCount);
+    for (int i = 0; i < actualCount; ++i) {
+        updateRegisterValue(startAddress + i, values.at(i));
+    }
     return true;
 }
 
