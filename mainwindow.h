@@ -222,6 +222,14 @@ public:
     void showUnconfiguredStepValueHintDialog();
     /** @brief 隐藏步进值未设置提示窗 */
     void hideUnconfiguredStepValueHintDialog();
+    /** @brief 外部按键在步进/点动模式未选择时的提示窗 */
+    void showUnselectedStepModeHintDialog();
+    /** @brief 隐藏步进/点动未选择提示窗 */
+    void hideUnselectedStepModeHintDialog();
+    /** @brief 外部按键在坐标/关节模式未选择时的提示窗 */
+    void showUnselectedMoveModeHintDialog();
+    /** @brief 隐藏坐标/关节未选择提示窗 */
+    void hideUnselectedMoveModeHintDialog();
     /** @brief 示教写门禁触发时的提示窗（样式仿高度互锁提示） */
     void showTeachingWriteGateDeniedDialog();
     /** @brief 隐藏示教写门禁提示窗 */
@@ -1067,6 +1075,14 @@ private:
     void maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, bool pressed);
     /** @brief 步进模式下外部按键按下且步进值为空或0时弹出提示 */
     void maybeShowUnconfiguredStepValueHintForExternalKey(int keyNumber, bool pressed);
+    /** @brief 外部按键按下且步进/点动模式未选择时弹出提示，返回 true 表示已拦截 */
+    bool maybeShowUnselectedStepModeHintForExternalKey(int keyNumber, bool pressed);
+    /** @brief 外部按键触发时自动选择点动模式 */
+    void applyDefaultJogStepModeFromExternalKey();
+    /** @brief 外部按键按下且坐标/关节模式未选择时弹出提示，返回 true 表示已拦截 */
+    bool maybeShowUnselectedMoveModeHintForExternalKey(int keyNumber, bool pressed);
+    /** @brief 外部按键触发时自动选择关节模式 */
+    void applyDefaultJointMoveModeFromExternalKey();
 
     /** @brief 处理第二套 AGV 按键动作 */
     void handleAGVKey2Action(int keyNumber, bool pressed);

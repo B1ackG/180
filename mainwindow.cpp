@@ -3217,6 +3217,8 @@ void MainWindow::dismissOperationHintToasts()
 {
     dismissToastByMessage(QStringLiteral("当前设置速度为0"));
     dismissToastByMessage(QStringLiteral("当前未设置步进值"));
+    dismissToastByMessage(QStringLiteral("未选择步进或者点动模式，将自动选择点动模式"));
+    dismissToastByMessage(QStringLiteral("未选择坐标或者关节模式，将自动选择关节模式"));
     dismissToastByMessage(ModbusWriteGate::teachingGateUserDialogMessage());
     dismissToastByMessage(QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。"));
     dismissToastByMessage(QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。"));
@@ -3789,6 +3791,16 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     QString pageName = m_pageNames.value(currentPage, "未知");
     const bool isRobotPage = (currentPage == 0 || pageName == "机械臂" || pageName == "page_Robot");
     const bool isSixAxisPage = (currentPage == 3 || pageName == "六自由度" || pageName == "page_SixAxies");
+    const bool isAgvPage = (currentPage == 4);
+
+    if (isRobotPage || isSixAxisPage || isAgvPage) {
+        if (maybeShowUnselectedStepModeHintForExternalKey(keyNumber, pressed)) {
+            return;
+        }
+        if (maybeShowUnselectedMoveModeHintForExternalKey(keyNumber, pressed)) {
+            return;
+        }
+    }
 
     // 外部按钮逻辑门禁：
     // - 点动模式：仅允许在[关节]模式下执行；
@@ -3991,7 +4003,6 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     }
 
     // 除第1页（机械臂）、第4页（六自由度）以及第5页（AGV控制）外，其他页面外部按键统一不响应。
-    bool isAgvPage = (currentPage == 4);
     if (!isRobotPage && !isSixAxisPage && !isAgvPage) {
         return;
     }
@@ -4440,6 +4451,13 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
     }
 
     if (keyNumber != 9) {
+        return;
+    }
+
+    if (maybeShowUnselectedStepModeHintForExternalKey(keyNumber, pressed)) {
+        return;
+    }
+    if (maybeShowUnselectedMoveModeHintForExternalKey(keyNumber, pressed)) {
         return;
     }
 
@@ -7829,6 +7847,13 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         return;
     }
 
+    if (maybeShowUnselectedStepModeHintForExternalKey(keyNumber, pressed)) {
+        return;
+    }
+    if (maybeShowUnselectedMoveModeHintForExternalKey(keyNumber, pressed)) {
+        return;
+    }
+
     maybeShowZeroSpeedHintForHomePageExternalKey(keyNumber, pressed);
 
     if (pressed) {
@@ -10662,6 +10687,11 @@ void MainWindow::hideZeroSpeedOperationHintDialog()
 
 namespace {
 
+const QString kUnselectedStepModeHintText =
+    QStringLiteral("未选择步进或者点动模式，将自动选择点动模式");
+const QString kUnselectedMoveModeHintText =
+    QStringLiteral("未选择坐标或者关节模式，将自动选择关节模式");
+
 bool stepEditValueIsEmptyOrZero(const QLineEdit *edit)
 {
     if (!edit) {
@@ -10748,11 +10778,189 @@ void MainWindow::hideUnconfiguredStepValueHintDialog()
     dismissToastByMessage(QStringLiteral("当前未设置步进值"));
 }
 
+void MainWindow::applyDefaultJogStepModeFromExternalKey()
+{
+    m_stepModeUnknown = false;
+    m_stepModeEnabled = false;
+
+    if (ui && ui->TBtn_Stepmove) {
+        ui->TBtn_Stepmove->setText(QStringLiteral("点动模式"));
+        ui->TBtn_Stepmove->setToolTip(QStringLiteral("当前模式：点动模式"));
+    }
+
+    QLabel *runModeLabel = ui && ui->statusBar
+                               ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarRunModeLabel"))
+                               : nullptr;
+    if (runModeLabel) {
+        runModeLabel->setText(QStringLiteral("点动模式"));
+        runModeLabel->setStyleSheet(QStringLiteral("color: #00ccff; font-weight: bold; font-size: 11px;"));
+    }
+
+    if (ui && ui->StackedWidget) {
+        const int currentPage = ui->StackedWidget->currentIndex();
+        if (currentPage == 0) {
+            writeToMainDevice(501, 1);
+            qCDebug(lcMainWindow) << "外部按键自动选择：首页切换到点动模式，地址501写入1";
+        } else if (currentPage == 3) {
+            writeToMainDevice(600, 1);
+            qCDebug(lcMainWindow) << "外部按键自动选择：第四页切换到点动模式，地址600写入1";
+        }
+    }
+
+    updateFunctionSwitchVisuals();
+    updateStepTargetButtonsState();
+}
+
+void MainWindow::applyDefaultJointMoveModeFromExternalKey()
+{
+    m_moveModeUnknown = false;
+    m_isJointMode = true;
+
+    writeToMainDevice(525, 2);
+
+    if (ui && ui->TBtn_MoveMode) {
+        ui->TBtn_MoveMode->setText(QStringLiteral("关节模式"));
+    }
+
+    QLabel *moveModeLabel = ui && ui->statusBar
+                                ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarMoveModeLabel"))
+                                : nullptr;
+    if (moveModeLabel) {
+        moveModeLabel->setText(QStringLiteral("关节模式"));
+        moveModeLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
+    }
+
+    updateFunctionSwitchVisuals();
+    updateStepTargetButtonsState();
+}
+
+void MainWindow::showUnselectedStepModeHintDialog()
+{
+    dismissOperationHintToasts();
+
+    if (m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = QStringLiteral("提示系统");
+        record.controlName = QStringLiteral("步进点动未选择提示");
+        record.controlType = QStringLiteral("提示窗口");
+        record.operation = QStringLiteral("提示触发");
+        record.oldValue = QString();
+        record.newValue = kUnselectedStepModeHintText;
+        m_recorder->addRecord(record);
+    }
+
+    showToast(kUnselectedStepModeHintText, ToastKind::Warning);
+}
+
+void MainWindow::hideUnselectedStepModeHintDialog()
+{
+    dismissToastByMessage(kUnselectedStepModeHintText);
+}
+
+bool MainWindow::maybeShowUnselectedStepModeHintForExternalKey(int keyNumber, bool pressed)
+{
+    if (!pressed || !m_stepModeUnknown) {
+        return false;
+    }
+    if (!ui || !ui->StackedWidget) {
+        return false;
+    }
+
+    const QWidget *currentPageWidget = ui->StackedWidget->currentWidget();
+    if (!currentPageWidget) {
+        return false;
+    }
+
+    const QString pageObjectName = currentPageWidget->objectName();
+    if (pageObjectName == QStringLiteral("page_Robot")) {
+        if (keyNumber < 1 || keyNumber > 10) {
+            return false;
+        }
+    } else if (pageObjectName == QStringLiteral("page_SixAxies")) {
+        if (keyNumber < 1 || keyNumber > 14) {
+            return false;
+        }
+    } else if (ui->StackedWidget->currentIndex() == 4) {
+        if (keyNumber != 13 && keyNumber != 14) {
+            return false;
+        }
+    } else {
+        return false;
+    }
+
+    applyDefaultJogStepModeFromExternalKey();
+    showUnselectedStepModeHintDialog();
+    return true;
+}
+
+void MainWindow::showUnselectedMoveModeHintDialog()
+{
+    dismissOperationHintToasts();
+
+    if (m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = QStringLiteral("提示系统");
+        record.controlName = QStringLiteral("坐标关节未选择提示");
+        record.controlType = QStringLiteral("提示窗口");
+        record.operation = QStringLiteral("提示触发");
+        record.oldValue = QString();
+        record.newValue = kUnselectedMoveModeHintText;
+        m_recorder->addRecord(record);
+    }
+
+    showToast(kUnselectedMoveModeHintText, ToastKind::Warning);
+}
+
+void MainWindow::hideUnselectedMoveModeHintDialog()
+{
+    dismissToastByMessage(kUnselectedMoveModeHintText);
+}
+
+bool MainWindow::maybeShowUnselectedMoveModeHintForExternalKey(int keyNumber, bool pressed)
+{
+    if (!pressed || !m_moveModeUnknown) {
+        return false;
+    }
+    if (!ui || !ui->StackedWidget) {
+        return false;
+    }
+
+    const QWidget *currentPageWidget = ui->StackedWidget->currentWidget();
+    if (!currentPageWidget) {
+        return false;
+    }
+
+    const QString pageObjectName = currentPageWidget->objectName();
+    if (pageObjectName == QStringLiteral("page_Robot")) {
+        if (keyNumber < 1 || keyNumber > 10) {
+            return false;
+        }
+    } else if (pageObjectName == QStringLiteral("page_SixAxies")) {
+        if (keyNumber < 1 || keyNumber > 14) {
+            return false;
+        }
+    } else if (ui->StackedWidget->currentIndex() == 4) {
+        if (keyNumber != 13 && keyNumber != 14) {
+            return false;
+        }
+    } else {
+        return false;
+    }
+
+    applyDefaultJointMoveModeFromExternalKey();
+    showUnselectedMoveModeHintDialog();
+    return true;
+}
+
 void MainWindow::showTeachingWriteGateDeniedDialog()
 {
     hideWirelessModeWarningDialog();
     dismissToastByMessage(QStringLiteral("当前设置速度为0"));
     dismissToastByMessage(QStringLiteral("当前未设置步进值"));
+    dismissToastByMessage(kUnselectedStepModeHintText);
+    dismissToastByMessage(kUnselectedMoveModeHintText);
     dismissToastByMessage(QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。"));
     dismissToastByMessage(QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。"));
     showToast(ModbusWriteGate::teachingGateUserDialogMessage(), ToastKind::Warning);
