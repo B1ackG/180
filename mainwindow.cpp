@@ -4355,10 +4355,9 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     const bool isAgvPage = (currentPage == 4);
 
     if (isRobotPage || isSixAxisPage || isAgvPage) {
-        if (maybeShowUnselectedStepModeHintForExternalKey(keyNumber, pressed)) {
-            return;
-        }
-        if (maybeShowUnselectedMoveModeHintForExternalKey(keyNumber, pressed)) {
+        const bool stepModeHintShown = maybeShowUnselectedStepModeHintForExternalKey(keyNumber, pressed);
+        const bool moveModeHintShown = maybeShowUnselectedMoveModeHintForExternalKey(keyNumber, pressed);
+        if (stepModeHintShown || moveModeHintShown) {
             return;
         }
     }
@@ -5015,10 +5014,9 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         return;
     }
 
-    if (maybeShowUnselectedStepModeHintForExternalKey(keyNumber, pressed)) {
-        return;
-    }
-    if (maybeShowUnselectedMoveModeHintForExternalKey(keyNumber, pressed)) {
+    const bool stepModeHintShown = maybeShowUnselectedStepModeHintForExternalKey(keyNumber, pressed);
+    const bool moveModeHintShown = maybeShowUnselectedMoveModeHintForExternalKey(keyNumber, pressed);
+    if (stepModeHintShown || moveModeHintShown) {
         return;
     }
 
@@ -7669,12 +7667,12 @@ bool MainWindow::writeToAGVDevice(int address, int value, bool bypassWirelessWar
 
     m_agvDisconnectedWarnedAddresses.remove(address);
 
-    if (!verifyTeachingWriteGateOrShowDialog()) {
-        return false;
-    }
-
+    const bool teachingWriteAllowed = verifyTeachingWriteGateOrShowDialog();
     if (!bypassWirelessWarning && m_controlMode == WIRELESS_MODE) {
         showWirelessModeWarningDialog();
+    }
+    if (!teachingWriteAllowed) {
+        return false;
     }
 
     if (isFeatureEnabled("modbus_agv", "modbus_agv.write_logs")) {
@@ -7723,12 +7721,12 @@ bool MainWindow::writeAGVRegisterBits(int address,
         return false;
     }
 
-    if (!verifyTeachingWriteGateOrShowDialog()) {
-        return false;
-    }
-
+    const bool teachingWriteAllowed = verifyTeachingWriteGateOrShowDialog();
     if (!bypassWirelessWarning && m_controlMode == WIRELESS_MODE) {
         showWirelessModeWarningDialog();
+    }
+    if (!teachingWriteAllowed) {
+        return false;
     }
 
     quint16 baseValue = m_agvRegisterShadow.value(address, 0);
@@ -8654,10 +8652,9 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         return;
     }
 
-    if (maybeShowUnselectedStepModeHintForExternalKey(keyNumber, pressed)) {
-        return;
-    }
-    if (maybeShowUnselectedMoveModeHintForExternalKey(keyNumber, pressed)) {
+    const bool stepModeHintShown = maybeShowUnselectedStepModeHintForExternalKey(keyNumber, pressed);
+    const bool moveModeHintShown = maybeShowUnselectedMoveModeHintForExternalKey(keyNumber, pressed);
+    if (stepModeHintShown || moveModeHintShown) {
         return;
     }
 
@@ -11404,8 +11401,6 @@ void MainWindow::hideInclinometerTiltLockDialog()
 
 void MainWindow::showRobotOperationHintDialog(const QString &message)
 {
-    dismissOperationHintToasts();
-
     if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
@@ -11470,8 +11465,6 @@ void MainWindow::showZeroSpeedOperationHintDialog()
 {
     static const QString kHintText = QStringLiteral("当前设置速度为0");
     static const QString kHistoryText = QStringLiteral("操作者在速度为0时操作");
-
-    dismissOperationHintToasts();
 
     if (m_recorder) {
         OperationRecord record;
@@ -11564,8 +11557,6 @@ void MainWindow::showUnconfiguredStepValueHintDialog()
     static const QString kHintText = QStringLiteral("当前未设置步进值");
     static const QString kHistoryText = QStringLiteral("操作者在未设置步进值时操作");
 
-    dismissOperationHintToasts();
-
     if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
@@ -11644,8 +11635,6 @@ void MainWindow::applyDefaultJointMoveModeFromExternalKey()
 
 void MainWindow::showUnselectedStepModeHintDialog()
 {
-    dismissOperationHintToasts();
-
     if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
@@ -11704,8 +11693,6 @@ bool MainWindow::maybeShowUnselectedStepModeHintForExternalKey(int keyNumber, bo
 
 void MainWindow::showUnselectedMoveModeHintDialog()
 {
-    dismissOperationHintToasts();
-
     if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
@@ -11764,13 +11751,6 @@ bool MainWindow::maybeShowUnselectedMoveModeHintForExternalKey(int keyNumber, bo
 
 void MainWindow::showTeachingWriteGateDeniedDialog()
 {
-    hideWirelessModeWarningDialog();
-    dismissToastByMessage(QStringLiteral("当前设置速度为0"));
-    dismissToastByMessage(QStringLiteral("当前未设置步进值"));
-    dismissToastByMessage(kUnselectedStepModeHintText);
-    dismissToastByMessage(kUnselectedMoveModeHintText);
-    dismissToastByMessage(QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。"));
-    dismissToastByMessage(QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。"));
     showToast(ModbusWriteGate::teachingGateUserDialogMessage(), ToastKind::Warning);
 }
 
@@ -11791,8 +11771,6 @@ bool MainWindow::verifyTeachingWriteGateOrShowDialog()
 
 void MainWindow::showWirelessModeWarningDialog()
 {
-    hideTeachingWriteGateDeniedDialog();
-    dismissOperationHintToasts();
     showToast(kWirelessModeWarningText, ToastKind::Warning);
 }
 

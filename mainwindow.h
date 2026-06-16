@@ -607,7 +607,7 @@ private:
     static constexpr int kToastRightMargin = 32;
     static constexpr int kToastBottomMargin = 32;
     static constexpr int kToastSpacing = 10;
-    static constexpr int kToastMaxCount = 4;
+    static constexpr int kToastMaxCount = 8;
     static constexpr int kToastDuplicateWindowMs = 1200;
     static constexpr int kToastDefaultDurationMs = 3000;
     static constexpr int kToastWarningDurationMs = 5000;
