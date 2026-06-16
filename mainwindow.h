@@ -214,6 +214,8 @@ public:
     void showRobotOperationHintDialog(const QString &message);
     /** @brief 隐藏首页操作提示窗 */
     void hideRobotOperationHintDialog();
+    /** @brief 显示高度/长度互锁模态提示窗（阻塞） */
+    void showRobotInterlockModalDialog(const QString &message);
     /** @brief 首页外部按键在速度为0时的提示窗（与互锁提示窗解耦） */
     void showZeroSpeedOperationHintDialog();
     /** @brief 隐藏速度为0提示窗 */
@@ -668,6 +670,8 @@ private:
     QWidget *m_agvDriveFaultAlarmWidget = nullptr;
     QLabel *m_agvDriveFaultAlarmLabel = nullptr;
     QDialog *m_agvBatteryLowDialog = nullptr;
+    QDialog *m_robotInterlockDialog = nullptr;
+    QLabel *m_robotInterlockLabel = nullptr;
     QWidget *m_robotWeightOverloadWidget = nullptr;
     QLabel *m_robotWeightOverloadLabel = nullptr;
     QPushButton *m_robotWeightOverloadConfirmBtn = nullptr;

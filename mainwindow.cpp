@@ -11328,6 +11328,15 @@ void MainWindow::hideInclinometerTiltLockDialog()
 
 void MainWindow::showRobotOperationHintDialog(const QString &message)
 {
+    static const QString kHeightInterlockText =
+        QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。");
+    static const QString kLengthInterlockText =
+        QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。");
+    if (message == kHeightInterlockText || message == kLengthInterlockText) {
+        showRobotInterlockModalDialog(message);
+        return;
+    }
+
     if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
@@ -11345,8 +11354,70 @@ void MainWindow::showRobotOperationHintDialog(const QString &message)
 
 void MainWindow::hideRobotOperationHintDialog()
 {
+    if (m_robotInterlockDialog && m_robotInterlockDialog->isVisible()) {
+        m_robotInterlockDialog->done(QDialog::Rejected);
+    }
     dismissToastByMessage(QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。"));
     dismissToastByMessage(QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。"));
+}
+
+void MainWindow::showRobotInterlockModalDialog(const QString &message)
+{
+    if (!m_robotInterlockDialog) {
+        m_robotInterlockDialog = new QDialog(this);
+        m_robotInterlockDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_robotInterlockDialog->setModal(true);
+        m_robotInterlockDialog->setObjectName(QStringLiteral("robotInterlockDialog"));
+
+        auto *layout = new QVBoxLayout(m_robotInterlockDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        m_robotInterlockLabel = new QLabel(m_robotInterlockDialog);
+        m_robotInterlockLabel->setObjectName(QStringLiteral("robotInterlockLabel"));
+        m_robotInterlockLabel->setAlignment(Qt::AlignCenter);
+        m_robotInterlockLabel->setWordWrap(true);
+        layout->addWidget(m_robotInterlockLabel);
+
+        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), m_robotInterlockDialog);
+        layout->addWidget(confirmBtn);
+        connect(confirmBtn, &QPushButton::clicked, m_robotInterlockDialog, &QDialog::accept);
+
+        m_robotInterlockDialog->setFixedSize(480, 160);
+        m_robotInterlockDialog->setStyleSheet(
+            "#robotInterlockDialog {"
+            "  background-color: rgba(30, 0, 0, 230);"
+            "  border: 3px solid #FFFF00;"
+            "  border-radius: 10px;"
+            "}"
+            "#robotInterlockLabel {"
+            "  color: #FFFF00;"
+            "  font-size: 20px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "QPushButton {"
+            "  background-color: #FFFF00;"
+            "  color: #202020;"
+            "  border: 2px solid #FFD65A;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 100px;"
+            "}"
+            "QPushButton:hover {"
+            "  background-color: #FFD65A;"
+            "  border-color: #FFFF00;"
+            "}");
+    }
+
+    if (m_robotInterlockLabel) {
+        m_robotInterlockLabel->setText(message);
+    }
+
+    positionFloatingPopupTopRight(m_robotInterlockDialog, 660);
+    m_robotInterlockDialog->exec();
 }
 
 void MainWindow::maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, bool pressed)
