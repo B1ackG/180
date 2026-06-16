@@ -764,16 +764,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          <string>去皮</string>
         </property>
        </widget>
-       <widget class="QTextEdit" name="textEdit">
-        <property name="geometry">
-         <rect>
-          <x>410</x>
-          <y>20</y>
-          <width>104</width>
-          <height>70</height>
-         </rect>
-        </property>
-       </widget>
        <zorder>lab_Overall</zorder>
        <zorder>widget_test3</zorder>
        <zorder>widget_test4</zorder>
@@ -791,7 +781,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <zorder>groupBox_StepMove</zorder>
        <zorder>widget</zorder>
        <zorder>techBtn_spare_2</zorder>
-       <zorder>textEdit</zorder>
       </widget>
       <widget class="QWidget" name="page_HistoryRecord">
        <widget class="QQuickWidget" name="quickWidget_HistoryList">

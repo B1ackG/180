@@ -11440,7 +11440,7 @@ void MainWindow::maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, boo
         || currentPageWidget->objectName() != QStringLiteral("page_Robot")) {
         return;
     }
-    if (m_stepModeUnknown || m_stepModeEnabled) {
+    if (m_stepModeUnknown) {
         return;
     }
 

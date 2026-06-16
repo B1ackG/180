@@ -1142,7 +1142,7 @@ private:
     
     /** @brief 处理 AGV 按键动作 */
     void handleAGVKeyAction(int keyNumber, bool pressed);
-    /** @brief 首页外部按键按下且对应速度为0时弹出提示 */
+    /** @brief 点动或步进模式下，首页 page_Robot 外部按键按下且对应速度为0时弹出提示 */
     void maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, bool pressed);
     /** @brief 步进模式下外部按键按下且步进值为空或0时弹出提示 */
     void maybeShowUnconfiguredStepValueHintForExternalKey(int keyNumber, bool pressed);
