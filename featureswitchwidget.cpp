@@ -16,10 +16,10 @@
 #include <QMessageBox>
 #include <QLineEdit>
 #include <QComboBox>
-#include <QTextEdit>
 #include <QEvent>
 #include <QSettings>
 #include <QSignalBlocker>
+#include <QTabWidget>
 
 namespace {
 
@@ -516,6 +516,10 @@ FeatureSwitchWidget::FeatureSwitchWidget(QWidget *parent) : QWidget(parent)
         "QPushButton { background-color: #004466; border: 1px solid #00c8ff; border-radius: 5px; padding: 8px 20px; color: white; }"
         "QPushButton:hover { background-color: #006699; }"
         "QScrollArea { border: none; background-color: transparent; }"
+        "QTabWidget::pane { border: 1px solid #00c8ff; border-radius: 8px; background-color: #151526; margin-top: -1px; }"
+        "QTabBar::tab { background-color: #00334d; color: #b9f7ff; border: 1px solid #00a0cc; border-bottom: none; padding: 8px 18px; margin-right: 3px; border-top-left-radius: 6px; border-top-right-radius: 6px; }"
+        "QTabBar::tab:selected { background-color: #006699; color: #ffffff; font-weight: bold; }"
+        "QTabBar::tab:hover { background-color: #005577; }"
     );
     
     resize(980, 820);
@@ -542,10 +546,32 @@ void FeatureSwitchWidget::setupUI()
     title->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(title);
 
-    QScrollArea *scroll = new QScrollArea();
-    scroll->setWidgetResizable(true);
-    QWidget *scrollContent = new QWidget();
-    QVBoxLayout *scrollLayout = new QVBoxLayout(scrollContent);
+    auto *tabs = new QTabWidget(this);
+    tabs->setDocumentMode(false);
+
+    auto makeTabLayout = [tabs](const QString &title) -> QVBoxLayout* {
+        auto *page = new QWidget(tabs);
+        auto *pageLayout = new QVBoxLayout(page);
+        pageLayout->setContentsMargins(0, 0, 0, 0);
+
+        auto *scroll = new QScrollArea(page);
+        scroll->setWidgetResizable(true);
+        auto *scrollContent = new QWidget(scroll);
+        auto *contentLayout = new QVBoxLayout(scrollContent);
+        contentLayout->setContentsMargins(10, 10, 10, 10);
+        contentLayout->setSpacing(12);
+
+        scroll->setWidget(scrollContent);
+        pageLayout->addWidget(scroll);
+        tabs->addTab(page, title);
+        return contentLayout;
+    };
+
+    QVBoxLayout *baseLayout = makeTabLayout(QStringLiteral("基础开关"));
+    QVBoxLayout *commLayout = makeTabLayout(QStringLiteral("通信参数"));
+    QVBoxLayout *displayLayout = makeTabLayout(QStringLiteral("显示范围"));
+    QVBoxLayout *controlLayout = makeTabLayout(QStringLiteral("控件配置"));
+    QVBoxLayout *logsLayout = makeTabLayout(QStringLiteral("日志调试"));
 
     // 大功能组
     QGroupBox *bigGroup = new QGroupBox("核心功能层 (Big Features)");
@@ -575,7 +601,7 @@ void FeatureSwitchWidget::setupUI()
         bigLayout->addWidget(cb, i / 2, i % 2);
         m_bigCheckboxes[key] = cb;
     }
-    scrollLayout->addWidget(bigGroup);
+    baseLayout->addWidget(bigGroup);
 
     // 小功能项
     QGroupBox *smallGroup = new QGroupBox("子功能细项 (Small Features)");
@@ -661,7 +687,7 @@ void FeatureSwitchWidget::setupUI()
             });
         }
     }
-    scrollLayout->addWidget(smallGroup);
+    baseLayout->addWidget(smallGroup);
 
     QGroupBox *logGroup = new QGroupBox("日志类型开关 (Log Switches)");
     QGridLayout *logLayout = new QGridLayout(logGroup);
@@ -674,23 +700,25 @@ void FeatureSwitchWidget::setupUI()
         logLayout->addWidget(cb, i / 2, i % 2);
         m_smallCheckboxes[key] = cb;
     }
-    scrollLayout->addWidget(logGroup);
+    logsLayout->addWidget(logGroup);
     
     // 轮询参数配置组
-    setupPollingUI(scrollLayout);
+    setupPollingUI(commLayout);
     
     // 滑块自定义范围配置组
-    setupSliderLimitUI(scrollLayout);
+    setupSliderLimitUI(displayLayout);
 
-    setupInclinometerThresholdUI(scrollLayout);
+    setupInclinometerThresholdUI(displayLayout);
 
-    setupButtonVisibilityUI(scrollLayout);
-    setupControlNameOverrideUI(scrollLayout);
+    setupButtonVisibilityUI(controlLayout);
 
-    scrollLayout->addStretch();
+    baseLayout->addStretch();
+    commLayout->addStretch();
+    displayLayout->addStretch();
+    controlLayout->addStretch();
+    logsLayout->addStretch();
 
-    scroll->setWidget(scrollContent);
-    mainLayout->addWidget(scroll);
+    mainLayout->addWidget(tabs, 1);
 
     // 底部控制按钮
     QHBoxLayout *btnLayout = new QHBoxLayout();
@@ -739,7 +767,6 @@ void FeatureSwitchWidget::loadCurrentState()
     loadTechSliderEditState();
     loadInclinometerThresholdState();
     loadButtonVisibilityState();
-    loadControlNameOverrideState();
 }
 
 void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
@@ -1460,7 +1487,6 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
             m_otherVisibilityListHost), 0, 0);
     }
 
-    refreshControlNameOverrideTargets(buttons);
 }
 
 void FeatureSwitchWidget::showEvent(QShowEvent *event)
@@ -1761,146 +1787,6 @@ void FeatureSwitchWidget::saveSliderLimitState()
 }
 
 
-void FeatureSwitchWidget::setupControlNameOverrideUI(QVBoxLayout *scrollLayout)
-{
-    QGroupBox *group = new QGroupBox(QStringLiteral("控件名称自定义（拼音输入）"));
-    QVBoxLayout *layout = new QVBoxLayout(group);
-
-    QLabel *hint = new QLabel(QStringLiteral("选择控件后，在下方 QTextEdit 输入显示名称。点击输入框应弹出拼音键盘。"));
-    hint->setWordWrap(true);
-    hint->setStyleSheet(QStringLiteral("color: #88ccff; font-size: 11px;"));
-    layout->addWidget(hint);
-
-    QHBoxLayout *row = new QHBoxLayout();
-    row->addWidget(new QLabel(QStringLiteral("目标控件:")));
-    m_controlNameTargetCombo = new QComboBox(group);
-    m_controlNameTargetCombo->setMinimumWidth(320);
-    row->addWidget(m_controlNameTargetCombo, 1);
-    layout->addLayout(row);
-
-    m_controlNameEdit = new QTextEdit(group);
-    m_controlNameEdit->setObjectName(QStringLiteral("controlNameOverrideEdit"));
-    m_controlNameEdit->setPlaceholderText(QStringLiteral("请输入控件显示名称（支持汉字）"));
-    m_controlNameEdit->setFixedHeight(70);
-    m_controlNameEdit->setProperty("preferSystemIme", true);
-    if (m_controlNameEdit->viewport()) {
-        m_controlNameEdit->viewport()->setProperty("preferSystemIme", true);
-    }
-    m_controlNameEdit->setStyleSheet(QStringLiteral("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px; padding: 4px;"));
-    layout->addWidget(m_controlNameEdit);
-
-    QHBoxLayout *btnRow = new QHBoxLayout();
-    QPushButton *saveBtn = new QPushButton(QStringLiteral("保存该名称"), group);
-    btnRow->addWidget(saveBtn);
-    btnRow->addStretch();
-    layout->addLayout(btnRow);
-
-    connect(m_controlNameTargetCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int) {
-        if (!m_controlNameTargetCombo || !m_controlNameEdit) {
-            return;
-        }
-        const QString objectName = m_controlNameTargetCombo->currentData().toString();
-        if (objectName.isEmpty()) {
-            m_controlNameEdit->clear();
-            return;
-        }
-        const QString text = m_controlNameOverrides.value(objectName, QString());
-        m_controlNameEdit->setPlainText(text);
-    });
-
-    connect(saveBtn, &QPushButton::clicked, this, [this]() {
-        if (!m_controlNameTargetCombo || !m_controlNameEdit) {
-            return;
-        }
-        const QString objectName = m_controlNameTargetCombo->currentData().toString().trimmed();
-        const QString displayName = m_controlNameEdit->toPlainText().trimmed();
-        if (objectName.isEmpty() || displayName.isEmpty()) {
-            QMessageBox::warning(this, QStringLiteral("提示"), QStringLiteral("请选择控件并输入名称后再保存。"));
-            return;
-        }
-        m_controlNameOverrides[objectName] = displayName;
-        MappingConfig::instance()->addControlMapping(objectName, displayName);
-        saveControlNameOverrideState();
-        QMessageBox::information(this, QStringLiteral("结果"), QStringLiteral("控件名称已保存并立即生效。"));
-    });
-
-    scrollLayout->addWidget(group);
-}
-
-void FeatureSwitchWidget::refreshControlNameOverrideTargets(const QList<MainWindow::ControllableButtonInfo> &buttons)
-{
-    if (!m_controlNameTargetCombo) {
-        return;
-    }
-
-    const QString currentObject = m_controlNameTargetCombo->currentData().toString();
-    QSignalBlocker blocker(m_controlNameTargetCombo);
-    m_controlNameTargetCombo->clear();
-
-    MappingConfig *mapping = MappingConfig::instance();
-    for (const MainWindow::ControllableButtonInfo &info : buttons) {
-        const QString objectName = info.objectName.trimmed();
-        if (objectName.isEmpty()) {
-            continue;
-        }
-        QString visibleText = info.displayText.trimmed();
-        if (visibleText.isEmpty()) {
-            visibleText = mapping->mapControlName(objectName);
-        }
-        const QString label = QStringLiteral("%1  [%2]").arg(visibleText.isEmpty() ? objectName : visibleText, objectName);
-        m_controlNameTargetCombo->addItem(label, objectName);
-    }
-
-    int idx = m_controlNameTargetCombo->findData(currentObject);
-    if (idx < 0) {
-        idx = 0;
-    }
-    if (m_controlNameTargetCombo->count() > 0) {
-        m_controlNameTargetCombo->setCurrentIndex(idx);
-    }
-
-    if (m_controlNameEdit) {
-        const QString objectName = m_controlNameTargetCombo->currentData().toString();
-        m_controlNameEdit->setPlainText(m_controlNameOverrides.value(objectName, QString()));
-    }
-}
-
-void FeatureSwitchWidget::loadControlNameOverrideState()
-{
-    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
-    settings.beginGroup(QStringLiteral("ControlNameOverride"));
-    const QStringList keys = settings.childKeys();
-    m_controlNameOverrides.clear();
-    for (const QString &key : keys) {
-        const QString name = settings.value(key).toString().trimmed();
-        if (!name.isEmpty()) {
-            m_controlNameOverrides[key] = name;
-            MappingConfig::instance()->addControlMapping(key, name);
-        }
-    }
-    settings.endGroup();
-
-    if (m_controlNameEdit && m_controlNameTargetCombo) {
-        const QString objectName = m_controlNameTargetCombo->currentData().toString();
-        m_controlNameEdit->setPlainText(m_controlNameOverrides.value(objectName, QString()));
-    }
-}
-
-void FeatureSwitchWidget::saveControlNameOverrideState()
-{
-    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
-    settings.beginGroup(QStringLiteral("ControlNameOverride"));
-    settings.remove(QString());
-    for (auto it = m_controlNameOverrides.begin(); it != m_controlNameOverrides.end(); ++it) {
-        if (!it.value().trimmed().isEmpty()) {
-            settings.setValue(it.key(), it.value().trimmed());
-        }
-    }
-    settings.endGroup();
-    settings.sync();
-}
-
-
 void FeatureSwitchWidget::onApply()
 {
     FeatureSwitchManager *mgr = FeatureSwitchManager::instance();
@@ -1921,7 +1807,6 @@ void FeatureSwitchWidget::onApply()
     saveInclinometerThresholdState();
 
     saveButtonVisibilityState();
-    saveControlNameOverrideState();
 
     emit runtimeSettingsChanged();
 

@@ -19,7 +19,6 @@
 #include "techpushbutton.h"
 #include "techspeedgauge.h"
 #include "techslideredit.h"
-#include "techpinyinkeyboard.h"
 #include "techvirtualkeyboard.h"
 #include "operationrecorder.h"
 #include "mappingconfig.h"
@@ -766,7 +765,6 @@ private:
 
     // ----- 其他组件与 UI 指针缓存 -----
     TechVirtualKeyboard *m_virtualKeyboard;
-    TechPinyinKeyboard *m_pinyinKeyboard;
     MatrixKeyThreadManager *m_keyManager;
     SteeringModeSelector *m_steeringModeSelector = nullptr;
     SteeringMode m_lastSteeringMode = STEER_FRONT_BACK;

@@ -10,7 +10,6 @@
 
 class QLineEdit;
 class QComboBox;
-class QTextEdit;
 class TechVirtualKeyboard;
 class QVBoxLayout;
 class QHBoxLayout;
@@ -60,10 +59,6 @@ private:
     void saveInclinometerThresholdState();
     void loadButtonVisibilityState();
     void saveButtonVisibilityState();
-    void setupControlNameOverrideUI(QVBoxLayout *scrollLayout);
-    void refreshControlNameOverrideTargets(const QList<MainWindow::ControllableButtonInfo> &buttons);
-    void loadControlNameOverrideState();
-    void saveControlNameOverrideState();
 
     struct ModbusRegisterEdits {
         QComboBox *device = nullptr;
@@ -147,10 +142,6 @@ private:
     QGroupBox *m_otherVisibilityGroup = nullptr;
     QWidget *m_otherVisibilityListHost = nullptr;
     QGridLayout *m_otherVisibilityGrid = nullptr;
-
-    QComboBox *m_controlNameTargetCombo = nullptr;
-    QTextEdit *m_controlNameEdit = nullptr;
-    QMap<QString, QString> m_controlNameOverrides;
 
     TechVirtualKeyboard *m_virtualKeyboard = nullptr;
 };

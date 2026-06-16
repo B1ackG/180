@@ -41,7 +41,6 @@ SOURCES += \
     techslideredit.cpp \
     techsliderlabel.cpp \
     techspeedgauge.cpp \
-    techpinyinkeyboard.cpp \
     techvirtualkeyboard.cpp
 
 HEADERS += \
@@ -74,7 +73,6 @@ HEADERS += \
     techslideredit.h \
     techsliderlabel.h \
     techspeedgauge.h \
-    techpinyinkeyboard.h \
     techvirtualkeyboard.h \
     batterywidget.h
 

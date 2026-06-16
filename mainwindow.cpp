@@ -1657,62 +1657,6 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         }
     }
 
-    if (event->type() == QEvent::MouseButtonPress && m_pinyinKeyboard) {
-        QTextEdit *textEdit = qobject_cast<QTextEdit*>(obj);
-        if (!textEdit) {
-            if (QWidget *widgetObj = qobject_cast<QWidget*>(obj)) {
-                textEdit = qobject_cast<QTextEdit*>(widgetObj->parentWidget());
-            }
-        }
-        if (textEdit && textEdit->isEnabled() && !textEdit->isReadOnly() && this->isAncestorOf(textEdit)) {
-            if (textEdit->property("preferSystemIme").toBool()) {
-                textEdit->setFocus(Qt::MouseFocusReason);
-                QGuiApplication::inputMethod()->show();
-                QPointer<QTextEdit> targetTextEdit(textEdit);
-                QTimer::singleShot(300, this, [this, targetTextEdit]() {
-                    if (!targetTextEdit || !m_pinyinKeyboard) {
-                        return;
-                    }
-                    if (!QGuiApplication::inputMethod()->isVisible()) {
-                        m_pinyinKeyboard->setTargetTextEdit(targetTextEdit);
-                        m_pinyinKeyboard->showAtWidget(targetTextEdit);
-                    }
-                });
-                return false;
-            }
-            m_pinyinKeyboard->setTargetTextEdit(textEdit);
-            m_pinyinKeyboard->showAtWidget(textEdit);
-            return true;
-        }
-
-        QPlainTextEdit *plainTextEdit = qobject_cast<QPlainTextEdit*>(obj);
-        if (!plainTextEdit) {
-            if (QWidget *widgetObj = qobject_cast<QWidget*>(obj)) {
-                plainTextEdit = qobject_cast<QPlainTextEdit*>(widgetObj->parentWidget());
-            }
-        }
-        if (plainTextEdit && plainTextEdit->isEnabled() && !plainTextEdit->isReadOnly() && this->isAncestorOf(plainTextEdit)) {
-            if (plainTextEdit->property("preferSystemIme").toBool()) {
-                plainTextEdit->setFocus(Qt::MouseFocusReason);
-                QGuiApplication::inputMethod()->show();
-                QPointer<QPlainTextEdit> targetPlainTextEdit(plainTextEdit);
-                QTimer::singleShot(300, this, [this, targetPlainTextEdit]() {
-                    if (!targetPlainTextEdit || !m_pinyinKeyboard) {
-                        return;
-                    }
-                    if (!QGuiApplication::inputMethod()->isVisible()) {
-                        m_pinyinKeyboard->setTargetPlainTextEdit(targetPlainTextEdit);
-                        m_pinyinKeyboard->showAtWidget(targetPlainTextEdit);
-                    }
-                });
-                return false;
-            }
-            m_pinyinKeyboard->setTargetPlainTextEdit(plainTextEdit);
-            m_pinyinKeyboard->showAtWidget(plainTextEdit);
-            return true;
-        }
-    }
-
     // 处理LineEdit点击事件
     if (event->type() == QEvent::MouseButtonPress) {
         QLineEdit *lineEdit = qobject_cast<QLineEdit*>(obj);
@@ -2611,28 +2555,11 @@ void MainWindow::setupVirtualKeyboard()
 
     // 创建虚拟键盘
     m_virtualKeyboard = new TechVirtualKeyboard(this);
-    m_pinyinKeyboard = new TechPinyinKeyboard(this);
 
     // 为所有LineEdit安装事件过滤器
     QList<QLineEdit*> allLineEdits = this->findChildren<QLineEdit*>();
     for (QLineEdit *edit : allLineEdits) {
         edit->installEventFilter(this);
-    }
-
-    const QList<QTextEdit*> allTextEdits = this->findChildren<QTextEdit*>();
-    for (QTextEdit *edit : allTextEdits) {
-        edit->installEventFilter(this);
-        if (edit->viewport()) {
-            edit->viewport()->installEventFilter(this);
-        }
-    }
-
-    const QList<QPlainTextEdit*> allPlainTextEdits = this->findChildren<QPlainTextEdit*>();
-    for (QPlainTextEdit *edit : allPlainTextEdits) {
-        edit->installEventFilter(this);
-        if (edit->viewport()) {
-            edit->viewport()->installEventFilter(this);
-        }
     }
 }
 
