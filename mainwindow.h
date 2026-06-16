@@ -235,9 +235,9 @@ public:
     void showTeachingWriteGateDeniedDialog();
     /** @brief 隐藏示教写门禁提示窗 */
     void hideTeachingWriteGateDeniedDialog();
-    /** @brief 无线模式下 AGV 写入前的确认提示窗 */
+    /** @brief 遥控器控制互锁 Toast（无线模式下 AGV 写入前提示） */
     void showWirelessModeWarningDialog();
-    /** @brief 隐藏无线模式提示窗 */
+    /** @brief 隐藏遥控器控制互锁 Toast */
     void hideWirelessModeWarningDialog();
     /** @brief 校验示教写门禁，未通过时弹出互锁提示并返回 false */
     bool verifyTeachingWriteGateOrShowDialog();
@@ -669,7 +669,6 @@ private:
     QWidget *m_agvDriveFaultAlarmWidget = nullptr;
     QLabel *m_agvDriveFaultAlarmLabel = nullptr;
     QDialog *m_agvBatteryLowDialog = nullptr;
-    QDialog *m_wirelessModeWarningDialog = nullptr;
     QWidget *m_robotWeightOverloadWidget = nullptr;
     QLabel *m_robotWeightOverloadLabel = nullptr;
     QPushButton *m_robotWeightOverloadConfirmBtn = nullptr;

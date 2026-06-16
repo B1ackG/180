@@ -57,6 +57,8 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 namespace {
 constexpr int kRuntimePersistRegister = 8193;
 constexpr int kRuntimePersistRegisterHi = 8194;
+const QString kWirelessModeWarningText =
+    QStringLiteral("遥控器控制互锁，请切换到当前示教器。");
 
 SteeringMode steeringModeFromRegisterValue(quint16 value)
 {
@@ -3778,6 +3780,7 @@ void MainWindow::dismissOperationHintToasts()
     dismissToastByMessage(QStringLiteral("未选择步进或者点动模式，将自动选择点动模式"));
     dismissToastByMessage(QStringLiteral("未选择坐标或者关节模式，将自动选择关节模式"));
     dismissToastByMessage(ModbusWriteGate::teachingGateUserDialogMessage());
+    dismissToastByMessage(kWirelessModeWarningText);
     dismissToastByMessage(QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。"));
     dismissToastByMessage(QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。"));
 }
@@ -11789,65 +11792,13 @@ bool MainWindow::verifyTeachingWriteGateOrShowDialog()
 void MainWindow::showWirelessModeWarningDialog()
 {
     hideTeachingWriteGateDeniedDialog();
-
-    if (!m_wirelessModeWarningDialog) {
-        m_wirelessModeWarningDialog = new QDialog(this);
-        m_wirelessModeWarningDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_wirelessModeWarningDialog->setModal(true);
-        m_wirelessModeWarningDialog->setObjectName(QStringLiteral("wirelessModeWarningDialog"));
-
-        auto *layout = new QVBoxLayout(m_wirelessModeWarningDialog);
-        layout->setContentsMargins(20, 15, 20, 15);
-        layout->setSpacing(10);
-
-        auto *msgLabel = new QLabel(QStringLiteral("当前处于无线模式"), m_wirelessModeWarningDialog);
-        msgLabel->setObjectName(QStringLiteral("wirelessModeWarningLabel"));
-        msgLabel->setAlignment(Qt::AlignCenter);
-        msgLabel->setWordWrap(true);
-        layout->addWidget(msgLabel);
-
-        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), m_wirelessModeWarningDialog);
-        layout->addWidget(confirmBtn);
-        connect(confirmBtn, &QPushButton::clicked, m_wirelessModeWarningDialog, &QDialog::accept);
-
-        m_wirelessModeWarningDialog->setFixedSize(350, 120);
-        m_wirelessModeWarningDialog->setStyleSheet(
-            "#wirelessModeWarningDialog {"
-            "  background-color: rgba(30, 0, 0, 230);"
-            "  border: 3px solid #FFFF00;"
-            "  border-radius: 10px;"
-            "}"
-            "#wirelessModeWarningLabel {"
-            "  color: #FFFF00;"
-            "  font-size: 18px;"
-            "  font-weight: bold;"
-            "  background-color: transparent;"
-            "}"
-            "QPushButton {"
-            "  background-color: #FFFF00;"
-            "  color: #202020;"
-            "  border: 2px solid #FFD65A;"
-            "  border-radius: 6px;"
-            "  padding: 8px 16px;"
-            "  font-size: 14px;"
-            "  font-weight: bold;"
-            "  min-width: 100px;"
-            "}"
-            "QPushButton:hover {"
-            "  background-color: #FFD65A;"
-            "  border-color: #FFFF00;"
-            "}");
-    }
-
-    positionFloatingPopupTopRight(m_wirelessModeWarningDialog, 660);
-    m_wirelessModeWarningDialog->exec();
+    dismissOperationHintToasts();
+    showToast(kWirelessModeWarningText, ToastKind::Warning);
 }
 
 void MainWindow::hideWirelessModeWarningDialog()
 {
-    if (m_wirelessModeWarningDialog && m_wirelessModeWarningDialog->isVisible()) {
-        m_wirelessModeWarningDialog->done(QDialog::Rejected);
-    }
+    dismissToastByMessage(kWirelessModeWarningText);
 }
 
 QString MainWindow::robotLimitToastMessage(bool positiveLimit) const
