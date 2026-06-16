@@ -10751,7 +10751,10 @@ void MainWindow::hideUnconfiguredStepValueHintDialog()
 void MainWindow::showTeachingWriteGateDeniedDialog()
 {
     hideWirelessModeWarningDialog();
-    dismissOperationHintToasts();
+    dismissToastByMessage(QStringLiteral("当前设置速度为0"));
+    dismissToastByMessage(QStringLiteral("当前未设置步进值"));
+    dismissToastByMessage(QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。"));
+    dismissToastByMessage(QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。"));
     showToast(ModbusWriteGate::teachingGateUserDialogMessage(), ToastKind::Warning);
 }
 
