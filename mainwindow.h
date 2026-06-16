@@ -937,6 +937,8 @@ private:
 
     /** @brief 显示临时通知（气泡/提示条） */
     void showNotification(const QString &message);
+    /** @brief Modbus 写使能关闭时的 Toast 提示 */
+    void showModbusWriteDisabledToast();
     /** @brief 显示右下角 Toast（可选 onDismissed 在确认关闭后调用） */
     void showToast(const QString &message,
                    ToastKind kind = ToastKind::Info,

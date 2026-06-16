@@ -562,7 +562,7 @@ void MainWindow::applyWeightThresholdRuntimeSettings()
 bool MainWindow::writeAgvHoldingRegisterBlock(int startAddress, const QVector<quint16> &words)
 {
     if (!isFeatureEnabled("modbus_agv", "modbus_agv.write_enabled")) {
-        showNotification("AGV Modbus 写功能已关闭");
+        showModbusWriteDisabledToast();
         return false;
     }
     if (!m_agvModbusManager || words.isEmpty()) {
@@ -799,7 +799,7 @@ void MainWindow::setupControlConnections()
                 return;
             }
             if (!isFeatureEnabled("modbus_main", "modbus_main.write_enabled")) {
-                showNotification(QStringLiteral("Main Modbus 写功能已关闭"));
+                showModbusWriteDisabledToast();
                 return;
             }
             if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
@@ -3097,6 +3097,11 @@ void MainWindow::showNotification(const QString &message)
     }
 }
 
+void MainWindow::showModbusWriteDisabledToast()
+{
+    showToast(QStringLiteral("当前操作在目前设备上不被允许"), ToastKind::Warning);
+}
+
 void MainWindow::showToast(const QString &message,
                            ToastKind kind,
                            int durationMs,
@@ -4784,7 +4789,7 @@ void MainWindow::on_TBtn_Interlocking_clicked()
         return;
     }
     if (!isFeatureEnabled("modbus_main", "modbus_main.write_enabled")) {
-        showNotification(QStringLiteral("Main Modbus 写功能已关闭，无法切换示教器"));
+        showModbusWriteDisabledToast();
         return;
     }
 
@@ -7056,7 +7061,7 @@ void MainWindow::performStartupWrites()
 bool MainWindow::writeToAGVDevice(int address, int value, bool bypassWirelessWarning)
 {
     if (!isFeatureEnabled("modbus_agv", "modbus_agv.write_enabled")) {
-        showNotification("AGV Modbus 写功能已关闭");
+        showModbusWriteDisabledToast();
         return false;
     }
 
@@ -7110,7 +7115,7 @@ bool MainWindow::writeAGVRegisterBits(int address,
                                       bool bypassWirelessWarning)
 {
     if (!isFeatureEnabled("modbus_agv", "modbus_agv.write_enabled")) {
-        showNotification("AGV Modbus 写功能已关闭");
+        showModbusWriteDisabledToast();
         return false;
     }
 
@@ -7182,7 +7187,7 @@ bool MainWindow::writeAGVRegisterBits(int address,
 void MainWindow::writeToMainDevice(int address, int value)
 {
     if (!isFeatureEnabled("modbus_main", "modbus_main.write_enabled")) {
-        showNotification("Main Modbus 写功能已关闭");
+        showModbusWriteDisabledToast();
         return;
     }
 
@@ -11129,7 +11134,7 @@ void MainWindow::showRobotAxisSyncDeviationDialog()
 void MainWindow::onRobotAxisSyncStartClicked()
 {
     if (!isFeatureEnabled("modbus_main", "modbus_main.write_enabled")) {
-        showNotification(QStringLiteral("Main Modbus 写功能已关闭"));
+        showModbusWriteDisabledToast();
         return;
     }
     if (!isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
