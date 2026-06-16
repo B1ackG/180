@@ -31,9 +31,34 @@ Thumbs.db
 # Automatically added by Assistant
 build/
 180
-build.log
-system_check.log
+
+# Runtime / build logs and diagnostics
+*.log
+*.LOG
+build_output.txt
+build_error*.txt
+
+# IDE (local paths / compile_commands)
+.vscode/
 compile_commands.json
+
+# Doxygen generated API docs (regenerate: make docs)
+docs/doxygen/html/
+
+# Exported source mirrors (duplicate of *.cpp/*.h)
+docs/source_txt/
+
+# Orphan QML cache artifacts (not in 180.pro)
+*_qml.cpp
+qmlcache_loader.cpp
+res_qmlcache.qrc
+
+# Scratch / one-off notes
+patch.txt
+
+# Archived assets (not used by build)
+archive/
+
 documents/
 /third_party/libmodbus/
 /third_party/libmodbus/
@@ -41,26 +66,16 @@ documents/
 /third_party/libmodbus-aarch64/
 /third_party/libmodbus-build/
 /third_party/libmodbus*/
+/third_party/*.tar.gz
 
 # Added from Qt template by Assistant
-*.LOG
 *.csv
-*.log
 *.pro.user
-*_qml.cpp
 .pro.user
-.vscode/
-/third_party/*.tar.gz
 624
 ModbusTCPAssistant.pro.user
-archive/
-build_error*.txt
+build.log
 build_error_*.txt
-build_output.txt
 config.ini
-docs/doxygen/html/
-docs/source_txt/
 monitor_logs/
-patch.txt
-qmlcache_loader.cpp
-res_qmlcache.qrc
+system_check.log

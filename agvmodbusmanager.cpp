@@ -426,7 +426,7 @@ void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
         return;
     }
 
-    if (!isConnected() || count <= 0 || count > 125) {
+    if (!m_readsEnabled || !isConnected() || count <= 0 || count > 125) {
         return;
     }
 
@@ -903,5 +903,26 @@ bool AGVModbusManager::writesEnabled() const
         return enabled;
     }
     return m_writesEnabled;
+}
+
+void AGVModbusManager::setReadsEnabled(bool enabled)
+{
+    if (QThread::currentThread() != thread()) {
+        QMetaObject::invokeMethod(this, [this, enabled]() { setReadsEnabled(enabled); }, Qt::QueuedConnection);
+        return;
+    }
+    m_readsEnabled = enabled;
+}
+
+bool AGVModbusManager::readsEnabled() const
+{
+    if (QThread::currentThread() != thread()) {
+        bool enabled = false;
+        QMetaObject::invokeMethod(const_cast<AGVModbusManager *>(this), [this, &enabled]() {
+            enabled = m_readsEnabled;
+        }, Qt::BlockingQueuedConnection);
+        return enabled;
+    }
+    return m_readsEnabled;
 }
 

@@ -324,6 +324,10 @@ public:
     // 运行时控制写入开关
     void setWritesEnabled(bool enabled);
     bool writesEnabled() const;
+    void setReadsEnabled(bool enabled);
+    bool readsEnabled() const;
+private:
+    bool m_readsEnabled = true;
 };
 
 #endif // AGVMODBUSMANAGER_H

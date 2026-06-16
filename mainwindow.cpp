@@ -561,6 +561,10 @@ void MainWindow::applyWeightThresholdRuntimeSettings()
 
 bool MainWindow::writeAgvHoldingRegisterBlock(int startAddress, const QVector<quint16> &words)
 {
+    if (!isFeatureEnabled("modbus_agv", "modbus_agv.write_enabled")) {
+        showNotification("AGV Modbus 写功能已关闭");
+        return false;
+    }
     if (!m_agvModbusManager || words.isEmpty()) {
         return false;
     }
@@ -571,6 +575,17 @@ bool MainWindow::writeAgvHoldingRegisterBlock(int startAddress, const QVector<qu
         m_agvRegisterShadow[startAddress + i] = words.at(i);
     }
     return true;
+}
+
+void MainWindow::applyModbusAccessSwitches()
+{
+    if (!m_agvModbusManager) {
+        return;
+    }
+    const bool agvReadEnabled = isFeatureEnabled("modbus_agv", "modbus_agv.read_enabled");
+    const bool agvWriteEnabled = isFeatureEnabled("modbus_agv", "modbus_agv.write_enabled");
+    m_agvModbusManager->setReadsEnabled(agvReadEnabled);
+    m_agvModbusManager->setWritesEnabled(agvWriteEnabled);
 }
 
 void MainWindow::applyInclinometerDisplayRuntimeSettings()
@@ -776,27 +791,17 @@ void MainWindow::setupControlConnections()
         qWarning() << "未找到TBtn_ControlMode按钮";
     }
 
-    m_btnForceControl = findChild<TechPushButton*>("btn_ForceControl");
-    if (m_btnForceControl) {
-        m_btnForceControl->setText(m_forcecontrolMode ? "力控开启" : "力控关闭");
-        if (m_forcecontrolMode) {
-            m_btnForceControl->setPrimaryColor(QColor("#00C8FF"));
-            m_btnForceControl->setGlowColor(QColor(0, 200, 255, 180));
-        } else {
-            m_btnForceControl->setPrimaryColor(QColor("#7F8C8D"));
-            m_btnForceControl->setGlowColor(QColor(127, 140, 141, 100));
-        }
-        connect(m_btnForceControl, &TechPushButton::clicked,
-                this, &MainWindow::toggleForceControl);
-        qCDebug(lcMainWindow) << "力控按钮初始化完成，初始状态:"
-                 << (m_forcecontrolMode ? "开启" : "关闭");
-    } else {
-        qWarning() << "未找到btn_ForceControl按钮";
-    }
-
     // 六自由度页：主控 192.168.1.13 保持寄存器 615 的 bit1 置 1（读改写，保留其它位）
     if (TechPushButton *resetSixBtn = findChild<TechPushButton*>(QStringLiteral("techBtn_resetSixAxies"))) {
         connect(resetSixBtn, &TechPushButton::clicked, this, [this]() {
+            if (!isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
+                showNotification(QStringLiteral("Main Modbus 读功能已关闭"));
+                return;
+            }
+            if (!isFeatureEnabled("modbus_main", "modbus_main.write_enabled")) {
+                showNotification(QStringLiteral("Main Modbus 写功能已关闭"));
+                return;
+            }
             if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
                 showNotification(QStringLiteral("主控 Modbus 未连接"));
                 return;
@@ -3058,6 +3063,7 @@ void MainWindow::setupAdminPasswordPage()
                     loadSliderLabelRuntimeSettings();
                     applySliderLabelRuntimeSettings();
                     applyEstimatedWeightRuntimeSettings();
+                    applyModbusAccessSwitches();
                     applyParkOutTriggerLengthRuntimeSettings();
                     applyWeightThresholdRuntimeSettings();
                     applyInclinometerDisplayRuntimeSettings();
@@ -4683,6 +4689,11 @@ void MainWindow::refreshInterlockingButtonText()
         ui->TBtn_Interlocking->setText(QStringLiteral("--"));
         return;
     }
+    if (!isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
+        ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(false, 0);
+        ui->TBtn_Interlocking->setText(QStringLiteral("--"));
+        return;
+    }
     quint16 v = 0;
     const int addr = ModbusWriteGate::interlockRegisterAddress();
     if (!mgr->readSingleRegister(addr, v)) {
@@ -4768,6 +4779,14 @@ void MainWindow::on_TBtn_Interlocking_clicked()
         showNotification(QStringLiteral("主控 Modbus 未连接，无法切换示教器"));
         return;
     }
+    if (!isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
+        showNotification(QStringLiteral("Main Modbus 读功能已关闭，无法读取示教器状态"));
+        return;
+    }
+    if (!isFeatureEnabled("modbus_main", "modbus_main.write_enabled")) {
+        showNotification(QStringLiteral("Main Modbus 写功能已关闭，无法切换示教器"));
+        return;
+    }
 
     const QString upper = QStringLiteral("上方示教器");
     const QString lower = QStringLiteral("下方示教器");
@@ -4793,7 +4812,7 @@ void MainWindow::on_TBtn_Interlocking_clicked()
         nextLabel = upper;
     }
 
-    if (!mgr->writeSingleRegister(addr, valueToWrite)) {
+    if (!MainDeviceModbusApi::writeRegister(mgr, addr, static_cast<int>(valueToWrite))) {
         showNotification(QStringLiteral("写入联锁寄存器失败"));
         return;
     }
@@ -4849,7 +4868,8 @@ void MainWindow::onModbusConnected()
     qCDebug(lcMainWindow) << "Modbus连接成功，启动交互任务...";
     MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Connected);
 
-    if (!m_runtimeBaselineReady && m_modbusManager) {
+    if (!m_runtimeBaselineReady && m_modbusManager
+        && isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
         quint16 persistedLow = 0;
         quint16 persistedHigh = 0;
         const bool lowOk = m_modbusManager->readSingleRegister(kRuntimePersistRegister, persistedLow);
@@ -5519,121 +5539,6 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
 
 
-    // ============ 新增：处理大六维力寄存器（612-623） ============
-    if (address >= 612 && address <= 623) {
-        // 调试输出：确认收到大六维力数据
-         qCDebug(lcMainWindow) << "收到大六维力寄存器数据 - 地址:" << address << "值:" << value;
-        
-        // 定义地址到大六维力标签的映射
-        static QMap<int, QString> bigForceAddressToLabelMap = {
-            {612, "FX"}, {613, "FX"},
-            {614, "FY"}, {615, "FY"},
-            {616, "FZ"}, {617, "FZ"},
-            {618, "MX"}, {619, "MX"},
-            {620, "MY"}, {621, "MY"},
-            {622, "MZ"}, {623, "MZ"}
-        };
-
-        if (bigForceAddressToLabelMap.contains(address)) {
-            QString labelName = bigForceAddressToLabelMap[address];
-
-            // 获取对应的寄存器对地址
-            int highAddr, lowAddr;
-            if (labelName == "FX") {
-                highAddr = 612; lowAddr = 613;
-            } else if (labelName == "FY") {
-                highAddr = 614; lowAddr = 615;
-            } else if (labelName == "FZ") {
-                highAddr = 616; lowAddr = 617;
-            } else if (labelName == "MX") {
-                highAddr = 618; lowAddr = 619;
-            } else if (labelName == "MY") {
-                highAddr = 620; lowAddr = 621;
-            } else {  // MZ
-                highAddr = 622; lowAddr = 623;
-            }
-
-            // 更新寄存器缓存
-            static QMap<int, quint16> bigForceRegisterCache;
-            bigForceRegisterCache[address] = value;
-
-            // 只有当两个寄存器都有值时才计算
-            if (bigForceRegisterCache.contains(highAddr) && bigForceRegisterCache.contains(lowAddr)) {
-                quint16 high = bigForceRegisterCache[highAddr];
-                quint16 low = bigForceRegisterCache[lowAddr];
-
-                float floatValue = registersToFloat(high, low);
-
-                // 调试输出
-                static int debugCount = 0;
-                if (debugCount++ % 6 == 0) // 减少刷屏，每6次（大约一组）打印一次
-                   qCDebug(lcMainWindow) << "【大" << labelName << "】" << "值:" << floatValue << " (Raw: " << high << "," << low << ")";
-
-                // 更新标签显示
-                updateBigForceLabel(labelName, floatValue);
-            }
-        }
-    }
-
-    // ============ 新增：处理小六维力寄存器（624-635） ============
-    if (address >= 624 && address <= 635) {
-        
-        // 调试输出：确认收到小六维力数据
-        // qCDebug(lcMainWindow) << "收到小六维力寄存器数据 - 地址:" << address << "值:" << value;
-
-        // 定义地址到小六维力标签的映射
-        static QMap<int, QString> smallForceAddressToLabelMap = {
-            {624, "FX"}, {625, "FX"},
-            {626, "FY"}, {627, "FY"},
-            {628, "FZ"}, {629, "FZ"},
-            {630, "MX"}, {631, "MX"},
-            {632, "MY"}, {633, "MY"},
-            {634, "MZ"}, {635, "MZ"}
-        };
-
-        if (smallForceAddressToLabelMap.contains(address)) {
-            QString labelName = smallForceAddressToLabelMap[address];
-
-            // 获取对应的寄存器对地址
-            int highAddr, lowAddr;
-            if (labelName == "FX") {
-                highAddr = 624; lowAddr = 625;
-            } else if (labelName == "FY") {
-                highAddr = 626; lowAddr = 627;
-            } else if (labelName == "FZ") {
-                highAddr = 628; lowAddr = 629;
-            } else if (labelName == "MX") {
-                highAddr = 630; lowAddr = 631;
-            } else if (labelName == "MY") {
-                highAddr = 632; lowAddr = 633;
-            } else {  // MZ
-                highAddr = 634; lowAddr = 635;
-            }
-
-            // 更新寄存器缓存
-            static QMap<int, quint16> smallForceRegisterCache;
-            smallForceRegisterCache[address] = value;
-
-            // 只有当两个寄存器都有值时才计算
-            if (smallForceRegisterCache.contains(highAddr) && smallForceRegisterCache.contains(lowAddr)) {
-                quint16 high = smallForceRegisterCache[highAddr];
-                quint16 low = smallForceRegisterCache[lowAddr];
-
-                float floatValue = registersToFloat(high, low);
-
-                // 调试输出
-                static int smallDebugCount = 0;
-                if (smallDebugCount++ % 6 == 0)
-                   qCDebug(lcMainWindow) << "【小" << labelName << "】"
-                            << "高位(0x" << QString::number(high, 16).toUpper() << ")"
-                            << "低位(0x" << QString::number(low, 16).toUpper() << ")"
-                            << "值:" << floatValue;
-
-                // 更新标签显示
-                updateSmallForceLabel(labelName, floatValue);
-            }
-        }
-    }
 }
 
 void MainWindow::syncStepModeUiByCurrentPage()
@@ -7150,6 +7055,11 @@ void MainWindow::performStartupWrites()
  */
 bool MainWindow::writeToAGVDevice(int address, int value, bool bypassWirelessWarning)
 {
+    if (!isFeatureEnabled("modbus_agv", "modbus_agv.write_enabled")) {
+        showNotification("AGV Modbus 写功能已关闭");
+        return false;
+    }
+
     if (!m_agvModbusManager || !m_agvModbusManager->isConnected()) {
         if (!m_agvDisconnectedWarnedAddresses.contains(address)) {
             qWarning() << "AGV Modbus未连接，无法写入地址" << address;
@@ -7199,6 +7109,11 @@ bool MainWindow::writeAGVRegisterBits(int address,
                                       const QString &scene,
                                       bool bypassWirelessWarning)
 {
+    if (!isFeatureEnabled("modbus_agv", "modbus_agv.write_enabled")) {
+        showNotification("AGV Modbus 写功能已关闭");
+        return false;
+    }
+
     if (address < 0 || address > 65535) {
         qWarning() << "[AGV按位写入] 非法寄存器地址:" << address;
         return false;
@@ -7266,6 +7181,11 @@ bool MainWindow::writeAGVRegisterBits(int address,
  */
 void MainWindow::writeToMainDevice(int address, int value)
 {
+    if (!isFeatureEnabled("modbus_main", "modbus_main.write_enabled")) {
+        showNotification("Main Modbus 写功能已关闭");
+        return;
+    }
+
     if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
         qWarning() << "主Modbus未连接，无法写入地址" << address;
         return;
@@ -7280,6 +7200,10 @@ void MainWindow::writeToMainDevice(int address, int value)
 }
 void MainWindow::onControlModeClicked()
 {
+    if (!isFeatureEnabled("motion_control", "motion.control_mode_switch")) {
+        showNotification("控制模式切换功能已关闭");
+        return;
+    }
     if (isRobotWeightLockGateActive()) {
         blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：控制模式切换已无效"));
         return;
@@ -7487,6 +7411,11 @@ void MainWindow::setupAGVAngleControl()
 // AGV避障开关按钮点击槽函数
 void MainWindow::onAGVOABtnClicked()
 {
+    if (!isFeatureEnabled("motion_control", "motion.agv_oa_switch")) {
+        showNotification("AGV避障开关功能已关闭");
+        return;
+    }
+
     if (property("oaSwitchBusy").toBool()) {
         ui->statusBar->showMessage("避障切换进行中，请稍候...", 1500);
         qWarning() << "OA切换请求被忽略：上一条指令仍在确认中";
@@ -7615,6 +7544,22 @@ void MainWindow::onAGVOABtnClicked()
 
 void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengthMm)
 {
+    if (!isFeatureEnabled("motion_control", "motion.agv_park_switch")) {
+        showNotification("AGV驻车开关功能已关闭");
+        return;
+    }
+
+    if (m_controlMode != WIRED_MODE) {
+        ui->statusBar->showMessage("当前为无线控制，驻车功能仅在有线控制模式下生效", 3000);
+        qWarning() << "驻车请求被拒绝：当前不是有线控制模式";
+        return;
+    }
+
+    if (property("parkingSwitchWaiting").toBool()) {
+        ui->statusBar->showMessage("驻车切换进行中，请等待完成", 2000);
+        return;
+    }
+
     const bool oldParkingEnabled = m_agvParkingEnabled;
     const int targetWaitBit = targetParkingEnabled ? 3 : 4;
 
@@ -7818,6 +7763,10 @@ void MainWindow::onAGVParkBtnClicked()
 // AGV运动速度变化槽函数
 void MainWindow::onAGVMoveSpeedChanged(double value)
 {
+    if (!isFeatureEnabled("motion_control", "motion.agv_speed_control")) {
+        return;
+    }
+
     const int intValue = qBound(0, static_cast<int>(qRound(value)), 100);
 
     // 按需求直接写入地址3（单位:mm/s）
@@ -7829,6 +7778,9 @@ void MainWindow::onAGVMoveSpeedChanged(double value)
 // AGV转向角度变化槽函数
 void MainWindow::onAGVAngleChanged(double value)
 {
+    if (!isFeatureEnabled("motion_control", "motion.agv_angle_control")) {
+        return;
+    }
     if (isRobotWeightLockGateActive()) {
         blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：底盘当前角度调整已无效"));
         if (m_editAGV_Angle) {
@@ -8571,590 +8523,6 @@ void MainWindow::onTcpTransmissionError(const QString &error)
         qCDebug(lcMainWindow) << "TCP传输错误(已抑制重复):" << error;
     }
 }
-//六维力
-// 在mainwindow.cpp中添加以下函数实现
-void MainWindow::setupBigForceLabels()
-{
-    if (!isFeatureEnabled("force_sensor", "force.big_sensor")) {
-        return;
-    }
-
-    // 查找六个大六维力标签
-    m_labelBigFX = findChild<QLabel*>("labelBigFX");
-    m_labelBigFY = findChild<QLabel*>("labelBigFY");
-    m_labelBigFZ = findChild<QLabel*>("labelBigFZ");
-    m_labelBigMX = findChild<QLabel*>("labelBigMX");
-    m_labelBigMY = findChild<QLabel*>("labelBigMY");
-    m_labelBigMZ = findChild<QLabel*>("labelBigMZ");
-
-    // 创建标签名称到控件指针的映射
-    if (m_labelBigFX) {
-        m_bigForceLabels["FX"] = m_labelBigFX;
-        m_labelBigFX->setText("原始值FX: 0.00");
-        m_labelBigFX->setAlignment(Qt::AlignLeft | Qt::AlignVCenter); // 左对齐
-        m_labelBigFX->setStyleSheet(
-            "QLabel {"
-            "    font-size: 12px;"  // 统一字体大小为12px
-            "    font-weight: bold;"
-            "    padding: 3px 8px;"
-            "    min-width: 120px;"
-            "}"
-            );
-    }
-
-    if (m_labelBigFY) {
-        m_bigForceLabels["FY"] = m_labelBigFY;
-        m_labelBigFY->setText("原始值FY: 0.00");
-        m_labelBigFY->setAlignment(Qt::AlignLeft | Qt::AlignVCenter); // 左对齐
-        m_labelBigFY->setStyleSheet(
-            "QLabel {"
-            "    font-size: 12px;"  // 统一字体大小为12px
-            "    font-weight: bold;"
-            "    padding: 3px 8px;"
-            "    min-width: 120px;"
-            "}"
-            );
-    }
-
-    if (m_labelBigFZ) {
-        m_bigForceLabels["FZ"] = m_labelBigFZ;
-        m_labelBigFZ->setText("原始值FZ: 0.00");
-        m_labelBigFZ->setAlignment(Qt::AlignLeft | Qt::AlignVCenter); // 左对齐
-        m_labelBigFZ->setStyleSheet(
-            "QLabel {"
-            "    font-size: 12px;"  // 统一字体大小为12px
-            "    font-weight: bold;"
-            "    padding: 3px 8px;"
-            "    min-width: 120px;"
-            "}"
-            );
-    }
-
-    if (m_labelBigMX) {
-        m_bigForceLabels["MX"] = m_labelBigMX;
-        m_labelBigMX->setText("原始值MX: 0.00");
-        m_labelBigMX->setAlignment(Qt::AlignLeft | Qt::AlignVCenter); // 左对齐
-        m_labelBigMX->setStyleSheet(
-            "QLabel {"
-            "    font-size: 12px;"  // 统一字体大小为12px
-            "    font-weight: bold;"
-            "    padding: 3px 8px;"
-            "    min-width: 120px;"
-            "}"
-            );
-    }
-
-    if (m_labelBigMY) {
-        m_bigForceLabels["MY"] = m_labelBigMY;
-        m_labelBigMY->setText("原始值MY: 0.00");
-        m_labelBigMY->setAlignment(Qt::AlignLeft | Qt::AlignVCenter); // 左对齐
-        m_labelBigMY->setStyleSheet(
-            "QLabel {"
-            "    font-size: 12px;"  // 统一字体大小为12px
-            "    font-weight: bold;"
-            "    padding: 3px 8px;"
-            "    min-width: 120px;"
-            "}"
-            );
-    }
-
-    if (m_labelBigMZ) {
-        m_bigForceLabels["MZ"] = m_labelBigMZ;
-        m_labelBigMZ->setText("原始值MZ: 0.00");
-        m_labelBigMZ->setAlignment(Qt::AlignLeft | Qt::AlignVCenter); // 左对齐
-        m_labelBigMZ->setStyleSheet(
-            "QLabel {"
-            "    font-size: 12px;"  // 统一字体大小为12px
-            "    font-weight: bold;"
-            "    padding: 3px 8px;"
-            "    min-width: 120px;"
-            "}"
-            );
-    }
-
-    qCDebug(lcMainWindow) << "大六维力标签初始化完成，找到" << m_bigForceLabels.size() << "个标签";
-}
-void MainWindow::setupSmallForceLabels()
-{
-    if (!isFeatureEnabled("force_sensor", "force.small_sensor")) {
-        return;
-    }
-
-    // 查找六个小六维力标签
-    m_labelSmallFX = findChild<QLabel*>("labelSmallFX");
-    m_labelSmallFY = findChild<QLabel*>("labelSmallFY");
-    m_labelSmallFZ = findChild<QLabel*>("labelSmallFZ");
-    m_labelSmallMX = findChild<QLabel*>("labelSmallMX");
-    m_labelSmallMY = findChild<QLabel*>("labelSmallMY");
-    m_labelSmallMZ = findChild<QLabel*>("labelSmallMZ");
-
-    // 创建标签名称到控件指针的映射
-    if (m_labelSmallFX) {
-        m_smallForceLabels["FX"] = m_labelSmallFX;
-        m_labelSmallFX->setText("原始值FX: 0.00");
-        m_labelSmallFX->setAlignment(Qt::AlignLeft | Qt::AlignVCenter); // 左对齐
-        m_labelSmallFX->setStyleSheet(
-            "QLabel {"
-            "    font-size: 12px;"  // 统一字体大小为12px
-            "    font-weight: bold;"
-            "    padding: 3px 8px;"
-            "    min-width: 100px;"
-            "}"
-            );
-    }
-
-    if (m_labelSmallFY) {
-        m_smallForceLabels["FY"] = m_labelSmallFY;
-        m_labelSmallFY->setText("原始值FY: 0.00");
-        m_labelSmallFY->setAlignment(Qt::AlignLeft | Qt::AlignVCenter); // 左对齐
-        m_labelSmallFY->setStyleSheet(
-            "QLabel {"
-            "    font-size: 12px;"  // 统一字体大小为12px
-            "    font-weight: bold;"
-            "    padding: 3px 8px;"
-            "    min-width: 100px;"
-            "}"
-            );
-    }
-
-    if (m_labelSmallFZ) {
-        m_smallForceLabels["FZ"] = m_labelSmallFZ;
-        m_labelSmallFZ->setText("原始值FZ: 0.00");
-        m_labelSmallFZ->setAlignment(Qt::AlignLeft | Qt::AlignVCenter); // 左对齐
-        m_labelSmallFZ->setStyleSheet(
-            "QLabel {"
-            "    font-size: 12px;"  // 统一字体大小为12px
-            "    font-weight: bold;"
-            "    padding: 3px 8px;"
-            "    min-width: 100px;"
-            "}"
-            );
-    }
-
-    if (m_labelSmallMX) {
-        m_smallForceLabels["MX"] = m_labelSmallMX;
-        m_labelSmallMX->setText("原始值MX: 0.00");
-        m_labelSmallMX->setAlignment(Qt::AlignLeft | Qt::AlignVCenter); // 左对齐
-        m_labelSmallMX->setStyleSheet(
-            "QLabel {"
-            "    font-size: 12px;"  // 统一字体大小为12px
-            "    font-weight: bold;"
-            "    padding: 3px 8px;"
-            "    min-width: 100px;"
-            "}"
-            );
-    }
-
-    if (m_labelSmallMY) {
-        m_smallForceLabels["MY"] = m_labelSmallMY;
-        m_labelSmallMY->setText("原始值MY: 0.00");
-        m_labelSmallMY->setAlignment(Qt::AlignLeft | Qt::AlignVCenter); // 左对齐
-        m_labelSmallMY->setStyleSheet(
-            "QLabel {"
-            "    font-size: 12px;"  // 统一字体大小为12px
-            "    font-weight: bold;"
-            "    padding: 3px 8px;"
-            "    min-width: 100px;"
-            "}"
-            );
-    }
-
-    if (m_labelSmallMZ) {
-        m_smallForceLabels["MZ"] = m_labelSmallMZ;
-        m_labelSmallMZ->setText("原始值MZ: 0.00");
-        m_labelSmallMZ->setAlignment(Qt::AlignLeft | Qt::AlignVCenter); // 左对齐
-        m_labelSmallMZ->setStyleSheet(
-            "QLabel {"
-            "    font-size: 12px;"  // 统一字体大小为12px
-            "    font-weight: bold;"
-            "    padding: 3px 8px;"
-            "    min-width: 100px;"
-            "}"
-            );
-    }
-
-    qCDebug(lcMainWindow) << "小六维力标签初始化完成，找到" << m_smallForceLabels.size() << "个标签";
-}
-
-
-void MainWindow::setupForceReading()
-{
-    // 已根据要求删除六维力传感器轮询功能，以减少主 Modbus 队列负载
-    qCDebug(lcMainWindow) << "六维力传感器轮询功能已禁用";
-    return;
-}
-
-void MainWindow::setupBigForceReading()
-{
-    // 立即读取一次
-    readBigForceRegisters();
-
-    // 每500毫秒读取一次（与原有浮点数读取保持相同频率）
-    QTimer::singleShot(500, this, [this]() {
-        if (m_modbusManager && m_modbusManager->isConnected()) {
-            readBigForceRegisters();
-            // 继续定时读取
-            QTimer::singleShot(500, this, [this]() { setupBigForceReading(); });
-        } else {
-            // Modbus未连接，等待2秒后重试
-            QTimer::singleShot(2000, this, [this]() { setupBigForceReading(); });
-        }
-    });
-}
-void MainWindow::readBigForceRegisters()
-{
-    if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
-        qCDebug(lcMainWindow) << "Modbus未连接，无法读取大六维力数据";
-        return;
-    }
-
-    // 读取612-623地址（12个寄存器，6个浮点数）
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 612, 12);
-}
-void MainWindow::readSmallForceRegisters()
-{
-    if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
-        qCDebug(lcMainWindow) << "Modbus未连接，无法读取小六维力数据";
-        return;
-    }
-
-    // 读取624-635地址（12个寄存器，6个浮点数）
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 624, 12);
-}
-void MainWindow::updateBigForceLabel(const QString& labelName, float value)
-{
-    if (!m_bigForceLabels.contains(labelName)) {
-        return;
-    }
-
-    // 存储当前原始值
-    m_bigForceCurrentValues[labelName] = value;
-
-    QLabel* label = m_bigForceLabels[labelName];
-    if (!label) {
-        return;
-    }
-
-    // 根据去皮标志计算显示值
-    float displayValue = value;
-    QString prefix = "原始值";
-
-    if (m_isForcePeeled && m_bigForceOffsets.contains(labelName)) {
-        float offset = m_bigForceOffsets[labelName];
-        displayValue = value - offset;  // 显示值 = 当前值 - 基准值
-        prefix = "去皮值";
-
-        // 调试输出
-        static QMap<QString, int> debugCounters;
-        int count = debugCounters.value(labelName, 0);
-        if (count++ % 10 == 0) {  // 每10次输出一次，避免日志过多
-            qCDebug(lcMainWindow) << "大" << labelName << ": 原始=" << value
-                     << ", 基准=" << offset
-                     << ", 显示=" << displayValue;
-            debugCounters[labelName] = count;
-        }
-    }
-
-    // 格式化显示（保留2位小数），保持左对齐
-    QString displayText = QString("%1%2: %3")
-        .arg(prefix)
-        .arg(labelName)
-        .arg(displayValue, 0, 'f', 2);
-
-    label->setText(displayText);
-    label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-
-    // 根据数值大小设置颜色（可选）
-    if (m_isForcePeeled && qAbs(displayValue) > 10.0) {
-        label->setStyleSheet("color: #ff5555; font-weight: bold;");
-    } else {
-        label->setStyleSheet("color: #ffffff;");
-    }
-}
-
-void MainWindow::updateSmallForceLabel(const QString& labelName, float value)
-{
-    if (!m_smallForceLabels.contains(labelName)) {
-        return;
-    }
-
-    // 存储当前原始值
-    m_smallForceCurrentValues[labelName] = value;
-
-    QLabel* label = m_smallForceLabels[labelName];
-    if (!label) {
-        return;
-    }
-
-    // 根据去皮标志计算显示值
-    float displayValue = value;
-    QString prefix = "原始值";
-
-    if (m_isForcePeeled && m_smallForceOffsets.contains(labelName)) {
-        float offset = m_smallForceOffsets[labelName];
-        displayValue = value - offset;  // 显示值 = 当前值 - 基准值
-        prefix = "去皮值";
-
-        // 调试输出
-        static QMap<QString, int> debugCounters;
-        int count = debugCounters.value(labelName, 0);
-        if (count++ % 10 == 0) {  // 每10次输出一次，避免日志过多
-            qCDebug(lcMainWindow) << "小" << labelName << ": 原始=" << value
-                     << ", 基准=" << offset
-                     << ", 显示=" << displayValue;
-            debugCounters[labelName] = count;
-        }
-    }
-
-    // 格式化显示（保留2位小数），保持左对齐
-    QString displayText = QString("%1%2: %3")
-        .arg(prefix)
-        .arg(labelName)
-        .arg(displayValue, 0, 'f', 2);
-
-    label->setText(displayText);
-    label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-
-    // 根据数值大小设置颜色（可选）
-    if (m_isForcePeeled && qAbs(displayValue) > 5.0) {
-        label->setStyleSheet("color: #ff5555; font-weight: bold;");
-    } else {
-        label->setStyleSheet("color: #ffffff;");
-    }
-}
-
-void MainWindow::setupForceDisplayModeButtons()
-{
-    if (!isBigFeatureEnabled("force_sensor")) {
-        return;
-    }
-
-    m_btnBigForceControl = findChild<TechPushButton*>("Btn_bigForceControl");
-    m_btnSmallForceControl = findChild<TechPushButton*>("Btn_smallForceControl");
-
-    if (!m_btnBigForceControl || !m_btnSmallForceControl) {
-        qWarning() << "未找到Btn_bigForceControl或Btn_smallForceControl按钮";
-        return;
-    }
-
-    m_btnBigForceControl->enableClickAnimation(true);
-    m_btnSmallForceControl->enableClickAnimation(true);
-    m_btnBigForceControl->enableHoverAnimation(true);
-    m_btnSmallForceControl->enableHoverAnimation(true);
-    m_btnBigForceControl->setTextGlow(true);
-    m_btnSmallForceControl->setTextGlow(true);
-
-    m_btnBigForceControl->setButtonStyle(TechPushButton::StyleHolographic);
-    m_btnSmallForceControl->setButtonStyle(TechPushButton::StyleHolographic);
-
-    connect(m_btnBigForceControl, &TechPushButton::clicked, this, [this]() {
-        setForceDisplayMode(ForceDisplayBig);
-    });
-    connect(m_btnSmallForceControl, &TechPushButton::clicked, this, [this]() {
-        setForceDisplayMode(ForceDisplaySmall);
-    });
-
-    setForceDisplayMode(m_forceDisplayMode);
-    qCDebug(lcMainWindow) << "大/小六维力模式按钮初始化完成";
-}
-
-void MainWindow::setForceDisplayMode(ForceDisplayMode mode)
-{
-    if (!m_btnBigForceControl || !m_btnSmallForceControl) {
-        return;
-    }
-
-    m_forceDisplayMode = mode;
-
-    const QColor activeColor(0, 200, 255);
-    const QColor inactiveColor(80, 80, 100);
-    const QColor inactiveTextColor(200, 200, 200);
-
-    // 发送Modbus指令 (新增)
-    if (mode == ForceDisplayBig) {
-        writeToMainDevice(404, 0); // 大力模式：写0
-        qCDebug(lcMainWindow) << "切换至大力传感器模式，地址404写入0";
-    } else {
-        writeToMainDevice(404, 1); // 小力模式：写1
-        qCDebug(lcMainWindow) << "切换至小力传感器模式，地址404写入1";
-    }
-
-    // 先全部设为非激活
-    m_btnBigForceControl->setPrimaryColor(inactiveColor);
-    m_btnBigForceControl->setGlowColor(inactiveColor);
-    m_btnBigForceControl->setTextColor(inactiveTextColor);
-    m_btnBigForceControl->enablePulseEffect(false);
-
-    m_btnSmallForceControl->setPrimaryColor(inactiveColor);
-    m_btnSmallForceControl->setGlowColor(inactiveColor);
-    m_btnSmallForceControl->setTextColor(inactiveTextColor);
-    m_btnSmallForceControl->enablePulseEffect(false);
-
-    // 激活当前模式
-    if (mode == ForceDisplayBig) {
-        m_btnBigForceControl->setPrimaryColor(activeColor);
-        m_btnBigForceControl->setGlowColor(activeColor.lighter(150));
-        m_btnBigForceControl->setTextColor(Qt::white);
-        // m_btnBigForceControl->enablePulseEffect(true);
-    } else {
-        m_btnSmallForceControl->setPrimaryColor(activeColor);
-        m_btnSmallForceControl->setGlowColor(activeColor.lighter(150));
-        m_btnSmallForceControl->setTextColor(Qt::white);
-        // m_btnSmallForceControl->enablePulseEffect(true);
-    }
-
-    m_btnBigForceControl->update();
-    m_btnSmallForceControl->update();
-}
-
-void MainWindow::setupForceClearButton()
-{
-    if (!isFeatureEnabled("force_sensor", "force.clear_zero")) {
-        return;
-    }
-
-    m_btnForceClear = findChild<QPushButton*>("btn_ForceClear");
-    if (m_btnForceClear) {
-        // 连接按下和释放信号
-        connect(m_btnForceClear, &QPushButton::pressed, this, &MainWindow::onForceClearPressed);
-        connect(m_btnForceClear, &QPushButton::released, this, &MainWindow::onForceClearReleased);
-
-        // 设置简化按钮样式
-        m_btnForceClear->setStyleSheet(
-            "QPushButton {"
-            "    padding: 10px;"
-            "    font-size: 14px;"
-            "}"
-            );
-
-        qCDebug(lcMainWindow) << "去皮按钮初始化完成";
-    } else {
-        qWarning() << "未找到btn_ForceClear按钮";
-    }
-}
-
-void MainWindow::onForceClearPressed()
-{
-    qCDebug(lcMainWindow) << "去皮按钮按下";
-
-    // 获取当前页面名称（用于操作记录）
-    QString pageName = getCurrentPageName();
-
-    // 记录去皮前的值（用于操作记录）
-    QMap<QString, float> beforeValues;
-
-    // 1. 只记录大六维力的当前值作为基准值
-    qCDebug(lcMainWindow) << "=== 记录大六维力基准值 ===";
-    for (auto it = m_bigForceCurrentValues.begin(); it != m_bigForceCurrentValues.end(); ++it) {
-        QString labelName = it.key();
-        float currentValue = it.value();
-
-        beforeValues[QString("大%1").arg(labelName)] = currentValue;
-        m_bigForceOffsets[labelName] = currentValue;
-
-        qCDebug(lcMainWindow) << "大六维力 " << labelName << " 基准值: " << currentValue;
-    }
-
-    // 2. 只记录小六维力的当前值作为基准值
-    qCDebug(lcMainWindow) << "=== 记录小六维力基准值 ===";
-    for (auto it = m_smallForceCurrentValues.begin(); it != m_smallForceCurrentValues.end(); ++it) {
-        QString labelName = it.key();
-        float currentValue = it.value();
-
-        beforeValues[QString("小%1").arg(labelName)] = currentValue;
-        m_smallForceOffsets[labelName] = currentValue;
-
-        qCDebug(lcMainWindow) << "小六维力 " << labelName << " 基准值: " << currentValue;
-    }
-
-    // 3. 设置去皮标志（注意：不在按钮按下时立即更新显示）
-    m_isForcePeeled = true;
-
-    // 4. 给192.168.1.13设备的401地址写1
-    writeToMainDevice(401, 1);
-
-    // 5. 记录操作到历史记录
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = pageName;
-    record.controlName = "去皮按钮";
-    record.controlType = "ForceClear";
-    record.operation = "force_clear_pressed";
-    record.oldValue = "未去皮";
-
-    // 构建详细的值字符串
-    QString valuesStr = "大六维力基准值: ";
-    for (auto it = beforeValues.begin(); it != beforeValues.end(); ++it) {
-        if (it.key().startsWith("大")) {
-            valuesStr += QString("%1=%2; ").arg(it.key()).arg(it.value(), 0, 'f', 2);
-        }
-    }
-    valuesStr += "小六维力基准值: ";
-    for (auto it = beforeValues.begin(); it != beforeValues.end(); ++it) {
-        if (it.key().startsWith("小")) {
-            valuesStr += QString("%1=%2; ").arg(it.key()).arg(it.value(), 0, 'f', 2);
-        }
-    }
-
-    record.newValue = valuesStr;
-    m_recorder->addRecord(record);
-
-    // 6. 显示通知（但不要立即更新标签显示）
-    showNotification("已记录当前值为基准值，后续显示将自动减去基准值");
-
-    qCDebug(lcMainWindow) << "去皮操作完成：已记录基准值，去皮标志设为true";
-}
-void MainWindow::onForceClearReleased()
-{
-    qCDebug(lcMainWindow) << "去皮按钮释放";
-
-    // 给192.168.1.13设备的401地址写0
-    writeToMainDevice(401, 0);
-
-    // 注意：我们不在这里清除去皮标志，因为去皮状态应该保持
-    // 如果需要取消去皮，可以添加专门的取消去皮功能
-}
-
-void MainWindow::toggleForceControl()
-{
-    if (!isFeatureEnabled("motion_control", "motion.force_control")) {
-        showNotification("力控功能已关闭");
-        return;
-    }
-
-    // 切换状态
-        m_forcecontrolMode = !m_forcecontrolMode;
-
-        if (m_forcecontrolMode) {
-            // 力控开启
-            m_btnForceControl->setText(m_isForcePeeled ? "力控开启(去皮)" : "力控开启");
-            m_btnForceControl->setPrimaryColor(QColor("#00C8FF"));
-            m_btnForceControl->setGlowColor(QColor(0, 200, 255, 180));
-            writeToMainDevice(400, 1);
-            qCDebug(lcMainWindow) << "力控模式：开启，地址400写入1";
-            ui->statusBar->showMessage("力控开启模式已启用", 2000);
-        } else {
-            // 力控关闭
-            m_btnForceControl->setText(m_isForcePeeled ? "力控关闭(去皮)" : "力控关闭");
-            m_btnForceControl->setPrimaryColor(QColor("#7F8C8D"));
-            m_btnForceControl->setGlowColor(QColor(127, 140, 141, 100));
-            writeToMainDevice(400, 0);
-            qCDebug(lcMainWindow) << "力控模式：关闭，地址400写入0";
-            ui->statusBar->showMessage("力控关闭模式已启用", 2000);
-        }
-
-    // 更新所有 TechSliderLabel 的力控状态
-    QList<TechSliderLabel*> allSliderLabels = this->findChildren<TechSliderLabel*>();
-    for (TechSliderLabel *label : allSliderLabels) {
-        label->setForceControlMode(m_forcecontrolMode);
-    }
-
-    // 立即检查报警条件（因为力控状态变化可能影响报警显示）
-    checkAlarmConditions();
-
-    qCDebug(lcMainWindow) << "力控按钮点击，新状态:" << (m_forcecontrolMode ? "开启" : "关闭");
-}
-
 // void MainWindow::on_TBtn_Stepmove_clicked()
 // {
 //      writeToMainDevice(5,2);
@@ -10120,8 +9488,6 @@ void MainWindow::sendRemoveWarningModbusWrites()
 {
     // 写入 290 清除报警（与「清除报警」按钮一致）
     writeToMainDevice(290, 1);
-    // 清除力控超限错误：403 写 0
-    ModbusThreadManager::instance()->writeSingleRegister(403, 0);
 }
 
 // 修改：原有的清除报警按钮函数
@@ -10135,11 +9501,6 @@ void MainWindow::on_TBtn_RemoveWarning_clicked()
     if (m_emergencyStopAlarm) {
         m_emergencyStopAlarm = false;
         qCDebug(lcMainWindow) << "用户清除了紧急停止报警";
-    }
-
-    if (m_forceLimitAlarm) {
-        m_forceLimitAlarm = false;
-        qCDebug(lcMainWindow) << "用户清除了力控超限报警";
     }
 
     // 更新报警显示
@@ -10161,7 +9522,6 @@ void MainWindow::setupAlarmSystem()
 
     // 初始化报警状态
     m_emergencyStopAlarm = false;
-    m_forceLimitAlarm = false;
     m_emergencyStopColumnFlag = false;
     m_emergencyStopChassisFlag = false;
     m_robotArmEmergency150Flag = false;
@@ -10179,7 +9539,6 @@ void MainWindow::setupAlarmSystem()
     m_agvBatteryLowAcked = false;
     m_mainRegister150Valid = false;
     m_mainRegister150Shadow = 0;
-    m_forceLimitFlag = false;
 
     // 创建报警检测定时器
     if (!m_alarmCheckTimer) {
@@ -11769,6 +11128,14 @@ void MainWindow::showRobotAxisSyncDeviationDialog()
 
 void MainWindow::onRobotAxisSyncStartClicked()
 {
+    if (!isFeatureEnabled("modbus_main", "modbus_main.write_enabled")) {
+        showNotification(QStringLiteral("Main Modbus 写功能已关闭"));
+        return;
+    }
+    if (!isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
+        showNotification(QStringLiteral("Main Modbus 读功能已关闭"));
+        return;
+    }
     if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
         showNotification(QStringLiteral("主控 Modbus 未连接"));
         return;
@@ -11815,8 +11182,8 @@ void MainWindow::onTestAlarmButtonClicked()
 
     // 等待3秒
     QTimer::singleShot(3000, this, [this]() {
-        qCDebug(lcMainWindow) << "测试2：测试力控超限报警...";
-        showAlarm("手动测试报警 - 力控超限", "#ff8800");
+        qCDebug(lcMainWindow) << "测试2：测试一般报警显示...";
+        showAlarm("手动测试报警 - 一般提示", "#ff8800");
     });
 
     // 等待6秒，测试报警条件检查
@@ -11826,13 +11193,8 @@ void MainWindow::onTestAlarmButtonClicked()
         // 设置报警标志
         m_emergencyStopColumnFlag = true;
         m_emergencyStopChassisFlag = true;
-        m_forceLimitFlag = true;
-        m_forcecontrolMode = true;  // 模拟力控开启
-
         qCDebug(lcMainWindow) << "立柱急停标志:" << m_emergencyStopColumnFlag;
         qCDebug(lcMainWindow) << "底盘急停标志:" << m_emergencyStopChassisFlag;
-        qCDebug(lcMainWindow) << "力控超限标志:" << m_forceLimitFlag;
-        qCDebug(lcMainWindow) << "力控模式:" << m_forcecontrolMode;
 
         // 手动触发报警检查
         checkAlarmConditions();
@@ -11845,8 +11207,6 @@ void MainWindow::onTestAlarmButtonClicked()
         // 清除报警标志
         m_emergencyStopColumnFlag = false;
         m_emergencyStopChassisFlag = false;
-        m_forceLimitFlag = false;
-
         // 触发报警检查
         checkAlarmConditions();
 

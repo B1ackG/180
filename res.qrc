@@ -1,50 +1,17 @@
 <RCC>
     <qresource prefix="/">
-        <file>Picture/background6.png</file>
-        <file>Picture/Carbon_Fiber_Background.jpg</file>
-        <file>Picture/Carbon_Fiber_Background2.jpg</file>
-        <file>Picture/direction_Downblue.png</file>
-        <file>Picture/direction_DownGrey.png</file>
-        <file>Picture/direction_DownLeftGrey.png</file>
-        <file>Picture/direction_DownRightGrey.png</file>
-        <file>Picture/direction_Leftblue.png</file>
-        <file>Picture/direction_LeftUpGrey.png</file>
-        <file>Picture/direction_right_arrow_up_icon_267892.png</file>
-        <file>Picture/direction_Rightblue.png</file>
-        <file>Picture/direction_RightGrey.png</file>
-        <file>Picture/direction_UPblue.png</file>
-        <file>Picture/direction_UpGrey.png</file>
-        <file>Picture/direction_UpRightGrey.png</file>
-        <file>Picture/garagewrench.png</file>
-        <file>Picture/History.png</file>
-        <file>Picture/home.png</file>
-        <file>Picture/HozSupSec.png</file>
-        <file>Picture/keyboard.png</file>
-        <file>Picture/movecar.gif</file>
-        <file>Picture/orientation_direction_arrow_down_download_icon_267894.png</file>
-        <file>Picture/Overall.png</file>
-        <file>Picture/previous_direction_left_turn_back_arrow_u_icon_267886.png</file>
-        <file>Picture/Rotate_left_in_place.png</file>
-        <file>Picture/Rotate_right_in_place.png</file>
-        <file>Picture/StandSupport.png</file>
-        <file>Picture/tech_Background.jpg</file>
-        <file>Picture/TechBackGround.png</file>
-        <file>Picture/TechBackGround2.png</file>
-        <file>Picture/TechBackGround3.png</file>
-        <file>Picture/TechBackGround4.png</file>
-        <file>Picture/TechBackGround5.png</file>
-        <file>Picture/Vertical_supportsection.gif</file>
-        <file>Picture/Vertical_supportsection.png</file>
-        <file>Picture/Extend.png</file>
-        <file>Picture/shrink_icon_237392.png</file>
         <file>Picture/background9.png</file>
-        <file>Picture/direction_downblack.png</file>
-        <file>Picture/direction_leftblack.png</file>
-        <file>Picture/direction_rightblack.png</file>
-        <file>Picture/direction_upblack.png</file>
-        <file>Picture/direction_LeftGrey.png</file>
+        <file>Picture/190overall7_smalltest.png</file>
+        <file>Picture/RemoveWarning.png</file>
         <file>Picture/ModeSwitch.png</file>
-        <file>Picture/190overall6.png</file>
+        <file>Picture/MoveMode.png</file>
+        <file>Picture/ControlMode.png</file>
+        <file>Picture/home2.png</file>
+        <file>Picture/permission.png</file>
+        <file>Picture/history.png</file>
+        <file>Picture/sixAxiesOverAll.png</file>
+        <file>Picture/TechBackGround.png</file>
+        <file>Picture/TechBackGround4.png</file>
         <file>TechSpeedGauge.qml</file>
         <file>RobotTotalPowerCard.qml</file>
         <file>DeviceCoordPanel.qml</file>
@@ -52,15 +19,5 @@
         <file>HistoryList.qml</file>
         <file>BatteryWidget.qml</file>
         <file>PoseDisplay.qml</file>
-        <file>Picture/background10.jpg</file>
-        <file>Picture/190overall7_small.png</file>
-        <file>Picture/190overall7_smalltest.png</file>
-        <file>Picture/home2.png</file>
-        <file>Picture/RemoveWarning.png</file>
-        <file>Picture/ControlMode.png</file>
-        <file>Picture/MoveMode.png</file>
-        <file>Picture/permission.png</file>
-        <file>Picture/history.png</file>
-        <file>Picture/sixAxiesOverAll.png</file>
     </qresource>
 </RCC>
