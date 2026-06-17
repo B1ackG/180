@@ -74,6 +74,25 @@ void OperationRecorder::loadSecuritySettings()
     settings.endGroup();
 }
 
+void OperationRecorder::ensureAllowedHost(const QString &host)
+{
+    const QString trimmed = host.trimmed();
+    if (trimmed.isEmpty() || !qgetenv("AGV_LOG_ALLOWED_HOSTS").isEmpty()) {
+        return;
+    }
+
+    QSettings settings("config.ini", QSettings::IniFormat);
+    settings.beginGroup("OperationLogTransport");
+    QStringList allowed = parseCsvList(
+        settings.value("allowed_hosts", "127.0.0.1,192.168.1.70").toString());
+    if (!allowed.contains(trimmed)) {
+        allowed.append(trimmed);
+        settings.setValue("allowed_hosts", allowed.join(QLatin1Char(',')));
+        settings.sync();
+    }
+    settings.endGroup();
+}
+
 bool OperationRecorder::validateTransportPolicy(QString *reason) const
 {
     if (!m_allowedHosts.isEmpty() && !m_allowedHosts.contains(m_tcpServerIp)) {
@@ -279,6 +298,7 @@ void OperationRecorder::enableTcpTransmission(bool enabled)
 
 void OperationRecorder::setTcpServer(const QString &ip, quint16 port)
 {
+    ensureAllowedHost(ip);
     loadSecuritySettings();
     m_tcpServerIp = ip;
     m_tcpServerPort = port;

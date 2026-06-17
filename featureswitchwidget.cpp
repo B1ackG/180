@@ -818,7 +818,7 @@ void FeatureSwitchWidget::setupNetworkUI(QVBoxLayout *scrollLayout)
     addIpRow(QStringLiteral("WIN7_IP: 192.168."), m_editWin7Subnet, m_editWin7Host);
     addIpRow(QStringLiteral("远程模拟器: 192.168."), m_editSimSubnet, m_editSimHost);
 
-    QLabel *hint = new QLabel(QStringLiteral("格式均为 192.168.x.xx；与「本机/远程 TCP 模拟器」开关配合使用，点击「立即生效」后写入 config.ini"));
+    QLabel *hint = new QLabel(QStringLiteral("格式均为 192.168.x.xx；与「本机/远程 TCP 模拟器」开关配合使用，点击「立即生效」后写入 config.ini；WIN7 IP 会自动加入日志传输白名单"));
     hint->setWordWrap(true);
     hint->setStyleSheet(QStringLiteral("color: #88ccff; font-size: 11px;"));
     netLayout->addWidget(hint);

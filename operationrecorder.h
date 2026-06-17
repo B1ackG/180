@@ -200,6 +200,11 @@ public:
     void setTcpServer(const QString &ip, quint16 port);
 
     /**
+     * @brief 将日志服务器 IP 合并进 config.ini 白名单（不覆盖 AGV_LOG_ALLOWED_HOSTS）
+     */
+    static void ensureAllowedHost(const QString &host);
+
+    /**
      * @brief 将所有记录通过 TCP 发送到配置的服务器
      * @note 需先设置服务器并启用 TCP 传输
      */
