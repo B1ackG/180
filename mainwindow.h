@@ -425,8 +425,9 @@ public:
     /** @brief 配置 TCP 传输 UI */
     void setupTcpTransmissionUI();
     /** @brief 启用或禁用 TCP 传输 */
-    void enableTcpTransmission(bool enabled);    /** @brief 更新TCP服务器IP（仅修改主机号） */
-    void updateTcpServerHost(const QString &hostSuffix);
+    void enableTcpTransmission(bool enabled);
+    /** @brief 更新 WIN7 TCP 服务器 IP（192.168.x.xx） */
+    void updateTcpServerHost(const QString &subnetOctet, const QString &hostOctet);
     /** @brief 更新远程模拟器 IP（192.168.x.xx） */
     void updateSimulatorHost(const QString &subnetOctet, const QString &hostOctet);
     // ==========================================
@@ -766,6 +767,7 @@ private:
     int m_agvReconnectIntervalMs = 5000;
     QString m_agvHost = "192.168.1.88";
     quint16 m_agvPort = 502;
+    QString m_tcpServerHost = "192.168.1.70";
     QString m_remoteSimulatorHost = "192.168.1.70";
 
     // ----- 其他组件与 UI 指针缓存 -----
@@ -928,6 +930,9 @@ public:
 
     /** @brief 将当前通信轮询参数应用到运行中的管理器 */
     void applyPollingRuntimeSettings();
+
+    /** @brief 将网络配置（WIN7 IP、远程模拟器）应用到运行中组件 */
+    void applyNetworkRuntimeSettings();
 
     /** @brief 加载 SliderLabel 的自定义配置 */
     void loadSliderLabelRuntimeSettings();

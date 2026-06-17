@@ -338,6 +338,7 @@ void MainWindow::loadPollingRuntimeSettings()
     settings.beginGroup("Network");
     m_agvHost = settings.value("agv_host", "192.168.1.88").toString();
     m_agvPort = static_cast<quint16>(settings.value("agv_port", 502).toUInt());
+    m_tcpServerHost = settings.value("tcp_server_host", "192.168.1.70").toString();
     m_remoteSimulatorHost = settings.value("remote_simulator_host", "192.168.1.70").toString();
     settings.endGroup();
 
@@ -352,6 +353,10 @@ void MainWindow::loadPollingRuntimeSettings()
     m_agvPollIntervalMs = qBound(50, m_agvPollIntervalMs, 60000);
     m_agvReconnectIntervalMs = qBound(500, m_agvReconnectIntervalMs, 120000);
     m_agvPort = static_cast<quint16>(qBound(1, static_cast<int>(m_agvPort), 65535));
+
+    if (m_recorder) {
+        m_recorder->setTcpServer(m_tcpServerHost, WIN7_PORT);
+    }
 }
 
 void MainWindow::savePollingRuntimeSettings() const
@@ -374,6 +379,7 @@ void MainWindow::savePollingRuntimeSettings() const
     settings.beginGroup("Network");
     settings.setValue("agv_host", m_agvHost);
     settings.setValue("agv_port", m_agvPort);
+    settings.setValue("tcp_server_host", m_tcpServerHost);
     settings.setValue("remote_simulator_host", m_remoteSimulatorHost);
     settings.endGroup();
     settings.sync();
@@ -1016,7 +1022,6 @@ void MainWindow::applyPermissionPageLoginState()
     setVisibleByName(QStringLiteral("roleComboBox"), !loggedIn);
     setVisibleByName(QStringLiteral("passwordEdit"), !loggedIn);
     setVisibleByName(QStringLiteral("passwordHint"), !loggedIn);
-    setVisibleByName(QStringLiteral("netConfigSection"), loggedIn && isManufacturer);
 }
 
 void MainWindow::applyButtonVisibilityRuntimeSettings()
@@ -3045,79 +3050,6 @@ void MainWindow::setupAdminPasswordPage()
     logoutButton->setObjectName("logoutButton");
     logoutButton->setVisible(false); // 默认隐藏，登录后显示
 
-    // 网络配置 (左右排布：WIN7_IP 和 远程模拟器)
-    QWidget *netConfigSection = new QWidget(container);
-    netConfigSection->setObjectName("netConfigSection");
-    QVBoxLayout *netMainLayout = new QVBoxLayout(netConfigSection);
-    netMainLayout->setContentsMargins(0, 0, 0, 0);
-    netMainLayout->setSpacing(10);
-
-    // 第一行：WIN7_IP
-    QHBoxLayout *row1Layout = new QHBoxLayout();
-    QLabel *ipPrefix = new QLabel("WIN7_IP: 192.168.1.", netConfigSection);
-    ipPrefix->setStyleSheet("color: #00ffff; font-family: 'Microsoft YaHei UI'; font-size: 14px;");
-    QLineEdit *ipHostEdit = new QLineEdit(netConfigSection);
-    ipHostEdit->setObjectName("ipHostEdit");
-    ipHostEdit->setPlaceholderText("100");
-    ipHostEdit->setText("100");
-    ipHostEdit->setFixedWidth(40);
-    ipHostEdit->setAlignment(Qt::AlignCenter);
-    ipHostEdit->setValidator(new QIntValidator(0, 255, ipHostEdit));
-    ipHostEdit->setStyleSheet("QLineEdit { background: rgba(0, 0, 0, 100); border: 1px solid #00c8ff; color: #ffaa00; border-radius: 4px; }");
-    
-    QPushButton *ipApplyBtn = new QPushButton("确认", netConfigSection);
-    ipApplyBtn->setFixedWidth(50);
-    ipApplyBtn->setStyleSheet("QPushButton { background-color: #004466; border: 1px solid #00c8ff; color: white; border-radius: 4px; font-size: 12px; }");
-
-    row1Layout->addWidget(ipPrefix);
-    row1Layout->addWidget(ipHostEdit);
-    row1Layout->addWidget(ipApplyBtn);
-    row1Layout->addStretch();
-
-    // 第二行：远程模拟器
-    QHBoxLayout *row2Layout = new QHBoxLayout();
-    QLabel *simPrefix = new QLabel("远程模拟器: 192.168.", netConfigSection);
-    simPrefix->setStyleSheet("color: #00ffff; font-family: 'Microsoft YaHei UI'; font-size: 14px;");
-    const QStringList simIpParts = m_remoteSimulatorHost.split(QLatin1Char('.'));
-    const QString simSubnetDefault = simIpParts.size() >= 3 ? simIpParts.at(2) : QStringLiteral("1");
-    const QString simHostDefault = simIpParts.size() >= 4 ? simIpParts.at(3) : QStringLiteral("70");
-
-    QLineEdit *simSubnetEdit = new QLineEdit(netConfigSection);
-    simSubnetEdit->setObjectName("simSubnetEdit");
-    simSubnetEdit->setPlaceholderText("1");
-    simSubnetEdit->setText(simSubnetDefault);
-    simSubnetEdit->setFixedWidth(40);
-    simSubnetEdit->setAlignment(Qt::AlignCenter);
-    simSubnetEdit->setValidator(new QIntValidator(0, 255, simSubnetEdit));
-    simSubnetEdit->setStyleSheet("QLineEdit { background: rgba(0, 0, 0, 100); border: 1px solid #00c8ff; color: #ffaa00; border-radius: 4px; }");
-
-    QLabel *simDotLabel = new QLabel(".", netConfigSection);
-    simDotLabel->setStyleSheet("color: #00ffff; font-family: 'Microsoft YaHei UI'; font-size: 14px;");
-
-    QLineEdit *simHostEdit = new QLineEdit(netConfigSection);
-    simHostEdit->setObjectName("simHostEdit");
-    simHostEdit->setPlaceholderText("70");
-    simHostEdit->setText(simHostDefault);
-    simHostEdit->setFixedWidth(40);
-    simHostEdit->setAlignment(Qt::AlignCenter);
-    simHostEdit->setValidator(new QIntValidator(0, 255, simHostEdit));
-    simHostEdit->setStyleSheet("QLineEdit { background: rgba(0, 0, 0, 100); border: 1px solid #00c8ff; color: #ffaa00; border-radius: 4px; }");
-
-    QPushButton *simApplyBtn = new QPushButton("确认", netConfigSection);
-    simApplyBtn->setFixedWidth(50);
-    simApplyBtn->setStyleSheet("QPushButton { background-color: #004466; border: 1px solid #00c8ff; color: white; border-radius: 4px; font-size: 12px; }");
-
-    row2Layout->addWidget(simPrefix);
-    row2Layout->addWidget(simSubnetEdit);
-    row2Layout->addWidget(simDotLabel);
-    row2Layout->addWidget(simHostEdit);
-    row2Layout->addWidget(simApplyBtn);
-    row2Layout->addStretch();
-
-    netMainLayout->addLayout(row1Layout);
-    netMainLayout->addLayout(row2Layout);
-    netConfigSection->setVisible(false); // 默认隐藏
-
     // 负载阈值配置（管理员登录后可见）
     QWidget *weightThresholdSection = new QWidget(container);
     weightThresholdSection->setObjectName(QStringLiteral("weightThresholdSection"));
@@ -3172,7 +3104,6 @@ void MainWindow::setupAdminPasswordPage()
     containerLayout->addSpacing(30);
     containerLayout->addWidget(loginButton);
     containerLayout->addWidget(featureButton);
-    containerLayout->addWidget(netConfigSection); // 厂家登录后可见（包含本地IP及模拟器配置）
     containerLayout->addWidget(weightThresholdSection); // 管理员登录后可见
     containerLayout->addWidget(logoutButton);
     containerLayout->addSpacing(15);
@@ -3180,7 +3111,7 @@ void MainWindow::setupAdminPasswordPage()
     containerLayout->addStretch(3);
 
     // 设置容器大小和居中
-    container->setFixedSize(480, 560);
+    container->setFixedSize(480, 480);
 
     // 添加容器到主布局
     QHBoxLayout *centerLayout = new QHBoxLayout();
@@ -3304,25 +3235,6 @@ void MainWindow::setupAdminPasswordPage()
     adminPage->setAttribute(Qt::WA_TranslucentBackground);
     adminPage->setStyleSheet(style);
 
-    // 连接 IP 确认按钮
-    connect(ipApplyBtn, &QPushButton::clicked, this, [this, ipHostEdit]() {
-        QString text = ipHostEdit->text();
-        if (!text.isEmpty()) {
-            updateTcpServerHost(text);
-            showNotification("WIN7_IP 已更新: 192.168.1." + text);
-        }
-    });
-
-    // 连接 模拟器 IP 确认按钮
-    connect(simApplyBtn, &QPushButton::clicked, this, [this, simSubnetEdit, simHostEdit]() {
-        const QString subnetText = simSubnetEdit->text().trimmed();
-        const QString hostText = simHostEdit->text().trimmed();
-        if (!subnetText.isEmpty() && !hostText.isEmpty()) {
-            updateSimulatorHost(subnetText, hostText);
-            showNotification(QStringLiteral("模拟器 IP 已更新: 192.168.%1.%2").arg(subnetText, hostText));
-        }
-    });
-
     applyWeightThresholdRuntimeSettings();
 
     connect(weightOverloadLimitEdit, &QLineEdit::editingFinished, this,
@@ -3426,7 +3338,7 @@ void MainWindow::setupAdminPasswordPage()
     });
 
     // 连接登录按钮
-    connect(loginButton, &QPushButton::clicked, this, [this, roleComboBox, passwordEdit, errorLabel, titleLabel, loginButton, logoutButton, hintLabel, featureButton, netConfigSection, weightThresholdSection, ipHostEdit]() {
+    connect(loginButton, &QPushButton::clicked, this, [this, roleComboBox, passwordEdit, errorLabel, titleLabel, loginButton, logoutButton, hintLabel, featureButton, weightThresholdSection]() {
         QString password = passwordEdit->text();
         UserRole selectedRole = static_cast<UserRole>(roleComboBox->currentData().toInt());
         QString roleName = roleComboBox->currentText();
@@ -3475,7 +3387,6 @@ void MainWindow::setupAdminPasswordPage()
             loginButton->setVisible(false);
             logoutButton->setVisible(true);
             featureButton->setVisible(m_currentUserRole == UserRole::Manufacturer);
-            netConfigSection->setVisible(m_currentUserRole == UserRole::Manufacturer);
             weightThresholdSection->setVisible(m_currentUserRole == UserRole::Admin);
             errorLabel->setVisible(false);
             passwordEdit->clear();
@@ -3504,7 +3415,7 @@ void MainWindow::setupAdminPasswordPage()
     });
 
     // 连接注销按钮
-    connect(logoutButton, &QPushButton::clicked, this, [this, titleLabel, roleComboBox, passwordEdit, hintLabel, loginButton, logoutButton, errorLabel, featureButton, netConfigSection, weightThresholdSection]() {
+    connect(logoutButton, &QPushButton::clicked, this, [this, titleLabel, roleComboBox, passwordEdit, hintLabel, loginButton, logoutButton, errorLabel, featureButton, weightThresholdSection]() {
         // 记录注销
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
@@ -3527,7 +3438,6 @@ void MainWindow::setupAdminPasswordPage()
         loginButton->setVisible(true);
         logoutButton->setVisible(false);
         featureButton->setVisible(false);
-        netConfigSection->setVisible(false);
         weightThresholdSection->setVisible(false);
         errorLabel->setVisible(false);
         
@@ -3550,6 +3460,7 @@ void MainWindow::setupAdminPasswordPage()
                         this, [this]() {
                     loadPollingRuntimeSettings();
                     applyPollingRuntimeSettings();
+                    applyNetworkRuntimeSettings();
                     loadSliderLabelRuntimeSettings();
                     applySliderLabelRuntimeSettings();
                     applyEstimatedWeightRuntimeSettings();
@@ -9119,10 +9030,10 @@ void MainWindow::enableTcpTransmission(bool enabled)
         m_recorder->enableTcpTransmission(enabled);
 
         // 设置服务器地址
-        m_recorder->setTcpServer(WIN7_IP, WIN7_PORT);
+        m_recorder->setTcpServer(m_tcpServerHost, WIN7_PORT);
 
         if (enabled) {
-            qCDebug(lcMainWindow) << "启用TCP传输，服务器:" << WIN7_IP << ":" << WIN7_PORT;
+            qCDebug(lcMainWindow) << "启用TCP传输，服务器:" << m_tcpServerHost << ":" << WIN7_PORT;
             ui->statusBar->showMessage("TCP传输已启用，正在连接服务器...", 3000);
         } else {
             qCDebug(lcMainWindow) << "禁用TCP传输";
@@ -9131,12 +9042,29 @@ void MainWindow::enableTcpTransmission(bool enabled)
     }
 }
 
-void MainWindow::updateTcpServerHost(const QString &hostSuffix)
+void MainWindow::updateTcpServerHost(const QString &subnetOctet, const QString &hostOctet)
 {
+    bool subnetOk = false;
+    bool hostOk = false;
+    const int subnet = subnetOctet.trimmed().toInt(&subnetOk);
+    const int host = hostOctet.trimmed().toInt(&hostOk);
+    if (!subnetOk || !hostOk || subnet < 0 || subnet > 255 || host < 0 || host > 255) {
+        showNotification(QStringLiteral("WIN7 IP 无效，请输入 0-255"));
+        return;
+    }
+
+    const QString newIp = QStringLiteral("192.168.%1.%2").arg(subnet).arg(host);
+    m_tcpServerHost = newIp;
+
+    QSettings settings("config.ini", QSettings::IniFormat);
+    settings.beginGroup("Network");
+    settings.setValue("tcp_server_host", m_tcpServerHost);
+    settings.endGroup();
+    settings.sync();
+
     if (m_recorder) {
-        QString newIp = "192.168.1." + hostSuffix;
-        m_recorder->setTcpServer(newIp, WIN7_PORT);
-        qCDebug(lcMainWindow) << "更新TCP服务器IP为:" << newIp;
+        m_recorder->setTcpServer(m_tcpServerHost, WIN7_PORT);
+        qCDebug(lcMainWindow) << "更新TCP服务器IP为:" << m_tcpServerHost;
     }
 }
 
@@ -9162,24 +9090,33 @@ void MainWindow::updateSimulatorHost(const QString &subnetOctet, const QString &
 
     qCDebug(lcMainWindow) << "尝试更新模拟器IP为:" << newIp;
 
-    // 如果当前处于远程模拟器模式，则重新连接以使新 IP 生效
+    applyNetworkRuntimeSettings();
+}
+
+void MainWindow::applyNetworkRuntimeSettings()
+{
+    if (m_recorder) {
+        m_recorder->setTcpServer(m_tcpServerHost, WIN7_PORT);
+    }
+
     if (isFeatureEnabled("tcp_transmission", "tcp.remote_simulator")) {
+        const QString &simHost = m_remoteSimulatorHost;
         if (m_modbusManager) {
             m_modbusManager->disconnectFromDevice();
             MainModbusConnector::connectAndConfigure(
                 m_modbusManager,
-                MainModbusEndpoint{newIp, 5020},
+                MainModbusEndpoint{simHost, 5020},
                 m_mainModbusPollIntervalMs,
                 m_mainReconnectIntervalMs);
-            qCDebug(lcMainWindow) << "[MainModbus] 已切换模拟器并重新连接:" << newIp << ":5020";
+            qCDebug(lcMainWindow) << "[MainModbus] 已切换模拟器并重新连接:" << simHost << ":5020";
         }
         if (m_agvModbusManager) {
             m_agvModbusManager->disconnectFromDevice();
-            m_agvModbusManager->connectToDevice(newIp, 5021);
-            qCDebug(lcMainWindow) << "[AGVModbus] 已切换模拟器并重新连接:" << newIp << ":5021";
+            m_agvModbusManager->connectToDevice(simHost, 5021);
+            qCDebug(lcMainWindow) << "[AGVModbus] 已切换模拟器并重新连接:" << simHost << ":5021";
         }
     } else {
-        qCDebug(lcMainWindow) << "当前未启用远程模拟器模式，仅打印新 IP 会在下次切换模式时生效";
+        qCDebug(lcMainWindow) << "当前未启用远程模拟器模式，模拟器 IP 将在下次切换模式时生效";
     }
 }
 

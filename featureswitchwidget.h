@@ -43,6 +43,7 @@ private slots:
 private:
     void setupUI();
     void loadCurrentState();
+    void setupNetworkUI(QVBoxLayout *scrollLayout);
     void setupPollingUI(QVBoxLayout *scrollLayout);
     void setupSliderLimitUI(QVBoxLayout *scrollLayout);
     void setupTechSliderEditUI(QVBoxLayout *scrollLayout);
@@ -51,6 +52,8 @@ private:
     void setupInclinometerThresholdUI(QVBoxLayout *scrollLayout);
     void setupButtonVisibilityUI(QVBoxLayout *scrollLayout);
     void refreshButtonVisibilityList();
+    void loadNetworkState();
+    bool saveNetworkState();
     void loadPollingState();
     void savePollingState();
     void loadSliderLimitState();
@@ -92,6 +95,11 @@ private:
 
     QMap<QString, QCheckBox*> m_bigCheckboxes;
     QMap<QString, QCheckBox*> m_smallCheckboxes;
+
+    QLineEdit *m_editWin7Subnet = nullptr;
+    QLineEdit *m_editWin7Host = nullptr;
+    QLineEdit *m_editSimSubnet = nullptr;
+    QLineEdit *m_editSimHost = nullptr;
 
     // 轮询参数输入框
     QLineEdit *m_editMainModbusPoll;

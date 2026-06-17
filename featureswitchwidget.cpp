@@ -20,6 +20,7 @@
 #include <QSettings>
 #include <QSignalBlocker>
 #include <QTabWidget>
+#include <QIntValidator>
 
 namespace {
 
@@ -703,6 +704,7 @@ void FeatureSwitchWidget::setupUI()
     logsLayout->addWidget(logGroup);
     
     // 轮询参数配置组
+    setupNetworkUI(commLayout);
     setupPollingUI(commLayout);
     
     // 滑块自定义范围配置组
@@ -762,11 +764,66 @@ void FeatureSwitchWidget::loadCurrentState()
     for (auto it = m_smallCheckboxes.begin(); it != m_smallCheckboxes.end(); ++it) {
         it.value()->setChecked(mgr->isSmallFeatureEnabled(it.key()));
     }
+    loadNetworkState();
     loadPollingState();
     loadSliderLimitState();
     loadTechSliderEditState();
     loadInclinometerThresholdState();
     loadButtonVisibilityState();
+}
+
+void FeatureSwitchWidget::setupNetworkUI(QVBoxLayout *scrollLayout)
+{
+    const QString lineEditStyle =
+        QStringLiteral("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px; padding: 3px;");
+    const QString labelStyle = QStringLiteral("color: #88ccff;");
+
+    QGroupBox *netGroup = new QGroupBox(QStringLiteral("网络地址配置 (Network)"));
+    QVBoxLayout *netLayout = new QVBoxLayout(netGroup);
+
+    auto addIpRow = [&](const QString &prefixLabel,
+                        QLineEdit *&subnetEdit,
+                        QLineEdit *&hostEdit) {
+        QHBoxLayout *row = new QHBoxLayout();
+        QLabel *prefix = new QLabel(prefixLabel);
+        prefix->setStyleSheet(labelStyle);
+
+        subnetEdit = new QLineEdit();
+        subnetEdit->setPlaceholderText(QStringLiteral("1"));
+        subnetEdit->setFixedWidth(48);
+        subnetEdit->setAlignment(Qt::AlignCenter);
+        subnetEdit->setValidator(new QIntValidator(0, 255, netGroup));
+        subnetEdit->setStyleSheet(lineEditStyle);
+        subnetEdit->installEventFilter(this);
+
+        QLabel *dot = new QLabel(QStringLiteral("."));
+        dot->setStyleSheet(labelStyle);
+
+        hostEdit = new QLineEdit();
+        hostEdit->setPlaceholderText(QStringLiteral("70"));
+        hostEdit->setFixedWidth(48);
+        hostEdit->setAlignment(Qt::AlignCenter);
+        hostEdit->setValidator(new QIntValidator(0, 255, netGroup));
+        hostEdit->setStyleSheet(lineEditStyle);
+        hostEdit->installEventFilter(this);
+
+        row->addWidget(prefix);
+        row->addWidget(subnetEdit);
+        row->addWidget(dot);
+        row->addWidget(hostEdit);
+        row->addStretch();
+        netLayout->addLayout(row);
+    };
+
+    addIpRow(QStringLiteral("WIN7_IP: 192.168."), m_editWin7Subnet, m_editWin7Host);
+    addIpRow(QStringLiteral("远程模拟器: 192.168."), m_editSimSubnet, m_editSimHost);
+
+    QLabel *hint = new QLabel(QStringLiteral("格式均为 192.168.x.xx；与「本机/远程 TCP 模拟器」开关配合使用，点击「立即生效」后写入 config.ini"));
+    hint->setWordWrap(true);
+    hint->setStyleSheet(QStringLiteral("color: #88ccff; font-size: 11px;"));
+    netLayout->addWidget(hint);
+
+    scrollLayout->addWidget(netGroup);
 }
 
 void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
@@ -1679,6 +1736,62 @@ void FeatureSwitchWidget::saveButtonVisibilityState()
     settings.sync();
 }
 
+void FeatureSwitchWidget::loadNetworkState()
+{
+    auto fillOctets = [](const QString &ip, QLineEdit *subnetEdit, QLineEdit *hostEdit,
+                         const QString &defaultSubnet, const QString &defaultHost) {
+        if (!subnetEdit || !hostEdit) {
+            return;
+        }
+        const QStringList parts = ip.split(QLatin1Char('.'));
+        const QString subnet = parts.size() >= 3 ? parts.at(2) : defaultSubnet;
+        const QString host = parts.size() >= 4 ? parts.at(3) : defaultHost;
+        subnetEdit->setText(subnet);
+        hostEdit->setText(host);
+    };
+
+    QSettings settings("config.ini", QSettings::IniFormat);
+    settings.beginGroup("Network");
+    const QString tcpHost = settings.value("tcp_server_host", "192.168.1.70").toString();
+    const QString simHost = settings.value("remote_simulator_host", "192.168.1.70").toString();
+    settings.endGroup();
+
+    fillOctets(tcpHost, m_editWin7Subnet, m_editWin7Host, QStringLiteral("1"), QStringLiteral("70"));
+    fillOctets(simHost, m_editSimSubnet, m_editSimHost, QStringLiteral("1"), QStringLiteral("70"));
+}
+
+bool FeatureSwitchWidget::saveNetworkState()
+{
+    auto composeIp = [](const QLineEdit *subnetEdit, const QLineEdit *hostEdit) -> QString {
+        if (!subnetEdit || !hostEdit) {
+            return QString();
+        }
+        bool subnetOk = false;
+        bool hostOk = false;
+        const int subnet = subnetEdit->text().trimmed().toInt(&subnetOk);
+        const int host = hostEdit->text().trimmed().toInt(&hostOk);
+        if (!subnetOk || !hostOk || subnet < 0 || subnet > 255 || host < 0 || host > 255) {
+            return QString();
+        }
+        return QStringLiteral("192.168.%1.%2").arg(subnet).arg(host);
+    };
+
+    const QString tcpHost = composeIp(m_editWin7Subnet, m_editWin7Host);
+    const QString simHost = composeIp(m_editSimSubnet, m_editSimHost);
+    if (tcpHost.isEmpty() || simHost.isEmpty()) {
+        QMessageBox::warning(this, QStringLiteral("网络配置"), QStringLiteral("IP 段无效，请输入 0-255 的整数"));
+        return false;
+    }
+
+    QSettings settings("config.ini", QSettings::IniFormat);
+    settings.beginGroup("Network");
+    settings.setValue("tcp_server_host", tcpHost);
+    settings.setValue("remote_simulator_host", simHost);
+    settings.endGroup();
+    settings.sync();
+    return true;
+}
+
 void FeatureSwitchWidget::loadPollingState()
 {
     QSettings settings("config.ini", QSettings::IniFormat);
@@ -1797,7 +1910,10 @@ void FeatureSwitchWidget::onApply()
         mgr->setSmallFeatureEnabled(it.key(), it.value()->isChecked());
     }
     
-    // 应用轮询配置
+    // 应用网络与轮询配置
+    if (!saveNetworkState()) {
+        return;
+    }
     savePollingState();
     
     // 应用滑块限制配置
