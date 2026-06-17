@@ -59,6 +59,14 @@ constexpr int kRuntimePersistRegister = 8193;
 constexpr int kRuntimePersistRegisterHi = 8194;
 const QString kWirelessModeWarningText =
     QStringLiteral("遥控器控制互锁，请切换到当前示教器。");
+const QString kRobotZeroSpeedHintText =
+    QStringLiteral("当前设置的机器人全局速度为0");
+const QString kAgvZeroSpeedHintText =
+    QStringLiteral("当前设置的全向平台速度为0");
+const QString kRobotZeroSpeedHistoryText =
+    QStringLiteral("操作者在机器人全局速度为0时操作");
+const QString kAgvZeroSpeedHistoryText =
+    QStringLiteral("操作者在全向平台速度为0时操作");
 
 SteeringMode steeringModeFromRegisterValue(quint16 value)
 {
@@ -3702,7 +3710,8 @@ void MainWindow::dismissToastByMessage(const QString &message)
 
 void MainWindow::dismissOperationHintToasts()
 {
-    dismissToastByMessage(QStringLiteral("当前设置速度为0"));
+    dismissToastByMessage(kRobotZeroSpeedHintText);
+    dismissToastByMessage(kAgvZeroSpeedHintText);
     dismissToastByMessage(QStringLiteral("当前未设置步进值"));
     dismissToastByMessage(QStringLiteral("未选择步进或者点动模式，将自动选择点动模式"));
     dismissToastByMessage(QStringLiteral("未选择坐标或者关节模式，将自动选择关节模式"));
@@ -11456,14 +11465,18 @@ void MainWindow::maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, boo
         return;
     }
 
-    showZeroSpeedOperationHintDialog();
+    if (keyNumber >= 1 && keyNumber <= 8) {
+        showZeroSpeedOperationHintDialog(kRobotZeroSpeedHintText,
+                                         kRobotZeroSpeedHistoryText);
+    } else {
+        showZeroSpeedOperationHintDialog(kAgvZeroSpeedHintText,
+                                         kAgvZeroSpeedHistoryText);
+    }
 }
 
-void MainWindow::showZeroSpeedOperationHintDialog()
+void MainWindow::showZeroSpeedOperationHintDialog(const QString &hintText,
+                                                  const QString &historyText)
 {
-    static const QString kHintText = QStringLiteral("当前设置速度为0");
-    static const QString kHistoryText = QStringLiteral("操作者在速度为0时操作");
-
     if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
@@ -11472,16 +11485,17 @@ void MainWindow::showZeroSpeedOperationHintDialog()
         record.controlType = QStringLiteral("提示窗口");
         record.operation = QStringLiteral("提示触发");
         record.oldValue = QString();
-        record.newValue = kHistoryText;
+        record.newValue = historyText;
         m_recorder->addRecord(record);
     }
 
-    showToast(kHintText, ToastKind::Warning);
+    showToast(hintText, ToastKind::Warning);
 }
 
 void MainWindow::hideZeroSpeedOperationHintDialog()
 {
-    dismissToastByMessage(QStringLiteral("当前设置速度为0"));
+    dismissToastByMessage(kRobotZeroSpeedHintText);
+    dismissToastByMessage(kAgvZeroSpeedHintText);
 }
 
 namespace {

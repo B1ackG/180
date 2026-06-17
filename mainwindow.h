@@ -217,7 +217,8 @@ public:
     /** @brief 显示高度/长度互锁模态提示窗（阻塞） */
     void showRobotInterlockModalDialog(const QString &message);
     /** @brief 首页外部按键在速度为0时的提示窗（与互锁提示窗解耦） */
-    void showZeroSpeedOperationHintDialog();
+    void showZeroSpeedOperationHintDialog(const QString &hintText,
+                                          const QString &historyText);
     /** @brief 隐藏速度为0提示窗 */
     void hideZeroSpeedOperationHintDialog();
     /** @brief 步进模式下外部按键在步进值未设置时的提示窗 */
