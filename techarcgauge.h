@@ -28,7 +28,10 @@ public:
     double secondMaximum() const { return m_secondMaximum; }
     
     void setRange(double min, double max);
+    QString labelText() const { return m_labelText; }
     void setLabelText(const QString &text);
+    QString secondLabelText() const { return m_secondLabelText; }
+    void setSecondLabelText(const QString &text);
     void setSuffix(const QString &suffix);
     void setSecondSuffix(const QString &suffix);
     void setPrecision(int precision);
@@ -69,6 +72,7 @@ private:
     QString m_suffix;
     QString m_secondSuffix;  // 新增：第二数值单位
     QString m_labelText;
+    QString m_secondLabelText;
     int m_modbusAddress;
 
     // 颜色配置

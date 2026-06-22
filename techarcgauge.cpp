@@ -14,9 +14,10 @@ TechArcGauge::TechArcGauge(QWidget *parent)
     , m_suffix("")
     , m_secondSuffix("")
     , m_labelText("Parameter")
+    , m_secondLabelText()
     , m_modbusAddress(-1)
-    , m_primaryColor(QColor(0, 200, 255))
-    , m_glowColor(QColor(0, 255, 255, 120))
+    , m_primaryColor(QColor(0, 168, 220))
+    , m_glowColor(QColor(111, 231, 255, 110))
     , m_forceControlEnabled(false)
     , m_scanLinePhase(0)
     , m_repaintPending(false)
@@ -80,7 +81,19 @@ void TechArcGauge::setRange(double min, double max)
 
 void TechArcGauge::setLabelText(const QString &text)
 {
+    if (m_labelText == text) {
+        return;
+    }
     m_labelText = text;
+    requestRepaint();
+}
+
+void TechArcGauge::setSecondLabelText(const QString &text)
+{
+    if (m_secondLabelText == text) {
+        return;
+    }
+    m_secondLabelText = text;
     requestRepaint();
 }
 
@@ -136,7 +149,7 @@ void TechArcGauge::paintEvent(QPaintEvent *)
     float spanAngle = 270;
     
     QPen backPen;
-    backPen.setColor(QColor(50, 50, 50, 100));
+    backPen.setColor(QColor(74, 190, 238, 44));
     backPen.setWidth(8);
     backPen.setCapStyle(Qt::RoundCap);
     painter.setPen(backPen);
@@ -189,7 +202,7 @@ void TechArcGauge::paintEvent(QPaintEvent *)
         float secondSpan = spanAngle * innerRatio;
         
         QPen secondPen;
-        secondPen.setColor(QColor(255, 165, 0, 180)); // 科技橙 (Orange)
+        secondPen.setColor(QColor(255, 194, 92, 190));
         secondPen.setWidth(4);
         secondPen.setCapStyle(Qt::RoundCap);
         
@@ -198,12 +211,13 @@ void TechArcGauge::paintEvent(QPaintEvent *)
     }
 
     // 绘制文字
-    painter.setPen(Qt::white);
+    painter.setPen(QColor("#f2fbff"));
     QFont font = painter.font();
-    
+
     // 当前主数值（长度/角度）
     font.setPixelSize(size / 6);
     font.setBold(true);
+    painter.setPen(QColor("#f2fbff"));
     painter.setFont(font);
     QString valueStr = QString::number(m_value, 'f', m_precision);
     painter.drawText(rect.adjusted(0, -size/15, 0, -size/15), Qt::AlignCenter, valueStr);
@@ -212,12 +226,40 @@ void TechArcGauge::paintEvent(QPaintEvent *)
     font.setPixelSize(size / 15);
     font.setBold(false);
     painter.setFont(font);
-    painter.drawText(rect.adjusted(0, size/8, 0, size/8), Qt::AlignCenter, m_suffix);
+    const qreal suffixOffset = size / 8.0;
+    painter.drawText(rect.adjusted(0, suffixOffset, 0, suffixOffset), Qt::AlignCenter, m_suffix);
+
+    const qreal upperLabelOffset = -size / 4.5;
+    const qreal lowerLabelOffset = size / 3.8;
+
+    // labelText：上方（与原 secondLabelText 位置相同）
+    if (!m_labelText.isEmpty()) {
+        font.setPixelSize(size / 10);
+        font.setBold(false);
+        painter.setPen(QColor("#d8f6ff"));
+        painter.setFont(font);
+        const QRectF firstLabelRect = rect.adjusted(0, upperLabelOffset, 0, upperLabelOffset);
+        painter.drawText(firstLabelRect,
+                         Qt::AlignHCenter | Qt::AlignVCenter | Qt::TextWordWrap,
+                         m_labelText);
+    }
+
+    // secondLabelText：下方（与原 labelText 位置相同）
+    if (!m_secondLabelText.isEmpty()) {
+        font.setPixelSize(size / 11);
+        font.setBold(false);
+        painter.setPen(QColor("#a8eaff"));
+        painter.setFont(font);
+        const QRectF secondLabelRect = rect.adjusted(0, lowerLabelOffset, 0, lowerLabelOffset);
+        painter.drawText(secondLabelRect,
+                         Qt::AlignHCenter | Qt::AlignVCenter | Qt::TextWordWrap,
+                         m_secondLabelText);
+    }
 
     // Min / Max
     font.setPixelSize(size / 12); // 增大字体由 20 变为 15
     painter.setFont(font);
-    painter.setPen(QColor(180, 180, 180));
+    painter.setPen(QColor("#91dfff"));
     
     // 计算圆弧起点 (-225度) 和 终点 (45度) 的坐标
     // 注意：Qt 的 drawArc 使用的角度单位是 1/16 度，且顺时针为负，我们计算位置使用弧度
@@ -238,7 +280,7 @@ void TechArcGauge::paintEvent(QPaintEvent *)
         font.setPixelSize(size / 13);
         font.setBold(true);
         painter.setFont(font);
-        painter.setPen(QColor(255, 120, 0));
+        painter.setPen(QColor("#ffc25c"));
         const QString secondStr = QString("V: %1 %2")
                                       .arg(QString::number(m_secondValue, 'f', 1))
                                       .arg(m_secondSuffix);
@@ -249,18 +291,9 @@ void TechArcGauge::paintEvent(QPaintEvent *)
                          secondStr);
     }
 
-    // 参数名称：若存在速度副数值，移到下方避免与速度文字重叠
-    font.setPixelSize(size / 10);
-    font.setBold(false);
-    painter.setPen(Qt::white);
-    painter.setFont(font);
-    const bool hasSecondValueDisplay = (!m_secondSuffix.isEmpty() || m_secondValue != 0);
-    const qreal labelOffset = hasSecondValueDisplay ? (size / 4.5) : (-size / 3.5);
-    painter.drawText(rect.adjusted(0, labelOffset, 0, labelOffset), Qt::AlignCenter, m_labelText);
-
     // 绘制文本，稍微偏移以避免覆盖圆弧
     painter.drawText(QRectF(minPos.x() - 30, minPos.y() - 20, 40, 20), Qt::AlignRight | Qt::AlignVCenter, QString::number(m_minimum));
-    painter.drawText(QRectF(maxPos.x() - 10, maxPos.y() - 20, 40, 20), Qt::AlignLeft | Qt::AlignVCenter, QString::number(m_maximum));
+    painter.drawText(QRectF(maxPos.x()- 10, maxPos.y() - 20, 40, 20), Qt::AlignLeft | Qt::AlignVCenter, QString::number(m_maximum));
 }
 
 void TechArcGauge::resizeEvent(QResizeEvent *event)

@@ -1128,6 +1128,7 @@ private:
         
         bool isSumMode = false;
         int sumAddress[4] = {-1, -1, -1, -1};
+        QString secondLabelText;
     };
 public:
     QMap<QString, SliderLabelConfig> m_sliderLabelConfigs;

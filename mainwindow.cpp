@@ -1786,6 +1786,7 @@ void MainWindow::initSpeedGaugeUI()
         QWidget* placeholder;
         QString name;
         QString label;
+        QString secondLabel;
         QString suffix;
         double min;
         double max;
@@ -1793,16 +1794,16 @@ void MainWindow::initSpeedGaugeUI()
     };
 
     QList<ArcConfig> configs = {
-        {ui->widget_test1, "robot_ArcGauge_J1Angle", "悬臂角度", "°", -170, 170, 1},
-        {ui->widget_test2, "robot_ArcGauge_J2Height", "升降高度", "mm", -850, 1150, 0},
-        {ui->widget_test3, "robot_ArcGauge_J3Length", "总伸展长度", "mm", 0, 1600, 0},
-        {ui->widget_test4, "robot_ArcGauge_J4Angle", "末端角度", "°", -180, 180, 1},
-        {ui->widget_SixAxies_1, "robot_ArcGauge_SixAxis1", "RX", "°", -15, 15, 2},
-        {ui->widget_SixAxies_2, "robot_ArcGauge_SixAxis2", "RY", "°", -15, 15, 2},
-        {ui->widget_SixAxies_3, "robot_ArcGauge_SixAxis3", "RZ", "°", -12, 12, 2},
-        {ui->widget_SixAxies_4, "robot_ArcGauge_SixAxis4", "X", "mm", -110, 110, 2},
-        {ui->widget_SixAxies_5, "robot_ArcGauge_SixAxis5", "Y", "mm", -110, 110, 2},
-        {ui->widget_SixAxies_6, "robot_ArcGauge_SixAxis6", "Z", "mm", -90, 90, 2}
+        {ui->widget_test1, "robot_ArcGauge_J1Angle", "悬臂角度", QString(), "°", -170, 170, 1},
+        {ui->widget_test2, "robot_ArcGauge_J2Height", "升降高度", QString(), "mm", -850, 1150, 0},
+        {ui->widget_test3, "robot_ArcGauge_J3Length", "总伸展长度", QString(), "mm", 0, 1600, 0},
+        {ui->widget_test4, "robot_ArcGauge_J4Angle", "末端角度", QString(), "°", -180, 180, 1},
+        {ui->widget_SixAxies_1, "robot_ArcGauge_SixAxis1", "RX", QString(), "°", -15, 15, 2},
+        {ui->widget_SixAxies_2, "robot_ArcGauge_SixAxis2", "RY", QString(), "°", -15, 15, 2},
+        {ui->widget_SixAxies_3, "robot_ArcGauge_SixAxis3", "RZ", QString(), "°", -12, 12, 2},
+        {ui->widget_SixAxies_4, "robot_ArcGauge_SixAxis4", "X", QString(), "mm", -110, 110, 2},
+        {ui->widget_SixAxies_5, "robot_ArcGauge_SixAxis5", "Y", QString(), "mm", -110, 110, 2},
+        {ui->widget_SixAxies_6, "robot_ArcGauge_SixAxis6", "Z", QString(), "mm", -90, 90, 2}
     };
 
     for (auto &cfg : configs) {
@@ -1814,6 +1815,9 @@ void MainWindow::initSpeedGaugeUI()
             }
             if (!rangeCfg.labelText.isEmpty()) {
                 cfg.label = rangeCfg.labelText;
+            }
+            if (!rangeCfg.secondLabelText.isEmpty()) {
+                cfg.secondLabel = rangeCfg.secondLabelText;
             }
             if (!rangeCfg.suffix.isEmpty()) {
                 cfg.suffix = rangeCfg.suffix;
@@ -1847,6 +1851,7 @@ void MainWindow::initSpeedGaugeUI()
             }
             
             arcGauge->setLabelText(cfg.label);
+            arcGauge->setSecondLabelText(cfg.secondLabel);
             arcGauge->setSuffix(cfg.suffix);
             arcGauge->setPrecision(cfg.precision);
             
@@ -6327,6 +6332,18 @@ void MainWindow::setupSliderLabelConfigs()
     addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis4"), QStringLiteral("X"), QStringLiteral("mm"), -110.0, 110.0, 2);
     addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis5"), QStringLiteral("Y"), QStringLiteral("mm"), -110.0, 110.0, 2);
     addArcGaugeRangeOnly(QStringLiteral("robot_ArcGauge_SixAxis6"), QStringLiteral("Z"), QStringLiteral("mm"), -90.0, 90.0, 2);
+
+    // TechArcGauge 第二行标签（secondLabelText），与 initSpeedGaugeUI 中 cfg.name 对应
+    m_sliderLabelConfigs["robot_ArcGauge_J1Angle"].secondLabelText = QStringLiteral("立柱旋转");
+    m_sliderLabelConfigs["robot_ArcGauge_J2Height"].secondLabelText = QStringLiteral("立柱升降");
+    m_sliderLabelConfigs["robot_ArcGauge_J3Length"].secondLabelText = QStringLiteral("伸缩平衡臂");
+    m_sliderLabelConfigs["robot_ArcGauge_J4Angle"].secondLabelText = QStringLiteral("末端组件");
+    m_sliderLabelConfigs["robot_ArcGauge_SixAxis1"].secondLabelText = QStringLiteral("绕X轴旋转");
+    m_sliderLabelConfigs["robot_ArcGauge_SixAxis2"].secondLabelText = QStringLiteral("绕Y轴旋转");
+    m_sliderLabelConfigs["robot_ArcGauge_SixAxis3"].secondLabelText = QStringLiteral("绕Z轴旋转");
+    m_sliderLabelConfigs["robot_ArcGauge_SixAxis4"].secondLabelText = QStringLiteral("X轴位移");
+    m_sliderLabelConfigs["robot_ArcGauge_SixAxis5"].secondLabelText = QStringLiteral("Y轴位移");
+    m_sliderLabelConfigs["robot_ArcGauge_SixAxis6"].secondLabelText = QStringLiteral("Z轴位移");
 
     qCDebug(lcMainWindow) << "SliderLabel配置初始化完成";
     qCDebug(lcMainWindow) << "每个控件都需要在以下页面中查找匹配:" << allTargetPages;
