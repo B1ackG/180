@@ -182,6 +182,8 @@ public:
     // ==========================================
     /** @brief 启动报警子系统 */
     void startAlarmSystem();
+    /** @brief 标记主程序初始化完成，此后才允许显示用户弹窗/Toast（设备连接异常弹窗除外） */
+    void markMainInitializationComplete();
     /** @brief 配置报警系统 */
     void setupAlarmSystem();
     /** @brief 检查并处理报警条件 */
@@ -458,6 +460,10 @@ public:
     void updateInclinometerValue(bool isXAxis, quint16 rawValue);
     /** @brief 根据 X/Y 倾角刷新倾角条颜色与倾覆风险/锁定提示窗 */
     void refreshInclinometerTiltPresentation();
+    /** @brief 主程序初始化完成前禁止显示用户弹窗/Toast */
+    bool userPopupsAllowed() const;
+    /** @brief 初始化完成后补显示启动期间已触发的弹窗状态 */
+    void syncActiveUserPopups();
     /** @brief 初始化滑块编辑 UI */
     void initSliderEditUI();
 
@@ -719,6 +725,7 @@ private:
     QIntValidator *m_weightLockLimitValidator = nullptr;
     bool m_mainRegister150Valid = false;
     quint16 m_mainRegister150Shadow = 0;
+    bool m_mainInitializationComplete = false;
 
     // ----- 历史记录与日志 -----
     OperationRecorder *m_recorder;

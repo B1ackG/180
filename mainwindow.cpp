@@ -3489,6 +3489,9 @@ void MainWindow::setupAdminPasswordPage()
 }
 void MainWindow::showNotification(const QString &message)
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
     if (message == m_lastNotificationMessage && (nowMs - m_lastNotificationMs) < 800) {
         return;
@@ -3518,6 +3521,9 @@ void MainWindow::showToast(const QString &message,
                            int durationMs,
                            const std::function<void()> &onDismissed)
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     const QString text = message.trimmed();
     if (text.isEmpty()) {
         return;
@@ -10337,6 +10343,9 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
     if (!isFeatureEnabled("alarm_system", "alarm.popup")) {
         return;
     }
+    if (!userPopupsAllowed()) {
+        return;
+    }
 
     qCDebug(lcMainWindow) << "showAlarm被调用，消息:" << message << "颜色:" << color << "可关闭:" << closable;
 
@@ -10649,6 +10658,9 @@ void positionFloatingPopupTopRight(QWidget *widget, int topOffsetPx)
 
 void MainWindow::showAgvStationOfflineAlarm()
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     if (!m_agvStationOfflineAlarmWidget) {
         m_agvStationOfflineAlarmWidget = new QWidget(nullptr);
         m_agvStationOfflineAlarmWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
@@ -10691,6 +10703,9 @@ void MainWindow::showAgvStationOfflineAlarm()
 
 void MainWindow::showParkingSwitchHintDialog(const QString &message)
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     if (!m_parkingSwitchHintDialog) {
         m_parkingSwitchHintDialog = new QDialog(this);
         m_parkingSwitchHintDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
@@ -10780,6 +10795,9 @@ void MainWindow::updateParkingLegAbnormalDialogVisibility()
 
 void MainWindow::showParkingLegAbnormalDialog()
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     if (!m_parkingLegAbnormalDialog) {
         m_parkingLegAbnormalDialog = new QDialog(this);
         m_parkingLegAbnormalDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
@@ -10929,6 +10947,9 @@ void MainWindow::hideAgvStationOfflineAlarm()
 
 void MainWindow::showAgvDriveFaultAlarm()
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     if (!m_agvDriveFaultAlarmWidget) {
         m_agvDriveFaultAlarmWidget = new QWidget(nullptr);
         m_agvDriveFaultAlarmWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
@@ -10997,6 +11018,9 @@ void MainWindow::hideAgvBatteryLowDialog()
 
 void MainWindow::showInclinometerTiltRiskDialog()
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     if (m_inclinometerTiltRiskAcked) {
         return;
     }
@@ -11082,6 +11106,9 @@ void MainWindow::hideInclinometerTiltRiskDialog()
 
 void MainWindow::presentInclinometerTiltLockUnlocked()
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     if (!m_inclinometerTiltLockDialog) {
         return;
     }
@@ -11111,6 +11138,9 @@ void MainWindow::presentInclinometerTiltLockUnlocked()
 
 void MainWindow::presentInclinometerTiltLockModal()
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     if (!m_inclinometerTiltLockDialog) {
         return;
     }
@@ -11145,6 +11175,9 @@ void MainWindow::presentInclinometerTiltLockModal()
 
 void MainWindow::showInclinometerTiltLockDialog()
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     if (!m_inclinometerTiltLockDialog) {
         m_inclinometerTiltLockDialog = new QDialog(nullptr);
         m_inclinometerTiltLockDialog->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
@@ -11326,6 +11359,9 @@ void MainWindow::hideRobotOperationHintDialog()
 
 void MainWindow::showRobotInterlockModalDialog(const QString &message)
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     if (!m_robotInterlockDialog) {
         m_robotInterlockDialog = new QDialog(this);
         m_robotInterlockDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
@@ -11801,6 +11837,9 @@ void MainWindow::hideRobotLimitReachedDialog()
 
 void MainWindow::showRobotWeightOverloadDialog()
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     if (!m_robotWeightOverloadWidget) {
         m_robotWeightOverloadWidget = new QWidget(nullptr);
         m_robotWeightOverloadWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
@@ -11898,6 +11937,9 @@ void MainWindow::blockRobotWeightLockOperation(const QString &hint)
 
 void MainWindow::showRobotWeightLockDialog()
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     if (m_robotWeightLockUserAckedWhileActive) {
         return;
     }
@@ -11985,6 +12027,9 @@ void MainWindow::hideRobotWeightLockDialog()
 
 void MainWindow::showRobotAxisSyncDeviationDialog()
 {
+    if (!userPopupsAllowed()) {
+        return;
+    }
     if (!m_robotAxisSyncDeviationWidget) {
         m_robotAxisSyncDeviationWidget = new QWidget(nullptr);
         m_robotAxisSyncDeviationWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |

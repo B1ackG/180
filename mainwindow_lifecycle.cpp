@@ -207,6 +207,53 @@ void MainWindow::startAlarmSystem()
     setupAlarmSystem();
 }
 
+bool MainWindow::userPopupsAllowed() const
+{
+    return m_mainInitializationComplete;
+}
+
+void MainWindow::markMainInitializationComplete()
+{
+    if (m_mainInitializationComplete) {
+        return;
+    }
+    m_mainInitializationComplete = true;
+    qDebug() << "主程序初始化完成，用户弹窗/Toast 已启用";
+    syncActiveUserPopups();
+}
+
+void MainWindow::syncActiveUserPopups()
+{
+    updateAlarmDisplay();
+
+    if (m_agvStationOffline51Bit1Flag) {
+        showAgvStationOfflineAlarm();
+    }
+    if (m_agvDriveFault51Bit2Flag) {
+        showAgvDriveFaultAlarm();
+    }
+    if (m_agvBatteryLow51Bit0Flag && !m_agvBatteryLowAcked) {
+        showAgvBatteryLowDialog();
+    }
+
+    if (m_robotWeightLock150Bit7Flag && !m_robotWeightLockUserAckedWhileActive) {
+        showRobotWeightLockDialog();
+    } else if (m_robotWeightOverload150Bit3Flag && !m_robotWeightOverloadUserAckedWhileActive) {
+        showRobotWeightOverloadDialog();
+    }
+    if (m_robotAxisSyncDeviation150Bit6Flag) {
+        showRobotAxisSyncDeviationDialog();
+    }
+    if (m_robotPositiveLimit102Bit2Flag) {
+        showRobotLimitReachedDialog(true);
+    } else if (m_robotNegativeLimit102Bit3Flag) {
+        showRobotLimitReachedDialog(false);
+    }
+
+    refreshInclinometerTiltPresentation();
+    updateParkingLegAbnormalDialogVisibility();
+}
+
 void MainWindow::initializePageNames()
 {
     m_pageNames.clear();

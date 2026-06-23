@@ -551,7 +551,8 @@ int main(int argc, char *argv[])
     // 关闭启动画面
     splash.finish(&w);
 
-    // 主窗口显示后再初始化报警系统，避免在开机自检界面弹出报警
+    // 主窗口显示后再允许用户弹窗/Toast，并初始化报警系统
+    w.markMainInitializationComplete();
     QTimer::singleShot(0, &w, &MainWindow::startAlarmSystem);
 
     qDebug() << "进入事件循环";
