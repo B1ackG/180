@@ -41,6 +41,12 @@ public:
                              const QString &error = QString());
 
     /**
+     * @brief 返回状态栏 Modbus 指示器的样式表。
+     * @param state 当前连接状态。
+     */
+    static QString indicatorStyle(MainModbusState state);
+
+    /**
      * @brief 将状态写入操作记录器。
      * @param recorder 操作记录器实例。
      * @param state 当前连接状态。

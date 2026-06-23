@@ -34,6 +34,19 @@ QString stateToNewValue(MainModbusState state, const QString &error)
 }
 } // namespace
 
+QString MainModbusStatus::indicatorStyle(MainModbusState state)
+{
+    switch (state) {
+    case MainModbusState::Connected:
+        return QStringLiteral("color: #55ff55; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
+    case MainModbusState::Disconnected:
+        return QStringLiteral("color: #ff5555; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
+    case MainModbusState::Error:
+        return QStringLiteral("color: #ffaa00; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
+    }
+    return QString();
+}
+
 void MainModbusStatus::applyUiState(QStatusBar *statusBar,
                                     MainModbusState state,
                                     const QString &error)
@@ -43,25 +56,23 @@ void MainModbusStatus::applyUiState(QStatusBar *statusBar,
     }
 
     QString message;
-    QString style;
     QString tooltip;
     switch (state) {
     case MainModbusState::Connected:
         message = QStringLiteral("Modbus连接成功");
-        style = QStringLiteral("color: #55ff55; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
         tooltip = QStringLiteral("主设备 Modbus连接正常");
         break;
     case MainModbusState::Disconnected:
         message = QStringLiteral("Modbus设备断开连接");
-        style = QStringLiteral("color: #ff5555; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
         tooltip = QStringLiteral("主设备 Modbus已断开");
         break;
     case MainModbusState::Error:
         message = QStringLiteral("Modbus错误: %1").arg(error);
-        style = QStringLiteral("color: #ffaa00; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
         tooltip = QStringLiteral("主设备 Modbus错误: %1").arg(error);
         break;
     }
+
+    const QString style = indicatorStyle(state);
 
     statusBar->showMessage(message, state == MainModbusState::Error ? 5000 : 3000);
     QLabel *mainIndicator = statusBar->findChild<QLabel *>(QStringLiteral("mainModbusStatusIndicator"));

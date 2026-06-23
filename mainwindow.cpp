@@ -6784,7 +6784,7 @@ void MainWindow::onAGVModbusConnected()
     // 更新状态栏指示器
     QLabel *agvIndicator = ui->statusBar->findChild<QLabel*>("agvModbusStatusIndicator");
     if (agvIndicator) {
-        agvIndicator->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
+        agvIndicator->setStyleSheet(MainModbusStatus::indicatorStyle(MainModbusState::Connected));
         agvIndicator->setToolTip("AGV Modbus连接正常");
     }
 
@@ -6826,7 +6826,7 @@ void MainWindow::onAGVModbusDisconnected()
     // 更新状态栏指示器
     QLabel *agvIndicator = ui->statusBar->findChild<QLabel*>("agvModbusStatusIndicator");
     if (agvIndicator) {
-        agvIndicator->setStyleSheet("color: #ff5555; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
+        agvIndicator->setStyleSheet(MainModbusStatus::indicatorStyle(MainModbusState::Disconnected));
         agvIndicator->setToolTip("AGV Modbus已断开");
     }
 
@@ -6861,7 +6861,7 @@ void MainWindow::onAGVModbusError(const QString &error)
     // 更新状态栏指示器
     QLabel *agvIndicator = ui->statusBar->findChild<QLabel*>("agvModbusStatusIndicator");
     if (agvIndicator) {
-        agvIndicator->setStyleSheet("color: #ffaa00; font-weight: bold; font-size: 10px;"); // 橙色表示错误/警告
+        agvIndicator->setStyleSheet(MainModbusStatus::indicatorStyle(MainModbusState::Error));
         agvIndicator->setToolTip(QString("AGV Modbus错误: %1").arg(error));
     }
 
@@ -8974,7 +8974,7 @@ void MainWindow::setupTcpTransmissionUI()
             QLabel *label = new QLabel(text, statusGroupWidget);
             label->setObjectName(objName);
             label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
-            label->setStyleSheet("color: #ff5555; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
+            label->setStyleSheet(MainModbusStatus::indicatorStyle(MainModbusState::Disconnected));
             label->setFixedHeight(12);
             return label;
         };
@@ -9003,7 +9003,7 @@ void MainWindow::setupTcpTransmissionUI()
 
         // 初始化一次颜色
         if (m_modbusManager && m_modbusManager->isConnected()) {
-            mainModbusStatusIndicator->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
+            mainModbusStatusIndicator->setStyleSheet(MainModbusStatus::indicatorStyle(MainModbusState::Connected));
             mainModbusStatusIndicator->setToolTip("主设备 Modbus连接正常");
         }
     }
@@ -9180,11 +9180,11 @@ void MainWindow::onTcpConnectionStatusChanged(bool connected)
     if (tcpStatusIndicator) {
         if (connected) {
             tcpStatusIndicator->setText("TCP: ●");
-            tcpStatusIndicator->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
+            tcpStatusIndicator->setStyleSheet(MainModbusStatus::indicatorStyle(MainModbusState::Connected));
             tcpStatusIndicator->setToolTip("TCP连接正常");
         } else {
             tcpStatusIndicator->setText("TCP: ●");
-            tcpStatusIndicator->setStyleSheet("color: #ff5555; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
+            tcpStatusIndicator->setStyleSheet(MainModbusStatus::indicatorStyle(MainModbusState::Disconnected));
             tcpStatusIndicator->setToolTip("TCP连接断开");
         }
     }
