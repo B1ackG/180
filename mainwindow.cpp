@@ -4386,6 +4386,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             }
 
             recordStepMoveAction(targetName, currentValue, QString::number(stepValueFloat, 'f', 3), true);
+            markStepMotionPendingStop(StepMotionStopKind::SixAxis, targetName, keyNumber);
             ui->statusBar->showMessage(
                 QString("步进触发：按键○%1，目标%2，步进值%3")
                     .arg(keyNumber)
@@ -4712,6 +4713,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
                 recordStepMoveAction(targetName, currentValue,
                                      QString::number(stepValue, 'f', 3), true);
+                markStepMotionPendingStop(StepMotionStopKind::RobotJoint, targetName);
                 ui->statusBar->showMessage(
                     QString("步进触发：按键○%1，目标%2，步进值%3")
                         .arg(keyNumber)
@@ -4914,6 +4916,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
             writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○9步进按下(1)：寄存器0 bit4=1"));
             writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
             appendAgvExternalKeyRecord(keyNumber, pressed);
+            markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
             m_robotExternalKeyPressed[keyNumber] = true;
             return;
         }
@@ -4931,6 +4934,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         writeToAGVDevice(5, stepInt);
         writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
         appendAgvExternalKeyRecord(keyNumber, pressed, m_stepValueEdit->text().trimmed());
+        markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
         m_robotExternalKeyPressed[keyNumber] = true;
         return;
     }
@@ -8564,6 +8568,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
             writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○10步进按下(1)：寄存器0 bit4=1"));
             writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
             appendAgvExternalKeyRecord(keyNumber, pressed);
+            markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
             m_robotExternalKeyPressed[keyNumber] = true;
             return;
         }
@@ -8580,6 +8585,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         writeToAGVDevice(5, stepInt);
         writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
         appendAgvExternalKeyRecord(keyNumber, pressed, m_stepValueEdit->text().trimmed());
+        markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
         m_robotExternalKeyPressed[keyNumber] = true;
         return;
     }
@@ -9365,6 +9371,8 @@ void MainWindow::onEnableButtonPressedStepMode()
 {
     qCDebug(lcMainWindow) << "步进模式下使能按钮按下";
 
+    m_pendingStepMotionStops.clear();
+
     // 需求变更：步进模式下使能按钮不再触发514或步进值写入，改由外部按键触发。
 
     if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
@@ -9421,6 +9429,14 @@ void MainWindow::onEnableButtonReleasedStepMode()
     // 首页统一步进输入框：不在使能松开时清空，改由所有外部按键(○1~○10)均松开后清空。
 
     // 步进模式下使能按钮释放：不写514；首页 lineEdit_StepValue 清空见 maybeClearFirstPageStepValueIfAllExternalKeysReleased。
+
+    const bool hadPendingStepStops = !m_pendingStepMotionStops.isEmpty();
+    flushPendingStepMotionStopsOnEnableRelease();
+
+    if (hadPendingStepStops) {
+        ui->statusBar->showMessage("步进模式：使能按钮释放", 2000);
+        return;
+    }
 
     // 与 onEnableButtonPressedStepMode 一致：仅当首页统一步进输入框有内容时才按选中目标记录结束；
     // 否则仅判断 m_stepValueEdit 非空会在输入为空时仍走本分支，且 selectedStepTargetRegister()
@@ -10123,7 +10139,7 @@ void MainWindow::recordStepMoveAction(const QString &jointName, double currentVa
 }
 
 // 记录步进动作结束
-void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue)
+void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue, bool motionStopStyle)
 {
     OperationRecord record;
     record.timestamp = QDateTime::currentDateTime();
@@ -10133,7 +10149,28 @@ void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue
     record.operation = "step_move_end";
     record.oldValue = "";
     QString msg;
-    if (jointName.contains("J1")) {
+    if (motionStopStyle) {
+        if (jointName.contains("J1")) {
+            msg = QString("运动停止，当前立柱旋转角度为%1°").arg(currentValue, 0, 'f', 1);
+        } else if (jointName.contains("J2")) {
+            msg = QString("运动停止，当前立柱升降高度为%1mm").arg(currentValue, 0, 'f', 1);
+        } else if (jointName.contains("J3")) {
+            msg = QString("运动停止，当前伸缩臂长度为%1mm").arg(currentValue, 0, 'f', 1);
+        } else if (jointName.contains("J4")) {
+            msg = QString("运动停止，当前末端组件角度为%1°").arg(currentValue, 0, 'f', 1);
+        } else if (jointName.contains("AGV") || jointName.contains("底盘")) {
+            msg = QString("运动停止，当前底盘速度为%1").arg(currentValue, 0, 'f', 1);
+        } else {
+            const QString valueLabel = jointName.contains("角度") ? "角度"
+                                         : jointName.contains("高度") ? "高度"
+                                         : jointName.contains("长度") ? "长度"
+                                         : "值";
+            msg = QString("运动停止，当前%1%2为%3")
+                      .arg(jointName)
+                      .arg(valueLabel)
+                      .arg(currentValue, 0, 'f', 1);
+        }
+    } else if (jointName.contains("J1")) {
         msg = QString("立柱旋转当前角度为%1°，步进结束").arg(currentValue, 0, 'f', 1);
     } else if (jointName.contains("J2")) {
         msg = QString("立柱升降当前高度为%1mm，步进结束").arg(currentValue, 0, 'f', 1);
@@ -10152,6 +10189,59 @@ void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue
 
     m_recorder->addRecord(record);
     showNotification(record.newValue.toString());
+}
+
+void MainWindow::markStepMotionPendingStop(StepMotionStopKind kind,
+                                           const QString &targetName,
+                                           int externalKeyNumber)
+{
+    PendingStepMotionStop pending;
+    pending.kind = kind;
+    pending.targetName = targetName;
+    pending.externalKeyNumber = externalKeyNumber;
+    m_pendingStepMotionStops.append(pending);
+}
+
+void MainWindow::flushPendingStepMotionStopsOnEnableRelease()
+{
+    if (m_pendingStepMotionStops.isEmpty()) {
+        return;
+    }
+
+    const QVector<PendingStepMotionStop> pendingStops = m_pendingStepMotionStops;
+    m_pendingStepMotionStops.clear();
+
+    for (const PendingStepMotionStop &pending : pendingStops) {
+        switch (pending.kind) {
+        case StepMotionStopKind::RobotJoint: {
+            double currentValue = 0.0;
+            if (pending.targetName.contains("J1")) {
+                currentValue = getSliderLabelValue("label_Value1");
+            } else if (pending.targetName.contains("J2")) {
+                currentValue = getSliderLabelValue("label_Value2");
+            } else if (pending.targetName.contains("J3")) {
+                currentValue = getSliderLabelValue("label_Value3");
+            } else if (pending.targetName.contains("J4")) {
+                currentValue = getSliderLabelValue("label_Value4");
+            } else if (pending.targetName.contains("AGV") || pending.targetName.contains("底盘")) {
+                currentValue = m_editAGV_MoveSpeed ? m_editAGV_MoveSpeed->value()
+                                                   : getSliderEditValue("SEdit_AGV_MoveSpeed");
+            }
+            recordStepMoveEnd(pending.targetName, currentValue, true);
+            break;
+        }
+        case StepMotionStopKind::SixAxis:
+            if (pending.externalKeyNumber >= 1 && pending.externalKeyNumber <= 12) {
+                recordSixAxisJogExternalKey(pending.externalKeyNumber, false);
+            }
+            break;
+        case StepMotionStopKind::Agv:
+            if (pending.externalKeyNumber >= 1) {
+                appendAgvExternalKeyRecord(pending.externalKeyNumber, false);
+            }
+            break;
+        }
+    }
 }
 
 void MainWindow::recordSixAxisJogExternalKey(int keyNumber, bool pressed)

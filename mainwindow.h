@@ -48,6 +48,14 @@
 
 class QIntValidator;
 class QResizeEvent;
+
+enum class StepMotionStopKind { RobotJoint, SixAxis, Agv };
+
+struct PendingStepMotionStop {
+    StepMotionStopKind kind = StepMotionStopKind::RobotJoint;
+    QString targetName;
+    int externalKeyNumber = -1;
+};
 #include <QProgressBar>
 #include <QQuickWidget>
 #include <QQuickItem>
@@ -759,6 +767,7 @@ private:
     QHash<int, bool> m_sixAxisExternalKeyPressed;
     quint64 m_sixAxisExternalWriteSeq = 0;
     int m_sixAxisActiveKey = -1;
+    QVector<PendingStepMotionStop> m_pendingStepMotionStops;
 
     // ----- 通信轮询与重连参数（可持久化） -----
     int m_mainModbusPollIntervalMs = 500;
@@ -1101,7 +1110,15 @@ private:
     void recordStepMoveAction(const QString &jointName, double currentValue, const QString &stepValue, bool start);
 
     /** @brief 记录步进移动结束（用于历史记录） */
-    void recordStepMoveEnd(const QString &jointName, double currentValue);
+    void recordStepMoveEnd(const QString &jointName, double currentValue, bool motionStopStyle = false);
+
+    /** @brief 登记本次使能按住期间已触发的步进，待使能松开时写入停止历史 */
+    void markStepMotionPendingStop(StepMotionStopKind kind,
+                                   const QString &targetName,
+                                   int externalKeyNumber = -1);
+
+    /** @brief 使能松开时写入待记录的步进运动停止历史 */
+    void flushPendingStepMotionStopsOnEnableRelease();
 
     /** @brief 第四页六自由度点动：○1～○12 对应 RX/RY/RZ/X/Y/Z，按下/松开记录当前角度或位置（展示方式与步进一致） */
     void recordSixAxisJogExternalKey(int keyNumber, bool pressed);
