@@ -1,6 +1,9 @@
 #include "matrixkeymonitor.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
+#include <errno.h>
+#include <string.h>
 #include <QDebug>
 #include <QCoreApplication>
 
@@ -38,6 +41,19 @@ bool MatrixKeyMonitor::startMonitoring()
     if (m_fd < 0) {
         QString error = QString("无法打开设备 %1: %2").arg(m_devicePath).arg(strerror(errno));
         qCritical() << error;
+        emit errorOccurred(error);
+        return false;
+    }
+
+    // 独占抓取输入设备，避免其它进程（含第二个 180）同时收到矩阵键事件。
+    // 未 grab 时 Linux 会把同一 event 分发给所有打开该节点的读者。
+    if (ioctl(m_fd, EVIOCGRAB, 1) != 0) {
+        QString error = QString("无法独占矩阵键设备 %1: %2（可能已有其它进程占用）")
+                            .arg(m_devicePath)
+                            .arg(strerror(errno));
+        qCritical() << error;
+        close(m_fd);
+        m_fd = -1;
         emit errorOccurred(error);
         return false;
     }
@@ -84,8 +100,9 @@ void MatrixKeyMonitor::stopMonitoring()
         m_notifier = nullptr;
     }
 
-    // 关闭文件描述符
+    // 关闭文件描述符（先释放独占抓取）
     if (m_fd >= 0) {
+        ioctl(m_fd, EVIOCGRAB, 0);
         close(m_fd);
         m_fd = -1;
     }

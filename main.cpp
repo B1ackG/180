@@ -17,6 +17,8 @@
 #include <QModelIndex>
 #include <QTcpSocket>
 #include <QFont>
+#include <QLockFile>
+#include <QDir>
 #include "debug.h"
 
 // 全局定义（在 debug.h 中声明）
@@ -425,6 +427,25 @@ int main(int argc, char *argv[])
 
     qDebug() << "程序启动 - 创建QApplication";
     QApplication a(argc, argv);
+
+    // 单实例保护：禁止同时跑两个 180。
+    // 两实例都会打开 /dev/input/event0 并写同一套 Modbus；后台实例常停在首页，
+    // 会在前台已切到六自由度时仍执行首页 ○9/○10（AGV）逻辑。
+    const bool allowMultiple = a.arguments().contains(QStringLiteral("--allow-multiple"));
+    QLockFile instanceLock(QDir::temp().absoluteFilePath(QStringLiteral("industrial_control_180.lock")));
+    instanceLock.setStaleLockTime(30 * 1000); // 崩溃残留锁约 30s 后可接管
+    if (!allowMultiple && !instanceLock.tryLock(100)) {
+        qCritical("180 已在运行（检测到实例锁）。请先结束旧进程再启动，"
+                  "例如: killall 180 或 kill $(pidof 180)。"
+                  "调试多开可用 --allow-multiple。");
+        QMessageBox::critical(nullptr,
+                              QStringLiteral("程序已在运行"),
+                              QStringLiteral("检测到已有 180 进程在运行。\n"
+                                             "两个实例会同时接收外部按键并写同一设备，"
+                                             "导致页面按键逻辑错乱（例如六自由度页触发首页 ○9/○10）。\n\n"
+                                             "请先结束旧进程后再启动。"));
+        return 1;
+    }
 
     FeatureSwitchManager *featureSwitch = FeatureSwitchManager::instance();
     if (a.arguments().contains("--all-features-off")) {

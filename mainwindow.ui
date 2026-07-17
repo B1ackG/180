@@ -671,7 +671,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <string notr="true">background-color:</string>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page_Robot">
        <widget class="QWidget" name="widget_test3" native="true">
@@ -1094,9 +1094,9 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         <property name="geometry">
          <rect>
           <x>580</x>
-          <y>440</y>
+          <y>430</y>
           <width>151</width>
-          <height>81</height>
+          <height>91</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_3">
