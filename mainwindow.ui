@@ -671,14 +671,14 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <string notr="true">background-color:</string>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page_Robot">
        <widget class="QWidget" name="widget_test3" native="true">
         <property name="geometry">
          <rect>
-          <x>210</x>
-          <y>80</y>
+          <x>60</x>
+          <y>230</y>
           <width>150</width>
           <height>150</height>
          </rect>
@@ -687,7 +687,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <widget class="QWidget" name="widget_test4" native="true">
         <property name="geometry">
          <rect>
-          <x>60</x>
+          <x>210</x>
           <y>230</y>
           <width>150</width>
           <height>150</height>
@@ -698,7 +698,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
         <property name="geometry">
          <rect>
           <x>210</x>
-          <y>230</y>
+          <y>80</y>
           <width>150</width>
           <height>150</height>
          </rect>

@@ -1907,7 +1907,7 @@ void MainWindow::initSpeedGaugeUI()
             arcGauge->setSecondLabelText(cfg.secondLabel);
             arcGauge->setSuffix(cfg.suffix);
             arcGauge->setPrecision(cfg.precision);
-            
+
             cfg.placeholder->hide();
             arcGauge->show();
 
@@ -5970,6 +5970,8 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             m_robotPositiveLimit102Bit2Flag = positiveLimitReached;
             if (positiveLimitReached) {
                 showRobotLimitReachedDialog(true);
+            } else if (m_robotLimitDialogTrigger == RobotLimitDialogTrigger::Positive) {
+                hideRobotLimitReachedDialog();
             }
         }
 
@@ -5977,6 +5979,8 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             m_robotNegativeLimit102Bit3Flag = negativeLimitReached;
             if (negativeLimitReached) {
                 showRobotLimitReachedDialog(false);
+            } else if (m_robotLimitDialogTrigger == RobotLimitDialogTrigger::Negative) {
+                hideRobotLimitReachedDialog();
             }
         }
 
@@ -11952,18 +11956,14 @@ void MainWindow::hideWirelessModeWarningDialog()
 
 QString MainWindow::robotLimitToastMessage(bool positiveLimit) const
 {
+    // 限位 Toast 文案仅对应 J1~J4（寄存器 500=1~4）；500=5 六自由度等其它值不生成文案
     const int axisCode = static_cast<int>(g_registerCache.value(500, 0));
-    QString axisLabel;
-    if (axisCode >= 1 && axisCode <= 4) {
-        axisLabel = QStringLiteral("J%1轴").arg(axisCode);
-    } else if (axisCode == 5) {
-        axisLabel = QStringLiteral("六自由度");
-    } else {
-        axisLabel = QStringLiteral("未知轴");
+    if (axisCode < 1 || axisCode > 4) {
+        return {};
     }
 
     const QString limitDir = positiveLimit ? QStringLiteral("正") : QStringLiteral("负");
-    return QStringLiteral("%1到达%2限位").arg(axisLabel, limitDir);
+    return QStringLiteral("J%1轴到达%2限位").arg(axisCode).arg(limitDir);
 }
 
 void MainWindow::showRobotLimitReachedDialog(bool positiveLimit)
@@ -11973,10 +11973,13 @@ void MainWindow::showRobotLimitReachedDialog(bool positiveLimit)
         return;
     }
 
+    const QString message = robotLimitToastMessage(positiveLimit);
+    if (message.isEmpty()) {
+        return;
+    }
+
     m_robotLimitDialogTrigger = positiveLimit ? RobotLimitDialogTrigger::Positive
                                               : RobotLimitDialogTrigger::Negative;
-
-    const QString message = robotLimitToastMessage(positiveLimit);
 
     if (m_recorder) {
         OperationRecord record;

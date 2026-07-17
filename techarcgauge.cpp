@@ -18,7 +18,6 @@ TechArcGauge::TechArcGauge(QWidget *parent)
     , m_modbusAddress(-1)
     , m_primaryColor(QColor(0, 168, 220))
     , m_glowColor(QColor(111, 231, 255, 110))
-    , m_forceControlEnabled(false)
     , m_scanLinePhase(0)
     , m_repaintPending(false)
 {
@@ -36,10 +35,14 @@ TechArcGauge::~TechArcGauge()
 void TechArcGauge::setValue(double value)
 {
     value = qBound(m_minimum, value, m_maximum);
-    if (qAbs(m_value - value) > 0.0001) {
-        m_value = value;
-        
+    const bool changed = qAbs(m_value - value) > 0.0001;
+    const QColor oldPrimary = m_primaryColor;
+    m_value = value;
+    updateRangeLimitColors();
+    if (changed) {
         emit valueChanged(m_value);
+    }
+    if (changed || m_primaryColor != oldPrimary) {
         requestRepaint();
     }
 }
@@ -115,13 +118,18 @@ void TechArcGauge::setPrecision(int precision)
     requestRepaint();
 }
 
-void TechArcGauge::setForceControlMode(bool enabled)
+void TechArcGauge::updateRangeLimitColors()
 {
-    Q_UNUSED(enabled);
-    m_forceControlEnabled = false;
-    m_primaryColor = m_originalPrimaryColor;
-    m_glowColor = m_originalGlowColor;
-    requestRepaint();
+    constexpr double kEps = 1e-6;
+    const bool atLimit = (m_maximum > m_minimum)
+            && (m_value <= m_minimum + kEps || m_value >= m_maximum - kEps);
+    if (atLimit) {
+        m_primaryColor = QColor(255, 51, 51);
+        m_glowColor = QColor(255, 51, 51, 180);
+    } else {
+        m_primaryColor = m_originalPrimaryColor;
+        m_glowColor = m_originalGlowColor;
+    }
 }
 
 void TechArcGauge::updateFromModbus(double value)
@@ -312,14 +320,4 @@ void TechArcGauge::requestRepaint()
         m_repaintElapsed.restart();
         update();
     }
-}
-
-QColor TechArcGauge::interpolate(const QColor &start, const QColor &end, double t)
-{
-    return QColor(
-        start.red() + (end.red() - start.red()) * t,
-        start.green() + (end.green() - start.green()) * t,
-        start.blue() + (end.blue() - start.blue()) * t,
-        start.alpha() + (end.alpha() - start.alpha()) * t
-    );
 }

@@ -35,7 +35,6 @@ public:
     void setSuffix(const QString &suffix);
     void setSecondSuffix(const QString &suffix);
     void setPrecision(int precision);
-    void setForceControlMode(bool enabled);
     void setModbusAddress(int address) { m_modbusAddress = address; }
     int modbusAddress() const { return m_modbusAddress; }
 
@@ -59,7 +58,8 @@ protected:
 
 private:
     void requestRepaint();
-    QColor interpolate(const QColor& start, const QColor& end, double t);
+    /** @brief 到达量程 min/max 时整表变红，否则恢复原色 */
+    void updateRangeLimitColors();
 
     double m_value;
     double m_minimum;
@@ -81,8 +81,6 @@ private:
     QColor m_glowColor;
     QColor m_originalGlowColor;
 
-    // 动画相关
-    bool m_forceControlEnabled;
     float m_scanLinePhase;
     
     // 重绘控制
