@@ -4354,6 +4354,10 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             if (isOddKey) {
                 rawStepValue = -rawStepValue;
             }
+            // ○11/○12（轴6）相对其余轴再单独取反
+            if (keyNumber == 11 || keyNumber == 12) {
+                rawStepValue = -rawStepValue;
+            }
 
             const float stepValueFloat = static_cast<float>(rawStepValue);
             m_sixAxisExternalKeyPressed[keyNumber] = true;
@@ -4443,7 +4447,11 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
         recordSixAxisJogExternalKey(keyNumber, true);
         const int groupIndex = (keyNumber + 1) / 2;       // ○1/2->1 ... ○11/12->6
-        const int signedCommand = (keyNumber % 2 == 1) ? -groupIndex : groupIndex;
+        int signedCommand = (keyNumber % 2 == 1) ? -groupIndex : groupIndex;
+        // ○11/○12（轴6）相对其余轴再单独取反
+        if (keyNumber == 11 || keyNumber == 12) {
+            signedCommand = -signedCommand;
+        }
         const quint16 encoded = static_cast<quint16>(signedCommand); // 负数按补码写入
         writeToMainDevice(613, static_cast<int>(encoded));
 
@@ -5821,6 +5829,10 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                 || gaugeName == "robot_ArcGauge_SixAxis5"
                 || gaugeName == "robot_ArcGauge_SixAxis6") {
                 axisValue *= 1000.0f;
+            }
+            // widget_SixAxies_6（Z 轴）：解析后再取反显示
+            if (gaugeName == "robot_ArcGauge_SixAxis6") {
+                axisValue = -axisValue;
             }
             updateSliderLabelValue(gaugeName, axisValue);
         }

@@ -32,7 +32,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../180_win7/res.qrc">
+   <iconset resource="res.qrc">
     <normaloff>:/Picture/TechBackGround4.png</normaloff>:/Picture/TechBackGround4.png</iconset>
   </property>
   <property name="styleSheet">
@@ -671,7 +671,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <string notr="true">background-color:</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="page_Robot">
        <widget class="QWidget" name="widget_test3" native="true">
@@ -739,7 +739,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="../180_win7/res.qrc">:/Picture/190overall7_smalltest.png</pixmap>
+         <pixmap resource="res.qrc">:/Picture/190overall7_smalltest.png</pixmap>
         </property>
         <property name="scaledContents">
          <bool>true</bool>
@@ -1324,7 +1324,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="../180_win7/res.qrc">:/Picture/sixAxiesOverAll.png</pixmap>
+         <pixmap resource="res.qrc">:/Picture/sixAxiesOverAll.png</pixmap>
         </property>
         <property name="scaledContents">
          <bool>true</bool>
@@ -1624,6 +1624,8 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
    <header location="global">techchamfertoolbutton.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
  <connections/>
 </ui>
