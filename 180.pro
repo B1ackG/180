@@ -25,6 +25,7 @@ SOURCES += \
     mainmodbusstatus.cpp \
     mappingconfig.cpp \
     modebuttonstyler.cpp \
+    navigationicon.cpp \
     matrixkeymonitor.cpp \
     matrixkeythreadmanager.cpp \
     modbustcpclient.cpp \
@@ -37,7 +38,9 @@ SOURCES += \
     speedmodeselector.cpp \
     steeringmodeselector.cpp \
     techarcgauge.cpp \
+    techchamfertoolbutton.cpp \
     techpushbutton.cpp \
+    techshapes.cpp \
     techslideredit.cpp \
     techsliderlabel.cpp \
     techspeedgauge.cpp \
@@ -57,6 +60,7 @@ HEADERS += \
     mainmodbusstatus.h \
     mappingconfig.h \
     modebuttonstyler.h \
+    navigationicon.h \
     matrixkeymonitor.h \
     matrixkeythreadmanager.h \
     modbustcpclient.h \
@@ -69,7 +73,9 @@ HEADERS += \
     speedmodeselector.h \
     steeringmodeselector.h \
     techarcgauge.h \
+    techchamfertoolbutton.h \
     techpushbutton.h \
+    techshapes.h \
     techslideredit.h \
     techsliderlabel.h \
     techspeedgauge.h \

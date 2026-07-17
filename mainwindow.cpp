@@ -10,6 +10,8 @@
 #include "mainmodbusstatus.h"
 #include "modbuswritegate.h"
 #include "modbusstringregisters.h"
+#include "navigationicon.h"
+#include "techchamfertoolbutton.h"
 #include <QMovie>
 #include <QDateTime>
 #include <QDebug>
@@ -695,6 +697,26 @@ bool spareButtonSecondStateDarkeningEnabled(const QString &objectName)
     return enabled;
 }
 
+void initChamferButtonTheme(TechChamferToolButton *button)
+{
+    if (!button) {
+        return;
+    }
+    button->setFillColor(QColor(8, 18, 32, 173));
+    button->setBorderColor(QColor(0, 220, 255, 180));
+    button->setCheckedFillColor(QColor(0, 130, 200, 224));
+    button->setCheckedBorderColor(QColor(120, 240, 255, 255));
+}
+
+void applyChamferStateColors(TechChamferToolButton *btn,
+                             const QColor &fill, const QColor &border)
+{
+    if (!btn) {
+        return;
+    }
+    btn->setColors(fill, border);
+}
+
 void applyTwoStateButtonStyle(TechPushButton *button,
                               bool secondState,
                               bool dimSecondState,
@@ -1355,6 +1377,8 @@ void MainWindow::setupStyles()
     applyToolButtonStyles(CommonTBtns);
     applyLineEditStyles(AllLEdits);
 
+    setupBottomBarButtonIcons();
+
     // 顶部分组与按钮基础风格统一由 .ui 样式表维护，便于 Qt Creator 中可视化调整。
     if (ui) {
         if (ui->TBtn_Stepmove) ui->TBtn_Stepmove->setCheckable(false);
@@ -1457,57 +1481,86 @@ void MainWindow::setupStyles()
         );
 }
 
+void MainWindow::setupBottomBarButtonIcons()
+{
+    if (!ui) {
+        return;
+    }
+
+    constexpr QColor kCyan(0, 200, 255);
+    const auto setNavIcon = [&](TechChamferToolButton *btn, NavIconKind kind, int px = 22) {
+        if (!btn) {
+            return;
+        }
+        btn->setIcon(navigationIcon(kind, QSize(px, px), kCyan));
+        btn->setIconSize(QSize(px, px));
+        btn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        btn->setMinimumHeight(46);
+        initChamferButtonTheme(btn);
+    };
+
+    setNavIcon(ui->TBtn_HomePage, NavIconKind::Home);
+    setNavIcon(ui->TBtn_PermissionPage, NavIconKind::Permission);
+    setNavIcon(ui->TBtn_HistoryRecord, NavIconKind::History);
+    setNavIcon(ui->TBtn_SixAxies, NavIconKind::SixAxis);
+    setNavIcon(ui->TBtn_Stepmove, NavIconKind::StepMove);
+    setNavIcon(ui->TBtn_MoveMode, NavIconKind::JointMode);
+    setNavIcon(ui->TBtn_Interlocking, NavIconKind::ControlMenu);
+    setNavIcon(ui->TBtn_ControlMode, NavIconKind::WiredControl);
+
+    if (ui->TBtn_RemoveWarning) {
+        constexpr QColor kClearAlarmIcon(255, 244, 244);
+        ui->TBtn_RemoveWarning->setIcon(
+            navigationIcon(NavIconKind::ClearAlarm, QSize(24, 24), kClearAlarmIcon));
+        ui->TBtn_RemoveWarning->setIconSize(QSize(24, 24));
+        ui->TBtn_RemoveWarning->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        ui->TBtn_RemoveWarning->setMinimumHeight(46);
+        ui->TBtn_RemoveWarning->setFillColor(QColor(128, 24, 24, 230));
+        ui->TBtn_RemoveWarning->setBorderColor(QColor(0xff, 0x9a, 0x9a));
+    }
+}
+
 void MainWindow::updateFunctionSwitchVisuals()
 {
     if (!ui) {
         return;
     }
 
-    auto applyModeStyle = [](QToolButton *btn, const QString &color, const QString &labelSuffix) {
-        if (!btn) {
-            return;
-        }
-        btn->setStyleSheet(QString(
-            "QToolButton {"
-            "  color: #f4fbff;"
-            "  background: %1;"
-            "  border: 1px solid %2;"
-            "  border-radius: 8px;"
-            "  padding: 3px 8px;"
-            "  min-height: 36px;"
-            "}"
-            "QToolButton:hover {"
-            "  border: 1px solid #d9f4ff;"
-            "}")
-            .arg(color, labelSuffix));
-    };
+    const QColor unknownFill(96, 102, 114, 219);
+    const QColor unknownBorder(0x8f, 0x99, 0xa8);
 
-    const QString unknownBg = "rgba(96, 102, 114, 0.86)";
-    const QString unknownBorder = "#8f99a8";
-
-    // 点动/步进：增强颜色对比，状态一眼可分
     if (m_stepModeUnknown) {
-        applyModeStyle(ui->TBtn_Stepmove, unknownBg, unknownBorder);
+        applyChamferStateColors(ui->TBtn_Stepmove, unknownFill, unknownBorder);
     } else if (m_stepModeEnabled) {
-        applyModeStyle(ui->TBtn_Stepmove, "rgba(30, 148, 84, 0.90)", "#a9ffd0");
+        applyChamferStateColors(ui->TBtn_Stepmove,
+                                QColor(30, 148, 84, 230),
+                                QColor(0xa9, 0xff, 0xd0));
     } else {
-        applyModeStyle(ui->TBtn_Stepmove, "rgba(172, 108, 26, 0.90)", "#ffd7a1");
+        applyChamferStateColors(ui->TBtn_Stepmove,
+                                QColor(172, 108, 26, 230),
+                                QColor(0xff, 0xd7, 0xa1));
     }
 
-    // 关节/坐标：未选择与步进按钮保持同灰色
     if (m_moveModeUnknown) {
-        applyModeStyle(ui->TBtn_MoveMode, unknownBg, unknownBorder);
+        applyChamferStateColors(ui->TBtn_MoveMode, unknownFill, unknownBorder);
     } else if (m_isJointMode) {
-        applyModeStyle(ui->TBtn_MoveMode, "rgba(32, 140, 86, 0.88)", "#9dffd3");
+        applyChamferStateColors(ui->TBtn_MoveMode,
+                                QColor(32, 140, 86, 224),
+                                QColor(0x9d, 0xff, 0xd3));
     } else {
-        applyModeStyle(ui->TBtn_MoveMode, "rgba(166, 104, 24, 0.88)", "#ffd29a");
+        applyChamferStateColors(ui->TBtn_MoveMode,
+                                QColor(166, 104, 24, 224),
+                                QColor(0xff, 0xd2, 0x9a));
     }
 
-    // 有线/无线：白/黄差异
     if (m_controlMode == WIRED_MODE) {
-        applyModeStyle(ui->TBtn_ControlMode, "rgba(30, 126, 150, 0.90)", "#a8f0ff");
+        applyChamferStateColors(ui->TBtn_ControlMode,
+                                QColor(30, 126, 150, 230),
+                                QColor(0xa8, 0xf0, 0xff));
     } else {
-        applyModeStyle(ui->TBtn_ControlMode, "rgba(158, 122, 16, 0.88)", "#ffe28f");
+        applyChamferStateColors(ui->TBtn_ControlMode,
+                                QColor(158, 122, 16, 224),
+                                QColor(0xff, 0xe2, 0x8f));
     }
 }
 
@@ -4215,6 +4268,22 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             writeToMainDevice(500, 5);
             writeToMainDevice(514, value514);
 
+            if (m_recorder) {
+                const QString msg = (keyNumber == 13)
+                                        ? QStringLiteral("正在收回卷样机钢缆")
+                                        : QStringLiteral("正在放出卷样机钢缆");
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = getCurrentPageName();
+                record.controlName = msg;
+                record.controlType = QStringLiteral("MatrixKey");
+                record.operation = QString();
+                record.oldValue = QString();
+                record.newValue = QString();
+                m_recorder->addRecord(record);
+                showNotification(msg);
+            }
+
             qCDebug(lcMainWindow) << "六自由度页面外部按键○" << keyNumber
                                   << "写入 500=5, 514=" << value514;
             return;
@@ -5944,7 +6013,48 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         }
     }
 
+    if (address == 151) {
+        const bool cableRetracted = (((value >> 0) & 0x01) == 1);
+        const bool cableExtended = (((value >> 1) & 0x01) == 1);
 
+        if (cableRetracted != m_cableRetracted151Bit0Flag) {
+            m_cableRetracted151Bit0Flag = cableRetracted;
+            if (cableRetracted) {
+                static const QString kMsg = QStringLiteral("卷样机钢缆已完全收回");
+                if (m_recorder) {
+                    OperationRecord record;
+                    record.timestamp = QDateTime::currentDateTime();
+                    record.pageName = QStringLiteral("提示系统");
+                    record.controlName = QStringLiteral("卷样机钢缆到位提示");
+                    record.controlType = QStringLiteral("提示窗口");
+                    record.operation = QStringLiteral("提示触发");
+                    record.oldValue = QString();
+                    record.newValue = kMsg;
+                    m_recorder->addRecord(record);
+                }
+                showToast(kMsg, ToastKind::Warning);
+            }
+        }
+
+        if (cableExtended != m_cableExtended151Bit1Flag) {
+            m_cableExtended151Bit1Flag = cableExtended;
+            if (cableExtended) {
+                static const QString kMsg = QStringLiteral("卷样机钢缆已完全放出");
+                if (m_recorder) {
+                    OperationRecord record;
+                    record.timestamp = QDateTime::currentDateTime();
+                    record.pageName = QStringLiteral("提示系统");
+                    record.controlName = QStringLiteral("卷样机钢缆到位提示");
+                    record.controlType = QStringLiteral("提示窗口");
+                    record.operation = QStringLiteral("提示触发");
+                    record.oldValue = QString();
+                    record.newValue = kMsg;
+                    m_recorder->addRecord(record);
+                }
+                showToast(kMsg, ToastKind::Warning);
+            }
+        }
+    }
 
 }
 
@@ -6215,6 +6325,10 @@ void MainWindow::readMainControlSyncRegisters()
 
     // 当前运动目标轴：500（1~4=J1~J4，5=六自由度），供限位 Toast 文案使用
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 500, 1);
+
+    // 卷样机钢缆到位：151.bit0 完全收回 / 151.bit1 完全放出
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 151, 1);
+
     syncSpareButtonNamesFromRegisters();
 }
 // 配置所有TechSliderLabel的参数
@@ -10348,6 +10462,8 @@ void MainWindow::checkAlarmConditions()
             MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
         }
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 102, 1);
+        // 卷样机钢缆到位：151.bit0 完全收回 / 151.bit1 完全放出（不在默认 0~84 状态组内）
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 151, 1);
     }
 
     if (m_agvModbusManager && m_agvModbusManager->isConnected()
@@ -11852,6 +11968,11 @@ QString MainWindow::robotLimitToastMessage(bool positiveLimit) const
 
 void MainWindow::showRobotLimitReachedDialog(bool positiveLimit)
 {
+    // 正负限位 Toast 仅在首页（机械臂页）显示
+    if (!ui || !ui->StackedWidget || ui->StackedWidget->currentIndex() != 0) {
+        return;
+    }
+
     m_robotLimitDialogTrigger = positiveLimit ? RobotLimitDialogTrigger::Positive
                                               : RobotLimitDialogTrigger::Negative;
 

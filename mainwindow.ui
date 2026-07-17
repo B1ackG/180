@@ -32,7 +32,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="res.qrc">
+   <iconset resource="../180_win7/res.qrc">
     <normaloff>:/Picture/TechBackGround4.png</normaloff>:/Picture/TechBackGround4.png</iconset>
   </property>
   <property name="styleSheet">
@@ -144,38 +144,6 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
 #groupBox_StepMove QLineEdit:focus,
 #groupBox_SixAxies_StepMove QLineEdit:focus {
   border: 1px solid #9ff4ff;
-}
-
-#groupBox_2 QToolButton, #groupBox QToolButton {
-  color: #dff6ff;
-  background: rgba(16, 52, 85, 0.70);
-  border: 1px solid rgba(0, 200, 255, 0.40);
-  border-radius: 8px;
-  padding: 4px 10px;
-  min-height: 36px;
-}
-#groupBox_2 QToolButton:hover, #groupBox QToolButton:hover {
-  background: rgba(24, 80, 125, 0.86);
-  border: 1px solid #00c8ff;
-}
-
-#TBtn_RemoveWarning {
-  color: #fff4f4;
-  background: rgba(128, 24, 24, 0.92);
-  border: 1px solid #ff9a9a;
-  border-radius: 8px;
-  padding: 3px 8px;
-  min-height: 36px;
-}
-#TBtn_RemoveWarning:hover {
-  background: rgba(176, 35, 35, 0.96);
-  border: 1px solid #ffd6d6;
-}
-
-#groupBox QToolButton:checked {
-  background: rgba(0, 130, 200, 0.95);
-  border: 1px solid #9fe7ff;
-  color: #ffffff;
 }
 
 </string>
@@ -365,7 +333,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QToolButton" name="TBtn_HomePage">
+          <widget class="TechChamferToolButton" name="TBtn_HomePage">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>1</horstretch>
@@ -380,10 +348,6 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
            <property name="text">
             <string>主页</string>
            </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/home2.png</normaloff>:/Picture/home2.png</iconset>
-           </property>
            <property name="iconSize">
             <size>
              <width>22</width>
@@ -396,7 +360,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="TBtn_PermissionPage">
+          <widget class="TechChamferToolButton" name="TBtn_PermissionPage">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>1</horstretch>
@@ -411,10 +375,6 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
            <property name="text">
             <string>权限</string>
            </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/permission.png</normaloff>:/Picture/permission.png</iconset>
-           </property>
            <property name="iconSize">
             <size>
              <width>22</width>
@@ -427,7 +387,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="TBtn_HistoryRecord">
+          <widget class="TechChamferToolButton" name="TBtn_HistoryRecord">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>1</horstretch>
@@ -442,10 +402,6 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
            <property name="text">
             <string>历史记录</string>
            </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/history.png</normaloff>:/Picture/history.png</iconset>
-           </property>
            <property name="iconSize">
             <size>
              <width>22</width>
@@ -458,7 +414,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="TBtn_SixAxies">
+          <widget class="TechChamferToolButton" name="TBtn_SixAxies">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>1</horstretch>
@@ -472,10 +428,6 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
            </property>
            <property name="text">
             <string>六自由度</string>
-           </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/home2.png</normaloff>:/Picture/home2.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -507,7 +459,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
-          <widget class="QToolButton" name="TBtn_Stepmove">
+          <widget class="TechChamferToolButton" name="TBtn_Stepmove">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>1</horstretch>
@@ -529,10 +481,6 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
            <property name="text">
             <string>点动模式</string>
            </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/ModeSwitch.png</normaloff>:/Picture/ModeSwitch.png</iconset>
-           </property>
            <property name="iconSize">
             <size>
              <width>24</width>
@@ -545,7 +493,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="TBtn_MoveMode">
+          <widget class="TechChamferToolButton" name="TBtn_MoveMode">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>1</horstretch>
@@ -567,10 +515,6 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
            <property name="text">
             <string>关节模式</string>
            </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/MoveMode.png</normaloff>:/Picture/MoveMode.png</iconset>
-           </property>
            <property name="iconSize">
             <size>
              <width>24</width>
@@ -583,7 +527,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="TBtn_Interlocking">
+          <widget class="TechChamferToolButton" name="TBtn_Interlocking">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>1</horstretch>
@@ -605,10 +549,6 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
            <property name="text">
             <string>点动模式</string>
            </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/ModeSwitch.png</normaloff>:/Picture/ModeSwitch.png</iconset>
-           </property>
            <property name="iconSize">
             <size>
              <width>24</width>
@@ -621,7 +561,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="TBtn_ControlMode">
+          <widget class="TechChamferToolButton" name="TBtn_ControlMode">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>1</horstretch>
@@ -642,10 +582,6 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
            </property>
            <property name="text">
             <string>有线控制</string>
-           </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/ControlMode.png</normaloff>:/Picture/ControlMode.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -677,7 +613,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
-          <widget class="QToolButton" name="TBtn_RemoveWarning">
+          <widget class="TechChamferToolButton" name="TBtn_RemoveWarning">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>1</horstretch>
@@ -698,10 +634,6 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
            </property>
            <property name="text">
             <string>清除报错</string>
-           </property>
-           <property name="icon">
-            <iconset resource="res.qrc">
-             <normaloff>:/Picture/RemoveWarning.png</normaloff>:/Picture/RemoveWarning.png</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -739,7 +671,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <string notr="true">background-color:</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="page_Robot">
        <widget class="QWidget" name="widget_test3" native="true">
@@ -807,7 +739,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="res.qrc">:/Picture/190overall7_smalltest.png</pixmap>
+         <pixmap resource="../180_win7/res.qrc">:/Picture/190overall7_smalltest.png</pixmap>
         </property>
         <property name="scaledContents">
          <bool>true</bool>
@@ -1246,9 +1178,9 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         <property name="geometry">
          <rect>
           <x>750</x>
-          <y>260</y>
+          <y>290</y>
           <width>221</width>
-          <height>251</height>
+          <height>210</height>
          </rect>
         </property>
         <property name="sizePolicy">
@@ -1392,7 +1324,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          <string/>
         </property>
         <property name="pixmap">
-         <pixmap resource="res.qrc">:/Picture/sixAxiesOverAll.png</pixmap>
+         <pixmap resource="../180_win7/res.qrc">:/Picture/sixAxiesOverAll.png</pixmap>
         </property>
         <property name="scaledContents">
          <bool>true</bool>
@@ -1686,9 +1618,12 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
    <header>steeringmodeselector.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>TechChamferToolButton</class>
+   <extends>QToolButton</extends>
+   <header location="global">techchamfertoolbutton.h</header>
+  </customwidget>
  </customwidgets>
- <resources>
-  <include location="res.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

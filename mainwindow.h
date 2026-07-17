@@ -178,6 +178,8 @@ public:
     void setupConnections();
     /** @brief 应用界面样式 */
     void setupStyles();
+    /** @brief 初始化底栏平行四边形按钮图标与主题 */
+    void setupBottomBarButtonIcons();
     /** @brief 刷新功能开关组按钮视觉状态 */
     void updateFunctionSwitchVisuals();
     /** @brief 初始化并管理界面动画 */
@@ -673,6 +675,10 @@ private:
     bool m_robotAxisSyncDeviation150Bit6Flag = false;
     bool m_robotPositiveLimit102Bit2Flag = false;
     bool m_robotNegativeLimit102Bit3Flag = false;
+    /** @brief 主控 151.bit0：卷样机钢缆已完全收回 */
+    bool m_cableRetracted151Bit0Flag = false;
+    /** @brief 主控 151.bit1：卷样机钢缆已完全放出 */
+    bool m_cableExtended151Bit1Flag = false;
     bool m_robotHeightInterlock150Bit1Flag = false;
     bool m_robotLengthInterlock150Bit2Flag = false;
     bool m_agvBatteryLowAcked = false;
