@@ -1,0 +1,158 @@
+﻿Tab,Address,Comment,RegisterFormat,ConflictNote
+AGV,50,0 Bool_ReadHeartbea {1秒1次脉冲} 1 Bool_ReadFrontTouchensor 前触变{1为触发} 2 Bool_ReadRearTouchensor 后触变{1为触发} 3 Bool_ReadLeftTouchensor 左触变{1为触发} 4 Bool_ReadRightTouchensor 右触变{1为触发} 5 PositiveDirectionDeceleration 前避障减速{1为触发} 6 PositiveDirectionStop 前避障停止{1为触发} 7 NegativeDirectionDeceleration 后避障减速{1为触发} 8 NegativeDirectionStop 后避障停止{1为触发} 9 Bool_ReadJOGMove 点动运行中{1为触发} 10 Bool_ReadMode1_3OK 转向回正{1为触发} 11 Bool_ReadMode4OK 横移转向到位 12 Bool_ReadMode5OK 原地旋转模式转向轮到位 13 Boool_ObstacleAvoidanceState 当前避障开关,BOOL,【双地址】避障/OA除50.bit13外还写寄存器0.bit1（mainwindow knownButtonModbusBindings）
+AGV,51,0 Bool_ReadLowBatteryLevel 上位机低电报警 1 Bool_ReadCommunicationFailure 上位机通讯故障 2 Bool_ReadDriveFailure 上位机驱动故障 3 Bool_LegReachOut_OK 支腿支撑完成 4 Bool_LegWithdraw_OK 支腿收回完成 5 BOOL_AGVStop 底盘急停触发 6 BOOL_Angle_Alarm 角度报警 7 支腿状态异常,BOOL,【位地址冲突】故障位CSV在51，代码在102；51的支腿/急停位代码未解析（agvmodbusmanager.cpp getBitVariableName）
+AGV,100,UINT_CurrentControlMode 当前控制模式,UINT,【读写分离】读100；写500值1=遥控/2=示教（mainwindow.cpp:7689/7705）
+AGV,102,INT_BatteryLevel 上位机电池1电量{0-100%},INT,【复用冲突】CSV仅定义电量；代码还解析102.bit0~2故障（agvmodbusmanager.cpp:723-727）
+AGV,104,INT_RunningVelocity 上位机行驶速度{mm/s},UINT,【单位冲突】CSV=mm/s；modbusvariables=mm/min
+AGV,55,UINT_AxisErrorCode 发送上位机点动位移 AT %MW105: INT;,ARRAY [1..16] OF DriveErrorCode,【地址笔误】CSV地址55无效；代码故障110~117、位移105
+AGV,150,"EmergencyStopPosition 触发的急停位置,当前变量的16个位对应16个急停",INT,
+AGV,151,Inclinometer_X 倾角传感器X轴,INT,
+AGV,152,Inclinometer_Y 倾角传感器Y轴,INT,
+AGV,153,UINT_CurrentUpperControlSpeed 当前设置速度,UINT,
+AGV,154,INT_CurrentUpperControlAngle 当前设置角度,INT,
+AGV,155,UINT_CurrentlMode 当前设置模式,UINT,
+AGV,156,ChargedState 充电状态 1：充电 2：放电,UINT,【枚举冲突】CSV 1/2充放电；代码仅判断1=充电（battery1_charging）
+AGV,5000,AxisSetVelocity 轴设定速度 0-100%,UINT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,5001,AxisJOGSetVelocity 点动速度 0-100%,UINT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,5002,SystemAutoAccelerationAndDeceleration 系统数字化加减速度 0-100%,UINT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,5003,SystemJOGAccelerationAndDeceleration 系统点动加减速度 0-100%,UINT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,8192,Interlocking 切换示教器,BOOL,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,8193,RunTime 时间,UDINT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,5500,SystemJOG,LREAL,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,6000,PlatformSetVelocity 六自由度速度设置,ARRAY [1..6] OF UINT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,290,ErrorReset 故障复位写1,UINT,【已对齐】AGV与主控均写290故障复位（mainwindow.cpp:10310-10311）
+AGV,500,ChoiceAxis 上位手动控制的轴选择 1-7,UINT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab；【语义冲突】CSV=轴选择；代码在AGV 500写1遥控/2示教
+AGV,501,AxisControlMode 控制模式 1：点动控制 2：数字化控制,UINT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,502,AxisSetPosition 轴设定位置,LREAL,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,514,"ControlButton 正负方向点动和确定按钮 第0位对应 确定按键 第23位为正负方向,3一键归零确定，4一键最大确定",UINT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,523,ResetFunction 一键最大或者一键归零,UINT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,525,CantileverControlMode 悬臂控制方式 1：坐标系控制 2：关节坐标系控制,UINT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,526,JogXYZ 坐标系运动 1：X正 -1：X负 2：Y正 -2：Y负 3：Z正 -3：Z负 4：R正 -4：R负,INT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,527,0 LiftingControl 开启末端起吊控制 1 LiftingForward 起吊控制上升 2 LiftingBackward 起吊控制下降 3 LiftingOK 起吊完成 4 Tare_Rise 重量去皮功能 5 SynchronouslyEnable 主副轴同步补偿,BOOL,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,528,LiftingControlVelocity 起吊速度,LREAL,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,600,PlatformControlMode 六自由度平台控制模式 0：步进模式 1：点动模式,UINT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,601,PlatformSetPosition 六自由度步进位置,REAL,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,613,PlatformJog 点动功能,INT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,614,PlatformMove 步进轴选择,UINT,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,615,0 SteppingConfirm 步进确定 1 ConfirmHome 六自由度平台回原点,BOOL,【设备归属错误】属主控192.168.1.13写寄存器，AGV Tab应删除；仅保留Robot Tab
+AGV,5014,支腿长度,LREAL,【长度冲突】CSV仅5014；代码写5014~5017（mainwindow.cpp:8288）
+AGV,37,,37,【待确认】代码未引用，是否PLC内部参数？
+AGV,38,,38,【待确认】代码未引用，是否PLC内部参数？
+AGV,39,,39,【待确认】代码未引用，是否PLC内部参数？
+AGV,40,,40,【待确认】代码未引用，是否PLC内部参数？
+AGV,41,,41,【待确认】代码未引用，是否PLC内部参数？
+AGV,42,,42,【待确认】代码未引用，是否PLC内部参数？
+AGV,43,,43,【待确认】代码未引用，是否PLC内部参数？
+AGV,44,,44,【待确认】代码未引用，是否PLC内部参数？
+AGV,45,,45,【待确认】代码未引用，是否PLC内部参数？
+AGV,46,,46,【待确认】代码未引用，是否PLC内部参数？
+AGV,47,,47,【待确认】代码未引用，是否PLC内部参数？
+AGV,48,,48,【待确认】代码未引用，是否PLC内部参数？
+AGV,49,,49,【待确认】代码未引用，是否PLC内部参数？
+AGV,0,控制命令位（OA/驻车等）,BOOL,【CSV缺失】写0各位：驻车/OA控制（knownButtonModbusBindings techBtn_AGV_OA/Park）
+AGV,2,UINT_UpperControlMode 转向模式写,UINT,【CSV缺失】写2=转向模式0~4；读155（mainwindow writeToAGVDevice(2)）
+AGV,3,UINT_UpperControlSpeed 速度命令写,UINT,【CSV缺失】写3=速度命令（mainwindow writeToAGVDevice(3)）
+AGV,4,INT_UpperControlAngle 角度命令写,INT,【CSV缺失】写4=角度命令（mainwindow writeToAGVDevice(4)）
+AGV,5,INT_UpperControlPosition 步进位移写,INT,【CSV缺失】读105点动位移；写5=步进位移（writeToAGVDevice(5)）
+AGV,103,INT_BatteryLevel2 上位机电池2电量{0-100%},INT,【CSV缺失】读103 battery2（agvmodbusmanager poll 102-105）
+AGV,105,INT_JogDisplacement 点动位移读,INT,【CSV缺失】读105点动位移；写5（agvmodbusmanager poll；writeToAGVDevice(5)）
+AGV,110,转向1故障代码,INT,【CSV缺失】读110~117共8字故障码（agvmodbusmanager poll 110-117）
+AGV,111,转向2故障代码,INT,【CSV缺失】读110~117共8字故障码（agvmodbusmanager poll 110-117）
+AGV,112,转向3故障代码,INT,【CSV缺失】读110~117共8字故障码（agvmodbusmanager poll 110-117）
+AGV,113,转向4故障代码,INT,【CSV缺失】读110~117共8字故障码（agvmodbusmanager poll 110-117）
+AGV,114,行走1故障代码,INT,【CSV缺失】读110~117共8字故障码（agvmodbusmanager poll 110-117）
+AGV,115,行走2故障代码,INT,【CSV缺失】读110~117共8字故障码（agvmodbusmanager poll 110-117）
+AGV,116,行走3故障代码,INT,【CSV缺失】读110~117共8字故障码（agvmodbusmanager poll 110-117）
+AGV,117,行走4故障代码,INT,【CSV缺失】读110~117共8字故障码（agvmodbusmanager poll 110-117）
+AGV,157,预计负载写,UINT,【CSV缺失】kAgvEstimatedWeightReg=157写预计负载（mainwindow.cpp:7836）
+Robot,5000,AxisSetVelocity 轴设定速度 0-100%,UINT,【写地址冲突】代码写5001非5000（mainwindow.cpp:2428）；MODBUS_REGISTER_DECISIONS建议5000
+Robot,5001,AxisJOGSetVelocity 点动速度 0-100%,UINT,【用途冲突】CSV=点动速度；代码作全局RobotSpeed%写入
+Robot,5002,SystemAutoAccelerationAndDeceleration 系统数字化加减速度 0-100%,UINT,【代码未用】CSV有定义，上位机当前未写
+Robot,5003,SystemJOGAccelerationAndDeceleration 系统点动加减速度 0-100%,UINT,【代码未用】CSV有定义，上位机当前未写
+Robot,8192,Interlocking 切换示教器,BOOL,
+Robot,8193,RunTime 时间,UDINT,
+Robot,5500,SystemJOG,LREAL,【代码未用】CSV有定义，上位机当前未写
+Robot,6000,PlatformSetVelocity 六自由度速度设置,ARRAY [1..6] OF UINT,【代码未用】CSV有定义，上位机当前未写
+Robot,290,ErrorReset 故障复位写1,UINT,
+Robot,500,ChoiceAxis 上位手动控制的轴选择 1-7,UINT,
+Robot,501,AxisControlMode 控制模式 1：点动控制 2：数字化控制,UINT,【读同步地址】写501；UI同步读125（syncStepModeUiByCurrentPage）
+Robot,502,AxisSetPosition 轴设定位置,LREAL,【已对齐】writeStepValueDoubleToMainDevice写502~505
+Robot,514,"ControlButton 正负方向点动和确定按钮 第0位对应 确定按键 第23位为正负方向,3一键归零确定，4一键最大确定",UINT,
+Robot,523,ResetFunction 一键最大或者一键归零,UINT,
+Robot,525,CantileverControlMode 悬臂控制方式 1：坐标系控制 2：关节坐标系控制,UINT,
+Robot,526,JogXYZ 坐标系运动 1：X正 -1：X负 2：Y正 -2：Y负 3：Z正 -3：Z负 4：R正 -4：R负,INT,
+Robot,527,0 LiftingControl 开启末端起吊控制 1 LiftingForward 起吊控制上升 2 LiftingBackward 起吊控制下降 3 LiftingOK 起吊完成 4 Tare_Rise 重量去皮功能 5 SynchronouslyEnable 主副轴同步补偿,BOOL,【位用途扩展】CSV为起吊控制；代码另用bit5主副轴同步（mainwindow.cpp:12203）
+Robot,528,LiftingControlVelocity 起吊速度,LREAL,
+Robot,600,PlatformControlMode 六自由度平台控制模式 0：步进模式 1：点动模式,UINT,【枚举冲突】CSV 0/1；代码 1/2（mainwindow.cpp:9309-9344,6241）
+Robot,601,PlatformSetPosition 六自由度步进位置,REAL,【类型/宽度】CSV仅601 REAL；代码写601/602两字（mainwindow.cpp:4349-4350）
+Robot,613,PlatformJog 点动功能,INT,
+Robot,614,PlatformMove 步进轴选择,UINT,
+Robot,615,0 SteppingConfirm 步进确定 1 ConfirmHome 六自由度平台回原点,BOOL,
+Robot,0,BottomRotatingAxisPosition 底部旋转轴实际位置反馈,LREAL,
+Robot,4,MainLiftingAxisPosition 主升降轴实际速度反馈,LREAL,
+Robot,8,AuxiliaryAxisPosition 辅助平衡轴实际位置,LREAL,
+Robot,12,ExtensionAxis_1Position1 一级伸缩臂实际位置,LREAL,
+Robot,16,ExtensionAxis_2Position 二级伸缩臂位置,LREAL,
+Robot,20,EndRotatingAxisPosition 末端旋转轴位置,LREAL,
+Robot,24,LiftingAxis_1Position 起吊电机1实际位置,LREAL,
+Robot,28,LiftingAxis_2Position 起吊电机2实际位置,LREAL,
+Robot,32,LiftingAxis_3Position 起吊电机3实际位置,LREAL,
+Robot,36,BottomRotatingAxisVelocity 底部旋转轴实际速度反馈,LREAL,
+Robot,40,MainLiftingAxisVelocity 主升降轴实际速度反馈,LREAL,
+Robot,44,AuxiliaryAxisVelocity 辅助平衡轴实际速度,LREAL,
+Robot,48,ExtensionAxis_1Velocity 一级伸缩臂实际速度,LREAL,
+Robot,52,ExtensionAxis_2Velocity 二级伸缩臂速度,LREAL,
+Robot,56,EndRotatingAxisVelocity 末端旋转轴速度,LREAL,
+Robot,60,LiftingAxis_1Velocity 起吊电机1实际速度,LREAL,
+Robot,64,LiftingAxis_2Velocity 起吊电机2实际速度,LREAL,
+Robot,68,LiftingAxis_3Velocity 起吊电机3实际速度,LREAL,
+Robot,72,CurrentPlatformControlMode 六自由度控制平台当前状态0：步进模式 1：点动模式,UINT,
+Robot,73,CurrentPlatformSetPosition 六自由度当前位置,ARRAY [1..6] OF REAL,
+Robot,85,"CurrentPlatformStates 六自由度当前状态 0:正常运行，1:设定超范围,2:运行到限位，3：初始化完成",UINT,
+Robot,86,CurrentSetPosition 六自由度平台步进设定位置,INT,
+Robot,87,0 CurrentSteppingConfirm 六自由度步进确定,BOOL,
+Robot,102,0 MaxWarning 正限位警告 1 MinWarning 负限位警告 2 MaxArrival 正限位到达 3 MinArrival 负限位到达 4 BeyondTheLimit 设定数据超范围 5 ResetHomeOK 一键回0完成 6 RunMaxPositionOK 运行到最远位置完成 7 EnableOffProhibitWriti 未使能禁止写入 8 InverseSolutionBeyondTheLimit 逆解超范围 9 DriverError 驱动器报错 10 MainLiftingAxisMaxPosition_OK 升降轴伸出最大位置完成 11 ExtensionAxisMaxPosition_OK 伸缩轴最大位置完成 12 BottomRotatingAxisResetPosition_OK 底部旋转轴归零完成 13 MainLiftingAxisResetPosition_OK 升降轴归零完成 14 ExtensionAxisResetPosition_OK 伸缩轴归零完成 15 EndRotatingAxisResetPosition_OK 末端旋转轴归零完成,BOOL,
+Robot,103,X X坐标,LREAL,
+Robot,107,Y Y坐标,LREAL,
+Robot,111,Z Z坐标,LREAL,
+Robot,115,aR R坐标,LREAL,
+Robot,119,GL20Status 分布式IO状态,UINT,
+Robot,120,GL20ErrorCode 分布式故障提示,UINT,
+Robot,121,AGVPLCStatus AGVPLC状态,UINT,
+Robot,122,MultiAxisPlatformStatus 六自由度平台状态,UINT,
+Robot,123,Weight 末端起吊重量,UINT,
+Robot,124,CurrentChoiceAxis 当前选择轴 1-7,UINT,【误写】124应为只读；坐标运动已改526，124为遗留写（mainwindow.cpp:4800）
+Robot,125,CurrentAxisControlMode 当前控制模式 1：点动控制 2：数字化控制,UINT,
+Robot,126,CurrentCantileverControlMode 当前坐标系,UINT,
+Robot,127,Total_Weight_Raw 总原始重量(未去皮),UINT,
+Robot,128,Total_Weight_Final 最终显示重量(去皮后),UINT,
+Robot,129,CurrentAxisSetVelocity 当前轴设定速度 0-100%,UINT,
+Robot,130,CurrentAxisJOGSetVelocity 当前点动速度 0-100%,UINT,
+Robot,131,CurrentSystemAutoAccelerationAndDeceleration 当前系统数字化加减速度 0-100%,UINT,
+Robot,132,CurrentSystemJOGAccelerationAndDeceleration 当前系统点动加减速度 0-100%,UINT,
+Robot,133,Tension 末端拉力,UINT,
+Robot,134,Current_Power 当前功率,INT,
+Robot,150,0 BOOL_RobotStop 机器人急停 1 HeightOvertop 高度互锁 2 LengthOvertop 长度互锁 3 WeightAlarm1重量报警1 7 WeightAlarm2重量报警2,BOOL,
+Robot,251,BottomRotatingAxisStatus 底部旋转轴实际状态反馈,INT,
+Robot,252,MainLiftingAxisStatus 主升降轴实际状态反馈,INT,
+Robot,253,AuxiliaryAxisStatus 辅助平衡轴实际状态,INT,
+Robot,254,ExtensionAxis_1Status 一级伸缩臂实际状态,INT,
+Robot,255,ExtensionAxis_2Status 二级伸缩臂状态,INT,
+Robot,256,EndRotatingAxisStatus 末端旋转轴状态,INT,
+Robot,257,LiftingAxis_1Status 起吊电机1实际状态,INT,
+Robot,258,LiftingAxis_2Status 起吊电机2实际状态,INT,
+Robot,259,LiftingAxis_3Status 起吊电机3实际状态,INT,
+Robot,260,LiftingAxis_1Torque 起吊电机1实际扭矩,LREAL,
+Robot,264,LiftingAxis_2Torque 起吊电机2实际扭矩,LREAL,
+Robot,268,LiftingAxis_3Torque 起吊电机3实际扭矩,LREAL,
+Robot,1000,AxisErrorCode 读取驱动器故障码,ARRAY [1..9] OF UDINT,
+Robot,2000,AxisErrorCode1 故障码反馈,ARRAY [1..9] OF STRING,
+Robot,5004,重量报警值1阈值,UINT,
+Robot,5005,重量报警值2阈值,UINT,
+Robot,8000,备用1名称1,STRING,
+Robot,8015,备用1名称2,STRING,
+Robot,79,非AGV滑块联动百分比写,UINT,【CSV缺失】非AGV滑块联动写百分比（mainwindow.cpp:2465 writeToMainDevice(79)）
+Robot,400,力控使能写,UINT,【CSV缺失】力控按钮写1/0（knownButtonModbusBindings btn_ForceControl）
+Robot,403,力控超限监控,INT,【CSV缺失】力控报警读/清（modbusvariables %MW403；RemoveWarning写0）
+Robot,404,大小力控模式写,UINT,【CSV缺失】大小力控写0/1（knownButtonModbusBindings Btn_big/smallForceControl）
+Robot,602,六自由度步进位置第二字,UINT,【CSV缺失】六自由度步进第二寄存器（mainwindow.cpp:4350 writeToMainDevice(602)）

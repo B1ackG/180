@@ -1095,11 +1095,11 @@ void MainWindow::applyInclinometerDisplayRuntimeSettings()
         return QStringLiteral("阈值：%1°").arg(deg, 0, 'f', 2);
     };
 
-    if (m_inclinometerXThresholdLabel) {
-        m_inclinometerXThresholdLabel->setText(formatThreshold(tx));
+    if (m_inclinometerXQml && m_inclinometerXQml->rootObject()) {
+        m_inclinometerXQml->rootObject()->setProperty("thresholdText", formatThreshold(tx));
     }
-    if (m_inclinometerYThresholdLabel) {
-        m_inclinometerYThresholdLabel->setText(formatThreshold(ty));
+    if (m_inclinometerYQml && m_inclinometerYQml->rootObject()) {
+        m_inclinometerYQml->rootObject()->setProperty("thresholdText", formatThreshold(ty));
     }
 }
 
@@ -1920,18 +1920,46 @@ void MainWindow::initInclinometerAndRobotPowerStrip()
         delete oldLayout;
     }
 
+    // Independent cards provide their own shells; host only carries warn/alarm border.
     host->setStyleSheet(QStringLiteral(
-        "background-color: #1A5FB4;"
-        "border: 1px solid #4FAFE8;"
+        "background: transparent;"
+        "border: 1px solid transparent;"
         "border-radius: 14px;"));
 
-    m_inclinometerXCard = new QWidget(host);
-    m_inclinometerXCard->setFixedWidth(100);
-    m_inclinometerXCard->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    auto createInclinometerQml = [this, host](const QString &axisTitle, QQuickWidget *&out) {
+        out = new QQuickWidget(host);
+        out->setMinimumHeight(96);
+        out->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        out->setResizeMode(QQuickWidget::SizeRootObjectToView);
+        applyTransparentQuickWidgetBackground(out);
+        connect(out, &QQuickWidget::statusChanged, this,
+                [this, out, axisTitle](QQuickWidget::Status status) {
+                    if (status == QQuickWidget::Error && out) {
+                        const auto errs = out->errors();
+                        for (const auto &err : errs) {
+                            qWarning() << "InclinometerCard QML error (" << axisTitle << "):" << err.toString();
+                        }
+                        return;
+                    }
+                    if (status == QQuickWidget::Ready && out && out->rootObject()) {
+                        out->rootObject()->setProperty("axisLabel", axisTitle);
+                        applyInclinometerDisplayRuntimeSettings();
+                    }
+                }, Qt::UniqueConnection);
+        out->setSource(QUrl(QStringLiteral("qrc:/InclinometerCard.qml")));
+        if (QQuickItem *root = out->rootObject()) {
+            root->setProperty("axisLabel", axisTitle);
+            root->setProperty("tiltValue", 0.0);
+            root->setProperty("thresholdText", QString());
+        }
+    };
+
+    createInclinometerQml(QStringLiteral("X轴倾角"), m_inclinometerXQml);
+    createInclinometerQml(QStringLiteral("Y轴倾角"), m_inclinometerYQml);
 
     m_robotTotalPowerQml = new QQuickWidget(host);
-    m_robotTotalPowerQml->setMinimumWidth(200);
-    m_robotTotalPowerQml->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    m_robotTotalPowerQml->setMinimumHeight(96);
+    m_robotTotalPowerQml->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     m_robotTotalPowerQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
     applyTransparentQuickWidgetBackground(m_robotTotalPowerQml);
     connect(m_robotTotalPowerQml, &QQuickWidget::statusChanged, this,
@@ -1949,86 +1977,21 @@ void MainWindow::initInclinometerAndRobotPowerStrip()
         root->setProperty("title", QStringLiteral("总功率"));
         root->setProperty("unit", QStringLiteral("W"));
         root->setProperty("currentPower", 0.0);
-        root->setProperty("showCardBackground", false);
+        root->setProperty("showCardBackground", true);
     }
 
-    m_inclinometerYCard = new QWidget(host);
-    m_inclinometerYCard->setFixedWidth(100);
-    m_inclinometerYCard->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
+    auto *column = new QVBoxLayout(host);
+    column->setContentsMargins(0, 0, 0, 0);
+    column->setSpacing(6);
+    column->addWidget(m_robotTotalPowerQml, 0);
 
-    auto *row = new QHBoxLayout(host);
-    row->setContentsMargins(4, 6, 4, 6);
-    row->setSpacing(4);
-    row->addWidget(m_inclinometerXCard, 0);
-    QWidget *sepLeft = new QWidget(host);
-    sepLeft->setFixedWidth(1);
-    sepLeft->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-    sepLeft->setStyleSheet(QStringLiteral("background-color: #2A9FE7AA; border: none;"));
-    row->addWidget(sepLeft, 0);
-    row->addWidget(m_robotTotalPowerQml, 1);
-    QWidget *sepRight = new QWidget(host);
-    sepRight->setFixedWidth(1);
-    sepRight->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-    sepRight->setStyleSheet(QStringLiteral("background-color: #2A9FE7AA; border: none;"));
-    row->addWidget(sepRight, 0);
-    row->addWidget(m_inclinometerYCard, 0);
+    auto *tiltRow = new QHBoxLayout();
+    tiltRow->setContentsMargins(0, 0, 0, 0);
+    tiltRow->setSpacing(6);
+    tiltRow->addWidget(m_inclinometerXQml, 1);
+    tiltRow->addWidget(m_inclinometerYQml, 1);
+    column->addLayout(tiltRow, 1);
 
-    auto initOne = [](QWidget *widget, const QString &axisTitle, QLabel *&valueLabel, QLabel *&thresholdLabelOut) {
-        if (!widget) {
-            return;
-        }
-
-        widget->setStyleSheet(QStringLiteral(
-            "background: transparent;"
-            "border: none;"));
-
-        if (QLayout *innerOld = widget->layout()) {
-            QLayoutItem *item = nullptr;
-            while ((item = innerOld->takeAt(0)) != nullptr) {
-                if (item->widget()) {
-                    item->widget()->deleteLater();
-                }
-                delete item;
-            }
-            delete innerOld;
-        }
-
-        auto *layout = new QVBoxLayout(widget);
-        layout->setContentsMargins(2, 2, 2, 2);
-        layout->setSpacing(2);
-
-        auto *axisLabel = new QLabel(axisTitle, widget);
-        axisLabel->setAlignment(Qt::AlignHCenter | Qt::AlignBottom);
-        axisLabel->setStyleSheet(QStringLiteral(
-            "color: #A8DAFF;"
-            "font: 700 12px 'Noto Sans CJK SC';"
-            "border: none;"
-            "background: transparent;"));
-
-        valueLabel = new QLabel(QStringLiteral("0.00°"), widget);
-        valueLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-        valueLabel->setStyleSheet(QStringLiteral(
-            "color: #EAF7FF;"
-            "font: 700 22px 'Noto Sans CJK SC';"
-            "border: none;"
-            "background: transparent;"));
-
-        thresholdLabelOut = new QLabel(widget);
-        thresholdLabelOut->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
-        thresholdLabelOut->setWordWrap(true);
-        thresholdLabelOut->setStyleSheet(QStringLiteral(
-            "color: #8BC4EA;"
-            "font: 500 10px 'Noto Sans CJK SC';"
-            "border: none;"
-            "background: transparent;"));
-
-        layout->addWidget(axisLabel, 0);
-        layout->addWidget(valueLabel, 1);
-        layout->addWidget(thresholdLabelOut, 0);
-    };
-
-    initOne(m_inclinometerXCard, QStringLiteral("X轴倾角"), m_inclinometerXValueLabel, m_inclinometerXThresholdLabel);
-    initOne(m_inclinometerYCard, QStringLiteral("Y轴倾角"), m_inclinometerYValueLabel, m_inclinometerYThresholdLabel);
     applyInclinometerDisplayRuntimeSettings();
 }
 
@@ -2106,14 +2069,14 @@ void MainWindow::updateRobotTotalPower(quint16 powerValue)
 
 void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
 {
-    QLabel *targetLabel = isXAxis ? m_inclinometerXValueLabel : m_inclinometerYValueLabel;
-    if (!targetLabel) {
+    QQuickWidget *target = isXAxis ? m_inclinometerXQml : m_inclinometerYQml;
+    if (!(target && target->rootObject())) {
         return;
     }
 
     const qint16 signedRaw = static_cast<qint16>(rawValue);
     const qreal degree = static_cast<qreal>(signedRaw) / 100.0;
-    targetLabel->setText(QString::number(degree, 'f', 2) + QStringLiteral("°"));
+    target->rootObject()->setProperty("tiltValue", degree);
 
     if (isXAxis) {
         m_inclinometerXDegree = degree;
@@ -2138,24 +2101,24 @@ bool isInclinometerTiltLockDegree(qreal degree)
 QString inclinometerPowerStripNormalStyleSheet()
 {
     return QStringLiteral(
-        "background-color: #1A5FB4;"
-        "border: 1px solid #4FAFE8;"
+        "background: transparent;"
+        "border: 1px solid transparent;"
         "border-radius: 14px;");
 }
 
 QString inclinometerPowerStripWarningStyleSheet()
 {
     return QStringLiteral(
-        "background-color: #9A7B00;"
-        "border: 1px solid #FFD966;"
+        "background: transparent;"
+        "border: 2px solid #FFD966;"
         "border-radius: 14px;");
 }
 
 QString inclinometerPowerStripAlarmStyleSheet()
 {
     return QStringLiteral(
-        "background-color: #8B1A1A;"
-        "border: 1px solid #FF6666;"
+        "background: transparent;"
+        "border: 2px solid #FF6666;"
         "border-radius: 14px;");
 }
 

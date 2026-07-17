@@ -801,12 +801,8 @@ private:
     QTimer *m_historyRuntimeUpdateTimer = nullptr;
     QQuickWidget *m_robotTotalPowerQml = nullptr;  // 使用 QML 版本总功率卡片
     QQuickWidget *m_deviceCoordPanelQml = nullptr; // 当前 X/Y/Z/AR（寄存器 103~118）
-    QWidget *m_inclinometerXCard = nullptr;  // QWidget 版本 X 轴倾角卡片容器
-    QWidget *m_inclinometerYCard = nullptr;  // QWidget 版本 Y 轴倾角卡片容器
-    QLabel *m_inclinometerXValueLabel = nullptr;
-    QLabel *m_inclinometerYValueLabel = nullptr;
-    QLabel *m_inclinometerXThresholdLabel = nullptr;
-    QLabel *m_inclinometerYThresholdLabel = nullptr;
+    QQuickWidget *m_inclinometerXQml = nullptr;  // QML 版本 X 轴倾角卡片
+    QQuickWidget *m_inclinometerYQml = nullptr;  // QML 版本 Y 轴倾角卡片
     QWidget *m_inclinometerPowerStripWidget = nullptr;
     qreal m_inclinometerXDegree = 0.0;
     qreal m_inclinometerYDegree = 0.0;
