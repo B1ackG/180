@@ -80,6 +80,7 @@ private:
     QColor m_originalPrimaryColor;
     QColor m_glowColor;
     QColor m_originalGlowColor;
+    bool m_atRangeLimit = false;
 
     float m_scanLinePhase;
     

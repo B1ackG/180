@@ -121,9 +121,9 @@ void TechArcGauge::setPrecision(int precision)
 void TechArcGauge::updateRangeLimitColors()
 {
     constexpr double kEps = 1e-6;
-    const bool atLimit = (m_maximum > m_minimum)
+    m_atRangeLimit = (m_maximum > m_minimum)
             && (m_value <= m_minimum + kEps || m_value >= m_maximum - kEps);
-    if (atLimit) {
+    if (m_atRangeLimit) {
         m_primaryColor = QColor(255, 51, 51);
         m_glowColor = QColor(255, 51, 51, 180);
     } else {
@@ -244,7 +244,7 @@ void TechArcGauge::paintEvent(QPaintEvent *)
     if (!m_labelText.isEmpty()) {
         font.setPixelSize(size / 10);
         font.setBold(false);
-        painter.setPen(QColor("#d8f6ff"));
+        painter.setPen(m_atRangeLimit ? QColor(255, 51, 51) : QColor("#d8f6ff"));
         painter.setFont(font);
         const QRectF firstLabelRect = rect.adjusted(0, upperLabelOffset, 0, upperLabelOffset);
         painter.drawText(firstLabelRect,
@@ -256,7 +256,7 @@ void TechArcGauge::paintEvent(QPaintEvent *)
     if (!m_secondLabelText.isEmpty()) {
         font.setPixelSize(size / 11);
         font.setBold(false);
-        painter.setPen(QColor("#a8eaff"));
+        painter.setPen(m_atRangeLimit ? QColor(255, 51, 51) : QColor("#a8eaff"));
         painter.setFont(font);
         const QRectF secondLabelRect = rect.adjusted(0, lowerLabelOffset, 0, lowerLabelOffset);
         painter.drawText(secondLabelRect,
