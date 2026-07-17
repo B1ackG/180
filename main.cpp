@@ -435,15 +435,14 @@ int main(int argc, char *argv[])
     QLockFile instanceLock(QDir::temp().absoluteFilePath(QStringLiteral("industrial_control_180.lock")));
     instanceLock.setStaleLockTime(30 * 1000); // 崩溃残留锁约 30s 后可接管
     if (!allowMultiple && !instanceLock.tryLock(100)) {
+        // 嵌入式/kiosk 下不要弹模态框：否则第二进程会挂在对话框上长期残留，
+        // 干扰排查，也可能抢 Wayland 焦点。直接打日志退出即可。
         qCritical("180 已在运行（检测到实例锁）。请先结束旧进程再启动，"
                   "例如: killall 180 或 kill $(pidof 180)。"
                   "调试多开可用 --allow-multiple。");
-        QMessageBox::critical(nullptr,
-                              QStringLiteral("程序已在运行"),
-                              QStringLiteral("检测到已有 180 进程在运行。\n"
-                                             "两个实例会同时接收外部按键并写同一设备，"
-                                             "导致页面按键逻辑错乱（例如六自由度页触发首页 ○9/○10）。\n\n"
-                                             "请先结束旧进程后再启动。"));
+        fprintf(stderr,
+                "180 already running (instance lock). "
+                "Stop the old process first, e.g. killall 180\n");
         return 1;
     }
 

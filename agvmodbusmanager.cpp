@@ -360,61 +360,30 @@ void AGVModbusManager::pollRegisters()
         return;
     }
 
-    // 分组轮询，避免一次读取过大导致阻塞，同时保证所有AGV UI所需地址都能被覆盖。
-    // 组0: 0    (OA/驻车相关控制位)
-    // 组1: 155  (底盘转向模式状态值：1~5)
-    // 组2: 50-51 (触边/避障/心跳位状态 + 驻车状态位)
-    // 组3: 102-105 (电池1、电池2、速度、点动位移)
-    // 组4: 110-113 (故障码1-4)
-    // 组5: 114-117 (故障码5-8)
-    // 组6: 100  (有线/无线控制模式)
-    // 组7: 153-154 (运动速度/转向角度同步)
-    // 组8: 151-152 (X/Y 倾角)
+    // 对齐 180_win7 轮询策略（适配本项目阻塞式 libmodbus）：
+    // - 安全关键位（50-51）每个 tick 都读，保证最快刷新；
+    // - 其余地址合并为连续区段批量读取并轮转，全量刷新约 4 个 tick。
+    readMultipleRegisters(50, 2);
+
     static int pollGroup = 0;
-
-    // 地址156(电池1充电状态)采用独立时隙轮询，避免与常规轮询同周期并发发送。
-    static int chargingPollTick = 0;
-    const int chargingPollPeriod = qMax(1, 5000 / qMax(1, m_pollInterval));
-    ++chargingPollTick;
-    if (chargingPollTick >= chargingPollPeriod) {
-        chargingPollTick = 0;
-        readMultipleRegisters(156, 1);
-        return;
-    }
-
     switch (pollGroup) {
     case 0:
         readMultipleRegisters(0, 1);
         break;
     case 1:
-        readMultipleRegisters(155, 1);
+        readMultipleRegisters(100, 6);
         break;
     case 2:
-        readMultipleRegisters(50, 2);
+        readMultipleRegisters(110, 8);
         break;
     case 3:
-        readMultipleRegisters(102, 4);
-        break;
-    case 4:
-        readMultipleRegisters(110, 4);
-        break;
-    case 5:
-        readMultipleRegisters(114, 4);
-        break;
-    case 6:
-        readMultipleRegisters(100, 1);
-        break;
-    case 7:
-        readMultipleRegisters(153, 2);
-        break;
-    case 8:
-        readMultipleRegisters(151, 2);
+        readMultipleRegisters(151, 6); // 151-156：倾角/速度转向同步/转向模式/充电状态
         break;
     default:
         break;
     }
 
-    pollGroup = (pollGroup + 1) % 9;
+    pollGroup = (pollGroup + 1) % 4;
 }
 
 void AGVModbusManager::readMultipleRegisters(int startAddress, int count)

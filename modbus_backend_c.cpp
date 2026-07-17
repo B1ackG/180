@@ -1,9 +1,14 @@
 #include <cerrno>
+#include <cstdlib>
 #include <mutex>
 #include <string>
 #include <vector>
 
 #include <modbus/modbus.h>
+
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <sys/socket.h>
 
 namespace {
 constexpr int kMaxRegistersPerRead = 125;
@@ -67,12 +72,31 @@ int modbus_backend_connect(void *handle, const char *host, int port, int slave_i
     timeval responseTimeout {};
     responseTimeout.tv_sec = 1;
     responseTimeout.tv_usec = 0;
+    // 可用环境变量覆盖响应超时（毫秒），默认 1000ms。
+    {
+        const char *timeoutEnv = std::getenv("MODBUS_RESPONSE_TIMEOUT_MS");
+        if (timeoutEnv && *timeoutEnv) {
+            const int timeoutMs = std::atoi(timeoutEnv);
+            if (timeoutMs >= 200) {
+                responseTimeout.tv_sec = timeoutMs / 1000;
+                responseTimeout.tv_usec = (timeoutMs % 1000) * 1000;
+            }
+        }
+    }
     modbus_set_response_timeout(b->ctx, responseTimeout.tv_sec, responseTimeout.tv_usec);
 
     if (modbus_connect(b->ctx) != 0) {
         modbus_free(b->ctx);
         b->ctx = nullptr;
         return 0;
+    }
+
+    // 关闭 Nagle，降低写后读往返延迟（对齐 180_win7 侧 flush/LowDelay 思路）。
+    const int sock = modbus_get_socket(b->ctx);
+    if (sock >= 0) {
+        const int one = 1;
+        setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
+        setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, &one, sizeof(one));
     }
 
     return 1;

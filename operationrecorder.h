@@ -241,6 +241,7 @@ private slots:
 
 private:
     static constexpr int kMaxTcpQueueSize = 2000;
+    static constexpr int kTcpConnectTimeoutMs = 5000;
 
     QList<OperationRecord> m_records;
     int m_maxRecords = 1000; // 最大记录数

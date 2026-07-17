@@ -155,15 +155,9 @@ void OperationRecorder::addRecord(const OperationRecord &record)
     m_records.append(normalized);
     emit recordAdded(normalized);
 
-    // 如果TCP传输已启用，将记录纳入发送队列并触发发送/重连。
+    // 如果TCP传输已启用，发送记录到服务器（内部处理排队/重连）。
     if (m_tcpEnabled) {
-        if (enqueueRecordIfPossible(normalized)) {
-            if (isTcpConnected()) {
-                sendQueuedRecords();
-            } else {
-                connectTcpSocket();
-            }
-        }
+        sendRecordToServer(normalized);
     }
 
     //qDebug() << "记录操作:" << normalized.toString();
@@ -336,50 +330,57 @@ void OperationRecorder::sendRecordToServer(const OperationRecord &record)
         return;
     }
 
-    if (!enqueueRecordIfPossible(record)) {
+    if (!isTcpConnected()) {
+        connectTcpSocket();
+
+        // 传输策略阻断时不再累积离线队列，避免长期堆积拖慢主线程。
+        if (m_transportPolicyBlocked) {
+            return;
+        }
+
+        enqueueRecordIfPossible(record);
         return;
     }
 
-    if (isTcpConnected()) {
-        sendQueuedRecords();
-    } else {
-        connectTcpSocket();
+    const QByteArray data = buildSignedPayload(record);
+    const qint64 bytesWritten = m_tcpSocket->write(data);
+
+    // QTcpSocket::write 返回值是进入本地发送缓冲的字节数；
+    // 只有 <0 才是真正失败。<size 的部分写入仍由 Qt 继续刷出，不可重连/重发，
+    // 否则会与已缓冲半包交错，破坏接收端按 '\n' 分帧。
+    if (bytesWritten < 0) {
+        qWarning() << "发送数据失败:" << m_tcpSocket->errorString();
+        enqueueRecordIfPossible(record);
+        return;
     }
+    if (bytesWritten == 0) {
+        // 发送缓冲暂时不可写，稍后再试。
+        enqueueRecordIfPossible(record);
+        return;
+    }
+
+    m_tcpSocket->flush();
+    qDebug() << "发送记录到服务器:" << record.controlName << "操作:" << record.operation;
 }
 
 void OperationRecorder::sendQueuedRecords()
 {
-    if (m_tcpSendQueue.isEmpty()) {
+    if (m_tcpSendQueue.isEmpty() || !isTcpConnected()) {
         if (m_tcpSendQueue.isEmpty()) {
             emit tcpTransmissionComplete();
-        }
-        return;
-    }
-
-    if (!isTcpConnected()) {
-        connectTcpSocket();
-        return;
-    }
-
-    // 每次发送最多10条记录，避免阻塞UI线程。
-    int sendCount = qMin(10, m_tcpSendQueue.size());
-    for (int i = 0; i < sendCount; ++i) {
-        const OperationRecord &record = m_tcpSendQueue.first();
-        const QByteArray data = buildSignedPayload(record);
-        const qint64 bytesWritten = m_tcpSocket->write(data);
-        if (bytesWritten != data.size()) {
-            qWarning() << "发送数据失败:" << m_tcpSocket->errorString()
-                       << "期望字节:" << data.size()
-                       << "实际写入:" << bytesWritten;
+        } else {
             connectTcpSocket();
-            break;
         }
-
-        qDebug() << "发送记录到服务器:" << record.controlName << "操作:" << record.operation;
-        m_tcpSendQueue.removeFirst();
+        return;
     }
 
-    // 继续发送剩余记录
+    // 每次发送最多10条记录，避免阻塞 UI 线程。
+    const int sendCount = qMin(10, m_tcpSendQueue.size());
+    for (int i = 0; i < sendCount; ++i) {
+        const OperationRecord record = m_tcpSendQueue.takeFirst();
+        sendRecordToServer(record);
+    }
+
     if (!m_tcpSendQueue.isEmpty()) {
         QTimer::singleShot(30, this, &OperationRecorder::sendQueuedRecords);
     } else {
@@ -415,8 +416,25 @@ void OperationRecorder::connectTcpSocket()
 
     m_transportPolicyBlocked = false;
 
+    // 降低 Nagle 延迟，保证按行 JSON 尽快到达接收端。
+    m_tcpSocket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+    m_tcpSocket->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
+
     qDebug() << "连接日志服务器:" << m_tcpServerIp << ":" << m_tcpServerPort;
     m_tcpSocket->connectToHost(m_tcpServerIp, m_tcpServerPort);
+
+    // 连接超时：避免 Connecting 状态长期卡住、队列只进不出。
+    QTimer::singleShot(kTcpConnectTimeoutMs, this, [this]() {
+        if (!m_tcpSocket || m_tcpSocket->state() != QAbstractSocket::ConnectingState) {
+            return;
+        }
+        qWarning() << "连接日志服务器超时:" << m_tcpServerIp << ":" << m_tcpServerPort;
+        m_tcpSocket->abort();
+        emit tcpTransmissionError(QStringLiteral("连接日志服务器超时"));
+        if (m_tcpEnabled && m_reconnectTimer && !m_reconnectTimer->isActive()) {
+            m_reconnectTimer->start();
+        }
+    });
 }
 
 void OperationRecorder::disconnectTcpSocket()
