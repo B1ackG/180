@@ -18,6 +18,9 @@
 #include <QComboBox>
 #include <QEvent>
 #include <QSettings>
+#include <QGuiApplication>
+#include <QScreen>
+#include <QSizePolicy>
 #include <QSignalBlocker>
 #include <QTabWidget>
 #include <QIntValidator>
@@ -115,7 +118,7 @@ bool shouldSkipControllable(const MainWindow::ControllableButtonInfo &info)
         || info.objectName.startsWith(QStringLiteral("SEdit_"));
 }
 
-/** 弹窗 / 虚拟键盘等临时控件，不进入「其他可见性」以免干扰配置 */
+/** 弹窗 / 虚拟键盘 / 功能控制台自身，不进入「其他可见性」以免干扰配置 */
 bool isConsoleNoiseControl(MainWindow *mainWindow, const QString &objectName)
 {
     if (objectName.startsWith(QStringLiteral("qt_"))) {
@@ -130,6 +133,9 @@ bool isConsoleNoiseControl(MainWindow *mainWindow, const QString &objectName)
     }
     for (QWidget *p = widget->parentWidget(); p && p != mainWindow; p = p->parentWidget()) {
         if (qobject_cast<QDialog*>(p) || qobject_cast<QMessageBox*>(p)) {
+            return true;
+        }
+        if (qobject_cast<FeatureSwitchWidget*>(p) || p->inherits("FeatureSwitchWidget")) {
             return true;
         }
         if (p->inherits("TechVirtualKeyboard")) {
@@ -551,6 +557,10 @@ MainWindow::ModbusRegisterSpec FeatureSwitchWidget::readRegisterSpecFromEdits(
 
 FeatureSwitchWidget::FeatureSwitchWidget(QWidget *parent) : QWidget(parent)
 {
+    // 必须是独立窗口：若只作为 MainWindow 子控件 show()，底栏容易被裁切到屏幕外。
+    setWindowFlags(Qt::Dialog | Qt::WindowCloseButtonHint);
+    setWindowModality(Qt::NonModal);
+
     setupUI();
     loadCurrentState();
     m_virtualKeyboard = new TechVirtualKeyboard(this);
@@ -610,7 +620,14 @@ FeatureSwitchWidget::FeatureSwitchWidget(QWidget *parent) : QWidget(parent)
         "QLabel#consoleHint { color: #7eb8d4; font-size: 12px; font-weight: normal; padding: 2px 0 6px 0; }"
     ));
 
-    resize(1100, 860);
+    // 按可用屏幕区域限制尺寸，避免示教器分辨率下底栏（保存/退出）被裁掉
+    QSize target(1100, 800);
+    if (QScreen *screen = QGuiApplication::primaryScreen()) {
+        const QRect avail = screen->availableGeometry();
+        target.setWidth(qMin(1100, qMax(720, avail.width() - 48)));
+        target.setHeight(qMin(800, qMax(520, avail.height() - 48)));
+    }
+    resize(target);
 }
 
 bool FeatureSwitchWidget::eventFilter(QObject *watched, QEvent *event)
@@ -874,9 +891,11 @@ void FeatureSwitchWidget::setupUI()
 
     mainLayout->addWidget(tabs, 1);
 
-    // 底栏：批量操作 | 生效保存 | 退出
+    // 底栏：批量操作 | 生效保存 | 退出（固定高度，不被 Tab 内容挤没）
     auto *footer = new QFrame(this);
     footer->setObjectName(QStringLiteral("consoleFooter"));
+    footer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+    footer->setMinimumHeight(56);
     auto *btnLayout = new QHBoxLayout(footer);
     btnLayout->setContentsMargins(12, 10, 12, 10);
     btnLayout->setSpacing(8);
@@ -892,16 +911,28 @@ void FeatureSwitchWidget::setupUI()
     connect(btnReload, &QPushButton::clicked, this, &FeatureSwitchWidget::onReload);
 
     QPushButton *btnApply = new QPushButton(QStringLiteral("立即生效"), footer);
-    btnApply->setObjectName(QStringLiteral("btnAccent"));
+    btnApply->setObjectName(QStringLiteral("consoleBtnApply"));
+    btnApply->setStyleSheet(QStringLiteral(
+        "QPushButton { background-color: #1a5f9a; border: 1px solid #4aa8e0; border-radius: 5px;"
+        " padding: 8px 16px; color: #e8fbff; font-weight: bold; }"
+        "QPushButton:hover { background-color: #2474b8; }"));
     btnApply->setToolTip(QStringLiteral("写入配置并通知主窗口立刻应用，不关闭本页"));
     connect(btnApply, &QPushButton::clicked, this, &FeatureSwitchWidget::onApply);
 
     QPushButton *btnSave = new QPushButton(QStringLiteral("保存并写入 INI"), footer);
-    btnSave->setObjectName(QStringLiteral("btnPrimary"));
+    btnSave->setObjectName(QStringLiteral("consoleBtnSave"));
+    btnSave->setStyleSheet(QStringLiteral(
+        "QPushButton { background-color: #1a7a4a; border: 1px solid #3dca7a; border-radius: 5px;"
+        " padding: 8px 16px; color: #e8fbff; font-weight: bold; }"
+        "QPushButton:hover { background-color: #21965c; }"));
     connect(btnSave, &QPushButton::clicked, this, &FeatureSwitchWidget::onSave);
 
     QPushButton *btnClose = new QPushButton(QStringLiteral("退出"), footer);
-    btnClose->setObjectName(QStringLiteral("btnDanger"));
+    btnClose->setObjectName(QStringLiteral("consoleBtnClose"));
+    btnClose->setStyleSheet(QStringLiteral(
+        "QPushButton { background-color: #8a2e2e; border: 1px solid #d06060; border-radius: 5px;"
+        " padding: 8px 16px; color: #e8fbff; font-weight: bold; }"
+        "QPushButton:hover { background-color: #a83838; }"));
     connect(btnClose, &QPushButton::clicked, this, &QWidget::close);
 
     btnLayout->addWidget(btnAll);
@@ -911,7 +942,7 @@ void FeatureSwitchWidget::setupUI()
     btnLayout->addWidget(btnApply);
     btnLayout->addWidget(btnSave);
     btnLayout->addWidget(btnClose);
-    mainLayout->addWidget(footer);
+    mainLayout->addWidget(footer, 0);
 }
 
 void FeatureSwitchWidget::loadCurrentState()
@@ -1399,7 +1430,8 @@ void FeatureSwitchWidget::setupButtonVisibilityUI(QVBoxLayout *scrollLayout)
 
     QScrollArea *modbusScroll = new QScrollArea();
     modbusScroll->setWidgetResizable(true);
-    modbusScroll->setMinimumHeight(360);
+    // 只用上限：过大的 minimumHeight 会抬高整页最小高度，把底栏挤出窗口
+    modbusScroll->setMaximumHeight(420);
     modbusScroll->setFrameShape(QFrame::NoFrame);
     m_modbusButtonListHost = new QWidget();
     m_modbusButtonListLayout = new QVBoxLayout(m_modbusButtonListHost);
@@ -1442,8 +1474,7 @@ void FeatureSwitchWidget::setupButtonVisibilityUI(QVBoxLayout *scrollLayout)
 
     QScrollArea *otherScroll = new QScrollArea();
     otherScroll->setWidgetResizable(true);
-    otherScroll->setMinimumHeight(160);
-    otherScroll->setMaximumHeight(280);
+    otherScroll->setMaximumHeight(220);
     otherScroll->setFrameShape(QFrame::NoFrame);
     m_otherVisibilityListHost = new QWidget();
     m_otherVisibilityGrid = new QGridLayout(m_otherVisibilityListHost);
@@ -1695,6 +1726,30 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
 void FeatureSwitchWidget::showEvent(QShowEvent *event)
 {
     QWidget::showEvent(event);
+
+    if (QWidget *host = parentWidget()) {
+        const QPoint topLeft = host->mapToGlobal(QPoint(0, 0));
+        const QRect hostRect(topLeft, host->size());
+        QRect geo = geometry();
+        geo.moveCenter(hostRect.center());
+        if (QScreen *screen = QGuiApplication::screenAt(hostRect.center())) {
+            const QRect avail = screen->availableGeometry();
+            if (geo.right() > avail.right()) {
+                geo.moveRight(avail.right());
+            }
+            if (geo.bottom() > avail.bottom()) {
+                geo.moveBottom(avail.bottom());
+            }
+            if (geo.left() < avail.left()) {
+                geo.moveLeft(avail.left());
+            }
+            if (geo.top() < avail.top()) {
+                geo.moveTop(avail.top());
+            }
+        }
+        setGeometry(geo);
+    }
+
     refreshButtonVisibilityList();
     loadButtonVisibilityState();
     loadTechSliderEditState();
