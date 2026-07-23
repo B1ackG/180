@@ -79,3 +79,6 @@ build_error_*.txt
 config.ini
 monitor_logs/
 system_check.log
+
+# Added by Assistant staging review
+*.md

@@ -21,6 +21,10 @@
 #include <QSignalBlocker>
 #include <QTabWidget>
 #include <QIntValidator>
+#include <QFrame>
+#include <QDialog>
+#include <QScrollBar>
+#include <QSet>
 
 namespace {
 
@@ -109,6 +113,58 @@ bool shouldSkipControllable(const MainWindow::ControllableButtonInfo &info)
         || info.widgetKind == QStringLiteral("滑块输入")
         || info.objectName.startsWith(QStringLiteral("TechSliderEdit_"))
         || info.objectName.startsWith(QStringLiteral("SEdit_"));
+}
+
+/** 弹窗 / 虚拟键盘等临时控件，不进入「其他可见性」以免干扰配置 */
+bool isConsoleNoiseControl(MainWindow *mainWindow, const QString &objectName)
+{
+    if (objectName.startsWith(QStringLiteral("qt_"))) {
+        return true;
+    }
+    if (!mainWindow) {
+        return false;
+    }
+    QWidget *widget = mainWindow->findChild<QWidget*>(objectName);
+    if (!widget) {
+        return false;
+    }
+    for (QWidget *p = widget->parentWidget(); p && p != mainWindow; p = p->parentWidget()) {
+        if (qobject_cast<QDialog*>(p) || qobject_cast<QMessageBox*>(p)) {
+            return true;
+        }
+        if (p->inherits("TechVirtualKeyboard")) {
+            return true;
+        }
+    }
+    return false;
+}
+
+QLabel *makeHintLabel(const QString &text, QWidget *parent = nullptr)
+{
+    auto *hint = new QLabel(text, parent);
+    hint->setWordWrap(true);
+    hint->setObjectName(QStringLiteral("consoleHint"));
+    return hint;
+}
+
+QString smallFeatureGroupTitle(const QString &key)
+{
+    const QString prefix = key.section(QLatin1Char('.'), 0, 0);
+    static const QMap<QString, QString> titles = {
+        {QStringLiteral("startup"), QStringLiteral("启动")},
+        {QStringLiteral("ui"), QStringLiteral("界面")},
+        {QStringLiteral("permission"), QStringLiteral("权限")},
+        {QStringLiteral("records"), QStringLiteral("操作记录")},
+        {QStringLiteral("tcp"), QStringLiteral("TCP 上报")},
+        {QStringLiteral("modbus_main"), QStringLiteral("主控 Modbus")},
+        {QStringLiteral("modbus_agv"), QStringLiteral("AGV Modbus")},
+        {QStringLiteral("agv"), QStringLiteral("AGV 显示")},
+        {QStringLiteral("motion"), QStringLiteral("运动控制")},
+        {QStringLiteral("input"), QStringLiteral("输入设备")},
+        {QStringLiteral("alarm"), QStringLiteral("报警")},
+        {QStringLiteral("debug"), QStringLiteral("调试")},
+    };
+    return titles.value(prefix, prefix.isEmpty() ? QStringLiteral("其它") : prefix);
 }
 
 MainWindow::ModbusRegisterSpec loadRegisterSpec(QSettings &settings,
@@ -504,26 +560,57 @@ FeatureSwitchWidget::FeatureSwitchWidget(QWidget *parent) : QWidget(parent)
         edit->installEventFilter(this);
     }
 
-    setWindowTitle("功能开关管理 (厂家权限)");
-    
-    // 设置深色调工业风格样式
-    setStyleSheet(
-        "QWidget { background-color: #1a1a2a; color: #00ffff; font-family: 'Microsoft YaHei UI'; }"
-        "QGroupBox { border: 2px solid #00c8ff; border-radius: 10px; margin-top: 15px; font-weight: bold; padding: 10px; }"
-        "QGroupBox::title { subcontrol-origin: margin; left: 15px; padding: 0 5px; }"
-        "QCheckBox { spacing: 10px; padding: 5px; }"
-        "QCheckBox::indicator { width: 24px; height: 24px; border: 2px solid #00c8ff; border-radius: 4px; }"
-        "QCheckBox::indicator:checked { background-color: #00c8ff; }"
-        "QPushButton { background-color: #004466; border: 1px solid #00c8ff; border-radius: 5px; padding: 8px 20px; color: white; }"
-        "QPushButton:hover { background-color: #006699; }"
+    setWindowTitle(QStringLiteral("功能开关管理 (厂家权限)"));
+
+    // 深色工业风：统一输入框 / 下拉 / 页脚层级，减少视觉噪音
+    setStyleSheet(QStringLiteral(
+        "FeatureSwitchWidget { background-color: #12121c; }"
+        "QWidget { background-color: transparent; color: #d7f7ff; font-family: 'Microsoft YaHei UI'; font-size: 13px; }"
+        "QLabel { color: #c8eef8; background: transparent; }"
+        "QGroupBox { border: 1px solid #1e6a88; border-radius: 8px; margin-top: 14px; font-weight: bold; color: #7fd4f0; padding: 12px 10px 10px 10px; background-color: rgba(18, 36, 52, 160); }"
+        "QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 6px; color: #4ec8ef; }"
+        "QCheckBox { spacing: 8px; padding: 4px 2px; color: #d7f7ff; font-weight: normal; background: transparent; }"
+        "QCheckBox::indicator { width: 18px; height: 18px; border: 1px solid #2aa0c8; border-radius: 3px; background: #0b1c28; }"
+        "QCheckBox::indicator:checked { background-color: #1aa0d0; border-color: #5ad8ff; }"
+        "QCheckBox::indicator:hover { border-color: #5ad8ff; }"
+        "QLineEdit { background-color: #0b1c28; color: #ffffff; border: 1px solid #1e6a88; border-radius: 4px; padding: 4px 6px; selection-background-color: #1a6a90; }"
+        "QLineEdit:focus { border-color: #4ec8ef; }"
+        "QLineEdit:disabled { color: #667788; background-color: #0a141c; }"
+        "QComboBox { background-color: #0b1c28; color: #ffffff; border: 1px solid #1e6a88; border-radius: 4px; padding: 3px 6px; min-height: 24px; }"
+        "QComboBox:hover { border-color: #4ec8ef; }"
+        "QComboBox::drop-down { border: none; width: 18px; }"
+        "QComboBox QAbstractItemView { background-color: #0f2430; color: #ffffff; selection-background-color: #1a6a90; border: 1px solid #1e6a88; }"
+        "QPushButton { background-color: #143a52; border: 1px solid #2a88aa; border-radius: 5px; padding: 8px 16px; color: #e8fbff; font-weight: normal; }"
+        "QPushButton:hover { background-color: #1b5270; border-color: #4ec8ef; }"
+        "QPushButton:pressed { background-color: #0f2e42; }"
+        "QPushButton#btnPrimary { background-color: #1a7a4a; border-color: #3dca7a; font-weight: bold; }"
+        "QPushButton#btnPrimary:hover { background-color: #21965c; }"
+        "QPushButton#btnAccent { background-color: #1a5f9a; border-color: #4aa8e0; font-weight: bold; }"
+        "QPushButton#btnAccent:hover { background-color: #2474b8; }"
+        "QPushButton#btnDanger { background-color: #8a2e2e; border-color: #d06060; font-weight: bold; }"
+        "QPushButton#btnDanger:hover { background-color: #a83838; }"
         "QScrollArea { border: none; background-color: transparent; }"
-        "QTabWidget::pane { border: 1px solid #00c8ff; border-radius: 8px; background-color: #151526; margin-top: -1px; }"
-        "QTabBar::tab { background-color: #00334d; color: #b9f7ff; border: 1px solid #00a0cc; border-bottom: none; padding: 8px 18px; margin-right: 3px; border-top-left-radius: 6px; border-top-right-radius: 6px; }"
-        "QTabBar::tab:selected { background-color: #006699; color: #ffffff; font-weight: bold; }"
-        "QTabBar::tab:hover { background-color: #005577; }"
-    );
-    
-    resize(980, 820);
+        "QScrollBar:vertical { background: #0d1620; width: 10px; margin: 2px; border-radius: 5px; }"
+        "QScrollBar::handle:vertical { background: #2a6a88; border-radius: 5px; min-height: 28px; }"
+        "QScrollBar::handle:vertical:hover { background: #3a8aaa; }"
+        "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }"
+        "QTabWidget::pane { border: 1px solid #1e6a88; border-radius: 8px; background-color: #101820; top: -1px; }"
+        "QTabBar::tab { background-color: #0f2430; color: #8ec8dc; border: 1px solid #1a5570; border-bottom: none; padding: 9px 20px; margin-right: 2px; border-top-left-radius: 6px; border-top-right-radius: 6px; min-width: 72px; }"
+        "QTabBar::tab:selected { background-color: #164860; color: #ffffff; font-weight: bold; border-color: #3a9cc0; }"
+        "QTabBar::tab:hover:!selected { background-color: #143848; color: #d7f7ff; }"
+        "QFrame#consoleFooter { background-color: #0c141c; border-top: 1px solid #1e6a88; }"
+        "QFrame#consoleHeader { background-color: #0c2030; border: 1px solid #1e6a88; border-radius: 8px; }"
+        "QLabel#consoleTitle { color: #5ad8ff; font-size: 22px; font-weight: bold; }"
+        "QLabel#consoleSubtitle { color: #7eb8d4; font-size: 12px; font-weight: normal; }"
+        "QLabel#consoleBadge { color: #0a1620; background-color: #4ec8ef; border-radius: 3px; padding: 2px 8px; font-size: 11px; font-weight: bold; }"
+        "QWidget#modbusCard { background-color: #0a1c28; border: 1px solid #1e5570; border-radius: 6px; }"
+        "QLabel#cardTitle { color: #e8fbff; font-weight: bold; font-size: 13px; }"
+        "QLabel#cardMeta { color: #6a9eb0; font-size: 11px; font-weight: normal; }"
+        "QLabel#sectionLabel { color: #4ec8ef; font-size: 11px; font-weight: bold; padding-top: 4px; }"
+        "QLabel#consoleHint { color: #7eb8d4; font-size: 12px; font-weight: normal; padding: 2px 0 6px 0; }"
+    ));
+
+    resize(1100, 860);
 }
 
 bool FeatureSwitchWidget::eventFilter(QObject *watched, QEvent *event)
@@ -542,29 +629,55 @@ bool FeatureSwitchWidget::eventFilter(QObject *watched, QEvent *event)
 void FeatureSwitchWidget::setupUI()
 {
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
-    
-    QLabel *title = new QLabel("<h1 style='color: #00ffff;'>系统功能控制台</h1>");
-    title->setAlignment(Qt::AlignCenter);
-    mainLayout->addWidget(title);
+    mainLayout->setContentsMargins(12, 10, 12, 8);
+    mainLayout->setSpacing(10);
+
+    // 顶栏：标题 + 厂家权限标识
+    auto *header = new QFrame(this);
+    header->setObjectName(QStringLiteral("consoleHeader"));
+    auto *headerLayout = new QHBoxLayout(header);
+    headerLayout->setContentsMargins(14, 10, 14, 10);
+    headerLayout->setSpacing(12);
+
+    auto *titleBlock = new QVBoxLayout();
+    titleBlock->setSpacing(2);
+    auto *title = new QLabel(QStringLiteral("系统功能控制台"), header);
+    title->setObjectName(QStringLiteral("consoleTitle"));
+    auto *subtitle = new QLabel(
+        QStringLiteral("厂家运行时配置 · 修改后可「立即生效」或「保存并写入 INI」"), header);
+    subtitle->setObjectName(QStringLiteral("consoleSubtitle"));
+    titleBlock->addWidget(title);
+    titleBlock->addWidget(subtitle);
+
+    auto *badge = new QLabel(QStringLiteral("厂家权限"), header);
+    badge->setObjectName(QStringLiteral("consoleBadge"));
+    badge->setAlignment(Qt::AlignCenter);
+    badge->setFixedHeight(24);
+
+    headerLayout->addLayout(titleBlock, 1);
+    headerLayout->addWidget(badge, 0, Qt::AlignTop);
+    mainLayout->addWidget(header);
 
     auto *tabs = new QTabWidget(this);
     tabs->setDocumentMode(false);
+    tabs->setUsesScrollButtons(true);
 
-    auto makeTabLayout = [tabs](const QString &title) -> QVBoxLayout* {
+    auto makeTabLayout = [tabs](const QString &tabTitle) -> QVBoxLayout* {
         auto *page = new QWidget(tabs);
         auto *pageLayout = new QVBoxLayout(page);
         pageLayout->setContentsMargins(0, 0, 0, 0);
 
         auto *scroll = new QScrollArea(page);
         scroll->setWidgetResizable(true);
+        scroll->setFrameShape(QFrame::NoFrame);
         auto *scrollContent = new QWidget(scroll);
         auto *contentLayout = new QVBoxLayout(scrollContent);
-        contentLayout->setContentsMargins(10, 10, 10, 10);
-        contentLayout->setSpacing(12);
+        contentLayout->setContentsMargins(12, 12, 12, 16);
+        contentLayout->setSpacing(10);
 
         scroll->setWidget(scrollContent);
         pageLayout->addWidget(scroll);
-        tabs->addTab(page, title);
+        tabs->addTab(page, tabTitle);
         return contentLayout;
     };
 
@@ -574,144 +687,183 @@ void FeatureSwitchWidget::setupUI()
     QVBoxLayout *controlLayout = makeTabLayout(QStringLiteral("控件配置"));
     QVBoxLayout *logsLayout = makeTabLayout(QStringLiteral("日志调试"));
 
-    // 大功能组
-    QGroupBox *bigGroup = new QGroupBox("核心功能层 (Big Features)");
-    QGridLayout *bigLayout = new QGridLayout(bigGroup);
     FeatureSwitchManager *mgr = FeatureSwitchManager::instance();
-    
-    // 排序后展示，并为 key 提供中文描述（若有）
-    QMap<QString, QString> desc;
-    desc["startup_checks"] = "启动自检";
-    desc["ui_navigation"] = "界面导航";
-    desc["permission_system"] = "权限体系";
-    desc["operation_records"] = "操作记录";
-    desc["tcp_transmission"] = "TCP 上报";
-    desc["modbus_main"] = "主控 Modbus";
-    desc["modbus_agv"] = "AGV Modbus";
-    desc["motion_control"] = "运动控制";
-    desc["input_devices"] = "输入设备";
-    desc["alarm_system"] = "报警系统";
+
+    // 大功能组
+    QGroupBox *bigGroup = new QGroupBox(QStringLiteral("核心功能模块"));
+    QVBoxLayout *bigOuter = new QVBoxLayout(bigGroup);
+    bigOuter->addWidget(makeHintLabel(
+        QStringLiteral("关闭大模块将连带禁用其下全部子功能。悬停复选框可查看内部键名。"), bigGroup));
+    QGridLayout *bigLayout = new QGridLayout();
+    bigLayout->setHorizontalSpacing(16);
+    bigLayout->setVerticalSpacing(4);
+    bigOuter->addLayout(bigLayout);
+
+    const QMap<QString, QString> desc = {
+        {QStringLiteral("startup_checks"), QStringLiteral("启动自检")},
+        {QStringLiteral("ui_navigation"), QStringLiteral("界面导航")},
+        {QStringLiteral("permission_system"), QStringLiteral("权限体系")},
+        {QStringLiteral("operation_records"), QStringLiteral("操作记录")},
+        {QStringLiteral("tcp_transmission"), QStringLiteral("TCP 上报")},
+        {QStringLiteral("modbus_main"), QStringLiteral("主控 Modbus")},
+        {QStringLiteral("modbus_agv"), QStringLiteral("AGV Modbus")},
+        {QStringLiteral("motion_control"), QStringLiteral("运动控制")},
+        {QStringLiteral("input_devices"), QStringLiteral("输入设备")},
+        {QStringLiteral("alarm_system"), QStringLiteral("报警系统")},
+    };
 
     QStringList bigKeys = mgr->allBigFeatures().values();
     bigKeys.sort();
-
     for (int i = 0; i < bigKeys.size(); ++i) {
         const QString key = bigKeys.at(i);
-        QString label = desc.contains(key) ? QString("%1 [%2]").arg(desc.value(key)).arg(key) : key;
-        QCheckBox *cb = new QCheckBox(label);
+        QCheckBox *cb = new QCheckBox(desc.value(key, key));
+        cb->setToolTip(key);
         bigLayout->addWidget(cb, i / 2, i % 2);
         m_bigCheckboxes[key] = cb;
     }
     baseLayout->addWidget(bigGroup);
 
-    // 小功能项
-    QGroupBox *smallGroup = new QGroupBox("子功能细项 (Small Features)");
-    QGridLayout *smallLayout = new QGridLayout(smallGroup);
-    
-    QStringList smallKeys = mgr->allSmallFeatures().values();
-    smallKeys.sort();
-    
-    // 小功能的中文说明映射
-    QMap<QString, QString> sdesc;
-    sdesc["startup.clear_servo_alarm"] = "启动清除伺服报警";
-    sdesc["startup.write_registers"] = "启动写寄存器";
-    sdesc["startup.log_report"] = "启动日志报告";
-    sdesc["ui.styles"] = "界面样式";
-    sdesc["ui.animations"] = "界面动画";
-    sdesc["ui.virtual_keyboard"] = "虚拟键盘";
-    sdesc["permission.admin_login"] = "管理员登录";
-    sdesc["records.filter_export"] = "记录筛选与导出";
-    sdesc["tcp.send_all"] = "TCP 全量发送";
-    sdesc["tcp.local_simulator"] = "本机 TCP 模拟器 (127.0.0.1)";
-    sdesc["tcp.remote_simulator"] = "远程 TCP 模拟器 (192.168.x.xx)";
-    sdesc["modbus_main.polling"] = "主控轮询";
-    sdesc["modbus_main.float_reading"] = "浮点解析";
-    sdesc["modbus_main.read_enabled"] = "Main Modbus 读使能";
-    sdesc["modbus_main.write_enabled"] = "Main Modbus 写使能";
-    sdesc["modbus_main.read_logs"] = "主设备 Modbus 读日志";
-    sdesc["modbus_main.write_logs"] = "主设备 Modbus 写日志";
-    sdesc["modbus_agv.read_enabled"] = "AGV Modbus 读使能";
-    sdesc["modbus_agv.write_enabled"] = "AGV Modbus 写使能";
-    sdesc["modbus_agv.read_logs"] = "AGV Modbus 读日志";
-    sdesc["modbus_agv.write_logs"] = "AGV Modbus 写日志";
-    sdesc["agv.fault_codes"] = "AGV 故障码";
-    sdesc["agv.speed_gauge"] = "AGV 速度表";
-    sdesc["motion.steering_mode"] = "转向模式";
-    sdesc["motion.speed_mode"] = "速度模式";
-    sdesc["motion.step_mode"] = "步进/点动";
-    sdesc["motion.control_mode_switch"] = "控制模式切换(示教/遥控)";
-    sdesc["motion.agv_oa_switch"] = "AGV避障开关";
-    sdesc["motion.agv_park_switch"] = "AGV驻车开关";
-    sdesc["motion.agv_speed_control"] = "AGV速度调节";
-    sdesc["motion.agv_angle_control"] = "AGV角度调节";
-    sdesc["input.matrix_key"] = "矩阵按键";
-    sdesc["input.enable_button"] = "使能按钮";
-    sdesc["alarm.emergency_stop"] = "急停报警";
-    sdesc["alarm.steering_switch"] = "转向模式切换报警";
-    sdesc["alarm.popup"] = "报警弹窗显示";
-    sdesc["alarm.status_logs"] = "报警状态周期日志";
-    sdesc["debug.qdebug"] = "全局调试输出(qDebug)";
+    // 小功能：按类别分组
+    QGroupBox *smallGroup = new QGroupBox(QStringLiteral("子功能细项"));
+    QVBoxLayout *smallOuter = new QVBoxLayout(smallGroup);
+    smallOuter->addWidget(makeHintLabel(
+        QStringLiteral("按业务类别分组；本机 / 远程 TCP 模拟器互斥，只能启用其一。"), smallGroup));
 
-    const QSet<QString> logSwitchKeys = {
-        "modbus_main.read_logs",
-        "modbus_main.write_logs",
-        "modbus_agv.read_logs",
-        "modbus_agv.write_logs",
-        "alarm.status_logs",
-        "debug.qdebug"
+    const QMap<QString, QString> sdesc = {
+        {QStringLiteral("startup.clear_servo_alarm"), QStringLiteral("启动清除伺服报警")},
+        {QStringLiteral("startup.write_registers"), QStringLiteral("启动写寄存器")},
+        {QStringLiteral("startup.log_report"), QStringLiteral("启动日志报告")},
+        {QStringLiteral("ui.styles"), QStringLiteral("界面样式")},
+        {QStringLiteral("ui.animations"), QStringLiteral("界面动画")},
+        {QStringLiteral("ui.virtual_keyboard"), QStringLiteral("虚拟键盘")},
+        {QStringLiteral("permission.admin_login"), QStringLiteral("管理员登录")},
+        {QStringLiteral("records.filter_export"), QStringLiteral("记录筛选与导出")},
+        {QStringLiteral("tcp.send_all"), QStringLiteral("TCP 全量发送")},
+        {QStringLiteral("tcp.local_simulator"), QStringLiteral("本机 TCP 模拟器 (127.0.0.1)")},
+        {QStringLiteral("tcp.remote_simulator"), QStringLiteral("远程 TCP 模拟器 (192.168.x.xx)")},
+        {QStringLiteral("modbus_main.polling"), QStringLiteral("主控轮询")},
+        {QStringLiteral("modbus_main.float_reading"), QStringLiteral("浮点解析")},
+        {QStringLiteral("modbus_main.read_enabled"), QStringLiteral("主控 Modbus 读使能")},
+        {QStringLiteral("modbus_main.write_enabled"), QStringLiteral("主控 Modbus 写使能")},
+        {QStringLiteral("modbus_main.read_logs"), QStringLiteral("主设备 Modbus 读日志")},
+        {QStringLiteral("modbus_main.write_logs"), QStringLiteral("主设备 Modbus 写日志")},
+        {QStringLiteral("modbus_agv.read_enabled"), QStringLiteral("AGV Modbus 读使能")},
+        {QStringLiteral("modbus_agv.write_enabled"), QStringLiteral("AGV Modbus 写使能")},
+        {QStringLiteral("modbus_agv.read_logs"), QStringLiteral("AGV Modbus 读日志")},
+        {QStringLiteral("modbus_agv.write_logs"), QStringLiteral("AGV Modbus 写日志")},
+        {QStringLiteral("agv.fault_codes"), QStringLiteral("AGV 故障码")},
+        {QStringLiteral("agv.speed_gauge"), QStringLiteral("AGV 速度表")},
+        {QStringLiteral("motion.steering_mode"), QStringLiteral("转向模式")},
+        {QStringLiteral("motion.speed_mode"), QStringLiteral("速度模式")},
+        {QStringLiteral("motion.step_mode"), QStringLiteral("步进/点动")},
+        {QStringLiteral("motion.control_mode_switch"), QStringLiteral("控制模式切换(示教/遥控)")},
+        {QStringLiteral("motion.agv_oa_switch"), QStringLiteral("AGV 避障开关")},
+        {QStringLiteral("motion.agv_park_switch"), QStringLiteral("AGV 驻车开关")},
+        {QStringLiteral("motion.agv_speed_control"), QStringLiteral("AGV 速度调节")},
+        {QStringLiteral("motion.agv_angle_control"), QStringLiteral("AGV 角度调节")},
+        {QStringLiteral("input.matrix_key"), QStringLiteral("矩阵按键")},
+        {QStringLiteral("input.enable_button"), QStringLiteral("使能按钮")},
+        {QStringLiteral("alarm.emergency_stop"), QStringLiteral("急停报警")},
+        {QStringLiteral("alarm.steering_switch"), QStringLiteral("转向模式切换报警")},
+        {QStringLiteral("alarm.popup"), QStringLiteral("报警弹窗显示")},
+        {QStringLiteral("alarm.status_logs"), QStringLiteral("报警状态周期日志")},
+        {QStringLiteral("debug.qdebug"), QStringLiteral("全局调试输出 (qDebug)")},
     };
 
-    int smallIndex = 0;
-    for (int i = 0; i < smallKeys.size(); ++i) {
-        const QString key = smallKeys.at(i);
+    const QSet<QString> logSwitchKeys = {
+        QStringLiteral("modbus_main.read_logs"),
+        QStringLiteral("modbus_main.write_logs"),
+        QStringLiteral("modbus_agv.read_logs"),
+        QStringLiteral("modbus_agv.write_logs"),
+        QStringLiteral("alarm.status_logs"),
+        QStringLiteral("debug.qdebug")
+    };
+
+    QStringList smallKeys = mgr->allSmallFeatures().values();
+    smallKeys.sort();
+
+    QMap<QString, QStringList> groupedKeys;
+    for (const QString &key : smallKeys) {
         if (logSwitchKeys.contains(key)) {
             continue;
         }
-        QString label = sdesc.contains(key) ? QString("%1 [%2]").arg(sdesc.value(key)).arg(key) : key;
-        QCheckBox *cb = new QCheckBox(label);
-        smallLayout->addWidget(cb, smallIndex / 2, smallIndex % 2);
-        ++smallIndex;
-        m_smallCheckboxes[key] = cb;
+        groupedKeys[smallFeatureGroupTitle(key)].append(key);
+    }
 
-        // 互斥处理：本机模拟器和远程模拟器
-        if (key == "tcp.local_simulator") {
-            connect(cb, &QCheckBox::toggled, this, [this](bool checked) {
-                if (checked && m_smallCheckboxes.contains("tcp.remote_simulator")) {
-                    m_smallCheckboxes["tcp.remote_simulator"]->setChecked(false);
-                }
-            });
-        } else if (key == "tcp.remote_simulator") {
-            connect(cb, &QCheckBox::toggled, this, [this](bool checked) {
-                if (checked && m_smallCheckboxes.contains("tcp.local_simulator")) {
-                    m_smallCheckboxes["tcp.local_simulator"]->setChecked(false);
-                }
-            });
+    const QStringList groupOrder = {
+        QStringLiteral("启动"), QStringLiteral("界面"), QStringLiteral("权限"),
+        QStringLiteral("操作记录"), QStringLiteral("TCP 上报"),
+        QStringLiteral("主控 Modbus"), QStringLiteral("AGV Modbus"), QStringLiteral("AGV 显示"),
+        QStringLiteral("运动控制"), QStringLiteral("输入设备"), QStringLiteral("报警"),
+    };
+
+    QStringList orderedGroups = groupOrder;
+    for (auto it = groupedKeys.constBegin(); it != groupedKeys.constEnd(); ++it) {
+        if (!orderedGroups.contains(it.key())) {
+            orderedGroups.append(it.key());
         }
+    }
+
+    for (const QString &groupTitle : orderedGroups) {
+        if (!groupedKeys.contains(groupTitle) || groupedKeys.value(groupTitle).isEmpty()) {
+            continue;
+        }
+        auto *section = new QGroupBox(groupTitle, smallGroup);
+        section->setFlat(true);
+        auto *grid = new QGridLayout(section);
+        grid->setHorizontalSpacing(14);
+        grid->setVerticalSpacing(2);
+        grid->setContentsMargins(6, 4, 6, 4);
+
+        const QStringList keys = groupedKeys.value(groupTitle);
+        for (int i = 0; i < keys.size(); ++i) {
+            const QString &key = keys.at(i);
+            QCheckBox *cb = new QCheckBox(sdesc.value(key, key), section);
+            cb->setToolTip(key);
+            grid->addWidget(cb, i / 2, i % 2);
+            m_smallCheckboxes[key] = cb;
+
+            if (key == QStringLiteral("tcp.local_simulator")) {
+                connect(cb, &QCheckBox::toggled, this, [this](bool checked) {
+                    if (checked && m_smallCheckboxes.contains(QStringLiteral("tcp.remote_simulator"))) {
+                        m_smallCheckboxes[QStringLiteral("tcp.remote_simulator")]->setChecked(false);
+                    }
+                });
+            } else if (key == QStringLiteral("tcp.remote_simulator")) {
+                connect(cb, &QCheckBox::toggled, this, [this](bool checked) {
+                    if (checked && m_smallCheckboxes.contains(QStringLiteral("tcp.local_simulator"))) {
+                        m_smallCheckboxes[QStringLiteral("tcp.local_simulator")]->setChecked(false);
+                    }
+                });
+            }
+        }
+        smallOuter->addWidget(section);
     }
     baseLayout->addWidget(smallGroup);
 
-    QGroupBox *logGroup = new QGroupBox("日志类型开关 (Log Switches)");
-    QGridLayout *logLayout = new QGridLayout(logGroup);
+    QGroupBox *logGroup = new QGroupBox(QStringLiteral("日志与调试开关"));
+    QVBoxLayout *logOuter = new QVBoxLayout(logGroup);
+    logOuter->addWidget(makeHintLabel(
+        QStringLiteral("仅影响日志输出量，不影响业务功能本身。生产环境建议保持关闭。"), logGroup));
+    QGridLayout *logLayout = new QGridLayout();
+    logLayout->setHorizontalSpacing(14);
+    logOuter->addLayout(logLayout);
+
     QStringList logKeys = logSwitchKeys.values();
     logKeys.sort();
     for (int i = 0; i < logKeys.size(); ++i) {
         const QString key = logKeys.at(i);
-        QString label = sdesc.contains(key) ? QString("%1 [%2]").arg(sdesc.value(key)).arg(key) : key;
-        QCheckBox *cb = new QCheckBox(label);
+        QCheckBox *cb = new QCheckBox(sdesc.value(key, key));
+        cb->setToolTip(key);
         logLayout->addWidget(cb, i / 2, i % 2);
         m_smallCheckboxes[key] = cb;
     }
     logsLayout->addWidget(logGroup);
-    
-    // 轮询参数配置组
+
     setupNetworkUI(commLayout);
     setupPollingUI(commLayout);
-    
-    // 滑块自定义范围配置组
     setupSliderLimitUI(displayLayout);
-
     setupInclinometerThresholdUI(displayLayout);
-
     setupButtonVisibilityUI(controlLayout);
 
     baseLayout->addStretch();
@@ -722,27 +874,34 @@ void FeatureSwitchWidget::setupUI()
 
     mainLayout->addWidget(tabs, 1);
 
-    // 底部控制按钮
-    QHBoxLayout *btnLayout = new QHBoxLayout();
-    QPushButton *btnAll = new QPushButton("开启全部");
-    connect(btnAll, &QPushButton::clicked, this, [this](){ onToggleAll(true); });
+    // 底栏：批量操作 | 生效保存 | 退出
+    auto *footer = new QFrame(this);
+    footer->setObjectName(QStringLiteral("consoleFooter"));
+    auto *btnLayout = new QHBoxLayout(footer);
+    btnLayout->setContentsMargins(12, 10, 12, 10);
+    btnLayout->setSpacing(8);
 
-    QPushButton *btnNone = new QPushButton("关闭全部");
-    connect(btnNone, &QPushButton::clicked, this, [this](){ onToggleAll(false); });
+    QPushButton *btnAll = new QPushButton(QStringLiteral("开启全部"), footer);
+    connect(btnAll, &QPushButton::clicked, this, [this]() { onToggleAll(true); });
 
-    QPushButton *btnReload = new QPushButton("撤销修改 (重载)");
+    QPushButton *btnNone = new QPushButton(QStringLiteral("关闭全部"), footer);
+    connect(btnNone, &QPushButton::clicked, this, [this]() { onToggleAll(false); });
+
+    QPushButton *btnReload = new QPushButton(QStringLiteral("撤销修改"), footer);
+    btnReload->setToolTip(QStringLiteral("从当前 INI 重新加载，丢弃未保存的界面修改"));
     connect(btnReload, &QPushButton::clicked, this, &FeatureSwitchWidget::onReload);
 
-    QPushButton *btnApply = new QPushButton("立即生效");
-    btnApply->setStyleSheet("background-color: #2196F3; font-weight: bold; border-color: #ffffff;");
+    QPushButton *btnApply = new QPushButton(QStringLiteral("立即生效"), footer);
+    btnApply->setObjectName(QStringLiteral("btnAccent"));
+    btnApply->setToolTip(QStringLiteral("写入配置并通知主窗口立刻应用，不关闭本页"));
     connect(btnApply, &QPushButton::clicked, this, &FeatureSwitchWidget::onApply);
 
-    QPushButton *btnSave = new QPushButton("保存并写入INI");
-    btnSave->setStyleSheet("background-color: #4CAF50; font-weight: bold; border-color: #ffffff;");
+    QPushButton *btnSave = new QPushButton(QStringLiteral("保存并写入 INI"), footer);
+    btnSave->setObjectName(QStringLiteral("btnPrimary"));
     connect(btnSave, &QPushButton::clicked, this, &FeatureSwitchWidget::onSave);
 
-    QPushButton *btnClose = new QPushButton("退出");
-    btnClose->setStyleSheet("background-color: #f44336; font-weight: bold; border-color: #ffffff;");
+    QPushButton *btnClose = new QPushButton(QStringLiteral("退出"), footer);
+    btnClose->setObjectName(QStringLiteral("btnDanger"));
     connect(btnClose, &QPushButton::clicked, this, &QWidget::close);
 
     btnLayout->addWidget(btnAll);
@@ -752,7 +911,7 @@ void FeatureSwitchWidget::setupUI()
     btnLayout->addWidget(btnApply);
     btnLayout->addWidget(btnSave);
     btnLayout->addWidget(btnClose);
-    mainLayout->addLayout(btnLayout);
+    mainLayout->addWidget(footer);
 }
 
 void FeatureSwitchWidget::loadCurrentState()
@@ -774,37 +933,35 @@ void FeatureSwitchWidget::loadCurrentState()
 
 void FeatureSwitchWidget::setupNetworkUI(QVBoxLayout *scrollLayout)
 {
-    const QString lineEditStyle =
-        QStringLiteral("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px; padding: 3px;");
-    const QString labelStyle = QStringLiteral("color: #88ccff;");
-
-    QGroupBox *netGroup = new QGroupBox(QStringLiteral("网络地址配置 (Network)"));
+    QGroupBox *netGroup = new QGroupBox(QStringLiteral("网络地址"));
     QVBoxLayout *netLayout = new QVBoxLayout(netGroup);
+    netLayout->addWidget(makeHintLabel(
+        QStringLiteral("格式均为 192.168.x.xx；与「本机 / 远程 TCP 模拟器」开关配合。立即生效后写入 config.ini，WIN7 IP 会加入日志传输白名单。"),
+        netGroup));
 
     auto addIpRow = [&](const QString &prefixLabel,
                         QLineEdit *&subnetEdit,
                         QLineEdit *&hostEdit) {
         QHBoxLayout *row = new QHBoxLayout();
         QLabel *prefix = new QLabel(prefixLabel);
-        prefix->setStyleSheet(labelStyle);
+        prefix->setMinimumWidth(150);
 
         subnetEdit = new QLineEdit();
         subnetEdit->setPlaceholderText(QStringLiteral("1"));
-        subnetEdit->setFixedWidth(48);
+        subnetEdit->setFixedWidth(52);
         subnetEdit->setAlignment(Qt::AlignCenter);
         subnetEdit->setValidator(new QIntValidator(0, 255, netGroup));
-        subnetEdit->setStyleSheet(lineEditStyle);
         subnetEdit->installEventFilter(this);
 
         QLabel *dot = new QLabel(QStringLiteral("."));
-        dot->setStyleSheet(labelStyle);
+        dot->setAlignment(Qt::AlignCenter);
+        dot->setFixedWidth(10);
 
         hostEdit = new QLineEdit();
         hostEdit->setPlaceholderText(QStringLiteral("70"));
-        hostEdit->setFixedWidth(48);
+        hostEdit->setFixedWidth(52);
         hostEdit->setAlignment(Qt::AlignCenter);
         hostEdit->setValidator(new QIntValidator(0, 255, netGroup));
-        hostEdit->setStyleSheet(lineEditStyle);
         hostEdit->installEventFilter(this);
 
         row->addWidget(prefix);
@@ -818,62 +975,72 @@ void FeatureSwitchWidget::setupNetworkUI(QVBoxLayout *scrollLayout)
     addIpRow(QStringLiteral("WIN7_IP: 192.168."), m_editWin7Subnet, m_editWin7Host);
     addIpRow(QStringLiteral("远程模拟器: 192.168."), m_editSimSubnet, m_editSimHost);
 
-    QLabel *hint = new QLabel(QStringLiteral("格式均为 192.168.x.xx；与「本机/远程 TCP 模拟器」开关配合使用，点击「立即生效」后写入 config.ini；WIN7 IP 会自动加入日志传输白名单"));
-    hint->setWordWrap(true);
-    hint->setStyleSheet(QStringLiteral("color: #88ccff; font-size: 11px;"));
-    netLayout->addWidget(hint);
-
     scrollLayout->addWidget(netGroup);
 }
 
 void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
 {
-    QGroupBox *pollGroup = new QGroupBox("通信轮询参数 (Polling Settings)");
+    QGroupBox *pollGroup = new QGroupBox(QStringLiteral("通信轮询参数"));
     QVBoxLayout *pollLayout = new QVBoxLayout(pollGroup);
+    pollLayout->addWidget(makeHintLabel(
+        QStringLiteral("单位均为毫秒（ms），除非另行说明。设备状态数量建议保持默认 85。"), pollGroup));
 
-    m_cbUiStateSync = new QCheckBox("启用控件状态同步");
+    m_cbUiStateSync = new QCheckBox(QStringLiteral("启用控件状态同步"));
     pollLayout->addWidget(m_cbUiStateSync);
 
-    auto addPollItem = [&](const QString &label, QLineEdit *&edit) {
-        QHBoxLayout *h = new QHBoxLayout();
-        h->addWidget(new QLabel(label));
-        edit = new QLineEdit();
-        edit->setFixedWidth(150);
-        edit->setStyleSheet("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px; padding: 3px;");
-        edit->installEventFilter(this);
-        h->addWidget(edit);
-        h->addStretch();
-        pollLayout->addLayout(h);
+    auto addPollGrid = [&](const QString &sectionTitle,
+                           const QList<QPair<QString, QLineEdit**>> &items) {
+        auto *section = new QGroupBox(sectionTitle, pollGroup);
+        section->setFlat(true);
+        auto *grid = new QGridLayout(section);
+        grid->setHorizontalSpacing(10);
+        grid->setVerticalSpacing(8);
+        grid->setColumnStretch(1, 1);
+        grid->setColumnStretch(3, 1);
+
+        for (int i = 0; i < items.size(); ++i) {
+            const int row = i / 2;
+            const int col = (i % 2) * 2;
+            auto *lbl = new QLabel(items.at(i).first, section);
+            lbl->setWordWrap(true);
+            QLineEdit *&editRef = *items.at(i).second;
+            editRef = new QLineEdit(section);
+            editRef->setMinimumWidth(88);
+            editRef->setMaximumWidth(140);
+            editRef->installEventFilter(this);
+            grid->addWidget(lbl, row, col);
+            grid->addWidget(editRef, row, col + 1);
+        }
+        pollLayout->addWidget(section);
     };
 
-    addPollItem("主控 Modbus 轮询 (ms):", m_editMainModbusPoll);
-    addPollItem("控件状态同步轮询 (ms):", m_editMainUiPoll);
-    addPollItem("设备状态轮询间隔 (ms, 0~84):", m_editMainDeviceStatusPoll);
-    addPollItem("设备状态轮询起始地址 (192.168.1.13):", m_editMainDeviceStatusStart);
-    addPollItem("设备状态轮询数量 (0~84默认85):", m_editMainDeviceStatusCount);
-    addPollItem("模式同步轮询起始地址 (如125):", m_editMainControlSyncStart);
-    addPollItem("模式同步轮询数量 (如6):", m_editMainControlSyncCount);
-    addPollItem("主控 重连间隔 (ms):", m_editMainReconnect);
-    addPollItem("AGV Modbus 轮询 (ms):", m_editAgvPoll);
-    addPollItem("AGV 重连间隔 (ms):", m_editAgvReconnect);
-    addPollItem("示教写权限设备号 (与主控8192相等才允许写.13/.88，默认0):", m_editTeachingWriteDeviceId);
+    addPollGrid(QStringLiteral("主控"), {
+        {QStringLiteral("Modbus 轮询"), &m_editMainModbusPoll},
+        {QStringLiteral("控件同步轮询"), &m_editMainUiPoll},
+        {QStringLiteral("设备状态轮询 (0~84)"), &m_editMainDeviceStatusPoll},
+        {QStringLiteral("设备状态起始地址"), &m_editMainDeviceStatusStart},
+        {QStringLiteral("设备状态数量"), &m_editMainDeviceStatusCount},
+        {QStringLiteral("模式同步起始地址"), &m_editMainControlSyncStart},
+        {QStringLiteral("模式同步数量"), &m_editMainControlSyncCount},
+        {QStringLiteral("重连间隔"), &m_editMainReconnect},
+        {QStringLiteral("示教写权限设备号"), &m_editTeachingWriteDeviceId},
+    });
+
+    addPollGrid(QStringLiteral("AGV"), {
+        {QStringLiteral("Modbus 轮询"), &m_editAgvPoll},
+        {QStringLiteral("重连间隔"), &m_editAgvReconnect},
+    });
 
     scrollLayout->addWidget(pollGroup);
 }
 
 void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
 {
-    const QString lineEditStyle =
-        QStringLiteral("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px;");
-
-    QGroupBox *arcGroup = new QGroupBox(QStringLiteral("TechArcGauge 显示与参数范围"));
+    QGroupBox *arcGroup = new QGroupBox(QStringLiteral("环形仪表显示与范围"));
     QVBoxLayout *arcLayout = new QVBoxLayout(arcGroup);
-
-    QLabel *arcHint = new QLabel(
-        QStringLiteral("每行可单独控制环形仪表是否显示，并自定义数值 Min/Max（与主界面仪表 objectName 一致）"));
-    arcHint->setWordWrap(true);
-    arcHint->setStyleSheet(QStringLiteral("color: #88ccff; font-size: 11px;"));
-    arcLayout->addWidget(arcHint);
+    arcLayout->addWidget(makeHintLabel(
+        QStringLiteral("控制首页 / 六轴页环形仪表是否显示，以及数值 Min/Max（与主界面 objectName 对应）。"),
+        arcGroup));
 
     QHBoxLayout *arcToolbar = new QHBoxLayout();
     QPushButton *arcShowAll = new QPushButton(QStringLiteral("仪表全部显示"));
@@ -908,34 +1075,37 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
         {QStringLiteral("robot_ArcGauge_SixAxis6"), QStringLiteral("六轴 Z")}
     };
 
-    for (const QString &name : arcGaugeNames) {
-        QHBoxLayout *row = new QHBoxLayout();
-        QCheckBox *visibleCb = new QCheckBox(QStringLiteral("显示"));
-        visibleCb->setFixedWidth(56);
+    auto *arcGrid = new QGridLayout();
+    arcGrid->setHorizontalSpacing(8);
+    arcGrid->setVerticalSpacing(6);
+    arcLayout->addLayout(arcGrid);
 
-        QLabel *lbl = new QLabel(arcLabels.value(name, name) + QStringLiteral(":"));
-        lbl->setFixedWidth(130);
+    for (int i = 0; i < arcGaugeNames.size(); ++i) {
+        const QString &name = arcGaugeNames.at(i);
+        QCheckBox *visibleCb = new QCheckBox(QStringLiteral("显示"));
+        visibleCb->setFixedWidth(52);
+
+        QLabel *lbl = new QLabel(arcLabels.value(name, name));
+        lbl->setMinimumWidth(110);
+        lbl->setToolTip(name);
 
         QLineEdit *minEdit = new QLineEdit();
-        minEdit->setPlaceholderText(QStringLiteral("最小值"));
+        minEdit->setPlaceholderText(QStringLiteral("Min"));
         minEdit->setFixedWidth(72);
-        minEdit->setStyleSheet(lineEditStyle);
         minEdit->installEventFilter(this);
 
         QLineEdit *maxEdit = new QLineEdit();
-        maxEdit->setPlaceholderText(QStringLiteral("最大值"));
+        maxEdit->setPlaceholderText(QStringLiteral("Max"));
         maxEdit->setFixedWidth(72);
-        maxEdit->setStyleSheet(lineEditStyle);
         maxEdit->installEventFilter(this);
 
-        row->addWidget(visibleCb);
-        row->addWidget(lbl);
-        row->addWidget(new QLabel(QStringLiteral("Min:")));
-        row->addWidget(minEdit);
-        row->addWidget(new QLabel(QStringLiteral("Max:")));
-        row->addWidget(maxEdit);
-        row->addStretch();
-        arcLayout->addLayout(row);
+        const int colBase = (i % 2) * 5;
+        const int row = i / 2;
+        arcGrid->addWidget(visibleCb, row, colBase);
+        arcGrid->addWidget(lbl, row, colBase + 1);
+        arcGrid->addWidget(minEdit, row, colBase + 2);
+        arcGrid->addWidget(new QLabel(QStringLiteral("~")), row, colBase + 3);
+        arcGrid->addWidget(maxEdit, row, colBase + 4);
 
         m_arcGaugeEdits[name] = {visibleCb, minEdit, maxEdit};
     }
@@ -959,69 +1129,39 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
 
     setupTechSliderEditUI(scrollLayout);
 
-    QGroupBox *otherGroup = new QGroupBox(QStringLiteral("其他参数范围"));
+    QGroupBox *otherGroup = new QGroupBox(QStringLiteral("其它参数阈值"));
     QVBoxLayout *otherLayout = new QVBoxLayout(otherGroup);
-
-    const QString parkKey = QStringLiteral("agv_park_out_trigger_length");
-    {
-        QHBoxLayout *row = new QHBoxLayout();
-        QLabel *lbl = new QLabel(
-            QStringLiteral("驻车伸出触发长度 (支腿长度设置框，整数):"));
-        lbl->setFixedWidth(280);
-        row->addWidget(lbl);
-
-        QLineEdit *minEdit = new QLineEdit();
-        minEdit->setPlaceholderText(QStringLiteral("最小值"));
-        minEdit->setFixedWidth(80);
-        minEdit->setStyleSheet(lineEditStyle);
-        minEdit->installEventFilter(this);
-
-        QLineEdit *maxEdit = new QLineEdit();
-        maxEdit->setPlaceholderText(QStringLiteral("最大值"));
-        maxEdit->setFixedWidth(80);
-        maxEdit->setStyleSheet(lineEditStyle);
-        maxEdit->installEventFilter(this);
-
-        row->addWidget(new QLabel(QStringLiteral("Min:")));
-        row->addWidget(minEdit);
-        row->addWidget(new QLabel(QStringLiteral(" Max:")));
-        row->addWidget(maxEdit);
-        row->addStretch();
-        otherLayout->addLayout(row);
-        m_limitEdits[parkKey] = {minEdit, maxEdit};
-    }
 
     const auto addOtherLimitRow = [&](const QString &key, const QString &labelText) {
         QHBoxLayout *row = new QHBoxLayout();
         QLabel *lbl = new QLabel(labelText);
-        lbl->setFixedWidth(280);
+        lbl->setMinimumWidth(220);
         row->addWidget(lbl);
 
         QLineEdit *minEdit = new QLineEdit();
-        minEdit->setPlaceholderText(QStringLiteral("最小值"));
+        minEdit->setPlaceholderText(QStringLiteral("Min"));
         minEdit->setFixedWidth(80);
-        minEdit->setStyleSheet(lineEditStyle);
         minEdit->installEventFilter(this);
 
         QLineEdit *maxEdit = new QLineEdit();
-        maxEdit->setPlaceholderText(QStringLiteral("最大值"));
+        maxEdit->setPlaceholderText(QStringLiteral("Max"));
         maxEdit->setFixedWidth(80);
-        maxEdit->setStyleSheet(lineEditStyle);
         maxEdit->installEventFilter(this);
 
-        row->addWidget(new QLabel(QStringLiteral("Min:")));
         row->addWidget(minEdit);
-        row->addWidget(new QLabel(QStringLiteral(" Max:")));
+        row->addWidget(new QLabel(QStringLiteral("~")));
         row->addWidget(maxEdit);
         row->addStretch();
         otherLayout->addLayout(row);
         m_limitEdits[key] = {minEdit, maxEdit};
     };
 
+    addOtherLimitRow(QStringLiteral("agv_park_out_trigger_length"),
+                     QStringLiteral("驻车伸出触发长度"));
     addOtherLimitRow(QStringLiteral("weight_overload_limit"),
-                     QStringLiteral("负载超限阈值 (管理员页，整数):"));
+                     QStringLiteral("负载超限阈值"));
     addOtherLimitRow(QStringLiteral("weight_lock_limit"),
-                     QStringLiteral("负载超重阈值 (管理员页，整数):"));
+                     QStringLiteral("负载超重阈值"));
 
     scrollLayout->addWidget(otherGroup);
 }
@@ -1052,7 +1192,9 @@ QLineEdit *makeLimitEdit(QWidget *parent, const QString &style, FeatureSwitchWid
 {
     QLineEdit *edit = new QLineEdit(parent);
     edit->setFixedWidth(64);
-    edit->setStyleSheet(style);
+    if (!style.isEmpty()) {
+        edit->setStyleSheet(style);
+    }
     edit->installEventFilter(host);
     return edit;
 }
@@ -1060,17 +1202,11 @@ QLineEdit *makeLimitEdit(QWidget *parent, const QString &style, FeatureSwitchWid
 
 void FeatureSwitchWidget::setupTechSliderEditUI(QVBoxLayout *scrollLayout)
 {
-    const QString lineEditStyle =
-        QStringLiteral("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px;");
-
-    QGroupBox *group = new QGroupBox(QStringLiteral("TechSliderEdit 显示与范围"));
+    QGroupBox *group = new QGroupBox(QStringLiteral("滑块输入显示与范围"));
     QVBoxLayout *layout = new QVBoxLayout(group);
-
-    QLabel *hint = new QLabel(
-        QStringLiteral("每行可设置是否显示及滑块两端显示范围（Min/Max）；LineEdit 输入范围与数值范围将自动与显示范围一致"));
-    hint->setWordWrap(true);
-    hint->setStyleSheet(QStringLiteral("color: #88ccff; font-size: 11px;"));
-    layout->addWidget(hint);
+    layout->addWidget(makeHintLabel(
+        QStringLiteral("设置是否显示及滑块两端范围（Min/Max）；输入框数值范围会与显示范围保持一致。"),
+        group));
 
     QHBoxLayout *toolbar = new QHBoxLayout();
     QPushButton *showAll = new QPushButton(QStringLiteral("滑块全部显示"));
@@ -1080,12 +1216,10 @@ void FeatureSwitchWidget::setupTechSliderEditUI(QVBoxLayout *scrollLayout)
     toolbar->addStretch();
     layout->addLayout(toolbar);
 
-    QScrollArea *scroll = new QScrollArea(group);
-    scroll->setWidgetResizable(true);
-    scroll->setMaximumHeight(220);
-    QWidget *listHost = new QWidget();
-    QVBoxLayout *listLayout = new QVBoxLayout(listHost);
+    auto *listHost = new QWidget(group);
+    auto *listLayout = new QVBoxLayout(listHost);
     listLayout->setContentsMargins(0, 0, 0, 0);
+    listLayout->setSpacing(4);
 
     MainWindow *mainWindow = qobject_cast<MainWindow*>(parent());
     QList<TechSliderEdit*> sliders;
@@ -1098,7 +1232,7 @@ void FeatureSwitchWidget::setupTechSliderEditUI(QVBoxLayout *scrollLayout)
 
     if (sliders.isEmpty()) {
         listLayout->addWidget(new QLabel(
-            QStringLiteral("未找到 TechSliderEdit（请确认主窗口已初始化）"), listHost));
+            QStringLiteral("未找到滑块输入控件（请确认主窗口已初始化）"), listHost));
     } else {
         for (TechSliderEdit *slider : sliders) {
             const QString name = slider->objectName();
@@ -1108,24 +1242,25 @@ void FeatureSwitchWidget::setupTechSliderEditUI(QVBoxLayout *scrollLayout)
 
             QHBoxLayout *row = new QHBoxLayout();
             QCheckBox *visibleCb = new QCheckBox(QStringLiteral("显示"), listHost);
-            visibleCb->setFixedWidth(56);
+            visibleCb->setFixedWidth(52);
 
             QString title = slider->labelText().trimmed();
             if (title.isEmpty()) {
                 title = name;
             }
             QLabel *lbl = new QLabel(title, listHost);
-            lbl->setFixedWidth(120);
+            lbl->setMinimumWidth(120);
             lbl->setToolTip(name);
 
-            QLineEdit *displayMin = makeLimitEdit(listHost, lineEditStyle, this);
-            QLineEdit *displayMax = makeLimitEdit(listHost, lineEditStyle, this);
+            QLineEdit *displayMin = makeLimitEdit(listHost, QString(), this);
+            QLineEdit *displayMax = makeLimitEdit(listHost, QString(), this);
+            displayMin->setPlaceholderText(QStringLiteral("Min"));
+            displayMax->setPlaceholderText(QStringLiteral("Max"));
 
             row->addWidget(visibleCb);
             row->addWidget(lbl);
-            row->addWidget(new QLabel(QStringLiteral("Min:"), listHost));
             row->addWidget(displayMin);
-            row->addWidget(new QLabel(QStringLiteral("Max:"), listHost));
+            row->addWidget(new QLabel(QStringLiteral("~"), listHost));
             row->addWidget(displayMax);
             row->addStretch();
             listLayout->addLayout(row);
@@ -1134,8 +1269,7 @@ void FeatureSwitchWidget::setupTechSliderEditUI(QVBoxLayout *scrollLayout)
         }
     }
 
-    scroll->setWidget(listHost);
-    layout->addWidget(scroll);
+    layout->addWidget(listHost);
 
     connect(showAll, &QPushButton::clicked, this, [this]() {
         for (auto it = m_sliderEditEdits.begin(); it != m_sliderEditEdits.end(); ++it) {
@@ -1224,23 +1358,24 @@ void FeatureSwitchWidget::saveTechSliderEditState()
 
 void FeatureSwitchWidget::setupInclinometerThresholdUI(QVBoxLayout *scrollLayout)
 {
-    QGroupBox *incGroup = new QGroupBox("倾角仪显示阈值 (首页 X/Y 卡片)");
+    QGroupBox *incGroup = new QGroupBox(QStringLiteral("倾角仪显示阈值"));
     QVBoxLayout *incLayout = new QVBoxLayout(incGroup);
+    incLayout->addWidget(makeHintLabel(
+        QStringLiteral("首页 X/Y 倾角卡片超过该阈值时高亮提示，单位：度（°）。"), incGroup));
 
     auto addRow = [&](const QString &desc, QLineEdit *&edit) {
         QHBoxLayout *h = new QHBoxLayout();
         h->addWidget(new QLabel(desc));
         edit = new QLineEdit();
-        edit->setFixedWidth(150);
-        edit->setStyleSheet("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px; padding: 3px;");
+        edit->setFixedWidth(120);
         edit->installEventFilter(this);
         h->addWidget(edit);
         h->addStretch();
         incLayout->addLayout(h);
     };
 
-    addRow("X 轴倾角显示阈值 (°):", m_editInclinometerThresholdX);
-    addRow("Y 轴倾角显示阈值 (°):", m_editInclinometerThresholdY);
+    addRow(QStringLiteral("X 轴阈值"), m_editInclinometerThresholdX);
+    addRow(QStringLiteral("Y 轴阈值"), m_editInclinometerThresholdY);
 
     scrollLayout->addWidget(incGroup);
 }
@@ -1249,13 +1384,10 @@ void FeatureSwitchWidget::setupButtonVisibilityUI(QVBoxLayout *scrollLayout)
 {
     m_modbusButtonGroup = new QGroupBox(QStringLiteral("Modbus 按键：显示与寄存器"));
     QVBoxLayout *modbusLayout = new QVBoxLayout(m_modbusButtonGroup);
-
-    QLabel *modbusHint = new QLabel(
-        QStringLiteral("仅列出有 Modbus 读/写的按键（自动扫描）。每项分四段：设备、寄存器、位（不需要可留空）、值（判断或写入）。"
-                       "读行一般用于界面状态同步；默认值为程序内已有逻辑，打开本页即可看到。"));
-    modbusHint->setWordWrap(true);
-    modbusHint->setStyleSheet(QStringLiteral("color: #88ccff; font-size: 11px;"));
-    modbusLayout->addWidget(modbusHint);
+    modbusLayout->addWidget(makeHintLabel(
+        QStringLiteral("自动扫描主窗口中带 Modbus 读写的按键。每行：设备 / 寄存器 / 位（可空）/ 值1~3。"
+                       "读行用于界面状态同步；默认值来自程序内置逻辑。"),
+        m_modbusButtonGroup));
 
     QHBoxLayout *modbusToolbar = new QHBoxLayout();
     QPushButton *modbusShowAll = new QPushButton(QStringLiteral("全部显示"));
@@ -1267,10 +1399,12 @@ void FeatureSwitchWidget::setupButtonVisibilityUI(QVBoxLayout *scrollLayout)
 
     QScrollArea *modbusScroll = new QScrollArea();
     modbusScroll->setWidgetResizable(true);
-    modbusScroll->setMaximumHeight(420);
+    modbusScroll->setMinimumHeight(360);
+    modbusScroll->setFrameShape(QFrame::NoFrame);
     m_modbusButtonListHost = new QWidget();
     m_modbusButtonListLayout = new QVBoxLayout(m_modbusButtonListHost);
-    m_modbusButtonListLayout->setSpacing(8);
+    m_modbusButtonListLayout->setSpacing(10);
+    m_modbusButtonListLayout->setContentsMargins(2, 2, 8, 2);
     modbusScroll->setWidget(m_modbusButtonListHost);
     modbusLayout->addWidget(modbusScroll);
 
@@ -1291,15 +1425,12 @@ void FeatureSwitchWidget::setupButtonVisibilityUI(QVBoxLayout *scrollLayout)
 
     scrollLayout->addWidget(m_modbusButtonGroup);
 
-    m_otherVisibilityGroup = new QGroupBox(QStringLiteral("其他控件可见性（无 Modbus）"));
+    m_otherVisibilityGroup = new QGroupBox(QStringLiteral("其它控件可见性"));
     QVBoxLayout *otherLayout = new QVBoxLayout(m_otherVisibilityGroup);
-
-    QLabel *otherHint = new QLabel(
-        QStringLiteral("无 Modbus 读写的导航按钮等，仅控制是否显示。"
-                       "TechArcGauge / TechSliderEdit 请在上方专用分组中配置。"));
-    otherHint->setWordWrap(true);
-    otherHint->setStyleSheet(QStringLiteral("color: #88ccff; font-size: 11px;"));
-    otherLayout->addWidget(otherHint);
+    otherLayout->addWidget(makeHintLabel(
+        QStringLiteral("无 Modbus 映射的导航 / 模式等控件，仅控制是否显示。"
+                       "环形仪表与滑块输入请到「显示范围」页配置。弹窗临时按钮已自动隐藏。"),
+        m_otherVisibilityGroup));
 
     QHBoxLayout *otherToolbar = new QHBoxLayout();
     QPushButton *otherShowAll = new QPushButton(QStringLiteral("全部显示"));
@@ -1311,9 +1442,13 @@ void FeatureSwitchWidget::setupButtonVisibilityUI(QVBoxLayout *scrollLayout)
 
     QScrollArea *otherScroll = new QScrollArea();
     otherScroll->setWidgetResizable(true);
-    otherScroll->setMaximumHeight(220);
+    otherScroll->setMinimumHeight(160);
+    otherScroll->setMaximumHeight(280);
+    otherScroll->setFrameShape(QFrame::NoFrame);
     m_otherVisibilityListHost = new QWidget();
     m_otherVisibilityGrid = new QGridLayout(m_otherVisibilityListHost);
+    m_otherVisibilityGrid->setHorizontalSpacing(12);
+    m_otherVisibilityGrid->setVerticalSpacing(4);
     otherScroll->setWidget(m_otherVisibilityListHost);
     otherLayout->addWidget(otherScroll);
 
@@ -1362,8 +1497,7 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
 
     QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
 
-    const QString lineEditStyle =
-        QStringLiteral("background-color: #002233; color: #ffffff; border: 1px solid #00c8ff; border-radius: 3px; padding: 3px;");
+    const QString lineEditStyle; // 使用全局样式，避免卡片内输入框风格割裂
 
     MappingConfig *mapping = MappingConfig::instance();
     int modbusCount = 0;
@@ -1372,6 +1506,9 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
     for (int i = 0; i < buttons.size(); ++i) {
         const MainWindow::ControllableButtonInfo &info = buttons.at(i);
         if (shouldSkipControllable(info)) {
+            continue;
+        }
+        if (!hasModbusOperation(info) && isConsoleNoiseControl(mainWindow, info.objectName)) {
             continue;
         }
 
@@ -1392,23 +1529,29 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
         if (hasModbusOperation(info)) {
             settings.beginGroup(QStringLiteral("ButtonModbusMapping"));
             QWidget *card = new QWidget(m_modbusButtonListHost);
-            card->setStyleSheet(QStringLiteral(
-                "QWidget { background-color: rgba(0, 30, 50, 120); border: 1px solid #004466; border-radius: 4px; }"));
+            card->setObjectName(QStringLiteral("modbusCard"));
             QVBoxLayout *cardLayout = new QVBoxLayout(card);
-            cardLayout->setContentsMargins(8, 6, 8, 6);
-            cardLayout->setSpacing(4);
+            cardLayout->setContentsMargins(10, 8, 10, 8);
+            cardLayout->setSpacing(5);
 
             QHBoxLayout *titleRow = new QHBoxLayout();
             QCheckBox *visibleCb = new QCheckBox(QStringLiteral("显示"), card);
             visibleCb->setChecked(visibleDefault);
 
-            const QString title = visibleText.isEmpty()
-                ? QStringLiteral("%1  [%2]").arg(kind, objectName)
-                : QStringLiteral("%1  ·  %2  [%3]").arg(visibleText, kind, objectName);
-            QLabel *titleLbl = new QLabel(title, card);
-            titleLbl->setStyleSheet(QStringLiteral("color: #ffffff; font-weight: bold;"));
-            titleRow->addWidget(visibleCb);
-            titleRow->addWidget(titleLbl, 1);
+            auto *titleBlock = new QVBoxLayout();
+            titleBlock->setSpacing(1);
+            QLabel *titleLbl = new QLabel(
+                visibleText.isEmpty() ? kind : visibleText, card);
+            titleLbl->setObjectName(QStringLiteral("cardTitle"));
+            QLabel *metaLbl = new QLabel(
+                QStringLiteral("%1 · %2").arg(kind, objectName), card);
+            metaLbl->setObjectName(QStringLiteral("cardMeta"));
+            metaLbl->setToolTip(objectName);
+            titleBlock->addWidget(titleLbl);
+            titleBlock->addWidget(metaLbl);
+
+            titleRow->addWidget(visibleCb, 0, Qt::AlignTop);
+            titleRow->addLayout(titleBlock, 1);
             cardLayout->addLayout(titleRow);
 
             QCheckBox *secondStateDimCb = nullptr;
@@ -1431,7 +1574,7 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
                     QStringLiteral("多态名称：Modbus UTF-8 字符串，从起始寄存器起连续读 15 个寄存器（高字节在前，与 ModbusTCPAssistant 一致）"),
                     card);
                 nameHint->setWordWrap(true);
-                nameHint->setStyleSheet(QStringLiteral("color: #77ddee; font-size: 10px;"));
+                nameHint->setObjectName(QStringLiteral("consoleHint"));
                 cardLayout->addWidget(nameHint);
 
                 nameState1Device = makeSpareNameDeviceCombo(card);
@@ -1467,10 +1610,8 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
                                               settings.value(objectName + QStringLiteral("_name2_addr")).toString());
             }
 
-            QLabel *mappingHint = new QLabel(
-                QStringLiteral("状态映射：第1态→值1，第2态→值2，第3态→值3；若只有单一状态，只填写值1。"), card);
-            mappingHint->setWordWrap(true);
-            mappingHint->setStyleSheet(QStringLiteral("color: #77ddee; font-size: 10px;"));
+            QLabel *mappingHint = makeHintLabel(
+                QStringLiteral("状态映射：第1态→值1，第2态→值2，第3态→值3；单一状态只填值1。"), card);
             cardLayout->addWidget(mappingHint);
 
             QVector<ModbusRegisterEdits> readEditsList;
@@ -1485,6 +1626,9 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
             const QList<MainWindow::ModbusRegisterSpec> writeSpecs = loadRegisterSpecs(
                 settings, writePrefix, info.defaultWrites);
 
+            auto *readSection = new QLabel(QStringLiteral("读寄存器"), card);
+            readSection->setObjectName(QStringLiteral("sectionLabel"));
+            cardLayout->addWidget(readSection);
             for (int idx = 0; idx < kMaxModbusTargetsPerDirection; ++idx) {
                 ModbusRegisterEdits edits = makeRegisterRowEdits(card, lineEditStyle);
                 const QString readSyncHint = (info.readForUiSync && idx == 0) ? QStringLiteral("同步") : QString();
@@ -1496,6 +1640,9 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
                 }
                 readEditsList.push_back(edits);
             }
+            auto *writeSection = new QLabel(QStringLiteral("写寄存器"), card);
+            writeSection->setObjectName(QStringLiteral("sectionLabel"));
+            cardLayout->addWidget(writeSection);
             for (int idx = 0; idx < kMaxModbusTargetsPerDirection; ++idx) {
                 ModbusRegisterEdits edits = makeRegisterRowEdits(card, lineEditStyle);
                 QHBoxLayout *writeRow = new QHBoxLayout();
@@ -1522,10 +1669,9 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
             settings.endGroup();
             ++modbusCount;
         } else {
-            const QString label = visibleText.isEmpty()
-                ? QStringLiteral("%1  [%2]").arg(kind, objectName)
-                : QStringLiteral("%1  (%2)  [%3]").arg(visibleText, kind, objectName);
+            const QString label = visibleText.isEmpty() ? kind : visibleText;
             QCheckBox *cb = new QCheckBox(label, m_otherVisibilityListHost);
+            cb->setToolTip(QStringLiteral("%1 · %2").arg(kind, objectName));
             cb->setChecked(visibleDefault);
             m_otherVisibilityGrid->addWidget(cb, otherRow / 2, otherRow % 2);
             m_otherVisibilityCheckboxes[objectName] = cb;

@@ -107,6 +107,7 @@ void MatrixKeyMonitor::stopMonitoring()
         m_fd = -1;
     }
 
+
     m_lastKeyState.clear();
 
     qDebug() << "键盘监控已停止";
