@@ -279,11 +279,17 @@ public:
     void showParkingSwitchHintDialog(const QString &message);
     /** @brief 隐藏驻车切换等待提示窗 */
     void hideParkingSwitchHintDialog();
+    /** @brief 支腿打开前：绕车干涉检查弹窗（30 秒倒计时后可确认） */
+    void showLegOpenPathCheckDialog(int legLengthMm = -1);
+    /** @brief 隐藏支腿打开绕车检查弹窗并停止倒计时 */
+    void hideLegOpenPathCheckDialog();
+    /** @brief 绕车检查弹窗是否处于显示/倒计时中（与其它驻车相关弹窗互斥） */
+    bool isLegOpenPathCheckActive() const;
     /** @brief 显示支腿异常驻车操作弹窗（51.bit7=1 时） */
     void showParkingLegAbnormalDialog();
     /** @brief 隐藏支腿异常驻车操作弹窗 */
     void hideParkingLegAbnormalDialog();
-    /** @brief 按 bit7 与驻车切换状态更新支腿异常弹窗显隐（与切换提示窗互斥） */
+    /** @brief 按 bit7 与驻车切换状态更新支腿异常弹窗显隐（与切换提示窗/绕车检查窗互斥） */
     void updateParkingLegAbnormalDialogVisibility();
     /** @brief 显示预计负载为空提示窗（确认后关闭） */
     void showExpectedLoadEmptyDialog();
@@ -684,6 +690,15 @@ private:
     bool m_agvBatteryLowAcked = false;
     QDialog *m_parkingSwitchHintDialog = nullptr;
     QLabel *m_parkingSwitchHintLabel = nullptr;
+    /** @brief 支腿打开前绕车干涉检查弹窗 */
+    QDialog *m_legOpenPathCheckDialog = nullptr;
+    QLabel *m_legOpenPathCheckMessageLabel = nullptr;
+    QLabel *m_legOpenPathCheckCountdownLabel = nullptr;
+    QPushButton *m_legOpenPathCheckConfirmBtn = nullptr;
+    QTimer *m_legOpenPathCheckTimer = nullptr;
+    int m_legOpenPathCheckRemainSec = 0;
+    /** @brief 确认后写入的支腿伸出长度；&lt;0 表示走 executeAGVParkingSwitch 默认读取逻辑 */
+    int m_legOpenPathCheckLengthMm = -1;
     QDialog *m_parkingLegAbnormalDialog = nullptr;
     QLineEdit *m_parkingLegAbnormalLengthEdit = nullptr;
     QDialog *m_expectedLoadEmptyDialog = nullptr;

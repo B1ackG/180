@@ -671,7 +671,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <string notr="true">background-color:</string>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="page_Robot">
        <widget class="QWidget" name="widget_test3" native="true">
@@ -1333,8 +1333,8 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <widget class="QGroupBox" name="groupBox_SixAxies_StepMove">
         <property name="geometry">
          <rect>
-          <x>1160</x>
-          <y>20</y>
+          <x>1170</x>
+          <y>0</y>
           <width>91</width>
           <height>521</height>
          </rect>

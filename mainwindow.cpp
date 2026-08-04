@@ -8392,6 +8392,7 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
             failRecord.oldValue = "";
             failRecord.newValue = "";
             m_recorder->addRecord(failRecord);
+            updateParkingLegAbnormalDialogVisibility();
             return;
         }
     }
@@ -8424,6 +8425,7 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
         failRecord.oldValue = "";
         failRecord.newValue = "";
         m_recorder->addRecord(failRecord);
+        updateParkingLegAbnormalDialogVisibility();
         return;
     }
 
@@ -8523,6 +8525,14 @@ void MainWindow::onAGVParkBtnClicked()
         return;
     }
 
+    // 绕车检查进行中：不进入其它驻车分支，避免异常窗抢走焦点。
+    if (isLegOpenPathCheckActive()) {
+        m_legOpenPathCheckDialog->raise();
+        m_legOpenPathCheckDialog->activateWindow();
+        ui->statusBar->showMessage(QStringLiteral("请先完成支腿伸出路径检查"), 2000);
+        return;
+    }
+
     if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
     }
@@ -8552,7 +8562,13 @@ void MainWindow::onAGVParkBtnClicked()
         return;
     }
 
-    executeAGVParkingSwitch(!m_agvParkingEnabled);
+    // 支腿打开：先绕车干涉检查；支腿关闭：直接执行原逻辑。
+    if (!m_agvParkingEnabled) {
+        showLegOpenPathCheckDialog(-1);
+        return;
+    }
+
+    executeAGVParkingSwitch(false);
 }
 
 // AGV运动速度变化槽函数
@@ -10742,6 +10758,7 @@ void MainWindow::hideNonEmergencyPopups()
     setProperty("parkingTargetEnabled", false);
 
     hideParkingSwitchHintDialog();
+    hideLegOpenPathCheckDialog();
     hideParkingLegAbnormalDialog();
     hideAgvStationOfflineAlarm();
     hideAgvDriveFaultAlarm();
@@ -10946,6 +10963,164 @@ void MainWindow::hideParkingSwitchHintDialog()
     }
 }
 
+bool MainWindow::isLegOpenPathCheckActive() const
+{
+    return m_legOpenPathCheckDialog && m_legOpenPathCheckDialog->isVisible();
+}
+
+void MainWindow::showLegOpenPathCheckDialog(int legLengthMm)
+{
+    if (!userPopupsAllowed()) {
+        return;
+    }
+
+    // 已在检查中：仅抬升窗口，不重置倒计时，避免重复点击干扰检查过程。
+    if (isLegOpenPathCheckActive()) {
+        m_legOpenPathCheckLengthMm = legLengthMm;
+        m_legOpenPathCheckDialog->raise();
+        m_legOpenPathCheckDialog->activateWindow();
+        return;
+    }
+
+    m_legOpenPathCheckLengthMm = legLengthMm;
+
+    // 与支腿异常操作窗、驻车切换等待窗互斥，避免同区域叠加。
+    hideParkingLegAbnormalDialog();
+    hideParkingSwitchHintDialog();
+
+    if (!m_legOpenPathCheckDialog) {
+        m_legOpenPathCheckDialog = new QDialog(this);
+        m_legOpenPathCheckDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_legOpenPathCheckDialog->setModal(false);
+        m_legOpenPathCheckDialog->setObjectName(QStringLiteral("legOpenPathCheckDialog"));
+
+        auto *layout = new QVBoxLayout(m_legOpenPathCheckDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(10);
+
+        m_legOpenPathCheckMessageLabel = new QLabel(
+            QStringLiteral("请绕车检查支腿伸出路径中有无干涉"), m_legOpenPathCheckDialog);
+        m_legOpenPathCheckMessageLabel->setObjectName(QStringLiteral("legOpenPathCheckMessageLabel"));
+        m_legOpenPathCheckMessageLabel->setAlignment(Qt::AlignCenter);
+        m_legOpenPathCheckMessageLabel->setWordWrap(true);
+        layout->addWidget(m_legOpenPathCheckMessageLabel);
+
+        m_legOpenPathCheckCountdownLabel = new QLabel(m_legOpenPathCheckDialog);
+        m_legOpenPathCheckCountdownLabel->setObjectName(QStringLiteral("legOpenPathCheckCountdownLabel"));
+        m_legOpenPathCheckCountdownLabel->setAlignment(Qt::AlignCenter);
+        layout->addWidget(m_legOpenPathCheckCountdownLabel);
+
+        m_legOpenPathCheckConfirmBtn = new QPushButton(QStringLiteral("确认"), m_legOpenPathCheckDialog);
+        m_legOpenPathCheckConfirmBtn->setObjectName(QStringLiteral("legOpenPathCheckConfirmBtn"));
+        m_legOpenPathCheckConfirmBtn->setAutoDefault(false);
+        m_legOpenPathCheckConfirmBtn->setDefault(false);
+        m_legOpenPathCheckConfirmBtn->setVisible(false);
+        layout->addWidget(m_legOpenPathCheckConfirmBtn);
+
+        connect(m_legOpenPathCheckConfirmBtn, &QPushButton::clicked, this, [this]() {
+            const int pendingLengthMm = m_legOpenPathCheckLengthMm;
+            hideLegOpenPathCheckDialog();
+            executeAGVParkingSwitch(true, pendingLengthMm);
+        });
+
+        m_legOpenPathCheckDialog->setFixedSize(420, 190);
+        m_legOpenPathCheckDialog->setStyleSheet(
+            "#legOpenPathCheckDialog {"
+            "  background-color: rgba(30, 0, 0, 230);"
+            "  border: 3px solid #FFFF00;"
+            "  border-radius: 10px;"
+            "}"
+            "#legOpenPathCheckMessageLabel,"
+            "#legOpenPathCheckCountdownLabel {"
+            "  color: #FFFF00;"
+            "  font-size: 18px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "#legOpenPathCheckConfirmBtn {"
+            "  background-color: #FFFF00;"
+            "  color: #202020;"
+            "  border: 2px solid #FFEE55;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-width: 100px;"
+            "}"
+            "#legOpenPathCheckConfirmBtn:hover {"
+            "  background-color: #FFEE55;"
+            "  border-color: #FFFF00;"
+            "}");
+    }
+
+    if (!m_legOpenPathCheckTimer) {
+        m_legOpenPathCheckTimer = new QTimer(this);
+        m_legOpenPathCheckTimer->setObjectName(QStringLiteral("legOpenPathCheckTimer"));
+        m_legOpenPathCheckTimer->setInterval(1000);
+        connect(m_legOpenPathCheckTimer, &QTimer::timeout, this, [this]() {
+            if (!isLegOpenPathCheckActive()) {
+                m_legOpenPathCheckTimer->stop();
+                return;
+            }
+            if (m_legOpenPathCheckRemainSec > 0) {
+                --m_legOpenPathCheckRemainSec;
+            }
+            if (m_legOpenPathCheckCountdownLabel) {
+                m_legOpenPathCheckCountdownLabel->setText(
+                    QStringLiteral("剩余时间：%1 秒").arg(m_legOpenPathCheckRemainSec));
+            }
+            if (m_legOpenPathCheckRemainSec <= 0) {
+                m_legOpenPathCheckTimer->stop();
+                if (m_legOpenPathCheckConfirmBtn) {
+                    m_legOpenPathCheckConfirmBtn->setVisible(true);
+                }
+                if (m_legOpenPathCheckDialog) {
+                    m_legOpenPathCheckDialog->setFixedSize(420, 230);
+                }
+            }
+        });
+    }
+
+    m_legOpenPathCheckRemainSec = 30;
+    if (m_legOpenPathCheckCountdownLabel) {
+        m_legOpenPathCheckCountdownLabel->setText(
+            QStringLiteral("剩余时间：%1 秒").arg(m_legOpenPathCheckRemainSec));
+    }
+    if (m_legOpenPathCheckConfirmBtn) {
+        m_legOpenPathCheckConfirmBtn->setVisible(false);
+    }
+    m_legOpenPathCheckDialog->setFixedSize(420, 190);
+
+    // 与底盘模式切换提示同风格：右下区域；y 与驻车切换提示错开，避免瞬时叠影。
+    QScreen *screen = QGuiApplication::primaryScreen();
+    if (!screen) {
+        return;
+    }
+    const QRect screenGeometry = screen->availableGeometry();
+    const int x = screenGeometry.width() - m_legOpenPathCheckDialog->width() - 40;
+    const int y = 700;
+    m_legOpenPathCheckDialog->move(x, y);
+    m_legOpenPathCheckDialog->show();
+    m_legOpenPathCheckDialog->raise();
+    m_legOpenPathCheckDialog->activateWindow();
+    m_legOpenPathCheckTimer->start();
+}
+
+void MainWindow::hideLegOpenPathCheckDialog()
+{
+    if (m_legOpenPathCheckTimer) {
+        m_legOpenPathCheckTimer->stop();
+    }
+    m_legOpenPathCheckRemainSec = 0;
+    m_legOpenPathCheckLengthMm = -1;
+    if (m_legOpenPathCheckConfirmBtn) {
+        m_legOpenPathCheckConfirmBtn->setVisible(false);
+    }
+    if (m_legOpenPathCheckDialog && m_legOpenPathCheckDialog->isVisible()) {
+        m_legOpenPathCheckDialog->hide();
+    }
+}
+
 bool MainWindow::isEstimatedWeightEmpty() const
 {
     return !ui || !ui->LEdit_AGV_EstimatedWeight
@@ -10960,12 +11135,17 @@ void MainWindow::showExpectedLoadEmptyDialog()
 
 void MainWindow::updateParkingLegAbnormalDialogVisibility()
 {
-    if (m_agvLegAbnormal51Bit7Flag && !property("parkingSwitchWaiting").toBool()) {
+    // 驻车切换等待中、绕车检查倒计时中：不弹支腿异常窗，避免三窗互抢。
+    if (m_agvLegAbnormal51Bit7Flag
+        && !property("parkingSwitchWaiting").toBool()
+        && !isLegOpenPathCheckActive()) {
         if (m_parkingLegAbnormalDialog && m_parkingLegAbnormalDialog->isVisible()) {
             return;
         }
         QTimer::singleShot(0, this, [this]() {
-            if (!m_agvLegAbnormal51Bit7Flag || property("parkingSwitchWaiting").toBool()) {
+            if (!m_agvLegAbnormal51Bit7Flag
+                || property("parkingSwitchWaiting").toBool()
+                || isLegOpenPathCheckActive()) {
                 return;
             }
             if (m_parkingLegAbnormalDialog && m_parkingLegAbnormalDialog->isVisible()) {
@@ -11051,11 +11231,14 @@ void MainWindow::showParkingLegAbnormalDialog()
             const int clampedMm = qBound(lim.first, v, lim.second);
             m_parkingLegAbnormalLengthEdit->setText(QString::number(clampedMm));
             hideParkingLegAbnormalDialog();
-            executeAGVParkingSwitch(true, clampedMm);
+            showLegOpenPathCheckDialog(clampedMm);
         });
 
         connect(disableBtn, &QPushButton::clicked, this, [this]() {
             hideParkingLegAbnormalDialog();
+            if (isLegOpenPathCheckActive()) {
+                hideLegOpenPathCheckDialog();
+            }
             executeAGVParkingSwitch(false);
         });
 
