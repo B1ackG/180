@@ -881,6 +881,7 @@ void FeatureSwitchWidget::setupUI()
     setupPollingUI(commLayout);
     setupSliderLimitUI(displayLayout);
     setupInclinometerThresholdUI(displayLayout);
+    setupPlaneHeightOffsetUI(displayLayout);
     setupButtonVisibilityUI(controlLayout);
 
     baseLayout->addStretch();
@@ -959,6 +960,7 @@ void FeatureSwitchWidget::loadCurrentState()
     loadSliderLimitState();
     loadTechSliderEditState();
     loadInclinometerThresholdState();
+    loadPlaneHeightOffsetState();
     loadButtonVisibilityState();
 }
 
@@ -1411,6 +1413,26 @@ void FeatureSwitchWidget::setupInclinometerThresholdUI(QVBoxLayout *scrollLayout
     scrollLayout->addWidget(incGroup);
 }
 
+void FeatureSwitchWidget::setupPlaneHeightOffsetUI(QVBoxLayout *scrollLayout)
+{
+    QGroupBox *planeGroup = new QGroupBox(QStringLiteral("平面高度偏移"));
+    QVBoxLayout *planeLayout = new QVBoxLayout(planeGroup);
+    planeLayout->addWidget(makeHintLabel(
+        QStringLiteral("首页平面高度 = J2 升降高度 − 偏移量，单位：mm。默认 1900。"), planeGroup));
+
+    QHBoxLayout *h = new QHBoxLayout();
+    h->addWidget(new QLabel(QStringLiteral("偏移量")));
+    m_editPlaneHeightOffset = new QLineEdit();
+    m_editPlaneHeightOffset->setFixedWidth(120);
+    m_editPlaneHeightOffset->installEventFilter(this);
+    h->addWidget(m_editPlaneHeightOffset);
+    h->addWidget(new QLabel(QStringLiteral("mm")));
+    h->addStretch();
+    planeLayout->addLayout(h);
+
+    scrollLayout->addWidget(planeGroup);
+}
+
 void FeatureSwitchWidget::setupButtonVisibilityUI(QVBoxLayout *scrollLayout)
 {
     m_modbusButtonGroup = new QGroupBox(QStringLiteral("Modbus 按键：显示与寄存器"));
@@ -1785,6 +1807,36 @@ void FeatureSwitchWidget::saveInclinometerThresholdState()
     settings.sync();
 }
 
+void FeatureSwitchWidget::loadPlaneHeightOffsetState()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("PlaneHeight"));
+    const double offset = settings.value(QStringLiteral("offset_mm"), 1900.0).toDouble();
+    settings.endGroup();
+    if (m_editPlaneHeightOffset) {
+        m_editPlaneHeightOffset->setText(QString::number(offset, 'f', 0));
+    }
+}
+
+void FeatureSwitchWidget::savePlaneHeightOffsetState()
+{
+    auto parseOffset = [](const QString &text, double fallback) -> double {
+        bool ok = false;
+        const double v = text.trimmed().toDouble(&ok);
+        if (!ok) {
+            return fallback;
+        }
+        return qBound(-100000.0, v, 100000.0);
+    };
+
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("PlaneHeight"));
+    settings.setValue(QStringLiteral("offset_mm"),
+                      parseOffset(m_editPlaneHeightOffset ? m_editPlaneHeightOffset->text() : QString(), 1900.0));
+    settings.endGroup();
+    settings.sync();
+}
+
 void FeatureSwitchWidget::loadButtonVisibilityState()
 {
     QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
@@ -2122,6 +2174,7 @@ void FeatureSwitchWidget::onApply()
     saveTechSliderEditState();
 
     saveInclinometerThresholdState();
+    savePlaneHeightOffsetState();
 
     saveButtonVisibilityState();
 

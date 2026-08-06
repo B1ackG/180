@@ -827,6 +827,9 @@ private:
     QWidget *m_inclinometerPowerStripWidget = nullptr;
     qreal m_inclinometerXDegree = 0.0;
     qreal m_inclinometerYDegree = 0.0;
+    double m_planeHeightOffsetMm = 1900.0;
+    double m_lastJ2HeightMm = 0.0;
+    bool m_hasLastJ2Height = false;
     bool m_inclinometerTiltRiskInZone = false;
     bool m_inclinometerTiltRiskAcked = false;
     QDialog *m_inclinometerTiltRiskDialog = nullptr;
@@ -981,6 +984,9 @@ public:
 
     /** @brief 从 config.ini 刷新首页倾角卡片上的阈值说明文字 */
     void applyInclinometerDisplayRuntimeSettings();
+
+    /** @brief 从 config.ini 加载平面高度偏移量，并刷新辅助显示 */
+    void applyPlaneHeightOffsetRuntimeSettings();
 
     /** @brief 将驻车按钮更新为开启/关闭外观（支腿异常态下不更新主按钮） */
     void applyAGVParkingButtonUi(bool enabled);

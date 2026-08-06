@@ -671,7 +671,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <string notr="true">background-color:</string>
       </property>
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page_Robot">
        <widget class="QWidget" name="widget_test3" native="true">
@@ -703,6 +703,86 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
           <height>150</height>
          </rect>
         </property>
+       </widget>
+       <widget class="QFrame" name="frame_PlaneHeightCard">
+        <property name="geometry">
+         <rect>
+          <x>350</x>
+          <y>100</y>
+          <width>50</width>
+          <height>91</height>
+         </rect>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QFrame#frame_PlaneHeightCard {
+  background: rgba(7, 25, 43, 210);
+  border: 1px solid rgba(0, 205, 255, 150);
+  border-radius: 6px;
+}
+QLabel#label_PlaneHeightTitle {
+  color: #9fe7ff;
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  font-weight: 600;
+}
+QLabel#label_PlaneHeightValue {
+  color: #ffffff;
+  background: transparent;
+  border: none;
+  font-family: &quot;Consolas&quot;;
+  font-size: 12px;
+  font-weight: 700;
+}</string>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_PlaneHeightCard">
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <property name="leftMargin">
+          <number>2</number>
+         </property>
+         <property name="topMargin">
+          <number>6</number>
+         </property>
+         <property name="rightMargin">
+          <number>2</number>
+         </property>
+         <property name="bottomMargin">
+          <number>6</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="label_PlaneHeightTitle">
+           <property name="text">
+            <string>装配面
+高度</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignHCenter|Qt::AlignTop</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_PlaneHeightValue">
+           <property name="text">
+            <string>-1900
+mm</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
        <widget class="QWidget" name="widget_test1" native="true">
         <property name="geometry">
@@ -1201,6 +1281,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <zorder>widget_test3</zorder>
        <zorder>widget_test4</zorder>
        <zorder>widget_test2</zorder>
+       <zorder>frame_PlaneHeightCard</zorder>
        <zorder>widget_test1</zorder>
        <zorder>TechSliderEdit_Robot_RobotSpeed</zorder>
        <zorder>SEdit_AGV_Angle</zorder>

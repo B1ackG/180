@@ -50,6 +50,7 @@ private:
     void loadTechSliderEditState();
     void saveTechSliderEditState();
     void setupInclinometerThresholdUI(QVBoxLayout *scrollLayout);
+    void setupPlaneHeightOffsetUI(QVBoxLayout *scrollLayout);
     void setupButtonVisibilityUI(QVBoxLayout *scrollLayout);
     void refreshButtonVisibilityList();
     void loadNetworkState();
@@ -60,6 +61,8 @@ private:
     void saveSliderLimitState();
     void loadInclinometerThresholdState();
     void saveInclinometerThresholdState();
+    void loadPlaneHeightOffsetState();
+    void savePlaneHeightOffsetState();
     void loadButtonVisibilityState();
     void saveButtonVisibilityState();
 
@@ -139,6 +142,7 @@ private:
 
     QLineEdit *m_editInclinometerThresholdX = nullptr;
     QLineEdit *m_editInclinometerThresholdY = nullptr;
+    QLineEdit *m_editPlaneHeightOffset = nullptr;
 
     QMap<QString, ModbusButtonEdits> m_modbusButtonEdits;
     QMap<QString, QCheckBox*> m_otherVisibilityCheckboxes;

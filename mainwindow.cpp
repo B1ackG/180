@@ -1125,6 +1125,26 @@ void MainWindow::applyInclinometerDisplayRuntimeSettings()
     }
 }
 
+void MainWindow::applyPlaneHeightOffsetRuntimeSettings()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("PlaneHeight"));
+    m_planeHeightOffsetMm = qBound(
+        -100000.0,
+        settings.value(QStringLiteral("offset_mm"), 1900.0).toDouble(),
+        100000.0);
+    settings.endGroup();
+
+    if (!ui || !ui->label_PlaneHeightValue) {
+        return;
+    }
+
+    const double j2Height = m_hasLastJ2Height ? m_lastJ2HeightMm : 0.0;
+    const double planeHeight = j2Height - m_planeHeightOffsetMm;
+    ui->label_PlaneHeightValue->setText(
+        QStringLiteral("%1\nmm").arg(planeHeight, 0, 'f', 0));
+}
+
 // 1. 生命周期与核心初始化 (Life Cycle)
 // ==========================================
 
@@ -1915,6 +1935,8 @@ void MainWindow::initSpeedGaugeUI()
             m_arcGauges[cfg.name] = arcGauge;
         }
     }
+
+    applyPlaneHeightOffsetRuntimeSettings();
 
     // 1. 创建 QQuickWidget 来承载 QML
     m_speedGaugeQml = new QQuickWidget(this);
@@ -3490,6 +3512,7 @@ void MainWindow::setupAdminPasswordPage()
                     applyParkOutTriggerLengthRuntimeSettings();
                     applyWeightThresholdRuntimeSettings();
                     applyInclinometerDisplayRuntimeSettings();
+                    applyPlaneHeightOffsetRuntimeSettings();
                     applyButtonVisibilityRuntimeSettings();
                     loadSpareButtonNameRegisterSettings();
                     syncSpareButtonNamesFromRegisters();
@@ -5627,6 +5650,17 @@ void MainWindow::updateSliderLabelValue(const QString& labelName, float value)
                     // 移除高频日志: qCDebug(lcMainWindow) << "更新" << objName << " = " << value;
                 }
             }
+        }
+    }
+
+    // 平面高度 = J2 升降高度 − 偏移量（偏移量可在功能控制台改，默认 1900 mm）。
+    if (labelName == QStringLiteral("robot_ArcGauge_J2Height")) {
+        m_lastJ2HeightMm = static_cast<double>(value);
+        m_hasLastJ2Height = true;
+        const double planeHeight = m_lastJ2HeightMm - m_planeHeightOffsetMm;
+        if (ui && ui->label_PlaneHeightValue) {
+            ui->label_PlaneHeightValue->setText(
+                QStringLiteral("%1\nmm").arg(planeHeight, 0, 'f', 0));
         }
     }
 
