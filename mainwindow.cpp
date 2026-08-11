@@ -10601,8 +10601,9 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
 
         // 创建报警窗口
         m_alarmWidget = new QWidget(nullptr);  // 使用nullptr作为父窗口，使其独立显示
-        m_alarmWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
-                                      Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_alarmWidget->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
+                                      Qt::WindowStaysOnTopHint);
+        m_alarmWidget->setWindowModality(Qt::ApplicationModal);
         m_alarmWidget->setObjectName("alarmWidget");
 
         // 创建布局
@@ -10899,8 +10900,9 @@ void MainWindow::showAgvStationOfflineAlarm()
     }
     if (!m_agvStationOfflineAlarmWidget) {
         m_agvStationOfflineAlarmWidget = new QWidget(nullptr);
-        m_agvStationOfflineAlarmWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
-                                                       Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_agvStationOfflineAlarmWidget->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
+                                                       Qt::WindowStaysOnTopHint);
+        m_agvStationOfflineAlarmWidget->setWindowModality(Qt::ApplicationModal);
         m_agvStationOfflineAlarmWidget->setObjectName("agvStationOfflineAlarmWidget");
 
         QVBoxLayout *layout = new QVBoxLayout(m_agvStationOfflineAlarmWidget);
@@ -10945,7 +10947,8 @@ void MainWindow::showParkingSwitchHintDialog(const QString &message)
     if (!m_parkingSwitchHintDialog) {
         m_parkingSwitchHintDialog = new QDialog(this);
         m_parkingSwitchHintDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_parkingSwitchHintDialog->setModal(false);
+        m_parkingSwitchHintDialog->setWindowModality(Qt::ApplicationModal);
+        m_parkingSwitchHintDialog->setModal(true);
         m_parkingSwitchHintDialog->setObjectName("parkingSwitchHintDialog");
 
         auto *layout = new QVBoxLayout(m_parkingSwitchHintDialog);
@@ -11025,7 +11028,8 @@ void MainWindow::showLegOpenPathCheckDialog(int legLengthMm)
     if (!m_legOpenPathCheckDialog) {
         m_legOpenPathCheckDialog = new QDialog(this);
         m_legOpenPathCheckDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_legOpenPathCheckDialog->setModal(false);
+        m_legOpenPathCheckDialog->setWindowModality(Qt::ApplicationModal);
+        m_legOpenPathCheckDialog->setModal(true);
         m_legOpenPathCheckDialog->setObjectName(QStringLiteral("legOpenPathCheckDialog"));
 
         auto *layout = new QVBoxLayout(m_legOpenPathCheckDialog);
@@ -11200,6 +11204,7 @@ void MainWindow::showParkingLegAbnormalDialog()
     if (!m_parkingLegAbnormalDialog) {
         m_parkingLegAbnormalDialog = new QDialog(this);
         m_parkingLegAbnormalDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_parkingLegAbnormalDialog->setWindowModality(Qt::ApplicationModal);
         m_parkingLegAbnormalDialog->setModal(true);
         m_parkingLegAbnormalDialog->setObjectName(QStringLiteral("parkingLegAbnormalDialog"));
 
@@ -11354,8 +11359,9 @@ void MainWindow::showAgvDriveFaultAlarm()
     }
     if (!m_agvDriveFaultAlarmWidget) {
         m_agvDriveFaultAlarmWidget = new QWidget(nullptr);
-        m_agvDriveFaultAlarmWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
-                                                   Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_agvDriveFaultAlarmWidget->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
+                                                   Qt::WindowStaysOnTopHint);
+        m_agvDriveFaultAlarmWidget->setWindowModality(Qt::ApplicationModal);
         m_agvDriveFaultAlarmWidget->setObjectName("agvDriveFaultAlarmWidget");
 
         QVBoxLayout *layout = new QVBoxLayout(m_agvDriveFaultAlarmWidget);
@@ -11433,7 +11439,8 @@ void MainWindow::showInclinometerTiltRiskDialog()
     if (!m_inclinometerTiltRiskDialog) {
         m_inclinometerTiltRiskDialog = new QDialog(this);
         m_inclinometerTiltRiskDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_inclinometerTiltRiskDialog->setModal(false);
+        m_inclinometerTiltRiskDialog->setWindowModality(Qt::ApplicationModal);
+        m_inclinometerTiltRiskDialog->setModal(true);
         m_inclinometerTiltRiskDialog->setObjectName(QStringLiteral("inclinometerTiltRiskDialog"));
 
         auto *layout = new QVBoxLayout(m_inclinometerTiltRiskDialog);
@@ -11530,8 +11537,8 @@ void MainWindow::presentInclinometerTiltLockUnlocked()
         m_inclinometerTiltLockConfirmBtn->hide();
     }
 
-    m_inclinometerTiltLockDialog->setWindowModality(Qt::NonModal);
-    m_inclinometerTiltLockDialog->setModal(false);
+    m_inclinometerTiltLockDialog->setWindowModality(Qt::ApplicationModal);
+    m_inclinometerTiltLockDialog->setModal(true);
     m_inclinometerTiltLockDialog->setFixedSize(420, 120);
     positionFloatingPopupBottomRight(m_inclinometerTiltLockDialog, 50, m_alarmWidget);
     m_inclinometerTiltLockDialog->show();
@@ -11582,8 +11589,10 @@ void MainWindow::showInclinometerTiltLockDialog()
     }
     if (!m_inclinometerTiltLockDialog) {
         m_inclinometerTiltLockDialog = new QDialog(nullptr);
-        m_inclinometerTiltLockDialog->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
-                                                     Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_inclinometerTiltLockDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
+                                                     Qt::WindowStaysOnTopHint);
+        m_inclinometerTiltLockDialog->setWindowModality(Qt::ApplicationModal);
+        m_inclinometerTiltLockDialog->setModal(true);
         m_inclinometerTiltLockDialog->setObjectName(QStringLiteral("inclinometerTiltLockDialog"));
 
         auto *layout = new QVBoxLayout(m_inclinometerTiltLockDialog);
@@ -11767,6 +11776,7 @@ void MainWindow::showRobotInterlockModalDialog(const QString &message)
     if (!m_robotInterlockDialog) {
         m_robotInterlockDialog = new QDialog(this);
         m_robotInterlockDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_robotInterlockDialog->setWindowModality(Qt::ApplicationModal);
         m_robotInterlockDialog->setModal(true);
         m_robotInterlockDialog->setObjectName(QStringLiteral("robotInterlockDialog"));
 
@@ -12248,8 +12258,9 @@ void MainWindow::showRobotWeightOverloadDialog()
     }
     if (!m_robotWeightOverloadWidget) {
         m_robotWeightOverloadWidget = new QWidget(nullptr);
-        m_robotWeightOverloadWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
-                                                    Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_robotWeightOverloadWidget->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
+                                                    Qt::WindowStaysOnTopHint);
+        m_robotWeightOverloadWidget->setWindowModality(Qt::ApplicationModal);
         m_robotWeightOverloadWidget->setObjectName("robotWeightOverloadWidget");
 
         QVBoxLayout *layout = new QVBoxLayout(m_robotWeightOverloadWidget);
@@ -12352,8 +12363,9 @@ void MainWindow::showRobotWeightLockDialog()
 
     if (!m_robotWeightLockWidget) {
         m_robotWeightLockWidget = new QWidget(nullptr);
-        m_robotWeightLockWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
-                                                  Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_robotWeightLockWidget->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
+                                                  Qt::WindowStaysOnTopHint);
+        m_robotWeightLockWidget->setWindowModality(Qt::ApplicationModal);
         m_robotWeightLockWidget->setObjectName(QStringLiteral("robotWeightLockWidget"));
 
         QVBoxLayout *layout = new QVBoxLayout(m_robotWeightLockWidget);
@@ -12438,8 +12450,9 @@ void MainWindow::showRobotAxisSyncDeviationDialog()
     }
     if (!m_robotAxisSyncDeviationWidget) {
         m_robotAxisSyncDeviationWidget = new QWidget(nullptr);
-        m_robotAxisSyncDeviationWidget->setWindowFlags(Qt::Window | Qt::FramelessWindowHint |
-                                                       Qt::WindowStaysOnTopHint | Qt::Tool);
+        m_robotAxisSyncDeviationWidget->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
+                                                       Qt::WindowStaysOnTopHint);
+        m_robotAxisSyncDeviationWidget->setWindowModality(Qt::ApplicationModal);
         m_robotAxisSyncDeviationWidget->setObjectName(QStringLiteral("robotAxisSyncDeviationWidget"));
 
         QVBoxLayout *layout = new QVBoxLayout(m_robotAxisSyncDeviationWidget);
