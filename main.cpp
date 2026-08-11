@@ -564,9 +564,10 @@ int main(int argc, char *argv[])
         waitWithUiEvents(800);
     }
 
-    // 显示主窗口
+    // 显示主窗口（与开机自检画面一致：无边框全屏）
     qDebug() << "准备显示主窗口";
-    w.show();
+    w.setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    w.showFullScreen();
 
     // 关闭启动画面
     splash.finish(&w);
