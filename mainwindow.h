@@ -28,6 +28,7 @@
 #include "modbusthreadmanager.h"
 #include "techsliderlabel.h"
 #include "techarcgauge.h"
+#include "techchamfertoolbutton.h"
 #include "speedmodeselector.h"
 #include "modbusvariables.h"
 #include "agvmodbusmanager.h"
@@ -181,6 +182,8 @@ public:
     void setupStyles();
     /** @brief 初始化底栏平行四边形按钮图标与主题 */
     void setupBottomBarButtonIcons();
+    /** @brief 为导航主菜单及子按钮设置统一青色图标 */
+    void setupNavigationMenuIcons();
     /** @brief 刷新功能开关组按钮视觉状态 */
     void updateFunctionSwitchVisuals();
     /** @brief 初始化并管理界面动画 */
@@ -663,6 +666,12 @@ private:
     PoseProvider *m_poseProvider = nullptr;
     FeatureSwitchManager *m_featureSwitchManager = nullptr;
     FeatureSwitchWidget *m_featureSwitchWidget = nullptr;
+    QWidget *m_pageNavigationPopup = nullptr;
+    QWidget *m_deviceControlPopup = nullptr;
+    QWidget *m_controlModePopup = nullptr;
+    TechChamferToolButton *m_pageNavigationMenuButton = nullptr;
+    TechChamferToolButton *m_deviceControlMenuButton = nullptr;
+    TechChamferToolButton *m_controlModeMenuButton = nullptr;
 
     // ----- 核心与系统 -----
     QThread *m_enableButtonThread;
@@ -1067,6 +1076,24 @@ private:
     void applyPermissionLoginFormForSelectedRole();
     /** @brief 连接导航与页面切换相关信号 */
     void setupNavigationConnections();
+
+    /** @brief 初始化底部折叠式导航与控制模式面板 */
+    void setupCollapsibleControlPanels();
+    void togglePageNavigationPanel();
+    void toggleDeviceControlPanel();
+    void toggleControlModePanel();
+    void hideCollapsibleControlPanels();
+    void repositionCollapsibleControlPanels();
+    void positionCollapsiblePanel(QWidget *panel, QToolButton *anchorButton);
+    void setExclusiveNavButtonChecked(QToolButton *active);
+    bool isRobotAxisViewActive() const;
+    bool isSixAxisViewActive() const;
+    bool isChassisViewActive() const;
+    enum class InnerDeviceView : quint8 { Robot, Chassis, SixAxis };
+    void applyInnerDeviceStacks(InnerDeviceView view);
+    void showRobotView();
+    void showChassisView();
+    void showSixAxisView();
 
     /** @brief 连接历史记录与权限相关信号 */
     void setupRecordAndPermissionConnections();

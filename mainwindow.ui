@@ -146,12 +146,18 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
   border: 1px solid #9ff4ff;
 }
 
+#TBtn_PageNavMenu, #TBtn_DeviceControlMenu, #TBtn_ControlModeMenu {
+  color: #dff6ff;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 4px 10px;
+  min-height: 36px;
+}
+
 </string>
    </property>
-   <layout class="QVBoxLayout" name="mainVerticalLayout">
-    <property name="spacing">
-     <number>6</number>
-    </property>
+   <layout class="QGridLayout" name="gridLayout_4">
     <property name="leftMargin">
      <number>9</number>
     </property>
@@ -164,7 +170,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
     <property name="bottomMargin">
      <number>8</number>
     </property>
-    <item>
+    <item row="0" column="0">
      <layout class="QHBoxLayout" name="statusRowLayout">
       <property name="spacing">
        <number>6</number>
@@ -196,7 +202,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
       </item>
      </layout>
     </item>
-    <item>
+    <item row="1" column="0">
      <layout class="QHBoxLayout" name="titleRowLayout">
       <property name="spacing">
        <number>0</number>
@@ -300,7 +306,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
       </item>
      </layout>
     </item>
-    <item>
+    <item row="2" column="0">
      <layout class="QHBoxLayout" name="bottomRowLayout">
       <property name="spacing">
        <number>8</number>
@@ -312,346 +318,169 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <number>29</number>
       </property>
       <item>
-       <widget class="QGroupBox" name="groupBox">
+       <widget class="TechChamferToolButton" name="TBtn_DeviceControlMenu">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-          <horstretch>5</horstretch>
-          <verstretch>1</verstretch>
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
          <size>
-          <width>432</width>
-          <height>0</height>
+          <width>129</width>
+          <height>44</height>
          </size>
         </property>
-        <property name="title">
-         <string>页面导航</string>
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <bold>true</bold>
+         </font>
         </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
+        <property name="text">
+         <string>设备控制</string>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
-          <widget class="TechChamferToolButton" name="TBtn_HomePage">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>1</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>主页</string>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>22</width>
-             <height>22</height>
-            </size>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="TechChamferToolButton" name="TBtn_PermissionPage">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>1</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>权限</string>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>22</width>
-             <height>22</height>
-            </size>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="TechChamferToolButton" name="TBtn_HistoryRecord">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>1</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>历史记录</string>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>22</width>
-             <height>22</height>
-            </size>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="TechChamferToolButton" name="TBtn_SixAxies">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>1</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>六自由度</string>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>22</width>
-             <height>22</height>
-            </size>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
+        </property>
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="groupBox_2">
+       <widget class="TechChamferToolButton" name="TBtn_PageNavMenu">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>3</horstretch>
-          <verstretch>1</verstretch>
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="title">
+        <property name="minimumSize">
+         <size>
+          <width>129</width>
+          <height>44</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>系统管理</string>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="TechChamferToolButton" name="TBtn_ControlModeMenu">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>129</width>
+          <height>44</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
          <string>控制模式</string>
         </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="TechChamferToolButton" name="TBtn_Stepmove">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>1</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>46</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>11</pointsize>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>点动模式</string>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="TechChamferToolButton" name="TBtn_MoveMode">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>1</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>46</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>11</pointsize>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>关节模式</string>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="TechChamferToolButton" name="TBtn_Interlocking">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>1</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>46</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>11</pointsize>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>点动模式</string>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="TechChamferToolButton" name="TBtn_ControlMode">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>1</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>46</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>11</pointsize>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>有线控制</string>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
+        </property>
        </widget>
       </item>
       <item>
-       <widget class="QGroupBox" name="groupBox_4">
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>573</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="TechChamferToolButton" name="TBtn_RemoveWarning">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>1</verstretch>
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
          </sizepolicy>
         </property>
-        <property name="title">
-         <string>安全开关</string>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>44</height>
+         </size>
         </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <bold>true</bold>
+         </font>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <widget class="TechChamferToolButton" name="TBtn_RemoveWarning">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>1</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>44</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>11</pointsize>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>清除报错</string>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>24</width>
-             <height>24</height>
-            </size>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <property name="text">
+         <string>清除报错</string>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>24</width>
+          <height>24</height>
+         </size>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
+        </property>
        </widget>
       </item>
      </layout>
     </item>
-    <item>
+    <item row="3" column="0">
      <widget class="QStackedWidget" name="StackedWidget">
       <property name="enabled">
        <bool>true</bool>
@@ -674,36 +503,6 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <number>0</number>
       </property>
       <widget class="QWidget" name="page_Robot">
-       <widget class="QWidget" name="widget_test3" native="true">
-        <property name="geometry">
-         <rect>
-          <x>60</x>
-          <y>230</y>
-          <width>150</width>
-          <height>150</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_test4" native="true">
-        <property name="geometry">
-         <rect>
-          <x>210</x>
-          <y>230</y>
-          <width>150</width>
-          <height>150</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_test2" native="true">
-        <property name="geometry">
-         <rect>
-          <x>210</x>
-          <y>80</y>
-          <width>150</width>
-          <height>150</height>
-         </rect>
-        </property>
-       </widget>
        <widget class="QFrame" name="frame_PlaneHeightCard">
         <property name="geometry">
          <rect>
@@ -784,23 +583,13 @@ mm</string>
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="widget_test1" native="true">
-        <property name="geometry">
-         <rect>
-          <x>60</x>
-          <y>80</y>
-          <width>150</width>
-          <height>150</height>
-         </rect>
-        </property>
-       </widget>
        <widget class="QLabel" name="lab_Overall">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>10</y>
           <width>590</width>
-          <height>510</height>
+          <height>551</height>
          </rect>
         </property>
         <property name="sizePolicy">
@@ -823,124 +612,6 @@ mm</string>
         </property>
         <property name="scaledContents">
          <bool>true</bool>
-        </property>
-       </widget>
-       <widget class="TechSliderEdit" name="TechSliderEdit_Robot_RobotSpeed" native="true">
-        <property name="geometry">
-         <rect>
-          <x>540</x>
-          <y>10</y>
-          <width>520</width>
-          <height>80</height>
-         </rect>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>520</width>
-          <height>80</height>
-         </size>
-        </property>
-       </widget>
-       <widget class="TechPushButton" name="techBtn_AGV_Park">
-        <property name="geometry">
-         <rect>
-          <x>1000</x>
-          <y>320</y>
-          <width>151</width>
-          <height>51</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>开启驻车</string>
-        </property>
-       </widget>
-       <widget class="TechSliderEdit" name="SEdit_AGV_Angle" native="true">
-        <property name="geometry">
-         <rect>
-          <x>540</x>
-          <y>180</y>
-          <width>520</width>
-          <height>75</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>520</width>
-          <height>70</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>75</height>
-         </size>
-        </property>
-       </widget>
-       <widget class="TechSliderEdit" name="SEdit_AGV_MoveSpeed" native="true">
-        <property name="geometry">
-         <rect>
-          <x>540</x>
-          <y>100</y>
-          <width>520</width>
-          <height>75</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>520</width>
-          <height>70</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>75</height>
-         </size>
-        </property>
-       </widget>
-       <widget class="TechSpeedGauge" name="AGV_speedGauge" native="true">
-        <property name="geometry">
-         <rect>
-          <x>540</x>
-          <y>250</y>
-          <width>200</width>
-          <height>200</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="TechPushButton" name="techBtn_AGV_OA">
-        <property name="geometry">
-         <rect>
-          <x>1000</x>
-          <y>260</y>
-          <width>151</width>
-          <height>51</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>避障开启</string>
-        </property>
-       </widget>
-       <widget class="SteeringModeSelector" name="steeringModeSelector" native="true">
-        <property name="geometry">
-         <rect>
-          <x>-20</x>
-          <y>360</y>
-          <width>450</width>
-          <height>110</height>
-         </rect>
         </property>
        </widget>
        <widget class="QWidget" name="widget_5" native="true">
@@ -982,270 +653,11 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          </item>
         </layout>
        </widget>
-       <widget class="QGroupBox" name="groupBox_StepMove">
-        <property name="geometry">
-         <rect>
-          <x>1170</x>
-          <y>-1</y>
-          <width>91</width>
-          <height>441</height>
-         </rect>
-        </property>
-        <property name="title">
-         <string>步进控制</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_StepMove">
-         <item>
-          <widget class="QWidget" name="widget_StepTargetList" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>1</verstretch>
-            </sizepolicy>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_StepTargetList">
-            <property name="spacing">
-             <number>8</number>
-            </property>
-            <property name="leftMargin">
-             <number>4</number>
-            </property>
-            <property name="topMargin">
-             <number>2</number>
-            </property>
-            <property name="rightMargin">
-             <number>4</number>
-            </property>
-            <property name="bottomMargin">
-             <number>2</number>
-            </property>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetAxis1">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>轴1</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetAxis2">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>轴2</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetAxis3">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>轴3</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetAxis4">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>轴4</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetAgv">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>底盘</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_StepValue">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>步进值</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>单位:°/mm</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="widget_StepValueInput" native="true">
-           <layout class="QHBoxLayout" name="horizontalLayout_StepValueInput">
-            <property name="spacing">
-             <number>6</number>
-            </property>
-            <property name="leftMargin">
-             <number>4</number>
-            </property>
-            <property name="topMargin">
-             <number>2</number>
-            </property>
-            <property name="rightMargin">
-             <number>4</number>
-            </property>
-            <property name="bottomMargin">
-             <number>2</number>
-            </property>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_StepValue">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>64</width>
-                <height>44</height>
-               </size>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-              <property name="placeholderText">
-               <string>输入步进值</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="widget" native="true">
-        <property name="geometry">
-         <rect>
-          <x>580</x>
-          <y>440</y>
-          <width>151</width>
-          <height>91</height>
-         </rect>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_3">
-         <item row="0" column="0">
-          <widget class="QLabel" name="Lbl_AGV_EstimatedWeight1">
-           <property name="styleSheet">
-            <string notr="true">QLabel {
-    background: transparent;
-    font-family: 'Segoe UI', 'Microsoft YaHei';
-    font-size: 13px;
-    font-weight: bold;
-    color: #00c8ff;
-    padding: 0px 5px;
-}</string>
-           </property>
-           <property name="text">
-            <string>预计负载重量</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignBottom|Qt::AlignHCenter</set>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLineEdit" name="LEdit_AGV_EstimatedWeight">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLabel" name="Lbl_AGV_EstimatedWeight1_2">
-           <property name="styleSheet">
-            <string notr="true">QLabel {
-    background: transparent;
-    font-family: 'Segoe UI', 'Microsoft YaHei';
-    font-size: 13px;
-    font-weight: bold;
-    color: #00c8ff;
-    padding: 0px 5px;
-}</string>
-           </property>
-           <property name="text">
-            <string>KG</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
        <widget class="TechPushButton" name="techBtn_spare_2">
         <property name="geometry">
          <rect>
-          <x>1000</x>
-          <y>380</y>
+          <x>1070</x>
+          <y>470</y>
           <width>151</width>
           <height>51</height>
          </rect>
@@ -1257,8 +669,8 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        <widget class="QWidget" name="widget_InclinometerPowerStrip" native="true">
         <property name="geometry">
          <rect>
-          <x>750</x>
-          <y>290</y>
+          <x>760</x>
+          <y>320</y>
           <width>221</width>
           <height>210</height>
          </rect>
@@ -1286,25 +698,836 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          </rect>
         </property>
        </widget>
-       <zorder>AGV_speedGauge</zorder>
+       <widget class="QStackedWidget" name="stackedWidget_Status">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>100</y>
+          <width>311</width>
+          <height>451</height>
+         </rect>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="page_Robot_Status">
+         <layout class="QGridLayout" name="gridLayout" rowstretch="1,1,0,2" columnstretch="1,1,0,0">
+          <item row="2" column="0" rowspan="2" colspan="2">
+           <widget class="QWidget" name="widget_test3" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>1</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>100</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" rowspan="2" colspan="2">
+           <widget class="QWidget" name="widget_test1" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>1</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>100</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="3" rowspan="2">
+           <widget class="QWidget" name="widget_test2" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>1</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>100</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="3" rowspan="2">
+           <widget class="QWidget" name="widget_test4" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>1</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>100</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="page_SixAxies_Status">
+         <layout class="QGridLayout" name="gridLayout_5" rowstretch="1,1,1" columnstretch="1,1">
+          <property name="spacing">
+           <number>8</number>
+          </property>
+          <item row="0" column="1">
+           <widget class="QWidget" name="widget_SixAxies_2" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>1</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>100</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QWidget" name="widget_SixAxies_1" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>1</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>100</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QWidget" name="widget_SixAxies_3" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>1</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>100</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QWidget" name="widget_SixAxies_4" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>1</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>100</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QWidget" name="widget_SixAxies_5" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>1</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>100</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QWidget" name="widget_SixAxies_6" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>1</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>100</width>
+              <height>100</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="page_AGV_Status">
+         <widget class="TechSpeedGauge" name="AGV_speedGauge" native="true">
+          <property name="geometry">
+           <rect>
+            <x>120</x>
+            <y>110</y>
+            <width>200</width>
+            <height>200</height>
+           </rect>
+          </property>
+         </widget>
+        </widget>
+       </widget>
+       <widget class="QStackedWidget" name="stackedWidget_Parameter">
+        <property name="geometry">
+         <rect>
+          <x>580</x>
+          <y>70</y>
+          <width>581</width>
+          <height>371</height>
+         </rect>
+        </property>
+        <property name="currentIndex">
+         <number>1</number>
+        </property>
+        <widget class="QWidget" name="page_SixAxies_Parameter">
+         <widget class="TechPushButton" name="techBtn_resetSixAxies">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>10</y>
+            <width>151</width>
+            <height>51</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>姿态回中</string>
+          </property>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="page_Robot_Parameter">
+         <widget class="TechSliderEdit" name="TechSliderEdit_Robot_RobotSpeed" native="true">
+          <property name="geometry">
+           <rect>
+            <x>-20</x>
+            <y>60</y>
+            <width>520</width>
+            <height>80</height>
+           </rect>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>520</width>
+            <height>80</height>
+           </size>
+          </property>
+         </widget>
+         <widget class="QWidget" name="widget" native="true">
+          <property name="geometry">
+           <rect>
+            <x>370</x>
+            <y>270</y>
+            <width>151</width>
+            <height>91</height>
+           </rect>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_3">
+           <item row="0" column="0">
+            <widget class="QLabel" name="Lbl_AGV_EstimatedWeight1">
+             <property name="styleSheet">
+              <string notr="true">QLabel {
+    background: transparent;
+    font-family: 'Segoe UI', 'Microsoft YaHei';
+    font-size: 13px;
+    font-weight: bold;
+    color: #00c8ff;
+    padding: 0px 5px;
+}</string>
+             </property>
+             <property name="text">
+              <string>预计负载重量</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignBottom|Qt::AlignHCenter</set>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLineEdit" name="LEdit_AGV_EstimatedWeight">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLabel" name="Lbl_AGV_EstimatedWeight1_2">
+             <property name="styleSheet">
+              <string notr="true">QLabel {
+    background: transparent;
+    font-family: 'Segoe UI', 'Microsoft YaHei';
+    font-size: 13px;
+    font-weight: bold;
+    color: #00c8ff;
+    padding: 0px 5px;
+}</string>
+             </property>
+             <property name="text">
+              <string>KG</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+             </property>
+             <property name="wordWrap">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+        <widget class="QWidget" name="page_AGV_Parameter">
+         <widget class="TechSliderEdit" name="SEdit_AGV_MoveSpeed" native="true">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>0</y>
+            <width>520</width>
+            <height>75</height>
+           </rect>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>520</width>
+            <height>70</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>75</height>
+           </size>
+          </property>
+         </widget>
+         <widget class="TechSliderEdit" name="SEdit_AGV_Angle" native="true">
+          <property name="geometry">
+           <rect>
+            <x>-30</x>
+            <y>70</y>
+            <width>520</width>
+            <height>75</height>
+           </rect>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>520</width>
+            <height>70</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>75</height>
+           </size>
+          </property>
+         </widget>
+         <widget class="TechPushButton" name="techBtn_AGV_OA">
+          <property name="geometry">
+           <rect>
+            <x>360</x>
+            <y>310</y>
+            <width>151</width>
+            <height>51</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>避障开启</string>
+          </property>
+         </widget>
+         <widget class="TechPushButton" name="techBtn_AGV_Park">
+          <property name="geometry">
+           <rect>
+            <x>350</x>
+            <y>250</y>
+            <width>151</width>
+            <height>51</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>开启驻车</string>
+          </property>
+         </widget>
+         <widget class="SteeringModeSelector" name="steeringModeSelector" native="true">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>210</y>
+            <width>450</width>
+            <height>110</height>
+           </rect>
+          </property>
+         </widget>
+        </widget>
+       </widget>
+       <widget class="QStackedWidget" name="stackedWidget">
+        <property name="geometry">
+         <rect>
+          <x>1170</x>
+          <y>0</y>
+          <width>110</width>
+          <height>510</height>
+         </rect>
+        </property>
+        <widget class="QWidget" name="page_Robot_Control">
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QGroupBox" name="groupBox_StepMove">
+            <property name="title">
+             <string>步进控制</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_StepMove">
+             <item>
+              <widget class="QWidget" name="widget_StepTargetList" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>1</verstretch>
+                </sizepolicy>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_StepTargetList">
+                <property name="spacing">
+                 <number>8</number>
+                </property>
+                <property name="leftMargin">
+                 <number>4</number>
+                </property>
+                <property name="topMargin">
+                 <number>2</number>
+                </property>
+                <property name="rightMargin">
+                 <number>4</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>2</number>
+                </property>
+                <item>
+                 <widget class="QToolButton" name="btnStepTargetAxis1">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>轴1</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="btnStepTargetAxis2">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>轴2</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="btnStepTargetAxis3">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>轴3</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="btnStepTargetAxis4">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>轴4</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="btnStepTargetAgv">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>底盘</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_StepValue">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>步进值</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_2">
+               <property name="text">
+                <string>单位:°/mm</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_StepValueInput" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_StepValueInput">
+                <property name="spacing">
+                 <number>6</number>
+                </property>
+                <property name="leftMargin">
+                 <number>4</number>
+                </property>
+                <property name="topMargin">
+                 <number>2</number>
+                </property>
+                <property name="rightMargin">
+                 <number>4</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>2</number>
+                </property>
+                <item>
+                 <widget class="QLineEdit" name="lineEdit_StepValue">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>64</width>
+                    <height>44</height>
+                   </size>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                  <property name="placeholderText">
+                   <string>输入步进值</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="page_SixAxies_Control">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QGroupBox" name="groupBox_SixAxies_StepMove">
+            <property name="title">
+             <string>步进控制</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_SixAxies_StepMove">
+             <item>
+              <widget class="QWidget" name="widget_SixAxies_StepTargetList" native="true">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>1</verstretch>
+                </sizepolicy>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_SixAxies_StepTargetList">
+                <property name="spacing">
+                 <number>8</number>
+                </property>
+                <property name="leftMargin">
+                 <number>4</number>
+                </property>
+                <property name="topMargin">
+                 <number>2</number>
+                </property>
+                <property name="rightMargin">
+                 <number>4</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>2</number>
+                </property>
+                <item>
+                 <widget class="QToolButton" name="btnStepTargetSixAxis1">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>RX</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                  <property name="checked">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="btnStepTargetSixAxis2">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>RY</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="btnStepTargetSixAxis3">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>RZ</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="btnStepTargetSixAxis4">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>X</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="btnStepTargetSixAxis5">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Y</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="btnStepTargetSixAxis6">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>Z</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QToolButton" name="btnStepTargetSixAxis7">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="text">
+                   <string>钢缆</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_SixAxies_StepValue">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>步进值</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_3">
+               <property name="text">
+                <string>单位:°/mm</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QWidget" name="widget_SixAxies_StepValueInput" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_SixAxies_StepValueInput">
+                <property name="spacing">
+                 <number>6</number>
+                </property>
+                <property name="leftMargin">
+                 <number>4</number>
+                </property>
+                <property name="topMargin">
+                 <number>2</number>
+                </property>
+                <property name="rightMargin">
+                 <number>4</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>2</number>
+                </property>
+                <item>
+                 <widget class="QLineEdit" name="lineEdit_SixAxies_StepValue">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>4</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>64</width>
+                    <height>44</height>
+                   </size>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                  <property name="placeholderText">
+                   <string>...</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
        <zorder>lab_Overall</zorder>
-       <zorder>widget_test3</zorder>
-       <zorder>widget_test4</zorder>
-       <zorder>widget_test2</zorder>
        <zorder>frame_PlaneHeightCard</zorder>
-       <zorder>widget_test1</zorder>
-       <zorder>TechSliderEdit_Robot_RobotSpeed</zorder>
-       <zorder>SEdit_AGV_Angle</zorder>
-       <zorder>SEdit_AGV_MoveSpeed</zorder>
-       <zorder>techBtn_AGV_OA</zorder>
-       <zorder>steeringModeSelector</zorder>
        <zorder>widget_5</zorder>
-       <zorder>groupBox_StepMove</zorder>
-       <zorder>widget</zorder>
        <zorder>techBtn_spare_2</zorder>
-       <zorder>techBtn_AGV_Park</zorder>
        <zorder>widget_InclinometerPowerStrip</zorder>
        <zorder>widget_Weight</zorder>
+       <zorder>stackedWidget_Status</zorder>
+       <zorder>stackedWidget_Parameter</zorder>
+       <zorder>stackedWidget</zorder>
       </widget>
       <widget class="QWidget" name="page_HistoryRecord">
        <widget class="QQuickWidget" name="quickWidget_HistoryList">
@@ -1331,66 +1554,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        </widget>
       </widget>
       <widget class="QWidget" name="page_SixAxies">
-       <widget class="QWidget" name="widget_SixAxies_2" native="true">
-        <property name="geometry">
-         <rect>
-          <x>580</x>
-          <y>120</y>
-          <width>150</width>
-          <height>150</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_SixAxies_3" native="true">
-        <property name="geometry">
-         <rect>
-          <x>790</x>
-          <y>120</y>
-          <width>150</width>
-          <height>150</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_SixAxies_4" native="true">
-        <property name="geometry">
-         <rect>
-          <x>360</x>
-          <y>300</y>
-          <width>150</width>
-          <height>150</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_SixAxies_5" native="true">
-        <property name="geometry">
-         <rect>
-          <x>580</x>
-          <y>300</y>
-          <width>150</width>
-          <height>150</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_SixAxies_6" native="true">
-        <property name="geometry">
-         <rect>
-          <x>790</x>
-          <y>300</y>
-          <width>150</width>
-          <height>150</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_SixAxies_1" native="true">
-        <property name="geometry">
-         <rect>
-          <x>360</x>
-          <y>120</y>
-          <width>150</width>
-          <height>150</height>
-         </rect>
-        </property>
-       </widget>
        <widget class="QLabel" name="lab_Overall_2">
         <property name="geometry">
          <rect>
@@ -1422,239 +1585,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          <bool>true</bool>
         </property>
        </widget>
-       <widget class="QGroupBox" name="groupBox_SixAxies_StepMove">
-        <property name="geometry">
-         <rect>
-          <x>1170</x>
-          <y>0</y>
-          <width>91</width>
-          <height>521</height>
-         </rect>
-        </property>
-        <property name="title">
-         <string>步进控制</string>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_SixAxies_StepMove">
-         <item>
-          <widget class="QWidget" name="widget_SixAxies_StepTargetList" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>1</verstretch>
-            </sizepolicy>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_SixAxies_StepTargetList">
-            <property name="spacing">
-             <number>8</number>
-            </property>
-            <property name="leftMargin">
-             <number>4</number>
-            </property>
-            <property name="topMargin">
-             <number>2</number>
-            </property>
-            <property name="rightMargin">
-             <number>4</number>
-            </property>
-            <property name="bottomMargin">
-             <number>2</number>
-            </property>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetSixAxis1">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>RX</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetSixAxis2">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>RY</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetSixAxis3">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>RZ</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetSixAxis4">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>X</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetSixAxis5">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Y</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetSixAxis6">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Z</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QToolButton" name="btnStepTargetSixAxis7">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>钢缆</string>
-              </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_SixAxies_StepValue">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>步进值</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>单位:°/mm</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="widget_SixAxies_StepValueInput" native="true">
-           <layout class="QHBoxLayout" name="horizontalLayout_SixAxies_StepValueInput">
-            <property name="spacing">
-             <number>6</number>
-            </property>
-            <property name="leftMargin">
-             <number>4</number>
-            </property>
-            <property name="topMargin">
-             <number>2</number>
-            </property>
-            <property name="rightMargin">
-             <number>4</number>
-            </property>
-            <property name="bottomMargin">
-             <number>2</number>
-            </property>
-            <item>
-             <widget class="QLineEdit" name="lineEdit_SixAxies_StepValue">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>4</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>64</width>
-                <height>44</height>
-               </size>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignCenter</set>
-              </property>
-              <property name="placeholderText">
-               <string>...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="TechPushButton" name="techBtn_resetSixAxies">
-        <property name="geometry">
-         <rect>
-          <x>100</x>
-          <y>10</y>
-          <width>151</width>
-          <height>51</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>姿态回中</string>
-        </property>
-       </widget>
        <widget class="TechPushButton" name="techBtn_spare_1">
         <property name="geometry">
          <rect>
@@ -1672,6 +1602,237 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
      </widget>
     </item>
    </layout>
+   <widget class="QWidget" name="widget_HiddenToolButtons">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>100</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="visible">
+     <bool>false</bool>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_HiddenToolButtons">
+     <item>
+      <widget class="TechChamferToolButton" name="TBtn_RobotControl">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>机械臂控制</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="TechChamferToolButton" name="TBtn_ChassisControl">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>底盘控制</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="TechChamferToolButton" name="TBtn_SixAxies">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>六自由度</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="TechChamferToolButton" name="TBtn_PermissionPage">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>权限</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="TechChamferToolButton" name="TBtn_HistoryRecord">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>历史记录</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="TechChamferToolButton" name="TBtn_Stepmove">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>点动模式</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="TechChamferToolButton" name="TBtn_MoveMode">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>关节模式</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="TechChamferToolButton" name="TBtn_Interlocking">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>上方示教器</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="TechChamferToolButton" name="TBtn_ControlMode">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="visible">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>有线控制</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="toolButtonStyle">
+        <enum>Qt::ToolButtonTextBesideIcon</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
  </widget>

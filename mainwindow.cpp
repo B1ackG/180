@@ -42,6 +42,8 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QFrame>
+#include <QStackedWidget>
 #include <QLabel>
 #include <QPushButton>
 #include <QGroupBox>
@@ -930,14 +932,18 @@ void MainWindow::applyPermissionNavigationGate()
         }
     };
 
-    setEnabledIf(ui->TBtn_HomePage);
-    setEnabledIf(ui->TBtn_HistoryRecord);
+    setEnabledIf(ui->TBtn_RobotControl);
+    setEnabledIf(ui->TBtn_ChassisControl);
     setEnabledIf(ui->TBtn_SixAxies);
+    setEnabledIf(ui->TBtn_HistoryRecord);
     setEnabledIf(ui->TBtn_Stepmove);
     setEnabledIf(ui->TBtn_MoveMode);
     setEnabledIf(ui->TBtn_Interlocking);
     setEnabledIf(ui->TBtn_ControlMode);
     setEnabledIf(ui->TBtn_RemoveWarning);
+    setEnabledIf(ui->TBtn_PageNavMenu);
+    setEnabledIf(ui->TBtn_DeviceControlMenu);
+    setEnabledIf(ui->TBtn_ControlModeMenu);
     if (ui->TBtn_PermissionPage) {
         ui->TBtn_PermissionPage->setEnabled(true);
     }
@@ -1128,10 +1134,460 @@ void MainWindow::applyPlaneHeightOffsetRuntimeSettings()
 // 信号槽连接
 void MainWindow::setupConnections()
 {
+    setupCollapsibleControlPanels();
     setupNavigationConnections();
     setupRecordAndPermissionConnections();
     setupControlConnections();
     setupSubsystemConnections();
+}
+
+void MainWindow::setupNavigationMenuIcons()
+{
+    if (!ui) {
+        return;
+    }
+
+    constexpr QColor kCyan(0, 200, 255);
+    const auto setIcon = [&](TechChamferToolButton *btn, NavIconKind kind, int px) {
+        if (!btn) {
+            return;
+        }
+        btn->setIcon(navigationIcon(kind, QSize(px, px), kCyan));
+        btn->setIconSize(QSize(px, px));
+        btn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        btn->setMinimumHeight(46);
+        initChamferButtonTheme(btn);
+    };
+
+    setIcon(ui->TBtn_DeviceControlMenu, NavIconKind::DeviceMenu, 24);
+    setIcon(ui->TBtn_PageNavMenu, NavIconKind::SystemMenu, 24);
+    setIcon(ui->TBtn_ControlModeMenu, NavIconKind::ControlMenu, 24);
+
+    setIcon(ui->TBtn_RobotControl, NavIconKind::Craft, 22);
+    setIcon(ui->TBtn_ChassisControl, NavIconKind::Chassis, 22);
+    setIcon(ui->TBtn_SixAxies, NavIconKind::SixAxis, 22);
+
+    setIcon(ui->TBtn_PermissionPage, NavIconKind::Permission, 22);
+    setIcon(ui->TBtn_HistoryRecord, NavIconKind::History, 22);
+
+    setIcon(ui->TBtn_Stepmove, NavIconKind::StepMove, 22);
+    setIcon(ui->TBtn_MoveMode, NavIconKind::JointMode, 22);
+    setIcon(ui->TBtn_Interlocking, NavIconKind::ControlMenu, 22);
+    setIcon(ui->TBtn_ControlMode, NavIconKind::WiredControl, 22);
+
+    constexpr QColor kClearAlarmIcon(255, 244, 244);
+    if (ui->TBtn_RemoveWarning) {
+        ui->TBtn_RemoveWarning->setIcon(
+            navigationIcon(NavIconKind::ClearAlarm, QSize(24, 24), kClearAlarmIcon));
+        ui->TBtn_RemoveWarning->setIconSize(QSize(24, 24));
+        ui->TBtn_RemoveWarning->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        ui->TBtn_RemoveWarning->setMinimumHeight(46);
+        ui->TBtn_RemoveWarning->setFillColor(QColor(128, 24, 24, 230));
+        ui->TBtn_RemoveWarning->setBorderColor(QColor(0xff, 0x9a, 0x9a));
+    }
+}
+
+void MainWindow::setupCollapsibleControlPanels()
+{
+    if (!ui || !ui->centralwidget
+        || m_pageNavigationPopup || m_deviceControlPopup || m_controlModePopup) {
+        repositionCollapsibleControlPanels();
+        return;
+    }
+
+    auto initMenuButton = [](TechChamferToolButton *button, const QString &text) {
+        if (!button) {
+            return;
+        }
+        button->setText(text);
+        button->setIconSize(QSize(24, 24));
+        button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+        button->setCheckable(true);
+        button->setMinimumHeight(46);
+        button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        initChamferButtonTheme(button);
+    };
+
+    auto makePopup = [this](const QString &objectName) {
+        auto *panel = new QFrame(ui->centralwidget);
+        panel->setObjectName(objectName);
+        panel->setFrameShape(QFrame::StyledPanel);
+        panel->setAutoFillBackground(false);
+        panel->setStyleSheet(QStringLiteral(
+            "QFrame#%1 {"
+            "  background: rgba(8, 24, 38, 0.96);"
+            "  border: 2px solid rgba(0, 200, 255, 0.85);"
+            "  border-radius: 10px;"
+            "}"
+        ).arg(objectName));
+        auto *layout = new QHBoxLayout(panel);
+        layout->setContentsMargins(10, 8, 10, 8);
+        layout->setSpacing(8);
+        panel->hide();
+        return panel;
+    };
+
+    auto moveButtonsToPopup = [](QLayout *sourceLayout,
+                                 QWidget *popup,
+                                 const QList<TechChamferToolButton*> &buttons) {
+        auto *targetLayout = qobject_cast<QHBoxLayout*>(popup->layout());
+        if (!targetLayout) {
+            return;
+        }
+
+        for (TechChamferToolButton *button : buttons) {
+            if (!button) {
+                continue;
+            }
+            if (sourceLayout) {
+                sourceLayout->removeWidget(button);
+            }
+            button->setParent(popup);
+            button->setMinimumWidth(112);
+            button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+            button->show();
+            initChamferButtonTheme(button);
+            targetLayout->addWidget(button);
+        }
+    };
+
+    QLayout *hiddenLayout = ui->widget_HiddenToolButtons
+                                ? ui->widget_HiddenToolButtons->layout()
+                                : nullptr;
+
+    m_deviceControlPopup = makePopup(QStringLiteral("deviceControlPopup"));
+    moveButtonsToPopup(hiddenLayout,
+                       m_deviceControlPopup,
+                       {ui->TBtn_RobotControl, ui->TBtn_ChassisControl, ui->TBtn_SixAxies});
+
+    m_deviceControlMenuButton = ui->TBtn_DeviceControlMenu;
+    initMenuButton(m_deviceControlMenuButton, QStringLiteral("设备控制"));
+    if (m_deviceControlMenuButton) {
+        m_deviceControlMenuButton->show();
+        connect(m_deviceControlMenuButton, &QToolButton::clicked,
+                this, &MainWindow::toggleDeviceControlPanel);
+    }
+
+    m_pageNavigationPopup = makePopup(QStringLiteral("pageNavigationPopup"));
+    moveButtonsToPopup(hiddenLayout,
+                       m_pageNavigationPopup,
+                       {ui->TBtn_HistoryRecord, ui->TBtn_PermissionPage});
+
+    m_pageNavigationMenuButton = ui->TBtn_PageNavMenu;
+    initMenuButton(m_pageNavigationMenuButton, QStringLiteral("系统管理"));
+    if (m_pageNavigationMenuButton) {
+        m_pageNavigationMenuButton->show();
+        connect(m_pageNavigationMenuButton, &QToolButton::clicked,
+                this, &MainWindow::togglePageNavigationPanel);
+    }
+
+    m_controlModePopup = makePopup(QStringLiteral("controlModePopup"));
+    moveButtonsToPopup(hiddenLayout,
+                       m_controlModePopup,
+                       {ui->TBtn_Stepmove, ui->TBtn_MoveMode,
+                        ui->TBtn_Interlocking, ui->TBtn_ControlMode});
+
+    m_controlModeMenuButton = ui->TBtn_ControlModeMenu;
+    initMenuButton(m_controlModeMenuButton, QStringLiteral("控制模式"));
+    if (m_controlModeMenuButton) {
+        m_controlModeMenuButton->show();
+        connect(m_controlModeMenuButton, &QToolButton::clicked,
+                this, &MainWindow::toggleControlModePanel);
+    }
+
+    setupNavigationMenuIcons();
+
+    const QList<QToolButton*> closeAfterClick = {
+        ui->TBtn_RobotControl,
+        ui->TBtn_ChassisControl,
+        ui->TBtn_SixAxies,
+        ui->TBtn_HistoryRecord,
+        ui->TBtn_PermissionPage,
+        ui->TBtn_Stepmove,
+        ui->TBtn_MoveMode,
+        ui->TBtn_Interlocking,
+        ui->TBtn_ControlMode
+    };
+    for (QToolButton *button : closeAfterClick) {
+        if (button) {
+            connect(button, &QToolButton::clicked,
+                    this, &MainWindow::hideCollapsibleControlPanels);
+        }
+    }
+
+    repositionCollapsibleControlPanels();
+    if (!isPermissionSelectionPending()) {
+        showRobotView();
+    }
+}
+
+void MainWindow::togglePageNavigationPanel()
+{
+    if (!m_pageNavigationPopup) {
+        return;
+    }
+
+    const bool showPanel = !m_pageNavigationPopup->isVisible();
+    if (m_deviceControlPopup) {
+        m_deviceControlPopup->hide();
+    }
+    if (m_controlModePopup) {
+        m_controlModePopup->hide();
+    }
+    if (m_deviceControlMenuButton) {
+        m_deviceControlMenuButton->setChecked(false);
+    }
+    if (m_controlModeMenuButton) {
+        m_controlModeMenuButton->setChecked(false);
+    }
+
+    if (showPanel) {
+        positionCollapsiblePanel(m_pageNavigationPopup, m_pageNavigationMenuButton);
+        m_pageNavigationPopup->show();
+        m_pageNavigationPopup->raise();
+    } else {
+        m_pageNavigationPopup->hide();
+    }
+    if (m_pageNavigationMenuButton) {
+        m_pageNavigationMenuButton->setChecked(showPanel);
+    }
+}
+
+void MainWindow::toggleDeviceControlPanel()
+{
+    if (!m_deviceControlPopup) {
+        return;
+    }
+
+    const bool showPanel = !m_deviceControlPopup->isVisible();
+    if (m_pageNavigationPopup) {
+        m_pageNavigationPopup->hide();
+    }
+    if (m_controlModePopup) {
+        m_controlModePopup->hide();
+    }
+    if (m_pageNavigationMenuButton) {
+        m_pageNavigationMenuButton->setChecked(false);
+    }
+    if (m_controlModeMenuButton) {
+        m_controlModeMenuButton->setChecked(false);
+    }
+
+    if (showPanel) {
+        positionCollapsiblePanel(m_deviceControlPopup, m_deviceControlMenuButton);
+        m_deviceControlPopup->show();
+        m_deviceControlPopup->raise();
+    } else {
+        m_deviceControlPopup->hide();
+    }
+    if (m_deviceControlMenuButton) {
+        m_deviceControlMenuButton->setChecked(showPanel);
+    }
+}
+
+void MainWindow::toggleControlModePanel()
+{
+    if (!m_controlModePopup) {
+        return;
+    }
+
+    const bool showPanel = !m_controlModePopup->isVisible();
+    if (m_pageNavigationPopup) {
+        m_pageNavigationPopup->hide();
+    }
+    if (m_deviceControlPopup) {
+        m_deviceControlPopup->hide();
+    }
+    if (m_pageNavigationMenuButton) {
+        m_pageNavigationMenuButton->setChecked(false);
+    }
+    if (m_deviceControlMenuButton) {
+        m_deviceControlMenuButton->setChecked(false);
+    }
+
+    if (showPanel) {
+        positionCollapsiblePanel(m_controlModePopup, m_controlModeMenuButton);
+        m_controlModePopup->show();
+        m_controlModePopup->raise();
+    } else {
+        m_controlModePopup->hide();
+    }
+    if (m_controlModeMenuButton) {
+        m_controlModeMenuButton->setChecked(showPanel);
+    }
+}
+
+void MainWindow::hideCollapsibleControlPanels()
+{
+    if (m_pageNavigationPopup) {
+        m_pageNavigationPopup->hide();
+    }
+    if (m_deviceControlPopup) {
+        m_deviceControlPopup->hide();
+    }
+    if (m_controlModePopup) {
+        m_controlModePopup->hide();
+    }
+    if (m_pageNavigationMenuButton) {
+        m_pageNavigationMenuButton->setChecked(false);
+    }
+    if (m_deviceControlMenuButton) {
+        m_deviceControlMenuButton->setChecked(false);
+    }
+    if (m_controlModeMenuButton) {
+        m_controlModeMenuButton->setChecked(false);
+    }
+}
+
+void MainWindow::repositionCollapsibleControlPanels()
+{
+    if (m_pageNavigationPopup && m_pageNavigationPopup->isVisible()) {
+        positionCollapsiblePanel(m_pageNavigationPopup, m_pageNavigationMenuButton);
+    }
+    if (m_deviceControlPopup && m_deviceControlPopup->isVisible()) {
+        positionCollapsiblePanel(m_deviceControlPopup, m_deviceControlMenuButton);
+    }
+    if (m_controlModePopup && m_controlModePopup->isVisible()) {
+        positionCollapsiblePanel(m_controlModePopup, m_controlModeMenuButton);
+    }
+}
+
+void MainWindow::positionCollapsiblePanel(QWidget *panel, QToolButton *anchorButton)
+{
+    if (!ui || !ui->centralwidget || !panel || !anchorButton) {
+        return;
+    }
+
+    QWidget *host = ui->centralwidget;
+    int rightBoundary = host->width() - 8;
+    if (ui->StackedWidget) {
+        const QPoint stackRight = ui->StackedWidget->mapTo(
+            host, QPoint(ui->StackedWidget->width(), 0));
+        rightBoundary = qMin(rightBoundary, stackRight.x());
+    }
+
+    const QSize hint = panel->sizeHint();
+    const int maxWidth = qMax(160, rightBoundary - 8);
+    const int panelWidth = qMin(hint.width(), maxWidth);
+    const int panelHeight = hint.height();
+    panel->setFixedSize(panelWidth, panelHeight);
+
+    const QPoint anchorTopLeft = anchorButton->mapTo(host, QPoint(0, 0));
+    const int maxX = qMax(8, rightBoundary - panelWidth);
+    const int centeredX = anchorTopLeft.x() + (anchorButton->width() - panelWidth) / 2;
+    const int x = qBound(8, centeredX, maxX);
+
+    int y = anchorTopLeft.y() - panelHeight - 8;
+    if (y < 8) {
+        y = anchorTopLeft.y() + anchorButton->height() + 8;
+    }
+    panel->move(x, y);
+}
+
+void MainWindow::setExclusiveNavButtonChecked(QToolButton *active)
+{
+    if (!ui) {
+        return;
+    }
+    const QList<QToolButton*> navButtons = {
+        ui->TBtn_RobotControl,
+        ui->TBtn_ChassisControl,
+        ui->TBtn_SixAxies,
+        ui->TBtn_PermissionPage,
+        ui->TBtn_HistoryRecord
+    };
+    for (QToolButton *btn : navButtons) {
+        if (btn) {
+            btn->setChecked(btn == active);
+        }
+    }
+}
+
+bool MainWindow::isRobotAxisViewActive() const
+{
+    return ui && ui->TBtn_RobotControl && ui->TBtn_RobotControl->isChecked();
+}
+
+bool MainWindow::isSixAxisViewActive() const
+{
+    return ui && ui->TBtn_SixAxies && ui->TBtn_SixAxies->isChecked();
+}
+
+bool MainWindow::isChassisViewActive() const
+{
+    return ui && ui->TBtn_ChassisControl && ui->TBtn_ChassisControl->isChecked();
+}
+
+void MainWindow::applyInnerDeviceStacks(InnerDeviceView view)
+{
+    if (!ui || !ui->page_Robot) {
+        return;
+    }
+    if (ui->StackedWidget) {
+        ui->StackedWidget->setCurrentWidget(ui->page_Robot);
+    }
+
+    QWidget *statusPage = nullptr;
+    QWidget *parameterPage = nullptr;
+    QWidget *controlPage = nullptr;
+    switch (view) {
+    case InnerDeviceView::SixAxis:
+        statusPage = ui->page_SixAxies_Status;
+        parameterPage = ui->page_SixAxies_Parameter;
+        controlPage = ui->page_SixAxies_Control;
+        break;
+    case InnerDeviceView::Chassis:
+        statusPage = ui->page_AGV_Status;
+        parameterPage = ui->page_AGV_Parameter;
+        controlPage = ui->page_Robot_Control;
+        break;
+    case InnerDeviceView::Robot:
+    default:
+        statusPage = ui->page_Robot_Status;
+        parameterPage = ui->page_Robot_Parameter;
+        controlPage = ui->page_Robot_Control;
+        break;
+    }
+
+    if (ui->stackedWidget_Status && statusPage) {
+        ui->stackedWidget_Status->setCurrentWidget(statusPage);
+        ui->stackedWidget_Status->raise();
+    }
+    if (ui->stackedWidget_Parameter && parameterPage) {
+        ui->stackedWidget_Parameter->setCurrentWidget(parameterPage);
+        ui->stackedWidget_Parameter->raise();
+    }
+    if (ui->stackedWidget && controlPage) {
+        ui->stackedWidget->setCurrentWidget(controlPage);
+        ui->stackedWidget->raise();
+    }
+}
+
+void MainWindow::showRobotView()
+{
+    applyInnerDeviceStacks(InnerDeviceView::Robot);
+    setExclusiveNavButtonChecked(ui ? ui->TBtn_RobotControl : nullptr);
+    syncStepModeUiByCurrentPage();
+    updateStepTargetButtonsState();
+}
+
+void MainWindow::showChassisView()
+{
+    applyInnerDeviceStacks(InnerDeviceView::Chassis);
+    setExclusiveNavButtonChecked(ui ? ui->TBtn_ChassisControl : nullptr);
+    if (QToolButton *agvBtn = findChild<QToolButton*>(QStringLiteral("btnStepTargetAgv"))) {
+        agvBtn->setChecked(true);
+    }
+    syncStepModeUiByCurrentPage();
+    updateStepTargetButtonsState();
+}
+
+void MainWindow::showSixAxisView()
+{
+    applyInnerDeviceStacks(InnerDeviceView::SixAxis);
+    setExclusiveNavButtonChecked(ui ? ui->TBtn_SixAxies : nullptr);
+    syncStepModeUiByCurrentPage();
+    updateStepTargetButtonsState();
 }
 
 void MainWindow::setupNavigationConnections()
@@ -1141,27 +1597,26 @@ void MainWindow::setupNavigationConnections()
         return;
     }
 
-    // 导航按钮互斥：同一时刻仅保留一个页面入口为激活态。
     const QList<QToolButton*> navButtons = {
-        ui->TBtn_HomePage,
+        ui->TBtn_RobotControl,
+        ui->TBtn_ChassisControl,
+        ui->TBtn_SixAxies,
         ui->TBtn_PermissionPage,
-        ui->TBtn_HistoryRecord,
-        ui->TBtn_SixAxies
+        ui->TBtn_HistoryRecord
     };
     for (QToolButton *btn : navButtons) {
         if (!btn) {
             continue;
         }
         btn->setCheckable(true);
-        btn->setAutoExclusive(true);
     }
     if (isFeatureEnabled("permission_system", "permission.admin_login") && ui->TBtn_PermissionPage) {
         ui->TBtn_PermissionPage->setChecked(true);
-    } else if (ui->TBtn_HomePage) {
-        ui->TBtn_HomePage->setChecked(true);
+    } else if (ui->TBtn_RobotControl) {
+        ui->TBtn_RobotControl->setChecked(true);
     }
 
-    connect(ui->TBtn_HomePage, &QPushButton::clicked, [=]() {
+    const auto guardDeviceView = [this](const auto &showView) {
         if (isPermissionSelectionPending()) {
             showNotification(QStringLiteral("请先选择权限"));
             if (ui->page_Permission) {
@@ -1172,29 +1627,18 @@ void MainWindow::setupNavigationConnections()
             }
             return;
         }
-        ui->StackedWidget->setCurrentIndex(0);
-        ui->TBtn_HomePage->setChecked(true);
-        updateNavButtonStyles(nullptr);
-    });
+        showView();
+    };
 
-    connect(ui->TBtn_SixAxies, &QPushButton::clicked, [this]() {
-        if (isPermissionSelectionPending()) {
-            showNotification(QStringLiteral("请先选择权限"));
-            if (ui->page_Permission) {
-                ui->StackedWidget->setCurrentWidget(ui->page_Permission);
-            }
-            if (ui->TBtn_PermissionPage) {
-                ui->TBtn_PermissionPage->setChecked(true);
-            }
-            return;
-        }
-        if (ui->page_SixAxies) {
-            ui->StackedWidget->setCurrentWidget(ui->page_SixAxies);
-        }
-        ui->TBtn_SixAxies->setChecked(true);
+    connect(ui->TBtn_RobotControl, &QToolButton::clicked, this, [this, guardDeviceView]() {
+        guardDeviceView([this]() { showRobotView(); });
     });
-
-    // 旧模板按钮 Btn_Switch* 已移除，页面切换统一由左侧工具按钮负责。
+    connect(ui->TBtn_ChassisControl, &QToolButton::clicked, this, [this, guardDeviceView]() {
+        guardDeviceView([this]() { showChassisView(); });
+    });
+    connect(ui->TBtn_SixAxies, &QToolButton::clicked, this, [this, guardDeviceView]() {
+        guardDeviceView([this]() { showSixAxisView(); });
+    });
 }
 
 void MainWindow::setupRecordAndPermissionConnections()
@@ -1219,13 +1663,10 @@ void MainWindow::setupRecordAndPermissionConnections()
             if (ui->page_HistoryRecord) {
                 ui->StackedWidget->setCurrentWidget(ui->page_HistoryRecord);
             }
-            ui->TBtn_HistoryRecord->setChecked(true);
+            setExclusiveNavButtonChecked(ui->TBtn_HistoryRecord);
             updateRecordDisplay();
             showNotification("已进入操作记录页面");
         } else {
-            if (ui->TBtn_HomePage) {
-                ui->TBtn_HomePage->setChecked(true);
-            }
             const QString tip = "权限不足：查看历史记录需要管理员权限";
             showToast(tip, ToastKind::Warning);
             updateStatusTip(tip);
@@ -1285,7 +1726,7 @@ void MainWindow::setupRecordAndPermissionConnections()
         if (ui->page_Permission) {
             ui->StackedWidget->setCurrentWidget(ui->page_Permission);
         }
-        ui->TBtn_PermissionPage->setChecked(true);
+        setExclusiveNavButtonChecked(ui->TBtn_PermissionPage);
     });
 
     connect(m_recorder, &OperationRecorder::recordAdded, this, [this](const OperationRecord &record) {
@@ -1542,41 +1983,7 @@ void MainWindow::setupStyles()
 
 void MainWindow::setupBottomBarButtonIcons()
 {
-    if (!ui) {
-        return;
-    }
-
-    constexpr QColor kCyan(0, 200, 255);
-    const auto setNavIcon = [&](TechChamferToolButton *btn, NavIconKind kind, int px = 22) {
-        if (!btn) {
-            return;
-        }
-        btn->setIcon(navigationIcon(kind, QSize(px, px), kCyan));
-        btn->setIconSize(QSize(px, px));
-        btn->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        btn->setMinimumHeight(46);
-        initChamferButtonTheme(btn);
-    };
-
-    setNavIcon(ui->TBtn_HomePage, NavIconKind::Home);
-    setNavIcon(ui->TBtn_PermissionPage, NavIconKind::Permission);
-    setNavIcon(ui->TBtn_HistoryRecord, NavIconKind::History);
-    setNavIcon(ui->TBtn_SixAxies, NavIconKind::SixAxis);
-    setNavIcon(ui->TBtn_Stepmove, NavIconKind::StepMove);
-    setNavIcon(ui->TBtn_MoveMode, NavIconKind::JointMode);
-    setNavIcon(ui->TBtn_Interlocking, NavIconKind::ControlMenu);
-    setNavIcon(ui->TBtn_ControlMode, NavIconKind::WiredControl);
-
-    if (ui->TBtn_RemoveWarning) {
-        constexpr QColor kClearAlarmIcon(255, 244, 244);
-        ui->TBtn_RemoveWarning->setIcon(
-            navigationIcon(NavIconKind::ClearAlarm, QSize(24, 24), kClearAlarmIcon));
-        ui->TBtn_RemoveWarning->setIconSize(QSize(24, 24));
-        ui->TBtn_RemoveWarning->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-        ui->TBtn_RemoveWarning->setMinimumHeight(46);
-        ui->TBtn_RemoveWarning->setFillColor(QColor(128, 24, 24, 230));
-        ui->TBtn_RemoveWarning->setBorderColor(QColor(0xff, 0x9a, 0x9a));
-    }
+    setupNavigationMenuIcons();
 }
 
 void MainWindow::updateFunctionSwitchVisuals()
@@ -1647,7 +2054,10 @@ void MainWindow::applyToolButtonStyles(const QList<QToolButton*> &buttons)
             if (name == "TBtn_Stepmove" || name == "TBtn_MoveMode" ||
                 name == "TBtn_ControlMode" || name == "TBtn_RemoveWarning" ||
                 name == "TBtn_Interlocking" ||
-                name == "TBtn_HomePage" || name == "TBtn_PermissionPage" ||
+                name == "TBtn_PageNavMenu" || name == "TBtn_DeviceControlMenu" ||
+                name == "TBtn_ControlModeMenu" ||
+                name == "TBtn_RobotControl" || name == "TBtn_ChassisControl" ||
+                name == "TBtn_PermissionPage" ||
                 name == "TBtn_HistoryRecord" || name == "TBtn_SixAxies") {
                 continue;
             }
@@ -1940,12 +2350,12 @@ void MainWindow::initSpeedGaugeUI()
 
     for (const auto& cfg : configs) {
         if (cfg.placeholder) {
-            TechArcGauge *arcGauge = new TechArcGauge(cfg.placeholder->parentWidget());
-            arcGauge->setGeometry(cfg.placeholder->geometry());
+            TechArcGauge *arcGauge = new TechArcGauge(cfg.placeholder);
             arcGauge->setObjectName(cfg.name);
             arcGauge->setRange(cfg.min, cfg.max);
             arcGauge->setValue(0);
-            
+            arcGauge->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
             // 如果是 J3，设置速度显示相关参数
             if (cfg.name == "robot_ArcGauge_J3Length") {
                 arcGauge->setSecondMaximum(40.0); // J3 速度范围 0~40 mm/s
@@ -1961,18 +2371,27 @@ void MainWindow::initSpeedGaugeUI()
                 arcGauge->setSecondMaximum(2.0);  // J4 速度范围 0~2 °/s
                 arcGauge->setSecondSuffix("°/s");
             }
-            
+
             arcGauge->setLabelText(cfg.label);
             arcGauge->setSecondLabelText(cfg.secondLabel);
             arcGauge->setSuffix(cfg.suffix);
             arcGauge->setPrecision(cfg.precision);
 
-            cfg.placeholder->hide();
-            arcGauge->show();
+            QVBoxLayout *cellLayout = new QVBoxLayout(cfg.placeholder);
+            cellLayout->setContentsMargins(0, 0, 0, 0);
+            cellLayout->setSpacing(0);
+            cellLayout->addWidget(arcGauge);
 
             // 存入映射表，Key 使用规范化后的名称
             m_arcGauges[cfg.name] = arcGauge;
         }
+    }
+
+    if (ui->page_Robot_Status && ui->page_Robot_Status->layout()) {
+        ui->page_Robot_Status->layout()->activate();
+    }
+    if (ui->page_SixAxies_Status && ui->page_SixAxies_Status->layout()) {
+        ui->page_SixAxies_Status->layout()->activate();
     }
 
     applyPlaneHeightOffsetRuntimeSettings();
@@ -3547,12 +3966,7 @@ void MainWindow::setupAdminPasswordPage()
             if (selectedRole == UserRole::Operator) {
                 titleLabel->setText("权限验证");
                 applyPermissionPageLoginState();
-                if (ui->StackedWidget) {
-                    ui->StackedWidget->setCurrentIndex(0);
-                }
-                if (ui->TBtn_HomePage) {
-                    ui->TBtn_HomePage->setChecked(true);
-                }
+                showRobotView();
                 updateStatusBarTime();
                 showNotification(QStringLiteral("已选择操作员权限"));
                 return;
@@ -3854,6 +4268,7 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 {
     QMainWindow::resizeEvent(event);
     repositionToastHost();
+    repositionCollapsibleControlPanels();
 }
 
 QString MainWindow::toastStyleSheet(ToastKind kind) const
@@ -4371,7 +4786,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     }
     // 超载仍有效且用户已点「确认」关窗后：拦截外部按键（首页 ○3/○4 除外），并再次弹出超载提示
     if (pressed && m_robotWeightOverload150Bit3Flag && m_robotWeightOverloadUserAckedWhileActive) {
-        const bool firstPageOverloadExempt = (currentPage == 0 && (keyNumber == 3 || keyNumber == 4));
+        const bool firstPageOverloadExempt = (isRobotAxisViewActive() && (keyNumber == 3 || keyNumber == 4));
         if (!firstPageOverloadExempt) {
             showRobotWeightOverloadDialog();
             ui->statusBar->showMessage(QStringLiteral("负载超限：该外部按键操作已无效"), 3000);
@@ -4380,9 +4795,9 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     }
 
     QString pageName = m_pageNames.value(currentPage, "未知");
-    const bool isRobotPage = (currentPage == 0 || pageName == "机械臂" || pageName == "page_Robot");
-    const bool isSixAxisPage = (currentPage == 3 || pageName == "六自由度" || pageName == "page_SixAxies");
-    const bool isAgvPage = (currentPage == 4);
+    const bool isRobotPage = isRobotAxisViewActive();
+    const bool isSixAxisPage = isSixAxisViewActive();
+    const bool isAgvPage = isChassisViewActive();
 
     if (isRobotPage || isSixAxisPage || isAgvPage) {
         const bool stepModeHintShown = maybeShowUnselectedStepModeHintForExternalKey(keyNumber, pressed);
@@ -6278,12 +6693,11 @@ void MainWindow::syncStepModeUiByCurrentPage()
         return;
     }
 
-    const int currentPage = ui->StackedWidget->currentIndex();
     int syncAddress = -1;
-    if (currentPage == 0) {
-        syncAddress = 125;
-    } else if (currentPage == 3) {
+    if (isSixAxisViewActive()) {
         syncAddress = 600;
+    } else if (isRobotAxisViewActive() || isChassisViewActive()) {
+        syncAddress = 125;
     } else {
         return;
     }
@@ -9761,14 +10175,12 @@ void MainWindow::onStepMoveButtonClicked()
         ui->TBtn_Stepmove->setText("步进模式");
         ui->TBtn_Stepmove->setToolTip("当前模式：步进模式");
 
-        // 根据当前页面决定写入的寄存器：第一页(0)->501，第四页(3)->600
-        int currentPage = ui->StackedWidget ? ui->StackedWidget->currentIndex() : 0;
-        if (currentPage == 0) {
-            writeToMainDevice(501, 2);
-            qCDebug(lcMainWindow) << "首页：切换到步进模式，地址501写入2";
-        } else if (currentPage == 3) {
+        if (isSixAxisViewActive()) {
             writeToMainDevice(600, 2);
-            qCDebug(lcMainWindow) << "第四页：切换到步进模式，地址600写入2";
+            qCDebug(lcMainWindow) << "六自由度：切换到步进模式，地址600写入2";
+        } else if (isRobotAxisViewActive() || isChassisViewActive()) {
+            writeToMainDevice(501, 2);
+            qCDebug(lcMainWindow) << "机械臂/底盘：切换到步进模式，地址501写入2";
         }
 
         ui->statusBar->showMessage("已切换到步进模式", 2000);
@@ -9792,14 +10204,12 @@ void MainWindow::onStepMoveButtonClicked()
             runModeLabel->setStyleSheet("color: #00ccff; font-weight: bold; font-size: 11px;");
         }
 
-        // 根据当前页面决定写入的寄存器：第一页(0)->501，第四页(3)->600
-        int currentPage = ui->StackedWidget ? ui->StackedWidget->currentIndex() : 0;
-        if (currentPage == 0) {
-            writeToMainDevice(501, 1);
-            qCDebug(lcMainWindow) << "首页：切换到点动模式，地址501写入1";
-        } else if (currentPage == 3) {
+        if (isSixAxisViewActive()) {
             writeToMainDevice(600, 1);
-            qCDebug(lcMainWindow) << "第四页：切换到点动模式，地址600写入1";
+            qCDebug(lcMainWindow) << "六自由度：切换到点动模式，地址600写入1";
+        } else if (isRobotAxisViewActive() || isChassisViewActive()) {
+            writeToMainDevice(501, 1);
+            qCDebug(lcMainWindow) << "机械臂/底盘：切换到点动模式，地址501写入1";
         }
 
         ui->statusBar->showMessage("已切换到点动模式", 2000);
@@ -9978,7 +10388,7 @@ void MainWindow::updateStepMoveGroupBoxState()
         isStepMode = (ui->TBtn_Stepmove->text().trimmed() == "步进模式");
     }
 
-    const bool isFirstPage = ui->StackedWidget && ui->StackedWidget->currentIndex() == 0;
+    const bool isFirstPage = isRobotAxisViewActive() || isChassisViewActive();
     const bool shouldDisable = (!isStepMode && isFirstPage);
     if (ui->groupBox_StepMove) {
         ui->groupBox_StepMove->setEnabled(!shouldDisable);
@@ -9986,8 +10396,7 @@ void MainWindow::updateStepMoveGroupBoxState()
 
     QGroupBox *sixAxisGroup = findChild<QGroupBox*>("groupBox_SixAxies_StepMove");
     if (sixAxisGroup) {
-        const bool isSixAxisPage = ui->StackedWidget && ui->StackedWidget->currentIndex() == 3;
-        const bool sixAxisShouldDisable = (!isStepMode && isSixAxisPage);
+        const bool sixAxisShouldDisable = (!isStepMode && isSixAxisViewActive());
         sixAxisGroup->setEnabled(!sixAxisShouldDisable);
     }
 }
@@ -10002,7 +10411,7 @@ void MainWindow::updateStepTargetButtonsState()
     QToolButton *axis4Btn = findChild<QToolButton*>("btnStepTargetAxis4");
     QToolButton *agvBtn = findChild<QToolButton*>("btnStepTargetAgv");
     const QList<QToolButton*> firstPageTargetButtons = {axis1Btn, axis2Btn, axis3Btn, axis4Btn, agvBtn};
-    const bool isFirstPage = ui && ui->StackedWidget && ui->StackedWidget->currentIndex() == 0;
+    const bool isFirstPage = isRobotAxisViewActive();
     const bool useCoordinateDisplay = isFirstPage && !m_stepModeEnabled && !m_moveModeUnknown && !m_isJointMode;
 
     for (QToolButton *btn : firstPageTargetButtons) {
@@ -12158,7 +12567,7 @@ void MainWindow::maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, boo
     if (!pressed) {
         return;
     }
-    if (!ui || !ui->TBtn_HomePage || !ui->TBtn_HomePage->isChecked()) {
+    if (!isRobotAxisViewActive()) {
         return;
     }
     if (!ui->StackedWidget) {
@@ -12264,19 +12673,23 @@ void MainWindow::maybeShowUnconfiguredStepValueHintForExternalKey(int keyNumber,
 
     const QLineEdit *stepEdit = nullptr;
     const QString pageObjectName = currentPageWidget->objectName();
-    if (pageObjectName == QStringLiteral("page_Robot")) {
-        if (!ui->TBtn_HomePage || !ui->TBtn_HomePage->isChecked()) {
+    if (isSixAxisViewActive()
+        || pageObjectName == QStringLiteral("page_SixAxies")) {
+        if (keyNumber < 1 || keyNumber > 12) {
+            return;
+        }
+        stepEdit = findChild<QLineEdit*>(QStringLiteral("lineEdit_SixAxies_StepValue"));
+    } else if (isChassisViewActive()) {
+        return;
+    } else if (isRobotAxisViewActive()
+               || pageObjectName == QStringLiteral("page_Robot")) {
+        if (!isRobotAxisViewActive()) {
             return;
         }
         if (keyNumber < 1 || keyNumber > 10) {
             return;
         }
         stepEdit = m_stepValueEdit;
-    } else if (pageObjectName == QStringLiteral("page_SixAxies")) {
-        if (keyNumber < 1 || keyNumber > 12) {
-            return;
-        }
-        stepEdit = findChild<QLineEdit*>(QStringLiteral("lineEdit_SixAxies_StepValue"));
     } else {
         return;
     }
@@ -12358,13 +12771,12 @@ void MainWindow::applyDefaultJogStepModeFromExternalKey()
     }
 
     if (ui && ui->StackedWidget) {
-        const int currentPage = ui->StackedWidget->currentIndex();
-        if (currentPage == 0) {
-            writeToMainDevice(501, 1);
-            qCDebug(lcMainWindow) << "外部按键自动选择：首页切换到点动模式，地址501写入1";
-        } else if (currentPage == 3) {
+        if (isSixAxisViewActive()) {
             writeToMainDevice(600, 1);
-            qCDebug(lcMainWindow) << "外部按键自动选择：第四页切换到点动模式，地址600写入1";
+            qCDebug(lcMainWindow) << "外部按键自动选择：六自由度切换到点动模式，地址600写入1";
+        } else if (isRobotAxisViewActive() || isChassisViewActive()) {
+            writeToMainDevice(501, 1);
+            qCDebug(lcMainWindow) << "外部按键自动选择：机械臂/底盘切换到点动模式，地址501写入1";
         }
     }
 
@@ -12442,16 +12854,18 @@ bool MainWindow::maybeShowUnselectedStepModeHintForExternalKey(int keyNumber, bo
     }
 
     const QString pageObjectName = currentPageWidget->objectName();
-    if (pageObjectName == QStringLiteral("page_Robot")) {
-        if (keyNumber < 1 || keyNumber > 10) {
-            return false;
-        }
-    } else if (pageObjectName == QStringLiteral("page_SixAxies")) {
+    if (isSixAxisViewActive()
+        || pageObjectName == QStringLiteral("page_SixAxies")) {
         if (keyNumber < 1 || keyNumber > 14) {
             return false;
         }
-    } else if (ui->StackedWidget->currentIndex() == 4) {
+    } else if (isChassisViewActive()) {
         if (keyNumber != 13 && keyNumber != 14) {
+            return false;
+        }
+    } else if (isRobotAxisViewActive()
+               || pageObjectName == QStringLiteral("page_Robot")) {
+        if (keyNumber < 1 || keyNumber > 10) {
             return false;
         }
     } else {
@@ -12500,16 +12914,18 @@ bool MainWindow::maybeShowUnselectedMoveModeHintForExternalKey(int keyNumber, bo
     }
 
     const QString pageObjectName = currentPageWidget->objectName();
-    if (pageObjectName == QStringLiteral("page_Robot")) {
-        if (keyNumber < 1 || keyNumber > 10) {
-            return false;
-        }
-    } else if (pageObjectName == QStringLiteral("page_SixAxies")) {
+    if (isSixAxisViewActive()
+        || pageObjectName == QStringLiteral("page_SixAxies")) {
         if (keyNumber < 1 || keyNumber > 14) {
             return false;
         }
-    } else if (ui->StackedWidget->currentIndex() == 4) {
+    } else if (isChassisViewActive()) {
         if (keyNumber != 13 && keyNumber != 14) {
+            return false;
+        }
+    } else if (isRobotAxisViewActive()
+               || pageObjectName == QStringLiteral("page_Robot")) {
+        if (keyNumber < 1 || keyNumber > 10) {
             return false;
         }
     } else {

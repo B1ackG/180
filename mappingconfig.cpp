@@ -166,9 +166,15 @@ void MappingConfig::initDefaultMappings()
         m_controlNameMap["TBtn_RemoveWarning"] = "消除报警按钮";
         m_controlNameMap["TBtn_Interlocking"] = "上下示教器互锁切换按钮";
         m_controlNameMap["TBtn_HistoryRecord"] = "历史记录按钮";
-        m_controlNameMap["TBtn_HomePage"] = "首页按钮";
+        m_controlNameMap["TBtn_PageNavMenu"] = "系统管理菜单";
+        m_controlNameMap["TBtn_DeviceControlMenu"] = "设备控制菜单";
+        m_controlNameMap["TBtn_ControlModeMenu"] = "控制模式菜单";
+        m_controlNameMap["TBtn_RobotControl"] = "机械臂控制";
+        m_controlNameMap["TBtn_ChassisControl"] = "底盘控制";
+        m_controlNameMap["TBtn_SixAxies"] = "六自由度";
         m_controlNameMap["TBtn_PermissionPage"] = "权限页面按钮";
         m_controlNameMap["TBtn_Stepmove"] = "步进模式按钮";
+        m_controlNameMap["TBtn_MoveMode"] = "关节/坐标模式按钮";
         m_controlNameMap["TBtn_ControlMode"] = "控制模式按钮";
 
         // StepMove 控件名称映射
