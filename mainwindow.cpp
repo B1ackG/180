@@ -10388,16 +10388,25 @@ void MainWindow::updateStepMoveGroupBoxState()
         isStepMode = (ui->TBtn_Stepmove->text().trimmed() == "步进模式");
     }
 
-    const bool isFirstPage = isRobotAxisViewActive() || isChassisViewActive();
-    const bool shouldDisable = (!isStepMode && isFirstPage);
-    if (ui->groupBox_StepMove) {
-        ui->groupBox_StepMove->setEnabled(!shouldDisable);
+    const QString groupTitle = (isStepMode || m_stepModeUnknown)
+                                   ? QStringLiteral("步进控制")
+                                   : QStringLiteral("点动控制");
+    if (ui->groupBox_Robot_StepMove) {
+        ui->groupBox_Robot_StepMove->setTitle(groupTitle);
+    }
+    if (ui->groupBox_SixAxies_StepMove) {
+        ui->groupBox_SixAxies_StepMove->setTitle(groupTitle);
     }
 
-    QGroupBox *sixAxisGroup = findChild<QGroupBox*>("groupBox_SixAxies_StepMove");
-    if (sixAxisGroup) {
+    const bool isFirstPage = isRobotAxisViewActive() || isChassisViewActive();
+    const bool shouldDisable = (!isStepMode && isFirstPage);
+    if (ui->groupBox_Robot_StepMove) {
+        ui->groupBox_Robot_StepMove->setEnabled(!shouldDisable);
+    }
+
+    if (ui->groupBox_SixAxies_StepMove) {
         const bool sixAxisShouldDisable = (!isStepMode && isSixAxisViewActive());
-        sixAxisGroup->setEnabled(!sixAxisShouldDisable);
+        ui->groupBox_SixAxies_StepMove->setEnabled(!sixAxisShouldDisable);
     }
 }
 
