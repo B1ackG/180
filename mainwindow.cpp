@@ -60,6 +60,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QVector>
 #include <QResizeEvent>
 #include <QAbstractButton>
+#include <QFont>
 
 namespace {
 constexpr int kRuntimePersistRegister = 8193;
@@ -1538,7 +1539,9 @@ void MainWindow::applyInnerDeviceStacks(InnerDeviceView view)
         break;
     case InnerDeviceView::Chassis:
         statusPage = ui->page_AGV_Status;
-        parameterPage = ui->page_AGV_Parameter;
+        parameterPage = (!m_stepModeUnknown && m_stepModeEnabled && ui->page_AGVStep_Parameter)
+                            ? ui->page_AGVStep_Parameter
+                            : ui->page_AGV_Parameter;
         controlPage = ui->page_Robot_Control;
         break;
     case InnerDeviceView::Robot:
@@ -2267,6 +2270,9 @@ void MainWindow::initTechButtons() {
 
     // 3. 遍历列表，应用统一的科技感配置
     for (TechPushButton* btn : foundButtons) {
+        if (btn->objectName().startsWith(QStringLiteral("techBtn_AGVStep_"))) {
+            continue;
+        }
         // 启用基本效果
         // btn->enableHoverAnimation(true);
         // btn->enableClickAnimation(true);
@@ -7495,6 +7501,8 @@ void MainWindow::setupAGVUI()
 
     qCDebug(lcMainWindow) << "找到" << m_agvStatusLabels.size() << "个AGV状态标签";
 
+    setupAGVStepPad();
+
 
 
 
@@ -10217,6 +10225,7 @@ void MainWindow::onStepMoveButtonClicked()
 
     updateFunctionSwitchVisuals();
     updateStepTargetButtonsState();
+    updateChassisParameterPage();
 
 }
 
@@ -10408,6 +10417,8 @@ void MainWindow::updateStepMoveGroupBoxState()
         const bool sixAxisShouldDisable = (!isStepMode && isSixAxisViewActive());
         ui->groupBox_SixAxies_StepMove->setEnabled(!sixAxisShouldDisable);
     }
+
+    updateChassisParameterPage();
 }
 
 void MainWindow::updateStepTargetButtonsState()
@@ -10490,6 +10501,128 @@ void MainWindow::updateStepTargetButtonsState()
     updateGroupState(m_sixAxisStepTargetGroup, "btnStepTargetSixAxis1");
 }
 
+void MainWindow::updateChassisParameterPage()
+{
+    if (!ui || !ui->stackedWidget_Parameter || !isChassisViewActive()) {
+        return;
+    }
+
+    QWidget *targetPage = nullptr;
+    const bool isStepMode = (!m_stepModeUnknown && m_stepModeEnabled);
+    if (isStepMode && ui->page_AGVStep_Parameter) {
+        targetPage = ui->page_AGVStep_Parameter;
+    } else if (ui->page_AGV_Parameter) {
+        targetPage = ui->page_AGV_Parameter;
+    }
+    if (!targetPage || ui->stackedWidget_Parameter->currentWidget() == targetPage) {
+        return;
+    }
+
+    ui->stackedWidget_Parameter->setCurrentWidget(targetPage);
+    ui->stackedWidget_Parameter->raise();
+}
+
+void MainWindow::setupAGVStepPad()
+{
+    QWidget *page = findChild<QWidget*>(QStringLiteral("page_AGVStep_Parameter"));
+    if (!page) {
+        return;
+    }
+
+    const QStringList buttonNames = {
+        QStringLiteral("techBtn_AGVStep_UpLeft"),
+        QStringLiteral("techBtn_AGVStep_Up"),
+        QStringLiteral("techBtn_AGVStep_UpRight"),
+        QStringLiteral("techBtn_AGVStep_Left"),
+        QStringLiteral("techBtn_AGVStep_Rotate"),
+        QStringLiteral("techBtn_AGVStep_Right"),
+        QStringLiteral("techBtn_AGVStep_DownLeft"),
+        QStringLiteral("techBtn_AGVStep_Down"),
+        QStringLiteral("techBtn_AGVStep_DownRight")
+    };
+
+    if (!m_agvStepDirectionGroup) {
+        m_agvStepDirectionGroup = new QButtonGroup(page);
+        m_agvStepDirectionGroup->setExclusive(true);
+        connect(m_agvStepDirectionGroup,
+                QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
+                this, [this](QAbstractButton *) {
+                    updateAGVStepPadVisuals();
+                });
+    }
+
+    QFont padFont;
+    padFont.setFamilies({
+        QStringLiteral("Noto Sans CJK SC"),
+        QStringLiteral("Microsoft YaHei"),
+        QStringLiteral("WenQuanYi Micro Hei"),
+        QStringLiteral("DejaVu Sans")
+    });
+    padFont.setPointSize(13);
+    padFont.setBold(true);
+
+    int buttonId = 0;
+    for (const QString &name : buttonNames) {
+        TechPushButton *btn = page->findChild<TechPushButton*>(name);
+        if (!btn) {
+            continue;
+        }
+        btn->setCheckable(true);
+        btn->setAutoExclusive(false);
+        btn->setCursor(Qt::PointingHandCursor);
+        btn->setFont(padFont);
+        btn->setButtonStyle(TechPushButton::StyleHolographic);
+        btn->setCornerRadius(16);
+        btn->setBorderWidth(2);
+        btn->enableHoverAnimation(true);
+        btn->enableClickAnimation(true);
+        btn->setTextGlow(true);
+        if (m_agvStepDirectionGroup->id(btn) == -1) {
+            m_agvStepDirectionGroup->addButton(btn, buttonId);
+        }
+        ++buttonId;
+    }
+
+    if (!m_agvStepDirectionGroup->checkedButton()) {
+        if (TechPushButton *upBtn = page->findChild<TechPushButton*>(QStringLiteral("techBtn_AGVStep_Up"))) {
+            upBtn->setChecked(true);
+        }
+    }
+
+    updateAGVStepPadVisuals();
+}
+
+void MainWindow::updateAGVStepPadVisuals()
+{
+    if (!m_agvStepDirectionGroup) {
+        return;
+    }
+
+    QAbstractButton *checked = m_agvStepDirectionGroup->checkedButton();
+    const QColor active(0, 210, 255);
+    const QColor activeRotate(0, 230, 190);
+    const QColor inactive(32, 52, 74);
+    const QColor inactiveText(158, 196, 216);
+
+    for (QAbstractButton *raw : m_agvStepDirectionGroup->buttons()) {
+        TechPushButton *btn = qobject_cast<TechPushButton *>(raw);
+        if (!btn) {
+            continue;
+        }
+
+        const bool on = (btn == checked);
+        const bool isRotate = (btn->objectName() == QStringLiteral("techBtn_AGVStep_Rotate"));
+        const QColor primary = on ? (isRotate ? activeRotate : active) : inactive;
+        btn->setButtonStyle(on && isRotate ? TechPushButton::StyleEnergy : TechPushButton::StyleHolographic);
+        btn->setPrimaryColor(primary);
+        btn->setSecondaryColor(on ? QColor(160, 255, 255) : QColor(70, 100, 120));
+        btn->setGlowColor(on ? primary.lighter(145) : QColor(58, 82, 104));
+        btn->setTextColor(on ? QColor(255, 255, 255) : inactiveText);
+        btn->enablePulseEffect(false);
+        btn->update();
+    }
+}
+
 // 设置步进模式控制
 void MainWindow::setupStepMoveControl()
 {
@@ -10498,6 +10631,8 @@ void MainWindow::setupStepMoveControl()
     }
 
     m_btnStepMove = findChild<QToolButton*>("TBtn_Stepmove");
+
+    setupAGVStepPad();
 
     QToolButton *axis1Btn = findChild<QToolButton*>("btnStepTargetAxis1");
     QToolButton *axis2Btn = findChild<QToolButton*>("btnStepTargetAxis2");
@@ -12791,6 +12926,7 @@ void MainWindow::applyDefaultJogStepModeFromExternalKey()
 
     updateFunctionSwitchVisuals();
     updateStepTargetButtonsState();
+    updateChassisParameterPage();
 }
 
 void MainWindow::applyDefaultJointMoveModeFromExternalKey()

@@ -204,6 +204,15 @@ void MappingConfig::initDefaultMappings()
         m_controlNameMap["TBtn_AGV_Backward"] = "AGV 后退按钮";
         m_controlNameMap["techBtn_AGV_OA"] = "AGV OA 按钮";
         m_controlNameMap["techBtn_AGV_驻车"] = "AGV 驻车按钮";
+        m_controlNameMap["techBtn_AGVStep_UpLeft"] = "底盘步进 · 左上";
+        m_controlNameMap["techBtn_AGVStep_Up"] = "底盘步进 · 上";
+        m_controlNameMap["techBtn_AGVStep_UpRight"] = "底盘步进 · 右上";
+        m_controlNameMap["techBtn_AGVStep_Left"] = "底盘步进 · 左";
+        m_controlNameMap["techBtn_AGVStep_Rotate"] = "底盘步进 · 原地旋转";
+        m_controlNameMap["techBtn_AGVStep_Right"] = "底盘步进 · 右";
+        m_controlNameMap["techBtn_AGVStep_DownLeft"] = "底盘步进 · 左下";
+        m_controlNameMap["techBtn_AGVStep_Down"] = "底盘步进 · 下";
+        m_controlNameMap["techBtn_AGVStep_DownRight"] = "底盘步进 · 右下";
 
         // 力控相关
         m_controlNameMap["btn_ForceClear"] = "力控清除按钮";

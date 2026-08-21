@@ -409,6 +409,12 @@ public:
     void setupAGVMoveSpeedControl();
     /** @brief 初始化 AGV 角度控制 */
     void setupAGVAngleControl();
+    /** @brief 初始化底盘步进方向九键盘 */
+    void setupAGVStepPad();
+    /** @brief 刷新底盘步进九键盘选中态外观 */
+    void updateAGVStepPadVisuals();
+    /** @brief 底盘控制下按步进/点动切换参数页 */
+    void updateChassisParameterPage();
     /** @brief 初始化步进移动控制 */
     void setupStepMoveControl();
     /** @brief 配置步进移动行编辑 */
@@ -884,6 +890,7 @@ private:
     QToolButton *m_btnStepMove = nullptr;
     QButtonGroup *m_stepTargetGroup = nullptr;
     QButtonGroup *m_sixAxisStepTargetGroup = nullptr;
+    QButtonGroup *m_agvStepDirectionGroup = nullptr;
     QLineEdit *m_stepValueEdit = nullptr;
     QLineEdit *m_editJ1MoveStep = nullptr;
     QLineEdit *m_editJ2MoveStep = nullptr;

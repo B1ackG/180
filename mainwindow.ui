@@ -50,7 +50,7 @@ QMainWindow &gt; QWidget {
   <widget class="QWidget" name="centralwidget">
    <property name="styleSheet">
     <string notr="true">
-QGroupBox#groupBox_2, QGroupBox#groupBox, QGroupBox#groupBox_Robot_StepMove, QGroupBox#groupBox_SixAxies_StepMove, QGroupBox#groupBox_4 {
+QGroupBox#groupBox_2, QGroupBox#groupBox, QGroupBox#groupBox_Robot_StepMove, QGroupBox#groupBox_SixAxies_StepMove, QGroupBox#groupBox_AGVStep_Pad, QGroupBox#groupBox_4 {
   border-radius: 10px;
   margin-top: 14px;
 }
@@ -72,14 +72,14 @@ QGroupBox#groupBox_4 {
                               stop:0 rgba(76, 18, 18, 0.70),
                               stop:1 rgba(56, 16, 16, 0.62));
 }
-QGroupBox#groupBox_Robot_StepMove, QGroupBox#groupBox_SixAxies_StepMove {
+QGroupBox#groupBox_Robot_StepMove, QGroupBox#groupBox_SixAxies_StepMove, QGroupBox#groupBox_AGVStep_Pad {
   border: 1px solid rgba(0, 220, 255, 0.52);
   background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                               stop:0 rgba(12, 36, 64, 0.82),
                               stop:1 rgba(8, 26, 48, 0.70));
 }
 
-QGroupBox#groupBox_2::title, QGroupBox#groupBox::title, QGroupBox#groupBox_Robot_StepMove::title, QGroupBox#groupBox_SixAxies_StepMove::title, QGroupBox#groupBox_4::title {
+QGroupBox#groupBox_2::title, QGroupBox#groupBox::title, QGroupBox#groupBox_Robot_StepMove::title, QGroupBox#groupBox_SixAxies_StepMove::title, QGroupBox#groupBox_AGVStep_Pad::title, QGroupBox#groupBox_4::title {
   subcontrol-origin: margin;
   subcontrol-position: top center;
   padding: 1px 12px;
@@ -89,7 +89,7 @@ QGroupBox#groupBox_2::title, QGroupBox#groupBox::title, QGroupBox#groupBox_Robot
 }
 QGroupBox#groupBox_2::title { color: #9fe7ff; background: rgba(8, 24, 42, 0.92); border-bottom: 1px solid rgba(0, 200, 255, 0.52); }
 QGroupBox#groupBox::title { color: #c0e8ff; background: rgba(10, 28, 48, 0.92); border-bottom: 1px solid rgba(0, 170, 255, 0.42); }
-QGroupBox#groupBox_Robot_StepMove::title, QGroupBox#groupBox_SixAxies_StepMove::title { color: #9ff4ff; background: rgba(8, 30, 50, 0.95); border-bottom: 1px solid rgba(0, 220, 255, 0.58); }
+QGroupBox#groupBox_Robot_StepMove::title, QGroupBox#groupBox_SixAxies_StepMove::title, QGroupBox#groupBox_AGVStep_Pad::title { color: #9ff4ff; background: rgba(8, 30, 50, 0.95); border-bottom: 1px solid rgba(0, 220, 255, 0.58); }
 QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92); border-bottom: 1px solid rgba(255, 120, 120, 0.62); }
 
 #groupBox_Robot_StepMove QLabel,
@@ -780,7 +780,7 @@ mm</string>
        </rect>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="page_SixAxies_Parameter">
        <widget class="TechPushButton" name="techBtn_resetSixAxies">
@@ -1055,6 +1055,303 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
            <size>
             <width>20</width>
             <height>75</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="page_AGVStep_Parameter">
+       <layout class="QVBoxLayout" name="verticalLayout_AGVStep_Parameter">
+        <property name="spacing">
+         <number>8</number>
+        </property>
+        <property name="leftMargin">
+         <number>28</number>
+        </property>
+        <property name="topMargin">
+         <number>12</number>
+        </property>
+        <property name="rightMargin">
+         <number>28</number>
+        </property>
+        <property name="bottomMargin">
+         <number>12</number>
+        </property>
+        <item>
+         <spacer name="verticalSpacer_AGVStep_Top">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>16</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item alignment="Qt::AlignHCenter">
+         <widget class="QGroupBox" name="groupBox_AGVStep_Pad">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>420</width>
+            <height>400</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>420</width>
+            <height>400</height>
+           </size>
+          </property>
+          <property name="title">
+           <string>步进方向</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_AGVStep_Pad">
+           <property name="leftMargin">
+            <number>14</number>
+           </property>
+           <property name="topMargin">
+            <number>22</number>
+           </property>
+           <property name="rightMargin">
+            <number>14</number>
+           </property>
+           <property name="bottomMargin">
+            <number>14</number>
+           </property>
+           <property name="spacing">
+            <number>10</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="TechPushButton" name="techBtn_AGVStep_UpLeft">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>1</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>112</width>
+               <height>104</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>↖
+左上</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="TechPushButton" name="techBtn_AGVStep_Up">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>1</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>112</width>
+               <height>104</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>↑
+上</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="TechPushButton" name="techBtn_AGVStep_UpRight">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>1</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>112</width>
+               <height>104</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>↗
+右上</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="TechPushButton" name="techBtn_AGVStep_Left">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>1</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>112</width>
+               <height>104</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>←
+左</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="TechPushButton" name="techBtn_AGVStep_Rotate">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>1</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>112</width>
+               <height>104</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>⟳
+原地旋转</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="TechPushButton" name="techBtn_AGVStep_Right">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>1</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>112</width>
+               <height>104</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>→
+右</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="TechPushButton" name="techBtn_AGVStep_DownLeft">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>1</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>112</width>
+               <height>104</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>↙
+左下</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="TechPushButton" name="techBtn_AGVStep_Down">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>1</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>112</width>
+               <height>104</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>↓
+下</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="TechPushButton" name="techBtn_AGVStep_DownRight">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>1</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>112</width>
+               <height>104</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>↘
+右下</string>
+             </property>
+             <property name="checkable">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_AGVStep_Bottom">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>16</height>
            </size>
           </property>
          </spacer>
@@ -1556,7 +1853,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
      </widget>
     </widget>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>9</x>
@@ -1596,7 +1893,15 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>1257</width>
+      <height>80</height>
+     </rect>
+    </property>
     <layout class="QHBoxLayout" name="titleRowLayout">
      <property name="spacing">
       <number>0</number>
@@ -1700,7 +2005,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>9</x>
