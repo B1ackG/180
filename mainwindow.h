@@ -793,7 +793,7 @@ private:
     // ----- 通信轮询与重连参数（可持久化） -----
     int m_mainModbusPollIntervalMs = 500;
     int m_mainUiPollIntervalMs = 200;
-    int m_mainDeviceStatusPollIntervalMs = 2000;
+    int m_mainDeviceStatusPollIntervalMs = 200;
     int m_mainDeviceStatusStart = 0;
     int m_mainDeviceStatusCount = 85;
     int m_mainControlSyncStart = 125;

@@ -2052,7 +2052,7 @@ void FeatureSwitchWidget::loadPollingState()
     m_cbUiStateSync->setChecked(settings.value("ui_state_sync_enabled", true).toBool());
     m_editMainModbusPoll->setText(settings.value("main_modbus_poll_ms", 500).toString());
     m_editMainUiPoll->setText(settings.value("main_ui_poll_ms", 200).toString());
-    m_editMainDeviceStatusPoll->setText(settings.value("main_device_status_poll_ms", 2000).toString());
+    m_editMainDeviceStatusPoll->setText(settings.value("main_device_status_poll_ms", 200).toString());
     m_editMainDeviceStatusStart->setText(settings.value("main_device_status_start", 0).toString());
     m_editMainDeviceStatusCount->setText(settings.value("main_device_status_count", 85).toString());
     m_editMainControlSyncStart->setText(settings.value("main_control_sync_start", 125).toString());
@@ -2088,9 +2088,9 @@ void FeatureSwitchWidget::loadSliderLimitState()
 {
     const QMap<QString, QPair<double, double>> defaultRanges = {
         {"robot_ArcGauge_J1Angle", qMakePair(-170.0, 170.0)},
-        {"robot_ArcGauge_J2Height", qMakePair(-850.0, 1150.0)},
-        {"robot_ArcGauge_J3Length", qMakePair(0.0, 1600.0)},
-        {"robot_ArcGauge_J4Angle", qMakePair(-180.0, 180.0)},
+        {"robot_ArcGauge_J2Height", qMakePair(4400.0, 7200.0)},
+        {"robot_ArcGauge_J3Length", qMakePair(3765.0, 6765.0)},
+        {"robot_ArcGauge_J4Angle", qMakePair(-45.0, 45.0)},
         {"robot_ArcGauge_SixAxis1", qMakePair(-15.0, 15.0)},
         {"robot_ArcGauge_SixAxis2", qMakePair(-15.0, 15.0)},
         {"robot_ArcGauge_SixAxis3", qMakePair(-12.0, 12.0)},

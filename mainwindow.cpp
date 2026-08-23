@@ -326,7 +326,7 @@ void MainWindow::loadPollingRuntimeSettings()
     m_uiStateSyncEnabled = settings.value("ui_state_sync_enabled", true).toBool();
     m_mainModbusPollIntervalMs = settings.value("main_modbus_poll_ms", 500).toInt();
     m_mainUiPollIntervalMs = settings.value("main_ui_poll_ms", 200).toInt();
-    m_mainDeviceStatusPollIntervalMs = settings.value("main_device_status_poll_ms", 2000).toInt();
+    m_mainDeviceStatusPollIntervalMs = settings.value("main_device_status_poll_ms", 200).toInt();
     m_mainDeviceStatusStart = settings.value("main_device_status_start", 0).toInt();
     m_mainDeviceStatusCount = settings.value("main_device_status_count", 85).toInt();
     m_mainControlSyncStart = settings.value("main_control_sync_start", 125).toInt();
@@ -1868,9 +1868,9 @@ void MainWindow::initSpeedGaugeUI()
 
     QList<ArcConfig> configs = {
         {ui->widget_test1, "robot_ArcGauge_J1Angle", "悬臂角度", QString(), "°", -170, 170, 1},
-        {ui->widget_test2, "robot_ArcGauge_J2Height", "升降高度", QString(), "mm", -850, 1150, 0},
-        {ui->widget_test3, "robot_ArcGauge_J3Length", "总伸展长度", QString(), "mm", 0, 1600, 0},
-        {ui->widget_test4, "robot_ArcGauge_J4Angle", "末端角度", QString(), "°", -180, 180, 1},
+        {ui->widget_test2, "robot_ArcGauge_J2Height", "升降高度", QString(), "mm", 4400, 7200, 0},
+        {ui->widget_test3, "robot_ArcGauge_J3Length", "总伸展长度", QString(), "mm", 3765, 6765, 0},
+        {ui->widget_test4, "robot_ArcGauge_J4Angle", "末端角度", QString(), "°", -45, 45, 1},
         {ui->widget_SixAxies_1, "robot_ArcGauge_SixAxis1", "RX", QString(), "°", -15, 15, 2},
         {ui->widget_SixAxies_2, "robot_ArcGauge_SixAxis2", "RY", QString(), "°", -15, 15, 2},
         {ui->widget_SixAxies_3, "robot_ArcGauge_SixAxis3", "RZ", QString(), "°", -12, 12, 2},
@@ -6410,7 +6410,7 @@ void MainWindow::setupSliderLabelConfigs()
         "J2当前高度:",           // labelText
         "mm",                // unit
         4400.0,              // minValue
-        8000.0,              // maxValue
+        7200.0,              // maxValue
         4432.0,               // defaultValue
         "mm",                // suffix
         4,                   // modbusAddress1
@@ -6426,7 +6426,7 @@ void MainWindow::setupSliderLabelConfigs()
         "J3当前长度:",           // labelText
         "mm",                // unit
         3765.0,                 // minValue
-        6805.0,              // maxValue
+        6765.0,              // maxValue
         560.0,               // defaultValue
         "mm",                // suffix
         12,                  // modbusAddress1
