@@ -798,7 +798,8 @@ private:
     int m_mainDeviceStatusCount = 85;
     int m_mainControlSyncStart = 125;
     int m_mainControlSyncCount = 6;
-    bool m_uiStateSyncEnabled = true;
+    bool m_mainUiStateSyncEnabled = true;
+    bool m_agvUiStateSyncEnabled = true;
     int m_mainReconnectIntervalMs = 5000;
     int m_agvPollIntervalMs = 200;
     int m_agvReconnectIntervalMs = 5000;

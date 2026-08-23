@@ -323,7 +323,9 @@ void MainWindow::loadPollingRuntimeSettings()
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("Polling");
 
-    m_uiStateSyncEnabled = settings.value("ui_state_sync_enabled", true).toBool();
+    const bool legacyUiStateSync = settings.value("ui_state_sync_enabled", true).toBool();
+    m_mainUiStateSyncEnabled = settings.value("main_ui_state_sync_enabled", legacyUiStateSync).toBool();
+    m_agvUiStateSyncEnabled = settings.value("agv_ui_state_sync_enabled", legacyUiStateSync).toBool();
     m_mainModbusPollIntervalMs = settings.value("main_modbus_poll_ms", 500).toInt();
     m_mainUiPollIntervalMs = settings.value("main_ui_poll_ms", 200).toInt();
     m_mainDeviceStatusPollIntervalMs = settings.value("main_device_status_poll_ms", 200).toInt();
@@ -365,7 +367,8 @@ void MainWindow::savePollingRuntimeSettings() const
 {
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("Polling");
-    settings.setValue("ui_state_sync_enabled", m_uiStateSyncEnabled);
+    settings.setValue("main_ui_state_sync_enabled", m_mainUiStateSyncEnabled);
+    settings.setValue("agv_ui_state_sync_enabled", m_agvUiStateSyncEnabled);
     settings.setValue("main_modbus_poll_ms", m_mainModbusPollIntervalMs);
     settings.setValue("main_ui_poll_ms", m_mainUiPollIntervalMs);
     settings.setValue("main_device_status_poll_ms", m_mainDeviceStatusPollIntervalMs);
@@ -5719,33 +5722,33 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
     // 更新寄存器缓存
     g_registerCache[address] = value;
 
-    const bool allowUiStateSync = m_uiStateSyncEnabled;
+    const bool allowMainUiStateSync = m_mainUiStateSyncEnabled;
 
     // 步进/点动：首页用 125、六自由度页用 600；任一处变化都应刷新（syncStepModeUiByCurrentPage 按当前页选源）
     const bool shouldSyncStepMode = (address == 125 || address == 600);
 
-    if (allowUiStateSync && shouldSyncStepMode) {
+    if (allowMainUiStateSync && shouldSyncStepMode) {
         Q_UNUSED(value);
         syncStepModeUiByCurrentPage();
         updateStepTargetButtonsState();
     }
 
-    if (allowUiStateSync && address == 126) {
+    if (allowMainUiStateSync && address == 126) {
         applyMoveModeUiFromRegister126(value);
         updateFunctionSwitchVisuals();
     }
 
-    if (allowUiStateSync && address == 130) {
+    if (allowMainUiStateSync && address == 130) {
         applyRobotSpeedUiFromRegister130(value);
     }
 
-    if (allowUiStateSync && address == 5004 && m_weightOverloadLimitEdit) {
+    if (allowMainUiStateSync && address == 5004 && m_weightOverloadLimitEdit) {
         const QPair<int, int> lim = weightOverloadLimitRangeFromSettings();
         const QSignalBlocker blocker(m_weightOverloadLimitEdit);
         m_weightOverloadLimitEdit->setText(QString::number(qBound(lim.first, static_cast<int>(value), lim.second)));
     }
 
-    if (allowUiStateSync && address == 5005 && m_weightLockLimitEdit) {
+    if (allowMainUiStateSync && address == 5005 && m_weightLockLimitEdit) {
         const QPair<int, int> lim = weightLockLimitRangeFromSettings();
         const QSignalBlocker blocker(m_weightLockLimitEdit);
         m_weightLockLimitEdit->setText(QString::number(qBound(lim.first, static_cast<int>(value), lim.second)));
@@ -5763,7 +5766,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         "robot_ArcGauge_J1Angle", "robot_ArcGauge_J2Height", "robot_ArcGauge_J3Length", "robot_ArcGauge_J4Angle"
     };
 
-    // J1~J4 数值显示应始终跟随主寄存器数据，不受“控件状态同步”开关影响。
+    // J1~J4 数值显示应始终跟随主寄存器数据，不受主控/AGV 控件状态同步开关影响。
     for (const QString &labelName : targetLabels) {
         if (!m_sliderLabelConfigs.contains(labelName)) {
             continue;
@@ -6686,7 +6689,7 @@ void MainWindow::setupAGVModbus()
                     }
                 }
 
-                if (m_uiStateSyncEnabled && address == 153 && m_editAGV_MoveSpeed) {
+                if (m_agvUiStateSyncEnabled && address == 153 && m_editAGV_MoveSpeed) {
                     const QSignalBlocker blocker(m_editAGV_MoveSpeed);
                     const double clamped = qBound(m_editAGV_MoveSpeed->minimum(), static_cast<double>(value), m_editAGV_MoveSpeed->maximum());
                     m_editAGV_MoveSpeed->setValue(clamped);
@@ -6700,7 +6703,7 @@ void MainWindow::setupAGVModbus()
                     updateInclinometerValue(false, value);
                 }
 
-                if (m_uiStateSyncEnabled && address == 154 && m_editAGV_Angle) {
+                if (m_agvUiStateSyncEnabled && address == 154 && m_editAGV_Angle) {
                     const QSignalBlocker blocker(m_editAGV_Angle);
                     const double clamped = qBound(m_editAGV_Angle->minimum(), static_cast<double>(value), m_editAGV_Angle->maximum());
                     m_editAGV_Angle->setValue(clamped);
@@ -7096,13 +7099,13 @@ void MainWindow::onAGVWordVariableChanged(int address, quint16 value)
         onAGVUpdateStatusLabel("label_speed", QString("%1 mm/s").arg(value));
     }
 
-    if (m_uiStateSyncEnabled && address == 153 && m_editAGV_MoveSpeed) {
+    if (m_agvUiStateSyncEnabled && address == 153 && m_editAGV_MoveSpeed) {
         const QSignalBlocker blocker(m_editAGV_MoveSpeed);
         const double clamped = qBound(m_editAGV_MoveSpeed->minimum(), static_cast<double>(value), m_editAGV_MoveSpeed->maximum());
         m_editAGV_MoveSpeed->setValue(clamped);
     }
 
-    if (m_uiStateSyncEnabled && address == 154 && m_editAGV_Angle) {
+    if (m_agvUiStateSyncEnabled && address == 154 && m_editAGV_Angle) {
         const QSignalBlocker blocker(m_editAGV_Angle);
         const double clamped = qBound(m_editAGV_Angle->minimum(), static_cast<double>(value), m_editAGV_Angle->maximum());
         m_editAGV_Angle->setValue(clamped);

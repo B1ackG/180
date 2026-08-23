@@ -1018,8 +1018,16 @@ void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
     pollLayout->addWidget(makeHintLabel(
         QStringLiteral("单位均为毫秒（ms），除非另行说明。设备状态数量建议保持默认 85。"), pollGroup));
 
-    m_cbUiStateSync = new QCheckBox(QStringLiteral("启用控件状态同步"));
-    pollLayout->addWidget(m_cbUiStateSync);
+    auto *syncRow = new QHBoxLayout();
+    m_cbMainUiStateSync = new QCheckBox(QStringLiteral("启用主控控件状态同步"));
+    m_cbAgvUiStateSync = new QCheckBox(QStringLiteral("启用AGV控件状态同步"));
+    syncRow->addWidget(m_cbMainUiStateSync);
+    syncRow->addWidget(m_cbAgvUiStateSync);
+    syncRow->addStretch();
+    pollLayout->addLayout(syncRow);
+    pollLayout->addWidget(makeHintLabel(
+        QStringLiteral("分开关闭后，对应设备的模式/速度等可写控件不再被寄存器回读覆盖；J1~J4 等数值显示不受影响。"),
+        pollGroup));
 
     auto addPollGrid = [&](const QString &sectionTitle,
                            const QList<QPair<QString, QLineEdit**>> &items) {
@@ -2049,7 +2057,9 @@ void FeatureSwitchWidget::loadPollingState()
 {
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("Polling");
-    m_cbUiStateSync->setChecked(settings.value("ui_state_sync_enabled", true).toBool());
+    const bool legacyUiStateSync = settings.value("ui_state_sync_enabled", true).toBool();
+    m_cbMainUiStateSync->setChecked(settings.value("main_ui_state_sync_enabled", legacyUiStateSync).toBool());
+    m_cbAgvUiStateSync->setChecked(settings.value("agv_ui_state_sync_enabled", legacyUiStateSync).toBool());
     m_editMainModbusPoll->setText(settings.value("main_modbus_poll_ms", 500).toString());
     m_editMainUiPoll->setText(settings.value("main_ui_poll_ms", 200).toString());
     m_editMainDeviceStatusPoll->setText(settings.value("main_device_status_poll_ms", 200).toString());
@@ -2068,7 +2078,8 @@ void FeatureSwitchWidget::savePollingState()
 {
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("Polling");
-    settings.setValue("ui_state_sync_enabled", m_cbUiStateSync->isChecked());
+    settings.setValue("main_ui_state_sync_enabled", m_cbMainUiStateSync->isChecked());
+    settings.setValue("agv_ui_state_sync_enabled", m_cbAgvUiStateSync->isChecked());
     settings.setValue("main_modbus_poll_ms", m_editMainModbusPoll->text().toInt());
     settings.setValue("main_ui_poll_ms", m_editMainUiPoll->text().toInt());
     settings.setValue("main_device_status_poll_ms", m_editMainDeviceStatusPoll->text().toInt());

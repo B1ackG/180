@@ -93,3 +93,7 @@ system_check.log
 # Added by Assistant staging review
 *.html
 *.txt
+
+# Added by Assistant staging review
+*.ods
+*.ods#

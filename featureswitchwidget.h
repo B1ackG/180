@@ -116,7 +116,8 @@ private:
     QLineEdit *m_editAgvPoll;
     QLineEdit *m_editAgvReconnect;
     QLineEdit *m_editTeachingWriteDeviceId;
-    QCheckBox *m_cbUiStateSync;
+    QCheckBox *m_cbMainUiStateSync;
+    QCheckBox *m_cbAgvUiStateSync;
 
     /** TechArcGauge：显示开关 + 最小/最大范围 */
     struct ArcGaugeEdits {
