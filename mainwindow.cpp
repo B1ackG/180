@@ -841,7 +841,7 @@ const QMap<QString, DefaultModbusBinding> &knownButtonModbusBindings()
             true}},
         {QStringLiteral("techBtn_AGV_OA"), {
             makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("50"), QStringLiteral("13"), QStringLiteral("0"), QStringLiteral("1"))}),
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("1"), QStringLiteral("0"))}),
+            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("0"), QStringLiteral("1"))}),
             true}},
         {QStringLiteral("techBtn_AGV_Park"), {
             makeSpecList({
@@ -6951,6 +6951,11 @@ void MainWindow::onAGVModbusConnected()
             m_agvModbusManager->readMultipleRegisters(153, 2);
         });
     }
+
+    const bool hostEstop = isFeatureEnabled("alarm_system", "alarm.emergency_stop")
+        && (m_robotArmEmergency150Flag || m_agvChassisEmergency51Bit5Flag);
+    m_agvHostEstopCommandSynced = false;
+    syncAgvHostEmergencyStopCommand(hostEstop);
 }
 
 /**
@@ -6961,6 +6966,7 @@ void MainWindow::onAGVModbusConnected()
 void MainWindow::onAGVModbusDisconnected()
 {
     qCDebug(lcMainWindow) << "AGV Modbus连接断开";
+    m_agvHostEstopCommandSynced = false;
     ui->statusBar->showMessage("AGV Modbus连接断开", 3000);
 
     // 更新状态栏指示器
@@ -7769,17 +7775,37 @@ bool MainWindow::writeAGVRegisterBits(int address,
     return ok;
 }
 
+void MainWindow::syncAgvHostEmergencyStopCommand(bool emergencyActive)
+{
+    const bool bit6Normal = !emergencyActive;
+    if (m_agvHostEstopCommandSynced && m_agvHostEstopCommandBit6Normal == bit6Normal) {
+        return;
+    }
+    if (!m_agvModbusManager || !m_agvModbusManager->isConnected()) {
+        return;
+    }
 
+    ModbusThreadManager *gateMgr = m_modbusManager ? m_modbusManager : ModbusThreadManager::instance();
+    if (!ModbusWriteGate::verifyWriteAllowed(gateMgr)) {
+        return;
+    }
 
+    const bool ok = writeAGVRegisterBits(0,
+                                         { qMakePair(6, bit6Normal) },
+                                         emergencyActive ? QStringLiteral("急停命令HR0.6=0")
+                                                         : QStringLiteral("急停恢复HR0.6=1"),
+                                         true);
+    if (ok) {
+        m_agvHostEstopCommandSynced = true;
+        m_agvHostEstopCommandBit6Normal = bit6Normal;
+        qCDebug(lcMainWindow) << "AGV HR0.6 急停命令已写入:" << (bit6Normal ? 1 : 0)
+                              << (emergencyActive ? "(急停)" : "(正常)");
+    } else {
+        m_agvHostEstopCommandSynced = false;
+        qWarning() << "AGV HR0.6 急停命令写入失败，目标bit6=" << (bit6Normal ? 1 : 0);
+    }
+}
 
-
-
-
-/**
- * @brief 向主设备写入单个寄存器
- * @param address 寄存器地址
- * @param value 要写入的数值
- */
 void MainWindow::writeToMainDevice(int address, int value)
 {
     if (!isFeatureEnabled("modbus_main", "modbus_main.write_enabled")) {
@@ -8273,9 +8299,11 @@ void MainWindow::onAGVOABtnClicked()
         m_techBtnAGV_OA->setGlowColor(QColor(127, 140, 141, 100));
     }
 
+    // ods %MX0.1：1=关，0=开
+    const bool commandBitClosed = !targetOaEnabled;
     const bool writeOk = writeAGVRegisterBits(0,
                                               {
-                                                  qMakePair(1, targetOaEnabled),
+                                                  qMakePair(1, commandBitClosed),
                                               },
                                               targetOaEnabled ? "OA开启" : "OA关闭");
     if (!writeOk) {
@@ -8287,16 +8315,16 @@ void MainWindow::onAGVOABtnClicked()
                                                             : QColor(127, 140, 141, 100));
         }
         ui->statusBar->showMessage("AGV避障切换失败：写入未发送", 3000);
-        qWarning() << "AGV避障切换失败：地址0写入请求发送失败，目标bit1=" << (targetOaEnabled ? 1 : 0);
+        qWarning() << "AGV避障切换失败：地址0写入请求发送失败，目标bit1=" << (commandBitClosed ? 1 : 0);
         setProperty("oaSwitchBusy", false);
         return;
     }
 
     if (targetOaEnabled) {
-        qCDebug(lcMainWindow) << "AGV避障开启，地址0按位更新(bit1=1)";
+        qCDebug(lcMainWindow) << "AGV避障开启，地址0按位更新(bit1=0)";
         ui->statusBar->showMessage("AGV避障开启", 2000);
     } else {
-        qCDebug(lcMainWindow) << "AGV避障关闭，地址0按位更新(bit1=0)";
+        qCDebug(lcMainWindow) << "AGV避障关闭，地址0按位更新(bit1=1)";
         ui->statusBar->showMessage("AGV避障关闭", 2000);
     }
 
@@ -8321,18 +8349,18 @@ void MainWindow::onAGVOABtnClicked()
         }
 
         const quint16 reg0 = m_agvRegisterShadow.value(0, 0);
-        const bool actualOaEnabled = (((reg0 >> 1) & 0x01) == 1);
+        const bool actualOaEnabled = (((reg0 >> 1) & 0x01) == 0);
         if (actualOaEnabled == targetOaEnabled) {
             setProperty("oaSwitchBusy", false);
             return;
         }
 
-        qWarning() << "OA回读不一致，准备自动重试。目标bit1=" << (targetOaEnabled ? 1 : 0)
+        qWarning() << "OA回读不一致，准备自动重试。目标bit1=" << (targetOaEnabled ? 0 : 1)
                    << "实际寄存器0=" << reg0;
 
         const bool retryOk = writeAGVRegisterBits(0,
                                                   {
-                                                      qMakePair(1, targetOaEnabled),
+                                                      qMakePair(1, !targetOaEnabled),
                                                   },
                                                   targetOaEnabled ? "OA开启自动重试" : "OA关闭自动重试");
         if (!retryOk) {
@@ -8351,9 +8379,9 @@ void MainWindow::onAGVOABtnClicked()
                 return;
             }
             const quint16 reg0AfterRetry = m_agvRegisterShadow.value(0, 0);
-            const bool actualAfterRetry = (((reg0AfterRetry >> 1) & 0x01) == 1);
+            const bool actualAfterRetry = (((reg0AfterRetry >> 1) & 0x01) == 0);
             if (actualAfterRetry != targetOaEnabled) {
-                qWarning() << "OA自动重试后仍未达到目标。目标bit1=" << (targetOaEnabled ? 1 : 0)
+                qWarning() << "OA自动重试后仍未达到目标。目标bit1=" << (targetOaEnabled ? 0 : 1)
                            << "当前寄存器0=" << reg0AfterRetry;
                 ui->statusBar->showMessage("避障状态确认失败，请检查控制器侧地址0写保护/上位覆盖", 4500);
             }
@@ -10563,6 +10591,9 @@ void MainWindow::checkAlarmConditions()
         }
         m_emergencyStopAlarm = newEstopState;
     }
+
+    // ods %MX0.6：1=正常，0=急停。命令源与报警一致：主控150 + AGV 51.bit5
+    syncAgvHostEmergencyStopCommand(newEstopState);
 
     // 2. 统一更新显示
     updateAlarmDisplay();

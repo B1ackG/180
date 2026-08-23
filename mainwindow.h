@@ -341,6 +341,8 @@ public:
                               const QList<QPair<int, bool>> &bitUpdates,
                               const QString &scene = QString(),
                               bool bypassWirelessWarning = false);
+    /** @brief 按主控150 / AGV 51.bit5 写 HR0.6（1=正常，0=急停） */
+    void syncAgvHostEmergencyStopCommand(bool emergencyActive);
     /** @brief 主页面预计负载输入：应用 0~500 范围与校验器 */
     void applyEstimatedWeightRuntimeSettings();
     /** @brief 驻车伸出触发长度输入：从 config.ini 应用允许范围与校验器 */
@@ -670,6 +672,10 @@ private:
     bool m_emergencyStopChassisFlag = false;
     bool m_robotArmEmergency150Flag = false;
     bool m_agvChassisEmergency51Bit5Flag = false;
+    /** @brief 已成功把急停命令写到 AGV HR0.6 */
+    bool m_agvHostEstopCommandSynced = false;
+    /** @brief 上次写入的 HR0.6：true=1 正常，false=0 急停 */
+    bool m_agvHostEstopCommandBit6Normal = true;
     bool m_isSteeringAlarmActive = false;
     bool m_isSwitchingSteeringMode = false;
     int m_targetSteeringWaitBit = -1;
