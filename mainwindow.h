@@ -238,6 +238,10 @@ public:
     void showUnconfiguredStepValueHintDialog();
     /** @brief 隐藏步进值未设置提示窗 */
     void hideUnconfiguredStepValueHintDialog();
+    /** @brief 步进模式下外部按键与当前选中步进目标不匹配时的提示窗 */
+    void showStepTargetMismatchHintDialog(int keyNumber, const QString &selectedTargetName);
+    /** @brief 隐藏步进目标不匹配提示窗 */
+    void hideStepTargetMismatchHintDialog();
     /** @brief 外部按键在步进/点动模式未选择时的提示窗 */
     void showUnselectedStepModeHintDialog();
     /** @brief 隐藏步进/点动未选择提示窗 */
@@ -599,8 +603,8 @@ private slots:
     /** @brief 根据寄存器51同步驻车按钮与状态栏 */
     void syncAGVParkingStateFromRegister51(quint16 value, bool updateLegAbnormal = true);
 
-    /** @brief 根据寄存器155同步转向模式按钮与状态栏 */
-    void syncAGVSteeringModeFromRegister155(quint16 value);
+    /** @brief 根据寄存器50的bit10/11/12同步转向模式按钮与状态栏 */
+    void syncAGVSteeringModeFromRegister50(quint16 value);
 
     /** @brief 更新状态栏时间和日期 */
     void updateStatusBarTime();

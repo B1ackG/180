@@ -71,21 +71,34 @@ const QString kRobotZeroSpeedHistoryText =
 const QString kAgvZeroSpeedHistoryText =
     QStringLiteral("操作者在全向平台速度为0时操作");
 
-SteeringMode steeringModeFromRegisterValue(quint16 value)
+bool isSteeringModeIn123Group(SteeringMode mode)
 {
-    switch (value) {
-    case 1: return STEER_FRONT_BACK;
-    case 2: return STEER_FRONT_ONLY;
-    case 3: return STEER_PARALLEL;
-    case 4: return STEER_LATERAL;
-    case 5: return STEER_ROTATE;
-    // 兼容旧控制器枚举（0~4）
-    case 0: return STEER_FRONT_BACK;
-    default: return STEER_FRONT_BACK;
+    return mode == STEER_FRONT_BACK
+        || mode == STEER_FRONT_ONLY
+        || mode == STEER_PARALLEL;
+}
+
+QString steeringModeStatusText(SteeringMode mode)
+{
+    switch (mode) {
+    case STEER_FRONT_ONLY: return QStringLiteral("前轮转向");
+    case STEER_PARALLEL: return QStringLiteral("平移模式");
+    case STEER_LATERAL: return QStringLiteral("横移转向");
+    case STEER_ROTATE: return QStringLiteral("原地旋转");
+    case STEER_FRONT_BACK:
+    default: return QStringLiteral("前后转向");
     }
 }
 
-bool resolveSteeringModeFromStatus50(quint16 value, SteeringMode *mode, QString *modeText)
+SteeringMode steeringModeForReg50Bit10(SteeringMode fallback)
+{
+    return isSteeringModeIn123Group(fallback) ? fallback : STEER_FRONT_BACK;
+}
+
+bool resolveSteeringModeFromStatus50(quint16 value,
+                                     SteeringMode *mode,
+                                     QString *modeText,
+                                     SteeringMode bit10Fallback = STEER_FRONT_BACK)
 {
     const bool bit10 = ((value >> 10) & 0x01);
     const bool bit11 = ((value >> 11) & 0x01);
@@ -102,8 +115,9 @@ bool resolveSteeringModeFromStatus50(quint16 value, SteeringMode *mode, QString 
         return true;
     }
     if (bit10) {
-        if (mode) *mode = STEER_FRONT_BACK;
-        if (modeText) *modeText = QStringLiteral("前后转向");
+        const SteeringMode resolved = steeringModeForReg50Bit10(bit10Fallback);
+        if (mode) *mode = resolved;
+        if (modeText) *modeText = steeringModeStatusText(resolved);
         return true;
     }
     return false;
@@ -3587,6 +3601,7 @@ void MainWindow::dismissOperationHintToasts()
     dismissToastByMessage(kRobotZeroSpeedHintText);
     dismissToastByMessage(kAgvZeroSpeedHintText);
     dismissToastByMessage(QStringLiteral("当前未设置步进值"));
+    dismissToastByMessage(QStringLiteral("外部按键与当前选中的步进目标不匹配"));
     dismissToastByMessage(QStringLiteral("未选择步进或者点动模式，将自动选择点动模式"));
     dismissToastByMessage(QStringLiteral("未选择坐标或者关节模式，将自动选择关节模式"));
     dismissToastByMessage(ModbusWriteGate::teachingGateUserDialogMessage());
@@ -4283,6 +4298,10 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             if (selectedAxisIndex != axisIndex) {
                 qCDebug(lcMainWindow) << "六轴步进外部按键忽略：按键○" << keyNumber
                                       << "与当前目标轴" << selectedTargetText << "不匹配";
+                const QString mismatchTargetName = selectedTargetText.isEmpty()
+                                                       ? QStringLiteral("轴%1").arg(axisIndex)
+                                                       : selectedTargetText;
+                showStepTargetMismatchHintDialog(keyNumber, mismatchTargetName);
                 return;
             }
 
@@ -4636,6 +4655,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 if (selectedStepTargetRegister() != keyMappedTargetReg) {
                     qCDebug(lcMainWindow) << "步进外部按键忽略：按键○" << keyNumber
                                           << "与当前目标" << selectedStepTargetName() << "不匹配";
+                    showStepTargetMismatchHintDialog(keyNumber, selectedStepTargetName());
                     return;
                 }
 
@@ -4884,6 +4904,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
 
         if (selectedStepTargetRegister() != 504) {
             qCDebug(lcMainWindow) << "首页○9(步进)：未选中 AGV 步进目标(btnStepTargetAgv)，忽略";
+            showStepTargetMismatchHintDialog(keyNumber, selectedStepTargetName());
             return;
         }
 
@@ -6694,8 +6715,8 @@ void MainWindow::setupAGVModbus()
                     syncAGVParkingStateFromRegister51(value, false);
                 }
 
-                if (address == 155) {
-                    syncAGVSteeringModeFromRegister155(value);
+                if (address == 50) {
+                    syncAGVSteeringModeFromRegister50(value);
                 }
 
                 if (address == 150 && m_agvChassisEmergency51Bit5Flag
@@ -6903,7 +6924,6 @@ void MainWindow::onAGVModbusConnected()
             if (!m_agvModbusManager || !m_agvModbusManager->isConnected()) {
                 return;
             }
-            m_agvModbusManager->readMultipleRegisters(155, 1);
             m_agvModbusManager->readMultipleRegisters(50, 1);
             m_agvModbusManager->readMultipleRegisters(51, 1);
             m_agvModbusManager->readMultipleRegisters(153, 2);
@@ -7385,15 +7405,41 @@ void MainWindow::syncAGVParkingStateFromRegister51(quint16 value, bool updateLeg
     updateParkingLegAbnormalDialogVisibility();
 }
 
-void MainWindow::syncAGVSteeringModeFromRegister155(quint16 value)
+void MainWindow::syncAGVSteeringModeFromRegister50(quint16 value)
 {
     if (!m_steeringModeSelector) {
         return;
     }
 
-    const SteeringMode mode = steeringModeFromRegisterValue(value);
+    const bool bit10 = ((value >> 10) & 0x01);
+    const bool bit11 = ((value >> 11) & 0x01);
+    const bool bit12 = ((value >> 12) & 0x01);
+
+    SteeringMode mode = m_steeringModeSelector->currentMode();
+    bool shouldUpdate = false;
+
+    if (bit11) {
+        mode = STEER_LATERAL;
+        shouldUpdate = true;
+    } else if (bit12) {
+        mode = STEER_ROTATE;
+        shouldUpdate = true;
+    } else if (bit10) {
+        if (!isSteeringModeIn123Group(mode)) {
+            mode = steeringModeForReg50Bit10(m_lastSteeringMode);
+            shouldUpdate = true;
+        }
+    } else {
+        return;
+    }
+
+    if (!shouldUpdate || mode == m_steeringModeSelector->currentMode()) {
+        return;
+    }
+
     const QSignalBlocker blocker(m_steeringModeSelector);
     m_steeringModeSelector->setCurrentMode(mode);
+    m_lastSteeringMode = mode;
 
     QLabel *steeringLabel = ui && ui->statusBar
                                  ? ui->statusBar->findChild<QLabel*>("statusBarSteeringLabel")
@@ -8756,6 +8802,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
 
         if (selectedStepTargetRegister() != 504) {
             qCDebug(lcMainWindow) << "首页○10(步进)：未选中 AGV 步进目标(btnStepTargetAgv)，忽略";
+            showStepTargetMismatchHintDialog(keyNumber, selectedStepTargetName());
             return;
         }
 
@@ -8809,14 +8856,11 @@ QString MainWindow::currentSteeringModeText() const
         return m_steeringModeSelector->modeText(m_steeringModeSelector->currentMode());
     }
 
-    switch (steeringModeFromRegisterValue(m_agvRegisterShadow.value(155, 1))) {
-    case STEER_FRONT_BACK: return "前后轮转向";
-    case STEER_FRONT_ONLY: return "前轮转向";
-    case STEER_PARALLEL: return "平移模式";
-    case STEER_LATERAL: return "横向移动";
-    case STEER_ROTATE: return "原地旋转";
-    default: return "未知模式";
+    SteeringMode mode = STEER_FRONT_BACK;
+    if (resolveSteeringModeFromStatus50(m_agvRegisterShadow.value(50, 0), &mode, nullptr, m_lastSteeringMode)) {
+        return steeringModeStatusText(mode);
     }
+    return QStringLiteral("未知模式");
 }
 
 void MainWindow::appendAgvExternalKeyRecord(int keyNumber, bool pressed, const QString &stepValueFromLineEdit)
@@ -9044,7 +9088,8 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
                 QString currentModeText;
                 if (hasStatusWord) {
                     SteeringMode currentMode = STEER_FRONT_BACK;
-                    const bool modeResolved = resolveSteeringModeFromStatus50(regValue, &currentMode, &currentModeText);
+                    const bool modeResolved = resolveSteeringModeFromStatus50(
+                        regValue, &currentMode, &currentModeText, m_lastSteeringMode);
                     if (!modeResolved) {
                         currentModeText = QStringLiteral("未知模式");
                     }
@@ -12049,6 +12094,32 @@ void MainWindow::showUnconfiguredStepValueHintDialog()
 void MainWindow::hideUnconfiguredStepValueHintDialog()
 {
     dismissToastByMessage(QStringLiteral("当前未设置步进值"));
+}
+
+void MainWindow::showStepTargetMismatchHintDialog(int keyNumber, const QString &selectedTargetName)
+{
+    static const QString kHintText = QStringLiteral("外部按键与当前选中的步进目标不匹配");
+
+    if (m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = QStringLiteral("提示系统");
+        record.controlName = QStringLiteral("步进目标不匹配提示");
+        record.controlType = QStringLiteral("提示窗口");
+        record.operation = QStringLiteral("提示触发");
+        record.oldValue = QString();
+        record.newValue = QStringLiteral("操作者按下按键○%1，与当前步进目标%2不匹配")
+                              .arg(keyNumber)
+                              .arg(selectedTargetName);
+        m_recorder->addRecord(record);
+    }
+
+    showToast(kHintText, ToastKind::Warning);
+}
+
+void MainWindow::hideStepTargetMismatchHintDialog()
+{
+    dismissToastByMessage(QStringLiteral("外部按键与当前选中的步进目标不匹配"));
 }
 
 void MainWindow::applyDefaultJogStepModeFromExternalKey()

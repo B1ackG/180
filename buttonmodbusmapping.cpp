@@ -151,7 +151,11 @@ const QMap<QString, Binding> &knownBindings()
             specList({makeSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("4"))}),
             true}},
         {QStringLiteral("steeringModeSelector"), {
-            specList({makeSpec(QStringLiteral("AGV"), QStringLiteral("155"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2/3/4"))}),
+            specList({
+                makeSpec(QStringLiteral("AGV"), QStringLiteral("50"), QStringLiteral("10")),
+                makeSpec(QStringLiteral("AGV"), QStringLiteral("50"), QStringLiteral("11")),
+                makeSpec(QStringLiteral("AGV"), QStringLiteral("50"), QStringLiteral("12")),
+            }),
             specList({makeSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2/3/4"))}),
             true}},
         {QStringLiteral("TBtn_MoveMode"), {
