@@ -456,9 +456,21 @@ void TechVirtualKeyboard::onButtonClicked()
     // 添加文本到当前输入
     m_currentText += text;
     updatePreview();
+    if (m_targetLineEdit && m_isEditing) {
+        m_targetLineEdit->setText(m_currentText);
+    }
 
     // 应用按钮按下效果（不移动按钮）
     applyButtonPressEffect(button);
+}
+
+void TechVirtualKeyboard::commitPendingInput()
+{
+    if (!isVisible() || !m_targetLineEdit || !m_isEditing) {
+        hide();
+        return;
+    }
+    onEnterClicked();
 }
 
 void TechVirtualKeyboard::onEnterClicked()
@@ -496,6 +508,9 @@ void TechVirtualKeyboard::onDeleteClicked()
     // 删除当前所有内容
     m_currentText.clear();
     updatePreview();
+    if (m_targetLineEdit && m_isEditing) {
+        m_targetLineEdit->setText(m_currentText);
+    }
 
     // 应用按钮按下效果
     applyButtonPressEffect(m_buttonDelete);
@@ -506,6 +521,9 @@ void TechVirtualKeyboard::onClearClicked()
     // 清除所有内容
     m_currentText.clear();
     updatePreview();
+    if (m_targetLineEdit && m_isEditing) {
+        m_targetLineEdit->setText(m_currentText);
+    }
 
     // 应用按钮按下效果
     applyButtonPressEffect(m_buttonClear);
@@ -517,6 +535,9 @@ void TechVirtualKeyboard::onBackspaceClicked()
     if (!m_currentText.isEmpty()) {
         m_currentText.chop(1);
         updatePreview();
+        if (m_targetLineEdit && m_isEditing) {
+            m_targetLineEdit->setText(m_currentText);
+        }
     }
 
     // 应用按钮按下效果
@@ -535,6 +556,9 @@ void TechVirtualKeyboard::onNegateClicked()
             m_currentText.prepend('-');
         }
         updatePreview();
+        if (m_targetLineEdit && m_isEditing) {
+            m_targetLineEdit->setText(m_currentText);
+        }
     }
 
     // 应用按钮按下效果

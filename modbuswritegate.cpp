@@ -6,9 +6,22 @@
 namespace {
 bool s_interlock8192ReadOk = false;
 quint16 s_interlock8192Value = 0;
+int s_interlockRegisterAddress = 8192;
 }
 
 namespace ModbusWriteGate {
+
+int interlockRegisterAddress()
+{
+    return s_interlockRegisterAddress;
+}
+
+void setInterlockRegisterAddress(int address)
+{
+    if (address >= 0 && address <= 65535) {
+        s_interlockRegisterAddress = address;
+    }
+}
 
 quint16 configuredTeachingDeviceId()
 {

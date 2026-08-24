@@ -33,6 +33,7 @@
 #include "agvmodbusmanager.h"
 #include "steeringmodeselector.h"
 #include "enablebuttonworker.h"
+#include "buttonmodbusmapping.h"
 
 
 #include <QPushButton>
@@ -596,7 +597,7 @@ private slots:
     void onAGVHeartbeatReceived();
 
     /** @brief 根据寄存器51同步驻车按钮与状态栏 */
-    void syncAGVParkingStateFromRegister51(quint16 value);
+    void syncAGVParkingStateFromRegister51(quint16 value, bool updateLegAbnormal = true);
 
     /** @brief 根据寄存器155同步转向模式按钮与状态栏 */
     void syncAGVSteeringModeFromRegister155(quint16 value);
@@ -891,6 +892,7 @@ private:
 
     QHash<QString, SpareButtonNameRegisterBinding> m_spareButtonNameBindings;
     QHash<QString, QString> m_spareButtonDefaultFirstText;
+    QHash<QString, ButtonModbusMapping::Binding> m_buttonModbusBindings;
     TechSliderEdit *m_editAGV_MoveSpeed = nullptr;
     TechSliderEdit *m_editAGV_Angle = nullptr;
     QLineEdit *m_weightOverloadLimitEdit = nullptr;
@@ -1007,17 +1009,7 @@ public:
     void executeAGVParkingSwitch(bool targetEnabled, int legLengthMm = -1);
 
     /** @brief 控制台用 Modbus 寄存器四段描述：设备 / 地址 / 位 / 值 */
-    struct ModbusRegisterSpec {
-        QString device = QStringLiteral("无");
-        QString address;
-        QString bit;
-        QString value1;
-        QString value2;
-        QString value3;
-        bool isConfigured() const {
-            return device != QStringLiteral("无") && !address.trimmed().isEmpty();
-        }
-    };
+    using ModbusRegisterSpec = ButtonModbusMapping::RegisterSpec;
 
     struct ControllableButtonInfo {
         QString objectName;
@@ -1035,6 +1027,8 @@ public:
 
     /** @brief 从 config.ini [ButtonVisibility] 应用控件可见性到主窗口 */
     void applyButtonVisibilityRuntimeSettings();
+    void reloadButtonModbusBindings();
+    ButtonModbusMapping::Binding buttonModbusBinding(const QString &objectName) const;
     /** @brief 从 config.ini 应用备用按钮第二态 UI 变暗开关 */
     void applySpareButtonRuntimeSettings();
     /** @brief 从 config.ini 加载备用按钮多态名称寄存器配置 */
@@ -1043,6 +1037,9 @@ public:
     void syncSpareButtonNamesFromRegisters();
     /** @brief 按控制台配置执行备用按钮 Modbus 写入 */
     void executeSpareButtonConfiguredWrites(const QString &buttonObjectName, int stateIndex);
+    void executeConfiguredRegisterWrites(const QList<ModbusRegisterSpec> &specs,
+                                         int stateIndex,
+                                         const QString &logTag);
 
 private:
     void applyModbusAccessSwitches();

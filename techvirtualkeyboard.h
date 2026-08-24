@@ -81,6 +81,9 @@ public:
      */
     void setInitialText(const QString &text);
 
+    /** 将当前预览写回目标输入框并关闭键盘（保存/立即生效前调用） */
+    void commitPendingInput();
+
     /**
      * @brief 设置目标控件并显示键盘
      *

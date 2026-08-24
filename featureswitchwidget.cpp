@@ -1,4 +1,5 @@
 #include "featureswitchwidget.h"
+#include "buttonmodbusmapping.h"
 #include "featureswitchmanager.h"
 #include "mainwindow.h"
 #include "mappingconfig.h"
@@ -31,71 +32,11 @@
 
 namespace {
 
-MainWindow::ModbusRegisterSpec parseLegacyRegisterString(const QString &raw)
-{
-    MainWindow::ModbusRegisterSpec spec;
-    const QString t = raw.trimmed();
-    if (t.isEmpty() || t == QStringLiteral("无")) {
-        return spec;
-    }
-    if (!t.startsWith(QStringLiteral("主控:")) && !t.startsWith(QStringLiteral("AGV:"))) {
-        return spec;
-    }
+using ButtonModbusMapping::composeLegacyRegisterString;
+using ButtonModbusMapping::kMaxTargetsPerDirection;
+using ButtonModbusMapping::loadRegisterSpecs;
+using ButtonModbusMapping::resolvedBinding;
 
-    const int colon = t.indexOf(QLatin1Char(':'));
-    spec.device = t.left(colon);
-    const QString after = t.mid(colon + 1);
-    int i = 0;
-    while (i < after.size() && after.at(i).isDigit()) {
-        ++i;
-    }
-    spec.address = after.left(i);
-    QString rest = after.mid(i).trimmed();
-
-    if (rest.startsWith(QLatin1Char('('))) {
-        const int close = rest.indexOf(QLatin1Char(')'));
-        QString inner = close > 0 ? rest.mid(1, close - 1) : rest.mid(1);
-        if (inner.startsWith(QStringLiteral("bit"), Qt::CaseInsensitive)) {
-            inner = inner.mid(3).trimmed();
-        }
-        spec.bit = inner;
-        rest = close >= 0 ? rest.mid(close + 1).trimmed() : QString();
-    }
-
-    if (rest.startsWith(QLatin1Char('='))) {
-        spec.value1 = rest.mid(1).trimmed();
-    } else if (!rest.isEmpty()) {
-        spec.value1 = rest;
-    }
-    return spec;
-}
-
-QString composeLegacyRegisterString(const MainWindow::ModbusRegisterSpec &spec)
-{
-    if (!spec.isConfigured()) {
-        return QStringLiteral("无");
-    }
-
-    QString composed = spec.device + QLatin1Char(':') + spec.address.trimmed();
-    if (!spec.bit.trimmed().isEmpty()) {
-        QString bit = spec.bit.trimmed();
-        if (!bit.startsWith(QStringLiteral("bit"), Qt::CaseInsensitive)) {
-            bit = QStringLiteral("bit") + bit;
-        }
-        composed += QLatin1Char('(') + bit + QLatin1Char(')');
-    }
-    if (!spec.value1.trimmed().isEmpty()) {
-        const QString val = spec.value1.trimmed();
-        if (val.startsWith(QLatin1Char('+')) || val.contains(QLatin1Char('='))) {
-            composed += val.startsWith(QLatin1Char('+')) ? val : (QLatin1Char('=') + val);
-        } else if (spec.bit.trimmed().isEmpty()) {
-            composed += QLatin1Char('=') + val;
-        } else {
-            composed += QLatin1Char('=') + val;
-        }
-    }
-    return composed;
-}
 
 bool hasModbusOperation(const MainWindow::ControllableButtonInfo &info)
 {
@@ -173,64 +114,6 @@ QString smallFeatureGroupTitle(const QString &key)
     return titles.value(prefix, prefix.isEmpty() ? QStringLiteral("其它") : prefix);
 }
 
-MainWindow::ModbusRegisterSpec loadRegisterSpec(QSettings &settings,
-                                                const QString &keyPrefix,
-                                                const MainWindow::ModbusRegisterSpec &fallback)
-{
-    auto normalizeBitText = [](QString bit) {
-        bit = bit.trimmed();
-        if (bit == QStringLiteral("空位")
-            || bit == QStringLiteral("(空位)")
-            || bit == QStringLiteral("无")
-            || bit == QStringLiteral("(无)")) {
-            return QString();
-        }
-        if (bit.startsWith(QStringLiteral("bit"), Qt::CaseInsensitive)) {
-            bit = bit.mid(3).trimmed();
-        }
-        return bit;
-    };
-
-    MainWindow::ModbusRegisterSpec loaded;
-
-    if (settings.contains(keyPrefix + QStringLiteral("_device"))) {
-        loaded.device = settings.value(keyPrefix + QStringLiteral("_device"), QStringLiteral("无")).toString();
-        loaded.address = settings.value(keyPrefix + QStringLiteral("_addr")).toString();
-        loaded.bit = settings.value(keyPrefix + QStringLiteral("_bit")).toString();
-        if (loaded.bit.isEmpty()) {
-            loaded.bit = settings.value(keyPrefix + QStringLiteral("_extra")).toString();
-        }
-        loaded.bit = normalizeBitText(loaded.bit);
-        loaded.value1 = settings.value(keyPrefix + QStringLiteral("_value1")).toString();
-        if (loaded.value1.isEmpty()) {
-            loaded.value1 = settings.value(keyPrefix + QStringLiteral("_value")).toString();
-        }
-        loaded.value2 = settings.value(keyPrefix + QStringLiteral("_value2")).toString();
-        loaded.value3 = settings.value(keyPrefix + QStringLiteral("_value3")).toString();
-    } else if (settings.contains(keyPrefix)) {
-        loaded = parseLegacyRegisterString(settings.value(keyPrefix).toString());
-    }
-
-    if (loaded.isConfigured()) {
-        if (loaded.bit.trimmed().isEmpty()) {
-            loaded.bit = normalizeBitText(fallback.bit);
-        }
-        if (loaded.value1.trimmed().isEmpty()) {
-            loaded.value1 = fallback.value1;
-        }
-        if (loaded.value2.trimmed().isEmpty()) {
-            loaded.value2 = fallback.value2;
-        }
-        if (loaded.value3.trimmed().isEmpty()) {
-            loaded.value3 = fallback.value3;
-        }
-        return loaded;
-    }
-    return fallback;
-}
-
-constexpr int kMaxModbusTargetsPerDirection = 3;
-
 QComboBox *makeSpareNameDeviceCombo(QWidget *parent)
 {
     auto *combo = new QComboBox(parent);
@@ -283,116 +166,6 @@ void wireSpareNameRegisterRow(QComboBox *device, QLineEdit *addr)
     QObject::connect(device, QOverload<int>::of(&QComboBox::currentIndexChanged), device,
             [updateEnabled](int) { updateEnabled(); });
     updateEnabled();
-}
-
-QList<MainWindow::ModbusRegisterSpec> loadRegisterSpecs(QSettings &settings,
-                                                        const QString &basePrefix,
-                                                        const QList<MainWindow::ModbusRegisterSpec> &fallbacks)
-{
-    auto splitCompositeBitSpec = [](const MainWindow::ModbusRegisterSpec &spec) {
-        QList<MainWindow::ModbusRegisterSpec> out;
-        const QString bitText = spec.bit.trimmed();
-        if (!bitText.contains(QLatin1Char('/'))) {
-            out.append(spec);
-            return out;
-        }
-
-        const QStringList bitParts = bitText.split(QLatin1Char('/'), Qt::SkipEmptyParts);
-        if (bitParts.isEmpty()) {
-            out.append(spec);
-            return out;
-        }
-
-        const QString v1 = spec.value1.trimmed();
-        const QString v2 = spec.value2.trimmed();
-        const bool twoBitMode = (bitParts.size() == 2
-                                 && v1.size() == 2 && v2.size() == 2
-                                 && (v1.at(0) == QLatin1Char('0') || v1.at(0) == QLatin1Char('1'))
-                                 && (v1.at(1) == QLatin1Char('0') || v1.at(1) == QLatin1Char('1'))
-                                 && (v2.at(0) == QLatin1Char('0') || v2.at(0) == QLatin1Char('1'))
-                                 && (v2.at(1) == QLatin1Char('0') || v2.at(1) == QLatin1Char('1')));
-
-        for (int i = 0; i < bitParts.size(); ++i) {
-            MainWindow::ModbusRegisterSpec piece = spec;
-            QString pieceBit = bitParts.at(i).trimmed();
-            if (pieceBit.startsWith(QStringLiteral("bit"), Qt::CaseInsensitive)) {
-                pieceBit = pieceBit.mid(3).trimmed();
-            }
-            piece.bit = pieceBit;
-            if (twoBitMode) {
-                piece.value1 = QString(v1.at(i));
-                piece.value2 = QString(v2.at(i));
-            }
-            out.append(piece);
-        }
-        return out;
-    };
-
-    auto appendUnique = [](QList<MainWindow::ModbusRegisterSpec> &target,
-                           const MainWindow::ModbusRegisterSpec &spec) {
-        if (!spec.isConfigured()) {
-            return;
-        }
-        for (const auto &existing : target) {
-            if (existing.device == spec.device
-                && existing.address == spec.address
-                && existing.bit == spec.bit) {
-                return;
-            }
-        }
-        target.append(spec);
-    };
-
-    QList<MainWindow::ModbusRegisterSpec> loaded;
-    loaded.reserve(kMaxModbusTargetsPerDirection);
-
-    const bool hasLegacyBase = settings.contains(basePrefix + QStringLiteral("_device"))
-        || settings.contains(basePrefix);
-
-    bool hasIndexed = false;
-    for (int i = 0; i < kMaxModbusTargetsPerDirection; ++i) {
-        const QString indexedPrefix = QStringLiteral("%1_%2").arg(basePrefix).arg(i + 1);
-        if (settings.contains(indexedPrefix + QStringLiteral("_device")) || settings.contains(indexedPrefix)) {
-            hasIndexed = true;
-            break;
-        }
-    }
-
-    if (hasIndexed) {
-        for (int i = 0; i < kMaxModbusTargetsPerDirection; ++i) {
-            const QString indexedPrefix = QStringLiteral("%1_%2").arg(basePrefix).arg(i + 1);
-            const MainWindow::ModbusRegisterSpec fallback = (i < fallbacks.size())
-                ? fallbacks.at(i)
-                : MainWindow::ModbusRegisterSpec{};
-            if (settings.contains(indexedPrefix + QStringLiteral("_device"))
-                || settings.contains(indexedPrefix)) {
-                const MainWindow::ModbusRegisterSpec indexed = loadRegisterSpec(settings, indexedPrefix, fallback);
-                for (const auto &piece : splitCompositeBitSpec(indexed)) {
-                    appendUnique(loaded, piece);
-                }
-            } else if (i < fallbacks.size()) {
-                appendUnique(loaded, fallbacks.at(i));
-            }
-        }
-    } else if (hasLegacyBase) {
-        const MainWindow::ModbusRegisterSpec legacy = loadRegisterSpec(
-            settings, basePrefix, fallbacks.isEmpty() ? MainWindow::ModbusRegisterSpec{} : fallbacks.first());
-        for (const auto &piece : splitCompositeBitSpec(legacy)) {
-            appendUnique(loaded, piece);
-        }
-        for (int i = 1; i < fallbacks.size(); ++i) {
-            appendUnique(loaded, fallbacks.at(i));
-        }
-    } else {
-        for (const auto &fallback : fallbacks) {
-            appendUnique(loaded, fallback);
-        }
-    }
-
-    if (loaded.size() > kMaxModbusTargetsPerDirection) {
-        loaded = loaded.mid(0, kMaxModbusTargetsPerDirection);
-    }
-    return loaded;
 }
 
 } // namespace
@@ -1677,8 +1450,8 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
 
             QVector<ModbusRegisterEdits> readEditsList;
             QVector<ModbusRegisterEdits> writeEditsList;
-            readEditsList.reserve(kMaxModbusTargetsPerDirection);
-            writeEditsList.reserve(kMaxModbusTargetsPerDirection);
+            readEditsList.reserve(kMaxTargetsPerDirection);
+            writeEditsList.reserve(kMaxTargetsPerDirection);
 
             const QString readPrefix = objectName + QStringLiteral("_read");
             const QString writePrefix = objectName + QStringLiteral("_write");
@@ -1690,7 +1463,7 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
             auto *readSection = new QLabel(QStringLiteral("读寄存器"), card);
             readSection->setObjectName(QStringLiteral("sectionLabel"));
             cardLayout->addWidget(readSection);
-            for (int idx = 0; idx < kMaxModbusTargetsPerDirection; ++idx) {
+            for (int idx = 0; idx < kMaxTargetsPerDirection; ++idx) {
                 ModbusRegisterEdits edits = makeRegisterRowEdits(card, lineEditStyle);
                 const QString readSyncHint = (info.readForUiSync && idx == 0) ? QStringLiteral("同步") : QString();
                 QHBoxLayout *readRow = new QHBoxLayout();
@@ -1704,7 +1477,7 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
             auto *writeSection = new QLabel(QStringLiteral("写寄存器"), card);
             writeSection->setObjectName(QStringLiteral("sectionLabel"));
             cardLayout->addWidget(writeSection);
-            for (int idx = 0; idx < kMaxModbusTargetsPerDirection; ++idx) {
+            for (int idx = 0; idx < kMaxTargetsPerDirection; ++idx) {
                 ModbusRegisterEdits edits = makeRegisterRowEdits(card, lineEditStyle);
                 QHBoxLayout *writeRow = new QHBoxLayout();
                 addModbusRegisterRow(writeRow, QStringLiteral("写%1").arg(idx + 1), edits);
@@ -1868,18 +1641,21 @@ void FeatureSwitchWidget::loadButtonVisibilityState()
     settings.beginGroup(QStringLiteral("ButtonModbusMapping"));
     for (auto it = m_modbusButtonEdits.begin(); it != m_modbusButtonEdits.end(); ++it) {
         const QString &name = it.key();
-        const QList<MainWindow::ModbusRegisterSpec> readSpecs = loadRegisterSpecs(
-            settings, name + QStringLiteral("_read"), {});
-        const QList<MainWindow::ModbusRegisterSpec> writeSpecs = loadRegisterSpecs(
-            settings, name + QStringLiteral("_write"), {});
+        const ButtonModbusMapping::Binding binding = resolvedBinding(name);
 
-        const int readCount = qMin(it->reads.size(), readSpecs.size());
-        for (int idx = 0; idx < readCount; ++idx) {
-            applyRegisterSpecToEdits(readSpecs.at(idx), it->reads[idx]);
+        for (int idx = 0; idx < it->reads.size(); ++idx) {
+            if (idx < binding.reads.size()) {
+                applyRegisterSpecToEdits(binding.reads.at(idx), it->reads[idx]);
+            } else {
+                applyRegisterSpecToEdits(MainWindow::ModbusRegisterSpec{}, it->reads[idx]);
+            }
         }
-        const int writeCount = qMin(it->writes.size(), writeSpecs.size());
-        for (int idx = 0; idx < writeCount; ++idx) {
-            applyRegisterSpecToEdits(writeSpecs.at(idx), it->writes[idx]);
+        for (int idx = 0; idx < it->writes.size(); ++idx) {
+            if (idx < binding.writes.size()) {
+                applyRegisterSpecToEdits(binding.writes.at(idx), it->writes[idx]);
+            } else {
+                applyRegisterSpecToEdits(MainWindow::ModbusRegisterSpec{}, it->writes[idx]);
+            }
         }
         if (it->nameState1Device && it->nameState1Addr) {
             applySpareNameRegisterToEdits(it->nameState1Device,
@@ -2166,6 +1942,10 @@ void FeatureSwitchWidget::saveSliderLimitState()
 
 void FeatureSwitchWidget::onApply()
 {
+    if (m_virtualKeyboard) {
+        m_virtualKeyboard->commitPendingInput();
+    }
+
     FeatureSwitchManager *mgr = FeatureSwitchManager::instance();
     for (auto it = m_bigCheckboxes.begin(); it != m_bigCheckboxes.end(); ++it) {
         mgr->setBigFeatureEnabled(it.key(), it.value()->isChecked());

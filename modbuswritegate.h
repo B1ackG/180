@@ -12,7 +12,8 @@ class ModbusThreadManager;
  */
 namespace ModbusWriteGate {
 
-constexpr int interlockRegisterAddress() { return 8192; }
+int interlockRegisterAddress();
+void setInterlockRegisterAddress(int address);
 
 quint16 configuredTeachingDeviceId();
 

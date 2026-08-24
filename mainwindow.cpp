@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "buttonmodbusmapping.h"
 #include "ui_mainwindow.h"
 #include "batterywidget.h"
 #include "featureswitchmanager.h"
@@ -735,56 +736,6 @@ void applyTwoStateButtonStyle(TechPushButton *button,
     button->setGlowColor(useDark ? QColor(127, 140, 141, 100) : QColor(0, 200, 255, 180));
 }
 
-MainWindow::ModbusRegisterSpec readWriteSpecFromSettings(QSettings &settings,
-                                                         const QString &prefix)
-{
-    MainWindow::ModbusRegisterSpec spec;
-    if (!(settings.contains(prefix + QStringLiteral("_device")) || settings.contains(prefix))) {
-        return spec;
-    }
-
-    spec.device = settings.value(prefix + QStringLiteral("_device"), QStringLiteral("无")).toString().trimmed();
-    if (spec.device.isEmpty()) {
-        spec.device = QStringLiteral("无");
-    }
-    spec.address = settings.value(prefix + QStringLiteral("_addr")).toString().trimmed();
-    spec.bit = settings.value(prefix + QStringLiteral("_bit")).toString().trimmed();
-    if (spec.bit.startsWith(QStringLiteral("bit"), Qt::CaseInsensitive)) {
-        spec.bit = spec.bit.mid(3).trimmed();
-    }
-
-    spec.value1 = settings.value(prefix + QStringLiteral("_value1"),
-                                 settings.value(prefix + QStringLiteral("_value")).toString()).toString().trimmed();
-    spec.value2 = settings.value(prefix + QStringLiteral("_value2")).toString().trimmed();
-    spec.value3 = settings.value(prefix + QStringLiteral("_value3")).toString().trimmed();
-    return spec;
-}
-
-QList<MainWindow::ModbusRegisterSpec> spareButtonWriteSpecsFromSettings(const QString &buttonObjectName)
-{
-    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
-    settings.beginGroup(QStringLiteral("ButtonModbusMapping"));
-
-    QList<MainWindow::ModbusRegisterSpec> specs;
-    for (int idx = 1; idx <= 3; ++idx) {
-        const QString prefix = QStringLiteral("%1_write_%2").arg(buttonObjectName).arg(idx);
-        const MainWindow::ModbusRegisterSpec spec = readWriteSpecFromSettings(settings, prefix);
-        if (spec.isConfigured()) {
-            specs.append(spec);
-        }
-    }
-    if (specs.isEmpty()) {
-        const MainWindow::ModbusRegisterSpec legacy = readWriteSpecFromSettings(
-            settings, buttonObjectName + QStringLiteral("_write"));
-        if (legacy.isConfigured()) {
-            specs.append(legacy);
-        }
-    }
-
-    settings.endGroup();
-    return specs;
-}
-
 QString pickStateValue(const MainWindow::ModbusRegisterSpec &spec, int stateIndex)
 {
     if (stateIndex <= 1) {
@@ -796,142 +747,33 @@ QString pickStateValue(const MainWindow::ModbusRegisterSpec &spec, int stateInde
     return spec.value3.trimmed().isEmpty() ? spec.value1.trimmed() : spec.value3.trimmed();
 }
 
-struct DefaultModbusBinding {
-    QList<MainWindow::ModbusRegisterSpec> reads;
-    QList<MainWindow::ModbusRegisterSpec> writes;
-    bool readForUiSync = false;
-};
-
-MainWindow::ModbusRegisterSpec makeModbusSpec(const QString &device,
-                                              const QString &address,
-                                              const QString &bit = QString(),
-                                              const QString &value1 = QString(),
-                                              const QString &value2 = QString(),
-                                              const QString &value3 = QString())
+bool isParkLengthWriteSpec(const MainWindow::ModbusRegisterSpec &spec)
 {
-    MainWindow::ModbusRegisterSpec spec;
-    spec.device = device;
-    spec.address = address;
-    spec.bit = bit;
-    spec.value1 = value1;
-    spec.value2 = value2;
-    spec.value3 = value3;
-    return spec;
-}
-
-QList<MainWindow::ModbusRegisterSpec> makeSpecList(std::initializer_list<MainWindow::ModbusRegisterSpec> list)
-{
-    QList<MainWindow::ModbusRegisterSpec> out;
-    for (const auto &spec : list) {
-        out.append(spec);
+    if (!spec.isConfigured() || !spec.bit.trimmed().isEmpty()) {
+        return false;
     }
-    return out;
+    const QString marker = spec.value1.trimmed();
+    return marker == QStringLiteral("驻车长度参数") || marker.contains(QStringLiteral("驻车"));
 }
 
-const QMap<QString, DefaultModbusBinding> &knownButtonModbusBindings()
+ButtonModbusMapping::Binding modbusBindingForControllable(const QString &objectName,
+                                                          const TechSliderLabel *sliderLabel)
 {
-    static const QMap<QString, DefaultModbusBinding> bindings = {
-        {QStringLiteral("TBtn_Interlocking"), {
-            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("8192"), QString(), QStringLiteral("1"), QStringLiteral("0"))}),
-            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("8192"), QString(), QStringLiteral("1"), QStringLiteral("0"))}),
-            true}},
-        {QStringLiteral("TBtn_ControlMode"), {
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("100"), QString(), QStringLiteral("1"), QStringLiteral("2"))}),
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("500"), QString(), QStringLiteral("1"), QStringLiteral("2"))}),
-            true}},
-        {QStringLiteral("techBtn_AGV_OA"), {
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("50"), QStringLiteral("13"), QStringLiteral("0"), QStringLiteral("1"))}),
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("0"), QStringLiteral("1"))}),
-            true}},
-        {QStringLiteral("techBtn_AGV_Park"), {
-            makeSpecList({
-                makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("51"), QStringLiteral("3"), QStringLiteral("1"), QStringLiteral("0")),
-                makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("51"), QStringLiteral("4"), QStringLiteral("0"), QStringLiteral("1"))
-            }),
-            makeSpecList({
-                makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("0"), QStringLiteral("3"), QStringLiteral("1"), QStringLiteral("0")),
-                makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("0"), QStringLiteral("4"), QStringLiteral("0"), QStringLiteral("1")),
-                makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("5014"), QString(), QStringLiteral("驻车长度参数"))
-            }),
-            true}},
-        {QStringLiteral("btn_ForceControl"), {
-            {},
-            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("400"), QString(), QStringLiteral("1"), QStringLiteral("0"))}),
-            false}},
-        {QStringLiteral("techBtn_resetSixAxies"), {
-            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("615"), QStringLiteral("1"), QStringLiteral("1"))}),
-            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("615"), QStringLiteral("1"), QStringLiteral("1"))}),
-            false}},
-        {QStringLiteral("techBtn_spare_1"), {
-            {},
-            {},
-            false}},
-        {QStringLiteral("techBtn_spare_2"), {
-            {},
-            {},
-            false}},
-        {QStringLiteral("Btn_bigForceControl"), {
-            {},
-            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("404"), QString(), QStringLiteral("0"))}),
-            false}},
-        {QStringLiteral("Btn_smallForceControl"), {
-            {},
-            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("404"), QString(), QStringLiteral("1"))}),
-            false}},
-        {QStringLiteral("btnFrontBack"), {
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("155"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2"))}),
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("0"))}),
-            true}},
-        {QStringLiteral("btnFrontOnly"), {
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("155"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2"))}),
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("1"))}),
-            true}},
-        {QStringLiteral("btnParallel"), {
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("155"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2"))}),
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("2"))}),
-            true}},
-        {QStringLiteral("btnLateral"), {
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("155"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2"))}),
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("3"))}),
-            true}},
-        {QStringLiteral("btnRotate"), {
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("155"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2"))}),
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("4"))}),
-            true}},
-        {QStringLiteral("steeringModeSelector"), {
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("155"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2/3/4"))}),
-            makeSpecList({makeModbusSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2/3/4"))}),
-            true}},
-        {QStringLiteral("TBtn_MoveMode"), {
-            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("126"), QString(), QStringLiteral("1"), QStringLiteral("2"))}),
-            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QStringLiteral("525"), QString(), QStringLiteral("2"), QStringLiteral("1"))}),
-            true}},
-        {QStringLiteral("TBtn_RemoveWarning"), {
-            {},
-            makeSpecList({
-                makeModbusSpec(QStringLiteral("主控"), QStringLiteral("290"), QString(), QStringLiteral("1")),
-                makeModbusSpec(QStringLiteral("主控"), QStringLiteral("403"), QString(), QStringLiteral("0"))
-            }),
-            false}},
-    };
-    return bindings;
-}
-
-DefaultModbusBinding modbusBindingForControllable(const QString &objectName,
-                                                    const TechSliderLabel *sliderLabel)
-{
-    const auto &known = knownButtonModbusBindings();
-    const auto it = known.find(objectName);
-    if (it != known.end()) {
-        return it.value();
+    const ButtonModbusMapping::Binding known = ButtonModbusMapping::defaultBinding(objectName);
+    if (!known.reads.isEmpty() || !known.writes.isEmpty()
+        || objectName == QStringLiteral("techBtn_spare_1")
+        || objectName == QStringLiteral("techBtn_spare_2")) {
+        return known;
     }
 
     if (sliderLabel && sliderLabel->modbusAddress() >= 0) {
-        return {
-            makeSpecList({makeModbusSpec(QStringLiteral("主控"), QString::number(sliderLabel->modbusAddress()))}),
-            {},
-            true
-        };
+        ButtonModbusMapping::Binding binding;
+        ButtonModbusMapping::RegisterSpec spec;
+        spec.device = QStringLiteral("主控");
+        spec.address = QString::number(sliderLabel->modbusAddress());
+        binding.reads.append(spec);
+        binding.readForUiSync = true;
+        return binding;
     }
 
     return {};
@@ -974,7 +816,7 @@ QList<MainWindow::ControllableButtonInfo> MainWindow::controllableButtons() cons
             displayText = sliderLabel->labelText().trimmed();
         }
 
-        const DefaultModbusBinding binding = modbusBindingForControllable(objectName, sliderLabel);
+        const ButtonModbusMapping::Binding binding = modbusBindingForControllable(objectName, sliderLabel);
 
         auto it = byObjectName.find(objectName);
         if (it == byObjectName.end()) {
@@ -1091,10 +933,53 @@ void MainWindow::applyButtonVisibilityRuntimeSettings()
     }
 
     settings.endGroup();
+    reloadButtonModbusBindings();
     applyPermissionPageLoginState();
     loadSpareButtonNameRegisterSettings();
     syncSpareButtonNamesFromRegisters();
     applySpareButtonRuntimeSettings();
+}
+
+void MainWindow::reloadButtonModbusBindings()
+{
+    static const QStringList kKnownButtons = {
+        QStringLiteral("TBtn_Interlocking"),
+        QStringLiteral("TBtn_ControlMode"),
+        QStringLiteral("techBtn_AGV_OA"),
+        QStringLiteral("techBtn_AGV_Park"),
+        QStringLiteral("techBtn_resetSixAxies"),
+        QStringLiteral("techBtn_spare_1"),
+        QStringLiteral("techBtn_spare_2"),
+        QStringLiteral("TBtn_MoveMode"),
+        QStringLiteral("TBtn_RemoveWarning"),
+        QStringLiteral("btn_ForceControl"),
+        QStringLiteral("Btn_bigForceControl"),
+        QStringLiteral("Btn_smallForceControl"),
+        QStringLiteral("steeringModeSelector")
+    };
+
+    m_buttonModbusBindings.clear();
+    for (const QString &name : kKnownButtons) {
+        m_buttonModbusBindings.insert(name, ButtonModbusMapping::resolvedBinding(name));
+    }
+
+    const ButtonModbusMapping::Binding interlock = buttonModbusBinding(QStringLiteral("TBtn_Interlocking"));
+    int interlockAddr = 8192;
+    if (!interlock.writes.isEmpty()) {
+        interlockAddr = ButtonModbusMapping::addressOr(interlock.writes.first(), 8192);
+    } else if (!interlock.reads.isEmpty()) {
+        interlockAddr = ButtonModbusMapping::addressOr(interlock.reads.first(), 8192);
+    }
+    ModbusWriteGate::setInterlockRegisterAddress(interlockAddr);
+}
+
+ButtonModbusMapping::Binding MainWindow::buttonModbusBinding(const QString &objectName) const
+{
+    const auto it = m_buttonModbusBindings.find(objectName);
+    if (it != m_buttonModbusBindings.end()) {
+        return it.value();
+    }
+    return ButtonModbusMapping::resolvedBinding(objectName);
 }
 
 void MainWindow::applyModbusAccessSwitches()
@@ -1246,8 +1131,20 @@ void MainWindow::setupRecordAndPermissionConnections()
             m_isJointMode = !m_isJointMode;
         }
 
+        const ButtonModbusMapping::Binding moveBinding = buttonModbusBinding(QStringLiteral("TBtn_MoveMode"));
+        const ModbusRegisterSpec writeSpec = moveBinding.writes.isEmpty()
+            ? ModbusRegisterSpec{}
+            : moveBinding.writes.first();
+        const int writeAddr = ButtonModbusMapping::addressOr(writeSpec, 525);
+        const int jointValue = ButtonModbusMapping::stateValueOr(writeSpec, 1, 2);
+        const int coordValue = ButtonModbusMapping::stateValueOr(writeSpec, 2, 1);
+
         if (m_isJointMode) {
-            writeToMainDevice(525, 2);
+            if (writeSpec.device == QStringLiteral("AGV")) {
+                writeToAGVDevice(writeAddr, jointValue, true);
+            } else {
+                writeToMainDevice(writeAddr, jointValue);
+            }
             ui->TBtn_MoveMode->setText("关节模式");
             QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
             if (moveModeLabel) {
@@ -1256,7 +1153,11 @@ void MainWindow::setupRecordAndPermissionConnections()
             }
             showNotification("已切换至关节模式");
         } else {
-            writeToMainDevice(525, 1);
+            if (writeSpec.device == QStringLiteral("AGV")) {
+                writeToAGVDevice(writeAddr, coordValue, true);
+            } else {
+                writeToMainDevice(writeAddr, coordValue);
+            }
             ui->TBtn_MoveMode->setText("坐标模式");
             QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
             if (moveModeLabel) {
@@ -1342,20 +1243,29 @@ void MainWindow::setupControlConnections()
                 showModbusWriteDisabledToast();
                 return;
             }
+            const ButtonModbusMapping::Binding resetBinding = buttonModbusBinding(QStringLiteral("techBtn_resetSixAxies"));
+            const ModbusRegisterSpec spec = !resetBinding.writes.isEmpty()
+                ? resetBinding.writes.first()
+                : (!resetBinding.reads.isEmpty() ? resetBinding.reads.first() : ModbusRegisterSpec{});
+            const int addr = ButtonModbusMapping::addressOr(spec, 615);
+            const int bitIndex = ButtonModbusMapping::bitOr(spec, 1);
+            if (spec.device == QStringLiteral("AGV")) {
+                writeAGVRegisterBits(addr, {qMakePair(bitIndex, true)}, QStringLiteral("六轴复位"));
+                return;
+            }
             if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
                 showNotification(QStringLiteral("主控 Modbus 未连接"));
                 return;
             }
             quint16 cur = 0;
-            if (!m_modbusManager->readSingleRegister(615, cur)) {
-                qWarning() << "[六轴复位] 同步读取寄存器615失败";
-                showNotification(QStringLiteral("读取寄存器615失败"));
+            if (!m_modbusManager->readSingleRegister(addr, cur)) {
+                qWarning() << "[六轴复位] 同步读取寄存器失败, addr=" << addr;
+                showNotification(QStringLiteral("读取复位寄存器失败"));
                 return;
             }
-            constexpr int kBit = 1;
-            const quint16 next = static_cast<quint16>(cur | (static_cast<quint16>(1u) << kBit));
-            writeToMainDevice(615, next);
-            qCDebug(lcMainWindow) << "[六轴复位] 615: 原值" << cur << "→ 写入" << next << "(bit" << kBit << "=1)";
+            const quint16 next = static_cast<quint16>(cur | (static_cast<quint16>(1u) << bitIndex));
+            writeToMainDevice(addr, next);
+            qCDebug(lcMainWindow) << "[六轴复位]" << addr << ": 原值" << cur << "→ 写入" << next << "(bit" << bitIndex << "=1)";
         });
     } else {
         qWarning() << "未找到 techBtn_resetSixAxies 按钮";
@@ -5205,14 +5115,21 @@ void MainWindow::refreshInterlockingButtonText()
         return;
     }
     quint16 v = 0;
-    const int addr = ModbusWriteGate::interlockRegisterAddress();
+    const ButtonModbusMapping::Binding binding = buttonModbusBinding(QStringLiteral("TBtn_Interlocking"));
+    const ModbusRegisterSpec spec = !binding.reads.isEmpty()
+        ? binding.reads.first()
+        : (!binding.writes.isEmpty() ? binding.writes.first() : ModbusRegisterSpec{});
+    const int addr = ButtonModbusMapping::addressOr(spec, ModbusWriteGate::interlockRegisterAddress());
+    const int upperValue = ButtonModbusMapping::stateValueOr(spec, 1, 1);
     if (!mgr->readSingleRegister(addr, v)) {
         ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(false, 0);
         ui->TBtn_Interlocking->setText(QStringLiteral("--"));
         return;
     }
     ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(true, v);
-    ui->TBtn_Interlocking->setText(v == 1 ? QStringLiteral("上方示教器") : QStringLiteral("下方示教器"));
+    ui->TBtn_Interlocking->setText(static_cast<int>(v) == upperValue
+                                      ? QStringLiteral("上方示教器")
+                                      : QStringLiteral("下方示教器"));
 }
 
 void MainWindow::applyMoveModeUiFromRegister126(quint16 value)
@@ -5220,7 +5137,11 @@ void MainWindow::applyMoveModeUiFromRegister126(quint16 value)
     if (!ui || !ui->TBtn_MoveMode) {
         return;
     }
-    if (value == 2) {
+    const ButtonModbusMapping::Binding moveBinding = buttonModbusBinding(QStringLiteral("TBtn_MoveMode"));
+    const ModbusRegisterSpec readSpec = moveBinding.reads.isEmpty() ? ModbusRegisterSpec{} : moveBinding.reads.first();
+    const int jointValue = ButtonModbusMapping::stateValueOr(readSpec, 1, 2);
+    const int coordValue = ButtonModbusMapping::stateValueOr(readSpec, 2, 1);
+    if (static_cast<int>(value) == jointValue) {
         m_moveModeUnknown = false;
         m_isJointMode = true;
         ui->TBtn_MoveMode->setText(QStringLiteral("关节模式"));
@@ -5229,7 +5150,7 @@ void MainWindow::applyMoveModeUiFromRegister126(quint16 value)
             moveModeLabel->setText(QStringLiteral("关节模式"));
             moveModeLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
         }
-    } else if (value == 1) {
+    } else if (static_cast<int>(value) == coordValue) {
         m_moveModeUnknown = false;
         m_isJointMode = false;
         ui->TBtn_MoveMode->setText(QStringLiteral("坐标模式"));
@@ -5268,8 +5189,12 @@ void MainWindow::applyCachedMainControlSyncRegistersToUi()
     }
     syncStepModeUiByCurrentPage();
     updateStepTargetButtonsState();
-    if (g_registerCache.contains(126)) {
-        applyMoveModeUiFromRegister126(g_registerCache.value(126));
+    const ButtonModbusMapping::Binding moveBinding = buttonModbusBinding(QStringLiteral("TBtn_MoveMode"));
+    const int moveReadAddr = moveBinding.reads.isEmpty()
+        ? 126
+        : ButtonModbusMapping::addressOr(moveBinding.reads.first(), 126);
+    if (g_registerCache.contains(moveReadAddr)) {
+        applyMoveModeUiFromRegister126(g_registerCache.value(moveReadAddr));
     }
     if (g_registerCache.contains(130)) {
         applyRobotSpeedUiFromRegister130(g_registerCache.value(130));
@@ -5311,14 +5236,20 @@ void MainWindow::on_TBtn_Interlocking_clicked()
         }
     }
 
-    const int addr = ModbusWriteGate::interlockRegisterAddress();
+    const ButtonModbusMapping::Binding binding = buttonModbusBinding(QStringLiteral("TBtn_Interlocking"));
+    const ModbusRegisterSpec spec = !binding.writes.isEmpty()
+        ? binding.writes.first()
+        : (!binding.reads.isEmpty() ? binding.reads.first() : ModbusRegisterSpec{});
+    const int addr = ButtonModbusMapping::addressOr(spec, ModbusWriteGate::interlockRegisterAddress());
+    const int upperValue = ButtonModbusMapping::stateValueOr(spec, 1, 1);
+    const int lowerValue = ButtonModbusMapping::stateValueOr(spec, 2, 0);
     quint16 valueToWrite = 0;
     QString nextLabel;
     if (label == upper) {
-        valueToWrite = 1;
+        valueToWrite = static_cast<quint16>(lowerValue);
         nextLabel = lower;
     } else {
-        valueToWrite = 0;
+        valueToWrite = static_cast<quint16>(upperValue);
         nextLabel = upper;
     }
 
@@ -6650,11 +6581,18 @@ void MainWindow::setupAGVModbus()
             this, [this](int address, quint16 value) {
                 m_agvRegisterShadow[address] = value;
 
-                if (address == 100 && m_controlModeBtn) {
-                    if (value == 1) {
+                const ButtonModbusMapping::Binding controlBinding = buttonModbusBinding(QStringLiteral("TBtn_ControlMode"));
+                const ModbusRegisterSpec controlRead = controlBinding.reads.isEmpty()
+                    ? ModbusRegisterSpec{}
+                    : controlBinding.reads.first();
+                const int controlReadAddr = ButtonModbusMapping::addressOr(controlRead, 100);
+                const int wirelessReadValue = ButtonModbusMapping::stateValueOr(controlRead, 1, 1);
+                const int wiredReadValue = ButtonModbusMapping::stateValueOr(controlRead, 2, 2);
+                if (address == controlReadAddr && m_controlModeBtn) {
+                    if (static_cast<int>(value) == wirelessReadValue) {
                         m_controlMode = WIRELESS_MODE;
                         m_controlModeBtn->setText("遥控器控制");
-                    } else if (value == 2) {
+                    } else if (static_cast<int>(value) == wiredReadValue) {
                         m_controlMode = WIRED_MODE;
                         m_controlModeBtn->setText("示教器控制");
                     }
@@ -6669,9 +6607,15 @@ void MainWindow::setupAGVModbus()
                     }
                 }
 
-                if (address == 50) {
-                    // 约定：bit13=0 表示避障开启，bit13=1 表示避障关闭
-                    const bool oaEnabled = (((value >> 13) & 0x01) == 0);
+                const ButtonModbusMapping::Binding oaBinding = buttonModbusBinding(QStringLiteral("techBtn_AGV_OA"));
+                const ModbusRegisterSpec oaRead = oaBinding.reads.isEmpty()
+                    ? ModbusRegisterSpec{}
+                    : oaBinding.reads.first();
+                const int oaReadAddr = ButtonModbusMapping::addressOr(oaRead, 50);
+                const int oaReadBit = ButtonModbusMapping::bitOr(oaRead, 13);
+                const int oaReadOnValue = ButtonModbusMapping::stateValueOr(oaRead, 1, 0);
+                if (address == oaReadAddr) {
+                    const bool oaEnabled = (((value >> oaReadBit) & 0x01) == (oaReadOnValue != 0 ? 1 : 0));
                     m_agvOaEnabled = oaEnabled;
                     if (m_techBtnAGV_OA) {
                         m_techBtnAGV_OA->setText(oaEnabled ? "避障开启" : "避障关闭");
@@ -6733,7 +6677,21 @@ void MainWindow::setupAGVModbus()
 
                     handleAGVRegister51Alerts(value);
 
-                    syncAGVParkingStateFromRegister51(value);
+                    const ButtonModbusMapping::Binding parkBinding = buttonModbusBinding(QStringLiteral("techBtn_AGV_Park"));
+                    const int parkReadAddr = parkBinding.reads.isEmpty()
+                        ? 51
+                        : ButtonModbusMapping::addressOr(parkBinding.reads.first(), 51);
+                    if (parkReadAddr == 51) {
+                        syncAGVParkingStateFromRegister51(value, true);
+                    }
+                }
+
+                const ButtonModbusMapping::Binding parkBindingForAddr = buttonModbusBinding(QStringLiteral("techBtn_AGV_Park"));
+                const int parkReadAddrForAddr = parkBindingForAddr.reads.isEmpty()
+                    ? 51
+                    : ButtonModbusMapping::addressOr(parkBindingForAddr.reads.first(), 51);
+                if (address == parkReadAddrForAddr && parkReadAddrForAddr != 51) {
+                    syncAGVParkingStateFromRegister51(value, false);
                 }
 
                 if (address == 155) {
@@ -7384,13 +7342,23 @@ void MainWindow::restoreParkingUiAfterFailure(bool enabled)
     }
 }
 
-void MainWindow::syncAGVParkingStateFromRegister51(quint16 value)
+void MainWindow::syncAGVParkingStateFromRegister51(quint16 value, bool updateLegAbnormal)
 {
-    const bool bit7 = (((value >> 7) & 0x01) == 1);
-    m_agvLegAbnormal51Bit7Flag = bit7;
+    const ButtonModbusMapping::Binding parkBinding = buttonModbusBinding(QStringLiteral("techBtn_AGV_Park"));
+    const int onBit = parkBinding.reads.isEmpty()
+        ? 3
+        : ButtonModbusMapping::bitOr(parkBinding.reads.first(), 3);
+    const int offBit = parkBinding.reads.size() > 1
+        ? ButtonModbusMapping::bitOr(parkBinding.reads.at(1), 4)
+        : 4;
 
-    const bool bit3 = (((value >> 3) & 0x01) == 1);
-    const bool bit4 = (((value >> 4) & 0x01) == 1);
+    const bool bit7 = (((value >> 7) & 0x01) == 1);
+    if (updateLegAbnormal) {
+        m_agvLegAbnormal51Bit7Flag = bit7;
+    }
+
+    const bool bit3 = (((value >> onBit) & 0x01) == 1);
+    const bool bit4 = (((value >> offBit) & 0x01) == 1);
 
     const bool parkingSwitchWaiting = property("parkingSwitchWaiting").toBool();
     const int pendingBit = property("parkingTargetBit").toInt();
@@ -7836,13 +7804,27 @@ void MainWindow::onControlModeClicked()
         return;
     }
 
+    const ButtonModbusMapping::Binding modeBinding = buttonModbusBinding(QStringLiteral("TBtn_ControlMode"));
+    const ModbusRegisterSpec writeSpec = modeBinding.writes.isEmpty()
+        ? ModbusRegisterSpec{}
+        : modeBinding.writes.first();
+    const int writeAddr = ButtonModbusMapping::addressOr(writeSpec, 500);
+    const int wirelessValue = ButtonModbusMapping::stateValueOr(writeSpec, 1, 1);
+    const int wiredValue = ButtonModbusMapping::stateValueOr(writeSpec, 2, 2);
+    const auto writeMode = [this, writeSpec, writeAddr](int value) {
+        if (writeSpec.device == QStringLiteral("主控")) {
+            writeToMainDevice(writeAddr, value);
+        } else {
+            writeToAGVDevice(writeAddr, value);
+        }
+    };
+
     // 切换控制模式
     if (m_controlMode == WIRED_MODE) {
         m_controlMode = WIRELESS_MODE;
         m_controlModeBtn->setText("遥控器控制");
 
-        // 无线控制 -> AGV设备500写1
-        writeToAGVDevice(500, 1);
+        writeMode(wirelessValue);
 
         qCDebug(lcMainWindow) << "切换到遥控器控制模式";
         ui->statusBar->showMessage("已切换到遥控器控制模式", 2000);
@@ -7857,8 +7839,7 @@ void MainWindow::onControlModeClicked()
         m_controlMode = WIRED_MODE;
         m_controlModeBtn->setText("示教器控制");
 
-        // 有线控制 -> AGV设备500写2
-        writeToAGVDevice(500, 2);
+        writeMode(wiredValue);
 
         qCDebug(lcMainWindow) << "切换到示教器控制模式";
         ui->statusBar->showMessage("已切换到示教器控制模式", 2000);
@@ -8194,31 +8175,33 @@ void MainWindow::syncSpareButtonNamesFromRegisters()
 
 void MainWindow::executeSpareButtonConfiguredWrites(const QString &buttonObjectName, int stateIndex)
 {
-    const QList<ModbusRegisterSpec> specs = spareButtonWriteSpecsFromSettings(buttonObjectName);
-    if (specs.isEmpty()) {
-        return;
-    }
+    executeConfiguredRegisterWrites(buttonModbusBinding(buttonObjectName).writes,
+                                    stateIndex,
+                                    QStringLiteral("备用按钮%1状态%2").arg(buttonObjectName).arg(stateIndex));
+}
 
-    auto parseInt = [](const QString &text, int &out) -> bool {
-        bool ok = false;
-        out = text.trimmed().toInt(&ok);
-        return ok;
-    };
-
+void MainWindow::executeConfiguredRegisterWrites(const QList<ModbusRegisterSpec> &specs,
+                                                 int stateIndex,
+                                                 const QString &logTag)
+{
     for (const ModbusRegisterSpec &spec : specs) {
+        if (!spec.isConfigured() || isParkLengthWriteSpec(spec)) {
+            continue;
+        }
         int address = 0;
-        if (!parseInt(spec.address, address)) {
+        if (!ButtonModbusMapping::parseNumber(spec.address, address)) {
             continue;
         }
         const QString valueText = pickStateValue(spec, stateIndex);
         int valueInt = 0;
-        const bool hasValue = parseInt(valueText, valueInt);
+        const bool hasValue = ButtonModbusMapping::parseNumber(valueText, valueInt);
 
         const bool isAgv = spec.device == QStringLiteral("AGV");
         const bool isMain = spec.device == QStringLiteral("主控");
 
         int bitIndex = -1;
-        const bool hasBit = parseInt(spec.bit, bitIndex) && bitIndex >= 0 && bitIndex <= 15;
+        const bool hasBit = ButtonModbusMapping::parseNumber(spec.bit, bitIndex)
+            && bitIndex >= 0 && bitIndex <= 15;
 
         if (hasBit && !hasValue) {
             continue;
@@ -8226,8 +8209,7 @@ void MainWindow::executeSpareButtonConfiguredWrites(const QString &buttonObjectN
 
         if (isAgv) {
             if (hasBit) {
-                writeAGVRegisterBits(address, {qMakePair(bitIndex, valueInt != 0)},
-                                     QStringLiteral("备用按钮%1状态%2").arg(buttonObjectName).arg(stateIndex));
+                writeAGVRegisterBits(address, {qMakePair(bitIndex, valueInt != 0)}, logTag);
             } else if (hasValue) {
                 writeToAGVDevice(address, valueInt, true);
             }
@@ -8287,6 +8269,17 @@ void MainWindow::onAGVOABtnClicked()
     m_agvOaEnabled = targetOaEnabled;
     setProperty("oaTargetEnabled", targetOaEnabled);
 
+    const ButtonModbusMapping::Binding oaBinding = buttonModbusBinding(QStringLiteral("techBtn_AGV_OA"));
+    const ModbusRegisterSpec oaWrite = oaBinding.writes.isEmpty()
+        ? ModbusRegisterSpec{}
+        : oaBinding.writes.first();
+    const int oaWriteAddr = ButtonModbusMapping::addressOr(oaWrite, 0);
+    const int oaWriteBit = ButtonModbusMapping::bitOr(oaWrite, 1);
+    const int oaOnValue = ButtonModbusMapping::stateValueOr(oaWrite, 1, 0);
+    const int oaOffValue = ButtonModbusMapping::stateValueOr(oaWrite, 2, 1);
+    const int oaCommandValue = targetOaEnabled ? oaOnValue : oaOffValue;
+    const bool oaCommandBitSet = oaCommandValue != 0;
+
     if (targetOaEnabled) {
         // 避障开启
         m_techBtnAGV_OA->setText("避障开启");
@@ -8299,11 +8292,9 @@ void MainWindow::onAGVOABtnClicked()
         m_techBtnAGV_OA->setGlowColor(QColor(127, 140, 141, 100));
     }
 
-    // ods %MX0.1：1=关，0=开
-    const bool commandBitClosed = !targetOaEnabled;
-    const bool writeOk = writeAGVRegisterBits(0,
+    const bool writeOk = writeAGVRegisterBits(oaWriteAddr,
                                               {
-                                                  qMakePair(1, commandBitClosed),
+                                                  qMakePair(oaWriteBit, oaCommandBitSet),
                                               },
                                               targetOaEnabled ? "OA开启" : "OA关闭");
     if (!writeOk) {
@@ -8315,7 +8306,7 @@ void MainWindow::onAGVOABtnClicked()
                                                             : QColor(127, 140, 141, 100));
         }
         ui->statusBar->showMessage("AGV避障切换失败：写入未发送", 3000);
-        qWarning() << "AGV避障切换失败：地址0写入请求发送失败，目标bit1=" << (commandBitClosed ? 1 : 0);
+        qWarning() << "AGV避障切换失败：写入请求发送失败，地址" << oaWriteAddr << "bit" << oaWriteBit << "=" << oaCommandBitSet;
         setProperty("oaSwitchBusy", false);
         return;
     }
@@ -8336,31 +8327,31 @@ void MainWindow::onAGVOABtnClicked()
     }
 
     // 写后做一次回读确认，目标设备偶发丢响应时自动补发一次。
-    QTimer::singleShot(250, this, [this]() {
+    QTimer::singleShot(250, this, [this, oaWriteAddr]() {
         if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
-            m_agvModbusManager->readMultipleRegisters(0, 1);
+            m_agvModbusManager->readMultipleRegisters(oaWriteAddr, 1);
         }
     });
 
-    QTimer::singleShot(650, this, [this, targetOaEnabled]() {
+    QTimer::singleShot(650, this, [this, targetOaEnabled, oaWriteAddr, oaWriteBit, oaOnValue, oaCommandBitSet]() {
         if (property("oaTargetEnabled").toBool() != targetOaEnabled) {
             // 已有更新的目标请求。
             return;
         }
 
-        const quint16 reg0 = m_agvRegisterShadow.value(0, 0);
-        const bool actualOaEnabled = (((reg0 >> 1) & 0x01) == 0);
+        const quint16 reg0 = m_agvRegisterShadow.value(oaWriteAddr, 0);
+        const bool actualOaEnabled = (((reg0 >> oaWriteBit) & 0x01) == (oaOnValue != 0 ? 1 : 0));
         if (actualOaEnabled == targetOaEnabled) {
             setProperty("oaSwitchBusy", false);
             return;
         }
 
-        qWarning() << "OA回读不一致，准备自动重试。目标bit1=" << (targetOaEnabled ? 0 : 1)
-                   << "实际寄存器0=" << reg0;
+        qWarning() << "OA回读不一致，准备自动重试。目标bit=" << oaCommandBitSet
+                   << "实际寄存器=" << reg0;
 
-        const bool retryOk = writeAGVRegisterBits(0,
+        const bool retryOk = writeAGVRegisterBits(oaWriteAddr,
                                                   {
-                                                      qMakePair(1, !targetOaEnabled),
+                                                      qMakePair(oaWriteBit, oaCommandBitSet),
                                                   },
                                                   targetOaEnabled ? "OA开启自动重试" : "OA关闭自动重试");
         if (!retryOk) {
@@ -8371,18 +8362,17 @@ void MainWindow::onAGVOABtnClicked()
         }
 
         if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
-            m_agvModbusManager->readMultipleRegisters(0, 1);
+            m_agvModbusManager->readMultipleRegisters(oaWriteAddr, 1);
         }
 
-        QTimer::singleShot(350, this, [this, targetOaEnabled]() {
+        QTimer::singleShot(350, this, [this, targetOaEnabled, oaWriteAddr, oaWriteBit, oaOnValue]() {
             if (property("oaTargetEnabled").toBool() != targetOaEnabled) {
                 return;
             }
-            const quint16 reg0AfterRetry = m_agvRegisterShadow.value(0, 0);
-            const bool actualAfterRetry = (((reg0AfterRetry >> 1) & 0x01) == 0);
+            const quint16 reg0AfterRetry = m_agvRegisterShadow.value(oaWriteAddr, 0);
+            const bool actualAfterRetry = (((reg0AfterRetry >> oaWriteBit) & 0x01) == (oaOnValue != 0 ? 1 : 0));
             if (actualAfterRetry != targetOaEnabled) {
-                qWarning() << "OA自动重试后仍未达到目标。目标bit1=" << (targetOaEnabled ? 0 : 1)
-                           << "当前寄存器0=" << reg0AfterRetry;
+                qWarning() << "OA自动重试后仍未达到目标。当前寄存器=" << reg0AfterRetry;
                 ui->statusBar->showMessage("避障状态确认失败，请检查控制器侧地址0写保护/上位覆盖", 4500);
             }
             setProperty("oaSwitchBusy", false);
@@ -8421,7 +8411,48 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
     }
 
     const bool oldParkingEnabled = m_agvParkingEnabled;
-    const int targetWaitBit = targetParkingEnabled ? 3 : 4;
+    const ButtonModbusMapping::Binding parkBinding = buttonModbusBinding(QStringLiteral("techBtn_AGV_Park"));
+    int parkLengthAddr = kAgvParkOutTriggerLengthRegStart;
+    int parkWriteAddr = 0;
+    QList<QPair<int, bool>> parkBitUpdates;
+    for (const ModbusRegisterSpec &spec : parkBinding.writes) {
+        if (!spec.isConfigured()) {
+            continue;
+        }
+        if (isParkLengthWriteSpec(spec)) {
+            parkLengthAddr = ButtonModbusMapping::addressOr(spec, kAgvParkOutTriggerLengthRegStart);
+            continue;
+        }
+        int addr = 0;
+        int bit = -1;
+        if (!ButtonModbusMapping::parseNumber(spec.address, addr)) {
+            continue;
+        }
+        if (!ButtonModbusMapping::parseNumber(spec.bit, bit) || bit < 0 || bit > 15) {
+            continue;
+        }
+        parkWriteAddr = addr;
+        const int stateVal = ButtonModbusMapping::stateValueOr(spec, targetParkingEnabled ? 1 : 2, targetParkingEnabled ? 1 : 0);
+        parkBitUpdates.append(qMakePair(bit, stateVal != 0));
+    }
+    if (parkBitUpdates.isEmpty()) {
+        parkWriteAddr = 0;
+        if (targetParkingEnabled) {
+            parkBitUpdates = {qMakePair(9, true), qMakePair(10, false)};
+        } else {
+            parkBitUpdates = {qMakePair(9, false), qMakePair(10, true)};
+        }
+    }
+    const int parkReadAddr = parkBinding.reads.isEmpty()
+        ? 51
+        : ButtonModbusMapping::addressOr(parkBinding.reads.first(), 51);
+    const int onBit = parkBinding.reads.isEmpty()
+        ? 3
+        : ButtonModbusMapping::bitOr(parkBinding.reads.first(), 3);
+    const int offBit = parkBinding.reads.size() > 1
+        ? ButtonModbusMapping::bitOr(parkBinding.reads.at(1), 4)
+        : 4;
+    const int targetWaitBit = targetParkingEnabled ? onBit : offBit;
 
     if (targetParkingEnabled) {
         const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
@@ -8443,11 +8474,11 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
         const auto wordsArr = doubleToRegistersGHEFCDAB(static_cast<double>(clampedMm));
         const QVector<quint16> parkLenWords = {wordsArr[0], wordsArr[1], wordsArr[2], wordsArr[3]};
 
-        if (!writeAgvHoldingRegisterBlock(kAgvParkOutTriggerLengthRegStart, parkLenWords)) {
+        if (!writeAgvHoldingRegisterBlock(parkLengthAddr, parkLenWords)) {
             m_agvParkingEnabled = oldParkingEnabled;
             restoreParkingUiAfterFailure(oldParkingEnabled);
 
-            ui->statusBar->showMessage(QStringLiteral("驻车伸出长度写入寄存器5014~5017失败，未开启驻车"), 4000);
+            ui->statusBar->showMessage(QStringLiteral("驻车伸出长度写入寄存器失败，未开启驻车"), 4000);
             OperationRecord failRecord;
             failRecord.timestamp = QDateTime::currentDateTime();
             failRecord.pageName = QStringLiteral("AGV控制");
@@ -8462,19 +8493,10 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
         }
     }
 
-    const bool writeOk = targetParkingEnabled
-                             ? writeAGVRegisterBits(0,
-                                                    {
-                                                        qMakePair(9, true),
-                                                        qMakePair(10, false),
-                                                    },
-                                                    QStringLiteral("驻车开启"))
-                             : writeAGVRegisterBits(0,
-                                                    {
-                                                        qMakePair(9, false),
-                                                        qMakePair(10, true),
-                                                    },
-                                                    QStringLiteral("驻车关闭"));
+    const bool writeOk = writeAGVRegisterBits(parkWriteAddr,
+                                              parkBitUpdates,
+                                              targetParkingEnabled ? QStringLiteral("驻车开启")
+                                                                   : QStringLiteral("驻车关闭"));
 
     if (!writeOk) {
         m_agvParkingEnabled = oldParkingEnabled;
@@ -8524,13 +8546,13 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
     const qint64 parkingSwitchBeginMs = QDateTime::currentMSecsSinceEpoch();
 
     connect(parkingWaitTimer, &QTimer::timeout, this,
-            [this, parkingWaitTimer, targetWaitBit, targetParkingEnabled, parkingSwitchBeginMs]() {
+            [this, parkingWaitTimer, targetWaitBit, targetParkingEnabled, parkingSwitchBeginMs, parkReadAddr]() {
                 if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
-                    m_agvModbusManager->readMultipleRegisters(51, 1);
+                    m_agvModbusManager->readMultipleRegisters(parkReadAddr, 1);
                 }
 
-                if (m_agvRegisterShadow.contains(51)) {
-                    const quint16 reg51 = m_agvRegisterShadow.value(51);
+                if (m_agvRegisterShadow.contains(parkReadAddr)) {
+                    const quint16 reg51 = m_agvRegisterShadow.value(parkReadAddr);
                     const bool targetBitSet = (((reg51 >> targetWaitBit) & 0x01) == 1);
                     if (targetBitSet) {
                         parkingWaitTimer->stop();
@@ -10480,9 +10502,13 @@ void MainWindow::recordSixAxisJogExternalKey(int keyNumber, bool pressed)
 
 void MainWindow::sendRemoveWarningModbusWrites()
 {
-    // 写入 290 清除报警：主控与 AGV 均写 1
-    writeToMainDevice(290, 1);
-    writeToAGVDevice(290, 1);
+    const QList<ModbusRegisterSpec> writes = buttonModbusBinding(QStringLiteral("TBtn_RemoveWarning")).writes;
+    if (writes.isEmpty()) {
+        writeToMainDevice(290, 1);
+        writeToAGVDevice(290, 1);
+        return;
+    }
+    executeConfiguredRegisterWrites(writes, 1, QStringLiteral("清除报警"));
 }
 
 // 修改：原有的清除报警按钮函数
@@ -12063,7 +12089,17 @@ void MainWindow::applyDefaultJointMoveModeFromExternalKey()
     m_moveModeUnknown = false;
     m_isJointMode = true;
 
-    writeToMainDevice(525, 2);
+    const ButtonModbusMapping::Binding moveBinding = buttonModbusBinding(QStringLiteral("TBtn_MoveMode"));
+    const ModbusRegisterSpec writeSpec = moveBinding.writes.isEmpty()
+        ? ModbusRegisterSpec{}
+        : moveBinding.writes.first();
+    const int writeAddr = ButtonModbusMapping::addressOr(writeSpec, 525);
+    const int jointValue = ButtonModbusMapping::stateValueOr(writeSpec, 1, 2);
+    if (writeSpec.device == QStringLiteral("AGV")) {
+        writeToAGVDevice(writeAddr, jointValue, true);
+    } else {
+        writeToMainDevice(writeAddr, jointValue);
+    }
 
     if (ui && ui->TBtn_MoveMode) {
         ui->TBtn_MoveMode->setText(QStringLiteral("关节模式"));
