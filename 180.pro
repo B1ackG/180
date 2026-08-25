@@ -36,6 +36,7 @@ SOURCES += \
     modbusvariables.cpp \
     operationrecorder.cpp \
     poseprovider.cpp \
+    runtimehealthmonitor.cpp \
     speedmodeselector.cpp \
     steeringmodeselector.cpp \
     techarcgauge.cpp \
@@ -72,6 +73,7 @@ HEADERS += \
     modbusvariables.h \
     operationrecorder.h \
     poseprovider.h \
+    runtimehealthmonitor.h \
     speedmodeselector.h \
     steeringmodeselector.h \
     techarcgauge.h \

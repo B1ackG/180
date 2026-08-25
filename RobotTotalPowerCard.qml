@@ -198,6 +198,7 @@ Item {
             anchors.topMargin: 16
             anchors.bottomMargin: 6
             antialiasing: true
+            renderTarget: Canvas.Image
 
             onPaint: {
                 var ctx = getContext("2d")

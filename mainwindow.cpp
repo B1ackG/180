@@ -1869,7 +1869,6 @@ void MainWindow::initSpeedGaugeUI()
     m_speedGaugeQml = new QQuickWidget(this);
     m_speedGaugeQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
     m_speedGaugeQml->setSource(QUrl("qrc:/TechSpeedGauge.qml"));
-    m_speedGaugeQml->setAttribute(Qt::WA_AlwaysStackOnTop);
     m_speedGaugeQml->setClearColor(Qt::transparent);
 
     // 2. 将原本放置 TechSpeedGauge 的布局或位置替换掉
@@ -1896,9 +1895,11 @@ void MainWindow::initSpeedGaugeUI()
 // 示例：更新速度值
 void MainWindow::updateSpeed(qreal newSpeed)
 {
-    // 更新 QML 属性实现平滑过渡（QML 内部有动画逻辑）
     if (m_speedGaugeQml && m_speedGaugeQml->rootObject()) {
-        m_speedGaugeQml->rootObject()->setProperty("currentValue", newSpeed);
+        QQuickItem *root = m_speedGaugeQml->rootObject();
+        if (!qFuzzyCompare(root->property("currentValue").toReal() + 1.0, newSpeed + 1.0)) {
+            root->setProperty("currentValue", newSpeed);
+        }
     }
 }
 
@@ -2050,10 +2051,15 @@ void MainWindow::updateDeviceCoordPanelFromCache()
         g_registerCache[115], g_registerCache[116], g_registerCache[117], g_registerCache[118]);
 
     QQuickItem *root = m_deviceCoordPanelQml->rootObject();
-    root->setProperty("coordX", cx);
-    root->setProperty("coordY", cy);
-    root->setProperty("coordZ", cz);
-    root->setProperty("coordAr", car);
+    const auto setRealIfChanged = [root](const char *name, double value) {
+        if (!qFuzzyCompare(root->property(name).toDouble() + 1.0, value + 1.0)) {
+            root->setProperty(name, value);
+        }
+    };
+    setRealIfChanged("coordX", cx);
+    setRealIfChanged("coordY", cy);
+    setRealIfChanged("coordZ", cz);
+    setRealIfChanged("coordAr", car);
 }
 
 void MainWindow::updateRobotTotalPower(quint16 powerValue)
@@ -2064,9 +2070,10 @@ void MainWindow::updateRobotTotalPower(quint16 powerValue)
 
     QQuickItem *root = m_robotTotalPowerQml->rootObject();
     const qreal numericPower = static_cast<qreal>(powerValue);
-    root->setProperty("currentPower", numericPower);
-    // 即使值不变也追加样本，保证趋势图持续可见。
-    QMetaObject::invokeMethod(root, "appendSample", Q_ARG(QVariant, numericPower));
+    if (!qFuzzyCompare(root->property("currentPower").toReal() + 1.0, numericPower + 1.0)) {
+        // QML 的 onCurrentPowerChanged 是趋势图唯一采样入口，避免一次数据双重重绘。
+        root->setProperty("currentPower", numericPower);
+    }
 }
 
 void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
@@ -2078,7 +2085,10 @@ void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
 
     const qint16 signedRaw = static_cast<qint16>(rawValue);
     const qreal degree = static_cast<qreal>(signedRaw) / 100.0;
-    target->rootObject()->setProperty("tiltValue", degree);
+    QQuickItem *root = target->rootObject();
+    if (!qFuzzyCompare(root->property("tiltValue").toReal() + 1.0, degree + 1.0)) {
+        root->setProperty("tiltValue", degree);
+    }
 
     if (isXAxis) {
         m_inclinometerXDegree = degree;

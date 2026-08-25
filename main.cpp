@@ -19,7 +19,10 @@
 #include <QFont>
 #include <QLockFile>
 #include <QDir>
+#include <QQuickWindow>
+#include <QSGRendererInterface>
 #include "debug.h"
+#include "runtimehealthmonitor.h"
 
 // 全局定义（在 debug.h 中声明）
 int debug = 0;
@@ -28,11 +31,7 @@ int debug = 0;
 static void globalMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
     if (type == QtDebugMsg && debug == 0) {
-        // 在未开启全局 DEBUG 时，保留主窗口分类日志，便于运行期排查 AGV/UI 问题。
-        const QString category = context.category ? QString::fromUtf8(context.category) : QString();
-        if (category != "app.mainwindow") {
-            return; // 丢弃其它调试输出
-        }
+        return; // 生产模式丢弃全部调试输出，分类日志也必须显式开启
     }
 
     QByteArray localMsg = msg.toLocal8Bit();
@@ -421,10 +420,24 @@ bool performSystemChecks(QSplashScreen* splash, MainWindow* mainWindow) {
 
 int main(int argc, char *argv[])
 {
+    // RK356x 上的 Mali Qt Quick/OpenGL 路径会持续泄漏 malitl timeline fd。
+    // QQuickWidget 官方支持 software scene graph；在创建首个 Quick window 前
+    // 同时禁用 XCB 的 GL/EGL 集成，避免 QQuickWidget 的合成层仍建立 Mali 上下文。
+    qputenv("QT_QUICK_BACKEND", QByteArray("software"));
+    qputenv("QT_XCB_GL_INTEGRATION", QByteArray("none"));
+    qputenv("QT_OPENGL", QByteArray("software"));
+    qputenv("LIBGL_ALWAYS_SOFTWARE", QByteArray("1"));
+    QQuickWindow::setSceneGraphBackend(QSGRendererInterface::Software);
+    if (QQuickWindow::sceneGraphBackend() != QStringLiteral("software")) {
+        qCritical("无法启用 Qt Quick software scene graph，拒绝回退到 Mali GPU 后端");
+        return 2;
+    }
+
     // 设置环境变量
     qputenv("QT_SCREEN_SCALE_FACTORS", "LVDS1=1");
     qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
 
+    qInfo() << "Qt Quick scene graph backend:" << QQuickWindow::sceneGraphBackend();
     qDebug() << "程序启动 - 创建QApplication";
     QApplication a(argc, argv);
 
@@ -575,6 +588,9 @@ int main(int argc, char *argv[])
     // 主窗口显示后再允许用户弹窗/Toast，并初始化报警系统
     w.markMainInitializationComplete();
     QTimer::singleShot(0, &w, &MainWindow::startAlarmSystem);
+
+    RuntimeHealthMonitor healthMonitor(&a);
+    healthMonitor.start();
 
     qDebug() << "进入事件循环";
     return a.exec();

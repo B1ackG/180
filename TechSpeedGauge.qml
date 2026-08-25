@@ -41,6 +41,7 @@ Item {
         id: gaugeCanvas
         anchors.fill: parent
         antialiasing: true
+        renderTarget: Canvas.Image
 
         onPaint: {
             var ctx = getContext("2d")

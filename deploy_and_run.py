@@ -52,9 +52,6 @@ def run_remote():
         child.expect(['#', '$'], timeout=10)
         
         print(f"[Run] Executing {cmd_to_run}...")
-        # Force Qt logging to console and stderr
-        child.sendline("export QT_LOGGING_RULES='*.debug=true'")
-        child.sendline("export QT_FORCE_STDERR_LOGGING=1")
         child.sendline(cmd_to_run)
         
         print("[Run] Application started. Streaming output (Ctrl+C to stop)...")

@@ -421,9 +421,16 @@ void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
     }
 
     const int actualCount = qMin(readCount, count);
+    bool faultCodesChanged = false;
     for (int i = 0; i < actualCount; ++i) {
         const int address = startAddress + i;
         const quint16 value = values.at(i);
+
+        // 与主设备链路保持一致：轮询读到相同值时不重复驱动 UI、QML 和日志。
+        if (m_registerValues.contains(address) && m_registerValues.value(address) == value) {
+            continue;
+        }
+
         emit registerValueChanged(address, value);
 
         if (address >= 50 && address <= 51) {
@@ -441,6 +448,17 @@ void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
             // 电池1充电状态（1=充电中）
             processWordVariables(address, value);
         }
+
+        m_registerValues[address] = value;
+        if (address >= 110 && address <= 117) {
+            faultCodesChanged = true;
+        }
+    }
+
+    // 故障寄存器按块读取；整块处理完仅重建一次列表，避免一次轮询触发
+    // 多轮 clear/add 和跨线程 QListWidgetItem 分配。
+    if (faultCodesChanged) {
+        updateFaultCodesDisplay();
     }
 }
 
@@ -640,12 +658,6 @@ void AGVModbusManager::processWordVariables(int address, quint16 value)
             // 有故障代码
             m_faultCodes[address] = value;
             qDebug() << "故障代码" << faultName << ":" << value;
-            qDebug() << "发出addFaultCodeToList信号:" << displayText;
-
-            // 发射信号到UI
-            emit addFaultCodeToList(displayText);
-
-            // 记录到日志
             qDebug() << "发现故障: " << displayText;
         } else {
             // 故障代码为0，表示无故障
@@ -653,8 +665,6 @@ void AGVModbusManager::processWordVariables(int address, quint16 value)
             qDebug() << "故障代码" << faultName << "已清除";
         }
 
-        // 更新故障代码显示
-        updateFaultCodesDisplay();
         emit wordVariableChanged(address, value);
     }
     else {

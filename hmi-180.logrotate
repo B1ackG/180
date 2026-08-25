@@ -1,0 +1,9 @@
+/userfs/app/180.log {
+    size 10M
+    rotate 4
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}

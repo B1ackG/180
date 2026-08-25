@@ -137,11 +137,22 @@ void FeatureSwitchManager::ensureConfigExists()
     }
     s.endGroup();
 
-    // 写入所有小功能节点，默认值为 true（开启）
+    // 生产环境默认关闭高频诊断日志；需要排障时再由功能控制台显式开启。
+    const QSet<QString> disabledByDefault = {
+        QStringLiteral("debug.qdebug"),
+        QStringLiteral("modbus_main.read_logs"),
+        QStringLiteral("modbus_main.write_logs"),
+        QStringLiteral("modbus_agv.read_logs"),
+        QStringLiteral("modbus_agv.write_logs"),
+        QStringLiteral("alarm.status_logs")
+    };
+
+    // 写入所有小功能节点
     s.beginGroup("SmallFeatures");
     for (const QString &key : m_allSmallFeatures) {
-        // 特殊处理：模拟器模式默认关闭
-        if (key == "tcp.local_simulator" || key == "tcp.remote_simulator") {
+        if (key == "tcp.local_simulator"
+            || key == "tcp.remote_simulator"
+            || disabledByDefault.contains(key)) {
             s.setValue(key, false);
         } else {
             s.setValue(key, true);
