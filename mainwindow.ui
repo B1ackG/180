@@ -253,7 +253,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
     </string>
         </property>
         <property name="text">
-         <string>辅助装配系统</string>
+         <string>成品辅助装配附件</string>
         </property>
        </widget>
       </item>
@@ -1174,7 +1174,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         <property name="geometry">
          <rect>
           <x>580</x>
-          <y>430</y>
+          <y>440</y>
           <width>151</width>
           <height>91</height>
          </rect>
