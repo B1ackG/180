@@ -16,6 +16,7 @@
         <file>RobotTotalPowerCard.qml</file>
         <file>DeviceCoordPanel.qml</file>
         <file>InclinometerCard.qml</file>
+        <file>WeightCard.qml</file>
         <file>HistoryList.qml</file>
         <file>BatteryWidget.qml</file>
         <file>PoseDisplay.qml</file>

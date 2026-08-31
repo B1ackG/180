@@ -466,6 +466,8 @@ public:
      * @brief 初始化倾角 X + 总功率 + 倾角 Y 横向组合条（左 X、中 QML 总功率、右 Y）
      */
     void initInclinometerAndRobotPowerStrip();
+    /** @brief 初始化首页当前负载重量卡片（主控 192.168.1.13 寄存器 123） */
+    void initWeightCard();
     /**
      * @brief 更新速度显示
      * @param newSpeed 新速度值
@@ -481,6 +483,8 @@ public:
     void updateRobotTotalPower(quint16 powerValue);
     /** @brief 更新倾角显示（AGV 151/152，寄存器值÷100） */
     void updateInclinometerValue(bool isXAxis, quint16 rawValue);
+    /** @brief 更新当前负载重量显示（主控 123，单位 KG） */
+    void updateCurrentLoadWeight(quint16 rawValue);
     /** @brief 根据 X/Y 倾角刷新倾角条颜色与倾覆风险/锁定提示窗 */
     void refreshInclinometerTiltPresentation();
     /** @brief 主程序初始化完成前禁止显示用户弹窗/Toast */
@@ -837,6 +841,7 @@ private:
     QQuickWidget *m_deviceCoordPanelQml = nullptr; // 当前 X/Y/Z/AR（寄存器 103~118）
     QQuickWidget *m_inclinometerXQml = nullptr;  // QML 版本 X 轴倾角卡片
     QQuickWidget *m_inclinometerYQml = nullptr;  // QML 版本 Y 轴倾角卡片
+    QQuickWidget *m_weightCardQml = nullptr;     // 当前负载重量卡片（主控 123）
     QWidget *m_inclinometerPowerStripWidget = nullptr;
     qreal m_inclinometerXDegree = 0.0;
     qreal m_inclinometerYDegree = 0.0;

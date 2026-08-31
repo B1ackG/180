@@ -228,6 +228,7 @@ bool isInsideSteeringModeSelector(const QWidget *widget)
 namespace {
 constexpr int kAgvParkOutTriggerLengthRegStart = 5014;
 constexpr int kAgvEstimatedWeightReg = 157;
+constexpr int kMainCurrentLoadWeightReg = 123;
 
 QPair<int, int> estimatedWeightLimits()
 {
@@ -2109,6 +2110,55 @@ void MainWindow::initInclinometerAndRobotPowerStrip()
     applyInclinometerDisplayRuntimeSettings();
 }
 
+void MainWindow::initWeightCard()
+{
+    QWidget *host = findChild<QWidget*>(QStringLiteral("widget_Weight"));
+    if (!host) {
+        qCWarning(lcMainWindow) << "未找到 widget_Weight，跳过当前负载重量卡片初始化";
+        return;
+    }
+
+    if (QLayout *oldLayout = host->layout()) {
+        QLayoutItem *item = nullptr;
+        while ((item = oldLayout->takeAt(0)) != nullptr) {
+            if (item->widget()) {
+                item->widget()->deleteLater();
+            }
+            delete item;
+        }
+        delete oldLayout;
+    }
+
+    host->setStyleSheet(QStringLiteral("background: transparent;"));
+
+    m_weightCardQml = new QQuickWidget(host);
+    m_weightCardQml->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    m_weightCardQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    applyTransparentQuickWidgetBackground(m_weightCardQml);
+    connect(m_weightCardQml, &QQuickWidget::statusChanged, this,
+            [this](QQuickWidget::Status status) {
+                if (status == QQuickWidget::Error && m_weightCardQml) {
+                    const auto errs = m_weightCardQml->errors();
+                    for (const auto &err : errs) {
+                        qWarning() << "WeightCard QML error:" << err.toString();
+                    }
+                }
+            }, Qt::UniqueConnection);
+    m_weightCardQml->setSource(QUrl(QStringLiteral("qrc:/WeightCard.qml")));
+
+    if (QQuickItem *root = m_weightCardQml->rootObject()) {
+        root->setProperty("title", QStringLiteral("当前负载"));
+        root->setProperty("unit", QStringLiteral("KG"));
+        root->setProperty("weightValue", 0.0);
+        root->setProperty("dataValid", false);
+    }
+
+    auto *layout = new QVBoxLayout(host);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+    layout->addWidget(m_weightCardQml);
+}
+
 void MainWindow::initDeviceCoordPanel()
 {
     m_deviceCoordPanelQml = findChild<QQuickWidget*>(QStringLiteral("quickWidget_DeviceCoordPanel"));
@@ -2184,6 +2234,22 @@ void MainWindow::updateRobotTotalPower(quint16 powerValue)
     if (!qFuzzyCompare(root->property("currentPower").toReal() + 1.0, numericPower + 1.0)) {
         // QML 的 onCurrentPowerChanged 是趋势图唯一采样入口，避免一次数据双重重绘。
         root->setProperty("currentPower", numericPower);
+    }
+}
+
+void MainWindow::updateCurrentLoadWeight(quint16 rawValue)
+{
+    if (!(m_weightCardQml && m_weightCardQml->rootObject())) {
+        return;
+    }
+
+    QQuickItem *root = m_weightCardQml->rootObject();
+    const qreal kg = static_cast<qreal>(rawValue);
+    if (!qFuzzyCompare(root->property("weightValue").toReal() + 1.0, kg + 1.0)) {
+        root->setProperty("weightValue", kg);
+    }
+    if (!root->property("dataValid").toBool()) {
+        root->setProperty("dataValid", true);
     }
 }
 
@@ -5849,6 +5915,10 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         updateRobotTotalPower(value);
     }
 
+    if (address == kMainCurrentLoadWeightReg) {
+        updateCurrentLoadWeight(value);
+    }
+
     if (address >= 103 && address <= 118) {
         updateDeviceCoordPanelFromCache();
     }
@@ -6460,6 +6530,9 @@ void MainWindow::readMainControlSyncRegisters()
 
     // 机器人总功率：192.168.1.13 的 134 寄存器
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 134, 1);
+
+    // 当前负载重量：192.168.1.13 的 123 寄存器
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainCurrentLoadWeightReg, 1);
 
     // 当前位姿 X/Y/Z/AR：192.168.1.13 保持寄存器 103~118，每组 4 个寄存器为 IEEE754 双精度（与 J1~J4 解析一致）
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 103, 16);

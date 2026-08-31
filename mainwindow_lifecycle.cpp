@@ -395,6 +395,7 @@ void MainWindow::initUI()
     initSpeedGaugeUI();
     initDeviceCoordPanel();
     initInclinometerAndRobotPowerStrip();
+    initWeightCard();
 
     if (isFeatureEnabled("ui_navigation", "ui.virtual_keyboard")) {
         setupVirtualKeyboard();
