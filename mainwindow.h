@@ -786,6 +786,7 @@ private:
 
     // ----- 机器人状态控制 -----
     UserRole m_currentUserRole = UserRole::Operator;
+    bool m_roleSelected = false;
     
     ControlMode m_controlMode = WIRED_MODE;
     
@@ -1053,6 +1054,12 @@ private:
 
     /** @brief 权限页登录/注销后恢复与角色相关的控件可见性 */
     void applyPermissionPageLoginState();
+    /** @brief 开机未选权限时锁定除权限页以外的导航 */
+    void applyPermissionNavigationGate();
+    /** @brief 是否仍处于开机强制选权限状态 */
+    bool isPermissionSelectionPending() const;
+    /** @brief 未登录时按所选角色显示/隐藏密码框 */
+    void applyPermissionLoginFormForSelectedRole();
     /** @brief 连接导航与页面切换相关信号 */
     void setupNavigationConnections();
 

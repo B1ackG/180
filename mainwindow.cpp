@@ -27,6 +27,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #undef qDebug
 #endif
 #include <QComboBox>
+#include <QStackedWidget>
 #include <QPlainTextEdit>
 #include <QMessageBox>
 #include <QDialog>
@@ -42,6 +43,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QPushButton>
 #include <QGroupBox>
 #include <QtMath>
 #include <array>
@@ -903,6 +905,67 @@ void MainWindow::applyPermissionPageLoginState()
     setVisibleByName(QStringLiteral("roleComboBox"), !loggedIn);
     setVisibleByName(QStringLiteral("passwordEdit"), !loggedIn);
     setVisibleByName(QStringLiteral("passwordHint"), !loggedIn);
+
+    if (!loggedIn) {
+        applyPermissionLoginFormForSelectedRole();
+    }
+}
+
+bool MainWindow::isPermissionSelectionPending() const
+{
+    return !m_roleSelected && isFeatureEnabled("permission_system", "permission.admin_login");
+}
+
+void MainWindow::applyPermissionNavigationGate()
+{
+    if (!ui) {
+        return;
+    }
+
+    const bool unlocked = !isPermissionSelectionPending();
+    const auto setEnabledIf = [unlocked](QWidget *widget) {
+        if (widget) {
+            widget->setEnabled(unlocked);
+        }
+    };
+
+    setEnabledIf(ui->TBtn_HomePage);
+    setEnabledIf(ui->TBtn_HistoryRecord);
+    setEnabledIf(ui->TBtn_SixAxies);
+    setEnabledIf(ui->TBtn_Stepmove);
+    setEnabledIf(ui->TBtn_MoveMode);
+    setEnabledIf(ui->TBtn_Interlocking);
+    setEnabledIf(ui->TBtn_ControlMode);
+    setEnabledIf(ui->TBtn_RemoveWarning);
+    if (ui->TBtn_PermissionPage) {
+        ui->TBtn_PermissionPage->setEnabled(true);
+    }
+}
+
+void MainWindow::applyPermissionLoginFormForSelectedRole()
+{
+    QComboBox *roleComboBox = findChild<QComboBox*>(QStringLiteral("roleComboBox"));
+    QLineEdit *passwordEdit = findChild<QLineEdit*>(QStringLiteral("passwordEdit"));
+    QLabel *hintLabel = findChild<QLabel*>(QStringLiteral("passwordHint"));
+    QPushButton *loginButton = findChild<QPushButton*>(QStringLiteral("loginButton"));
+    if (!roleComboBox) {
+        return;
+    }
+
+    const bool isOperator =
+        static_cast<UserRole>(roleComboBox->currentData().toInt()) == UserRole::Operator;
+    if (passwordEdit) {
+        passwordEdit->setVisible(!isOperator);
+        if (isOperator) {
+            passwordEdit->clear();
+        }
+    }
+    if (hintLabel) {
+        hintLabel->setVisible(!isOperator);
+    }
+    if (loginButton) {
+        loginButton->setText(isOperator ? QStringLiteral("进入") : QStringLiteral("登录"));
+    }
 }
 
 void MainWindow::applyButtonVisibilityRuntimeSettings()
@@ -949,6 +1012,7 @@ void MainWindow::applyButtonVisibilityRuntimeSettings()
     settings.endGroup();
     reloadButtonModbusBindings();
     applyPermissionPageLoginState();
+    applyPermissionNavigationGate();
     loadSpareButtonNameRegisterSettings();
     syncSpareButtonNamesFromRegisters();
     applySpareButtonRuntimeSettings();
@@ -1090,17 +1154,39 @@ void MainWindow::setupNavigationConnections()
         btn->setCheckable(true);
         btn->setAutoExclusive(true);
     }
-    if (ui->TBtn_HomePage) {
+    if (isFeatureEnabled("permission_system", "permission.admin_login") && ui->TBtn_PermissionPage) {
+        ui->TBtn_PermissionPage->setChecked(true);
+    } else if (ui->TBtn_HomePage) {
         ui->TBtn_HomePage->setChecked(true);
     }
 
     connect(ui->TBtn_HomePage, &QPushButton::clicked, [=]() {
+        if (isPermissionSelectionPending()) {
+            showNotification(QStringLiteral("请先选择权限"));
+            if (ui->page_Permission) {
+                ui->StackedWidget->setCurrentWidget(ui->page_Permission);
+            }
+            if (ui->TBtn_PermissionPage) {
+                ui->TBtn_PermissionPage->setChecked(true);
+            }
+            return;
+        }
         ui->StackedWidget->setCurrentIndex(0);
         ui->TBtn_HomePage->setChecked(true);
         updateNavButtonStyles(nullptr);
     });
 
     connect(ui->TBtn_SixAxies, &QPushButton::clicked, [this]() {
+        if (isPermissionSelectionPending()) {
+            showNotification(QStringLiteral("请先选择权限"));
+            if (ui->page_Permission) {
+                ui->StackedWidget->setCurrentWidget(ui->page_Permission);
+            }
+            if (ui->TBtn_PermissionPage) {
+                ui->TBtn_PermissionPage->setChecked(true);
+            }
+            return;
+        }
         if (ui->page_SixAxies) {
             ui->StackedWidget->setCurrentWidget(ui->page_SixAxies);
         }
@@ -1118,6 +1204,16 @@ void MainWindow::setupRecordAndPermissionConnections()
     }
 
     connect(ui->TBtn_HistoryRecord, &QPushButton::clicked, this, [this]() {
+        if (isPermissionSelectionPending()) {
+            showNotification(QStringLiteral("请先选择权限"));
+            if (ui->page_Permission) {
+                ui->StackedWidget->setCurrentWidget(ui->page_Permission);
+            }
+            if (ui->TBtn_PermissionPage) {
+                ui->TBtn_PermissionPage->setChecked(true);
+            }
+            return;
+        }
         if (m_currentUserRole >= UserRole::Admin) {
             if (ui->page_HistoryRecord) {
                 ui->StackedWidget->setCurrentWidget(ui->page_HistoryRecord);
@@ -1130,7 +1226,7 @@ void MainWindow::setupRecordAndPermissionConnections()
                 ui->TBtn_HomePage->setChecked(true);
             }
             const QString tip = "权限不足：查看历史记录需要管理员权限";
-            showNotification(tip);
+            showToast(tip, ToastKind::Warning);
             updateStatusTip(tip);
         }
     });
@@ -1212,6 +1308,21 @@ void MainWindow::setupRecordAndPermissionConnections()
     });
     connect(m_recorder, &OperationRecorder::recordsCleared,
             this, &MainWindow::updateRecordDisplay);
+
+    if (ui->StackedWidget) {
+        connect(ui->StackedWidget, &QStackedWidget::currentChanged,
+                this, [this](int) {
+            if (!isPermissionSelectionPending() || !ui->page_Permission) {
+                return;
+            }
+            if (ui->StackedWidget->currentWidget() != ui->page_Permission) {
+                ui->StackedWidget->setCurrentWidget(ui->page_Permission);
+                if (ui->TBtn_PermissionPage) {
+                    ui->TBtn_PermissionPage->setChecked(true);
+                }
+            }
+        });
+    }
 }
 
 void MainWindow::setupControlConnections()
@@ -2989,13 +3100,14 @@ void MainWindow::setupAdminPasswordPage()
     containerLayout->setAlignment(Qt::AlignCenter);
 
     // 标题
-    QLabel *titleLabel = new QLabel("权限验证", container);
+    QLabel *titleLabel = new QLabel("请先选择权限", container);
     titleLabel->setObjectName("adminTitle");
     titleLabel->setAlignment(Qt::AlignCenter);
 
     // 角色选择下拉框
     QComboBox *roleComboBox = new QComboBox(container);
     roleComboBox->setObjectName("roleComboBox");
+    roleComboBox->addItem("操作员 (Operator)", QVariant::fromValue(static_cast<int>(UserRole::Operator)));
     roleComboBox->addItem("工程师 (Engineer)", QVariant::fromValue(static_cast<int>(UserRole::Engineer)));
     roleComboBox->addItem("管理员 (Admin)", QVariant::fromValue(static_cast<int>(UserRole::Admin)));
     roleComboBox->addItem("厂家 (Manufacturer)", QVariant::fromValue(static_cast<int>(UserRole::Manufacturer)));
@@ -3334,9 +3446,11 @@ void MainWindow::setupAdminPasswordPage()
         record.newValue = QString("尝试登录 %1: %2").arg(roleName).arg(password.isEmpty() ? "(空)" : "******");
         m_recorder->addRecord(record);
 
-        // 验证明文口令
+        // 验证明文口令；操作员无需密码
         bool loginSuccess = false;
-        if (selectedRole == UserRole::Admin && password == "123") {
+        if (selectedRole == UserRole::Operator) {
+            loginSuccess = true;
+        } else if (selectedRole == UserRole::Admin && password == "123") {
             loginSuccess = true;
         } else if (selectedRole == UserRole::Engineer && password == "456") {
             loginSuccess = true;
@@ -3345,10 +3459,10 @@ void MainWindow::setupAdminPasswordPage()
         }
 
         if (loginSuccess) {
-            // 设置登录状态
             m_currentUserRole = selectedRole;
+            m_roleSelected = true;
+            applyPermissionNavigationGate();
 
-            // 记录成功登录
             OperationRecord successRecord;
             successRecord.timestamp = QDateTime::currentDateTime();
             successRecord.pageName = "权限验证";
@@ -3356,10 +3470,28 @@ void MainWindow::setupAdminPasswordPage()
             successRecord.controlType = "LoginSuccess";
             successRecord.operation = "login_success";
             successRecord.oldValue = "";
-            successRecord.newValue = QString("登录成功: %1").arg(roleName);
+            successRecord.newValue = selectedRole == UserRole::Operator
+                ? QStringLiteral("已选择操作员权限")
+                : QString("登录成功: %1").arg(roleName);
             m_recorder->addRecord(successRecord);
 
-            // 更新界面状态
+            errorLabel->setVisible(false);
+            passwordEdit->clear();
+
+            if (selectedRole == UserRole::Operator) {
+                titleLabel->setText("权限验证");
+                applyPermissionPageLoginState();
+                if (ui->StackedWidget) {
+                    ui->StackedWidget->setCurrentIndex(0);
+                }
+                if (ui->TBtn_HomePage) {
+                    ui->TBtn_HomePage->setChecked(true);
+                }
+                updateStatusBarTime();
+                showNotification(QStringLiteral("已选择操作员权限"));
+                return;
+            }
+
             titleLabel->setText(QString("当前权限: %1").arg(roleName));
             roleComboBox->setVisible(false);
             passwordEdit->setVisible(false);
@@ -3368,16 +3500,13 @@ void MainWindow::setupAdminPasswordPage()
             logoutButton->setVisible(true);
             featureButton->setVisible(m_currentUserRole == UserRole::Manufacturer);
             weightThresholdSection->setVisible(m_currentUserRole == UserRole::Admin);
-            errorLabel->setVisible(false);
-            passwordEdit->clear();
 
-            // 登录成功后仅显示提示，不自动跳转到操作记录页面
+            updateStatusBarTime();
             showNotification(QString("%1 登录成功").arg(roleName));
         } else {
             errorLabel->setText("密码错误！请重试。");
             errorLabel->setVisible(true);
 
-            // 记录失败登录
             OperationRecord failRecord;
             failRecord.timestamp = QDateTime::currentDateTime();
             failRecord.pageName = "权限验证";
@@ -3388,15 +3517,13 @@ void MainWindow::setupAdminPasswordPage()
             failRecord.newValue = QString("登录失败: %1").arg(password.isEmpty() ? "(空)" : "******");
             m_recorder->addRecord(failRecord);
 
-            // 清空密码框并设置焦点
             passwordEdit->clear();
             passwordEdit->setFocus();
         }
     });
 
     // 连接注销按钮
-    connect(logoutButton, &QPushButton::clicked, this, [this, titleLabel, roleComboBox, passwordEdit, hintLabel, loginButton, logoutButton, errorLabel, featureButton, weightThresholdSection]() {
-        // 记录注销
+    connect(logoutButton, &QPushButton::clicked, this, [this, titleLabel, errorLabel, weightThresholdSection]() {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
         record.pageName = "权限验证";
@@ -3407,25 +3534,27 @@ void MainWindow::setupAdminPasswordPage()
         record.newValue = "注销，返回操作员权限";
         m_recorder->addRecord(record);
 
-        // 恢复为操作员权限
         m_currentUserRole = UserRole::Operator;
 
-        // 恢复界面状态
         titleLabel->setText("权限验证");
-        roleComboBox->setVisible(true);
-        passwordEdit->setVisible(true);
-        hintLabel->setVisible(true);
-        loginButton->setVisible(true);
-        logoutButton->setVisible(false);
-        featureButton->setVisible(false);
         weightThresholdSection->setVisible(false);
         errorLabel->setVisible(false);
-        
+        applyPermissionPageLoginState();
+        updateStatusBarTime();
+
         showNotification("已注销，当前为操作员权限");
     });
 
     // 回车键登录
     connect(passwordEdit, &QLineEdit::returnPressed, loginButton, &QPushButton::click);
+
+    connect(roleComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, [this](int) {
+        if (m_currentUserRole == UserRole::Operator) {
+            applyPermissionLoginFormForSelectedRole();
+        }
+    });
+    applyPermissionLoginFormForSelectedRole();
 
 
     // 当输入时隐藏错误提示
@@ -9285,11 +9414,16 @@ void MainWindow::updateStatusBarTime()
     if (roleLed && roleText) {
         QString color = "#aaaaaa";
         QString text = "操作员";
-        switch(m_currentUserRole) {
-            case UserRole::Operator: color = "#aaaaaa"; text = "操作员"; break;
-            case UserRole::Engineer: color = "#55aaff"; text = "工程师"; break;
-            case UserRole::Admin: color = "#55ff55"; text = "管理员"; break;
-            case UserRole::Manufacturer: color = "#ffaa00"; text = "厂家"; break;
+        if (isPermissionSelectionPending()) {
+            color = "#aaaaaa";
+            text = "未选择权限";
+        } else {
+            switch(m_currentUserRole) {
+                case UserRole::Operator: color = "#aaaaaa"; text = "操作员"; break;
+                case UserRole::Engineer: color = "#55aaff"; text = "工程师"; break;
+                case UserRole::Admin: color = "#55ff55"; text = "管理员"; break;
+                case UserRole::Manufacturer: color = "#ffaa00"; text = "厂家"; break;
+            }
         }
         roleLed->setStyleSheet(QString("color: %1; font-size: 14px;").arg(color));
         roleText->setText(text);

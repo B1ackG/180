@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_mappingConfig(new MappingConfig(this))
     , m_tcpTransmissionEnabled(false)
     , m_currentUserRole(UserRole::Operator)
+    , m_roleSelected(false)
     , m_stepModeEnabled(false)
     , m_virtualKeyboard(nullptr)
     , m_keyManager(new MatrixKeyThreadManager(this))
@@ -79,7 +80,14 @@ MainWindow::MainWindow(QWidget *parent)
         sixAxisQuickWidget->setSource(QUrl("qrc:/PoseDisplay.qml"));
     }
 
-    ui->StackedWidget->setCurrentIndex(0);
+    if (isFeatureEnabled("permission_system", "permission.admin_login") && ui->page_Permission) {
+        ui->StackedWidget->setCurrentWidget(ui->page_Permission);
+        if (ui->TBtn_PermissionPage) {
+            ui->TBtn_PermissionPage->setChecked(true);
+        }
+    } else {
+        ui->StackedWidget->setCurrentIndex(0);
+    }
     ui->lab_Overall->setScaledContents(true);
     ui->lab_Overall->setPixmap(QPixmap(":/Picture/190overall7_smalltest.png"));
 
