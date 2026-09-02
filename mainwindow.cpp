@@ -730,6 +730,13 @@ void initChamferButtonTheme(TechChamferToolButton *button)
     button->setBorderColor(QColor(0, 220, 255, 180));
     button->setCheckedFillColor(QColor(0, 130, 200, 224));
     button->setCheckedBorderColor(QColor(120, 240, 255, 255));
+    QFont font = button->font();
+    if (font.pointSize() < 14) {
+        font.setPointSize(14);
+        font.setBold(true);
+        button->setFont(font);
+    }
+    button->setMinimumHeight(46);
 }
 
 void applyChamferStateColors(TechChamferToolButton *btn,
@@ -1167,6 +1174,21 @@ void MainWindow::setupNavigationMenuIcons()
     setIcon(ui->TBtn_RobotControl, NavIconKind::Craft, 22);
     setIcon(ui->TBtn_ChassisControl, NavIconKind::Chassis, 22);
     setIcon(ui->TBtn_SixAxies, NavIconKind::SixAxis, 22);
+    if (ui->TBtn_RobotControl) {
+        ui->TBtn_RobotControl->setBorderColor(QColor(77, 166, 255, 210));
+        ui->TBtn_RobotControl->setCheckedFillColor(QColor(36, 92, 176, 230));
+        ui->TBtn_RobotControl->setCheckedBorderColor(QColor(160, 210, 255));
+    }
+    if (ui->TBtn_ChassisControl) {
+        ui->TBtn_ChassisControl->setBorderColor(QColor(0, 212, 196, 210));
+        ui->TBtn_ChassisControl->setCheckedFillColor(QColor(0, 120, 118, 230));
+        ui->TBtn_ChassisControl->setCheckedBorderColor(QColor(120, 255, 230));
+    }
+    if (ui->TBtn_SixAxies) {
+        ui->TBtn_SixAxies->setBorderColor(QColor(183, 148, 246, 210));
+        ui->TBtn_SixAxies->setCheckedFillColor(QColor(92, 58, 160, 230));
+        ui->TBtn_SixAxies->setCheckedBorderColor(QColor(210, 190, 255));
+    }
 
     setIcon(ui->TBtn_PermissionPage, NavIconKind::Permission, 22);
     setIcon(ui->TBtn_HistoryRecord, NavIconKind::History, 22);
@@ -1704,7 +1726,7 @@ void MainWindow::setupRecordAndPermissionConnections()
             QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
             if (moveModeLabel) {
                 moveModeLabel->setText("关节模式");
-                moveModeLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
+                moveModeLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 12px;");
             }
             showNotification("已切换至关节模式");
         } else {
@@ -1717,7 +1739,7 @@ void MainWindow::setupRecordAndPermissionConnections()
             QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
             if (moveModeLabel) {
                 moveModeLabel->setText("坐标模式");
-                moveModeLabel->setStyleSheet("color: #ffaa00; font-weight: bold; font-size: 11px;");
+                moveModeLabel->setStyleSheet("color: #ffaa00; font-weight: bold; font-size: 12px;");
             }
             showNotification("已切换至坐标模式");
         }
@@ -2278,18 +2300,19 @@ void MainWindow::initTechButtons() {
         // btn->enableClickAnimation(true);
         // btn->setTextGlow(true);
 
-        // 根据不同需求选择样式，以全息和能量风格为例：
-        // a) 全息样式 (Holographic)
-        btn->setButtonStyle(TechPushButton::StyleHolographic);
-        btn->setPrimaryColor(QColor(0, 200, 255, 150)); // 半透明蓝
-        btn->setSecondaryColor(QColor(255, 0, 255, 150)); // 半透明紫
-        // btn->enableScanLine(true); // 启用扫描线动画
-
-        // b) 能量样式 (Energy)
-        // btn->setButtonStyle(TechPushButton::StyleEnergy);
-        // btn->setPrimaryColor(QColor(255, 100, 0)); // 橙色
-        // btn->setSecondaryColor(QColor(255, 220, 0)); // 黄色
-        // btn->enablePulseEffect(true); // 启用脉冲动画
+        btn->setButtonStyle(TechPushButton::StyleDefault);
+        btn->setCornerRadius(8);
+        btn->setBorderWidth(2);
+        btn->setMinimumHeight(48);
+        btn->setPrimaryColor(QColor(0, 140, 190, 220));
+        btn->setSecondaryColor(QColor(0, 200, 255, 180));
+        btn->setTextColor(QColor(255, 255, 255));
+        btn->enableHoverAnimation(false);
+        btn->enableClickAnimation(true);
+        btn->enablePulseEffect(false);
+        btn->enableScanLine(false);
+        btn->setTextGlow(false);
+        btn->applySelectionVisual(btn->isCheckable() && btn->isChecked());
 
         // 4. 连接到信号槽（例如，统一连接到处理函数）
         // connect(btn, &TechPushButton::clicked, this, &MainWindow::onTechButtonClicked);
@@ -5795,7 +5818,7 @@ void MainWindow::applyMoveModeUiFromRegister126(quint16 value)
         QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarMoveModeLabel")) : nullptr;
         if (moveModeLabel) {
             moveModeLabel->setText(QStringLiteral("关节模式"));
-            moveModeLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
+            moveModeLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 12px;"));
         }
     } else if (static_cast<int>(value) == coordValue) {
         m_moveModeUnknown = false;
@@ -5804,7 +5827,7 @@ void MainWindow::applyMoveModeUiFromRegister126(quint16 value)
         QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarMoveModeLabel")) : nullptr;
         if (moveModeLabel) {
             moveModeLabel->setText(QStringLiteral("坐标模式"));
-            moveModeLabel->setStyleSheet(QStringLiteral("color: #ffaa00; font-weight: bold; font-size: 11px;"));
+            moveModeLabel->setStyleSheet(QStringLiteral("color: #ffaa00; font-weight: bold; font-size: 12px;"));
         }
     } else {
         m_moveModeUnknown = true;
@@ -5812,7 +5835,7 @@ void MainWindow::applyMoveModeUiFromRegister126(quint16 value)
         QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarMoveModeLabel")) : nullptr;
         if (moveModeLabel) {
             moveModeLabel->setText(QStringLiteral("运动未选择"));
-            moveModeLabel->setStyleSheet(QStringLiteral("color: #aaaaaa; font-weight: bold; font-size: 11px;"));
+            moveModeLabel->setStyleSheet(QStringLiteral("color: #aaaaaa; font-weight: bold; font-size: 12px;"));
         }
     }
     updateStepTargetButtonsState();
@@ -6098,8 +6121,7 @@ void MainWindow::initSpeedModeSelector()
     // 例如，放在某个布局或widget中
     // ui->verticalLayout->addWidget(speedModeSelector);
 
-    // 设置按钮样式为全息风格
-    speedModeSelector->setButtonStyle(TechPushButton::StyleHolographic);
+    speedModeSelector->setButtonStyle(TechPushButton::StyleDefault);
 
     // 设置自定义颜色
     speedModeSelector->setActiveColor(QColor(0, 200, 255));     // 激活状态颜色
@@ -6722,7 +6744,7 @@ void MainWindow::syncStepModeUiByCurrentPage()
         ui->TBtn_Stepmove->setToolTip("当前模式：步进模式");
         if (runModeLabel) {
             runModeLabel->setText("步进模式");
-            runModeLabel->setStyleSheet("color: #00ff00; font-weight: bold; font-size: 11px;");
+            runModeLabel->setStyleSheet("color: #00ff00; font-weight: bold; font-size: 12px;");
         }
     } else if (stepModeValue == 1) {
         m_stepModeUnknown = false;
@@ -6731,7 +6753,7 @@ void MainWindow::syncStepModeUiByCurrentPage()
         ui->TBtn_Stepmove->setToolTip("当前模式：点动模式");
         if (runModeLabel) {
             runModeLabel->setText("点动模式");
-            runModeLabel->setStyleSheet("color: #00ccff; font-weight: bold; font-size: 11px;");
+            runModeLabel->setStyleSheet("color: #00ccff; font-weight: bold; font-size: 12px;");
         }
     } else {
         m_stepModeUnknown = true;
@@ -6739,7 +6761,7 @@ void MainWindow::syncStepModeUiByCurrentPage()
         ui->TBtn_Stepmove->setToolTip("当前模式：未选择模式");
         if (runModeLabel) {
             runModeLabel->setText("步进未选择");
-            runModeLabel->setStyleSheet("color: #aaaaaa; font-weight: bold; font-size: 11px;");
+            runModeLabel->setStyleSheet("color: #aaaaaa; font-weight: bold; font-size: 12px;");
         }
     }
 
@@ -7255,7 +7277,7 @@ void MainWindow::setupAGVModbus()
                                                     : nullptr;
                     if (controlModeLabel) {
                         controlModeLabel->setText(m_controlMode == WIRED_MODE ? "示教器控制" : "遥控器控制");
-                        controlModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+                        controlModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 12px;")
                                                             .arg(m_controlMode == WIRED_MODE ? "#ffffff" : "#ffff00"));
                     }
                 }
@@ -7281,7 +7303,7 @@ void MainWindow::setupAGVModbus()
                                            : nullptr;
                     if (oaLabel) {
                         oaLabel->setText(oaEnabled ? "避障开" : "避障关");
-                        oaLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+                        oaLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 12px;")
                                                    .arg(oaEnabled ? "#00C8FF" : "#7F8C8D"));
                     }
                 }
@@ -7966,7 +7988,7 @@ void MainWindow::applyAGVParkingLegAbnormalUi()
                              : nullptr;
     if (parkLabel) {
         parkLabel->setText(QStringLiteral("支腿异常"));
-        parkLabel->setStyleSheet(QStringLiteral("color: #FF6600; font-weight: bold; font-size: 11px;"));
+        parkLabel->setStyleSheet(QStringLiteral("color: #FF6600; font-weight: bold; font-size: 12px;"));
     }
 }
 
@@ -7981,7 +8003,7 @@ void MainWindow::applyAGVParkingStatusBarUi(bool enabled)
                              : nullptr;
     if (parkLabel) {
         parkLabel->setText(enabled ? QStringLiteral("驻车开") : QStringLiteral("驻车关"));
-        parkLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+        parkLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 12px;")
                                      .arg(enabled ? "#00C8FF" : "#7F8C8D"));
     }
 }
@@ -8080,7 +8102,7 @@ void MainWindow::syncAGVSteeringModeFromRegister50(quint16 value)
                                  : nullptr;
     if (steeringLabel) {
         steeringLabel->setText(QString("转向:%1").arg(m_steeringModeSelector->modeText(mode)));
-        steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
+        steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 12px;");
     }
 }
 
@@ -8513,7 +8535,7 @@ void MainWindow::onControlModeClicked()
         QLabel *controlModeLabel = ui->statusBar->findChild<QLabel*>("statusBarControlModeLabel");
         if (controlModeLabel) {
             controlModeLabel->setText("遥控器控制");
-            controlModeLabel->setStyleSheet("color: #ffff00; font-weight: bold; font-size: 11px;");
+            controlModeLabel->setStyleSheet("color: #ffff00; font-weight: bold; font-size: 12px;");
         }
     } else {
         m_controlMode = WIRED_MODE;
@@ -8528,7 +8550,7 @@ void MainWindow::onControlModeClicked()
         QLabel *controlModeLabel = ui->statusBar->findChild<QLabel*>("statusBarControlModeLabel");
         if (controlModeLabel) {
             controlModeLabel->setText("示教器控制");
-            controlModeLabel->setStyleSheet("color: #ffffff; font-weight: bold; font-size: 11px;");
+            controlModeLabel->setStyleSheet("color: #ffffff; font-weight: bold; font-size: 12px;");
         }
     }
 
@@ -9002,7 +9024,7 @@ void MainWindow::onAGVOABtnClicked()
     QLabel *oaLabel = ui && ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarOaLabel") : nullptr;
     if (oaLabel) {
         oaLabel->setText(m_agvOaEnabled ? "避障开" : "避障关");
-        oaLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+        oaLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 12px;")
                                    .arg(m_agvOaEnabled ? "#00C8FF" : "#7F8C8D"));
     }
 
@@ -9558,8 +9580,7 @@ void MainWindow::setupSteeringModeControl()
                                                 130);
         }
 
-        // 设置样式为全息风格
-        m_steeringModeSelector->setButtonStyle(TechPushButton::StyleHolographic);
+        m_steeringModeSelector->setButtonStyle(TechPushButton::StyleDefault);
 
         // 设置自定义颜色
         m_steeringModeSelector->setActiveColor(QColor(0, 200, 255));     // 激活状态颜色
@@ -9605,7 +9626,7 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         }
         if (steeringLabel && m_steeringModeSelector) {
             steeringLabel->setText(QStringLiteral("转向:%1").arg(m_steeringModeSelector->modeText(m_lastSteeringMode)));
-            steeringLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
+            steeringLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 12px;"));
         }
         return;
     }
@@ -9619,7 +9640,7 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         }
         if (steeringLabel && m_steeringModeSelector) {
             steeringLabel->setText(QStringLiteral("转向:%1").arg(m_steeringModeSelector->modeText(m_lastSteeringMode)));
-            steeringLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
+            steeringLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 12px;"));
         }
         return;
     }
@@ -9633,7 +9654,7 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         }
         if (steeringLabel && m_steeringModeSelector) {
             steeringLabel->setText(QString("转向:%1").arg(m_steeringModeSelector->modeText(m_lastSteeringMode)));
-            steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
+            steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 12px;");
         }
         qCDebug(lcMainWindow) << "转向模式 AGV 写寄存器2失败（含示教写门禁等），已回滚选择器";
         return;
@@ -9641,7 +9662,7 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
 
     if (steeringLabel && m_steeringModeSelector) {
         steeringLabel->setText(QString("转向:%1").arg(m_steeringModeSelector->modeText(mode)));
-        steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
+        steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 12px;");
     }
 
     if (!isFeatureEnabled("alarm_system", "alarm.steering_switch")) {
@@ -9778,7 +9799,7 @@ void MainWindow::setupTcpTransmissionUI()
         // 时间日期标签
         QLabel *timeLabel = new QLabel(centerWidget);
         timeLabel->setObjectName("statusBarTimeLabel");
-        timeLabel->setStyleSheet("color: #ffffff; font-family: 'Consolas'; font-size: 11px;");
+        timeLabel->setStyleSheet("color: #ffffff; font-family: 'Consolas'; font-size: 12px;");
         timeLabel->setFixedHeight(12); // 固定高度，与右侧 MAIN 指示灯 12px 一致
         centerLayout->addWidget(timeLabel);
 
@@ -9793,7 +9814,7 @@ void MainWindow::setupTcpTransmissionUI()
         roleLed->setFixedHeight(12);
         QLabel *roleText = new QLabel("操作员", roleWidget);
         roleText->setObjectName("statusBarRoleText");
-        roleText->setStyleSheet("color: #ffffff; font-size: 11px;");
+        roleText->setStyleSheet("color: #ffffff; font-size: 12px;");
         roleText->setFixedHeight(12);
         roleLayout->addWidget(roleLed);
         roleLayout->addWidget(roleText);
@@ -9804,7 +9825,7 @@ void MainWindow::setupTcpTransmissionUI()
         const QString startupRunModeColor = m_stepModeUnknown ? "#aaaaaa" : (m_stepModeEnabled ? "#00ff00" : "#00ccff");
         QLabel *runModeLabel = new QLabel(startupRunModeText, centerWidget);
         runModeLabel->setObjectName("statusBarRunModeLabel");
-        runModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+        runModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 12px;")
                         .arg(startupRunModeColor));
         runModeLabel->setFixedHeight(12);
         centerLayout->addWidget(runModeLabel);
@@ -9814,7 +9835,7 @@ void MainWindow::setupTcpTransmissionUI()
         const QString startupMoveModeColor = m_moveModeUnknown ? "#aaaaaa" : (m_isJointMode ? "#55ff55" : "#ffaa00");
         QLabel *moveModeLabel = new QLabel(startupMoveModeText, centerWidget);
         moveModeLabel->setObjectName("statusBarMoveModeLabel");
-        moveModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+        moveModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 12px;")
                          .arg(startupMoveModeColor));
         moveModeLabel->setFixedHeight(12);
         centerLayout->addWidget(moveModeLabel);
@@ -9822,28 +9843,28 @@ void MainWindow::setupTcpTransmissionUI()
         // 控制模式 (有线/无线)
         QLabel *controlModeLabel = new QLabel(m_controlMode == WIRED_MODE ? "有线控制" : "无线控制", centerWidget);
         controlModeLabel->setObjectName("statusBarControlModeLabel");
-        controlModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+        controlModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 12px;")
                                         .arg(m_controlMode == WIRED_MODE ? "#ffffff" : "#ffff00"));
         controlModeLabel->setFixedHeight(12);
         centerLayout->addWidget(controlModeLabel);
 
         QLabel *oaLabel = new QLabel(m_agvOaEnabled ? "避障开" : "避障关", centerWidget);
         oaLabel->setObjectName("statusBarOaLabel");
-        oaLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+        oaLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 12px;")
                        .arg(m_agvOaEnabled ? "#00C8FF" : "#7F8C8D"));
         oaLabel->setFixedHeight(12);
         centerLayout->addWidget(oaLabel);
 
         QLabel *parkLabel = new QLabel(m_agvParkingEnabled ? "驻车开" : "驻车关", centerWidget);
         parkLabel->setObjectName("statusBarParkLabel");
-        parkLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
+        parkLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 12px;")
                          .arg(m_agvParkingEnabled ? "#00C8FF" : "#7F8C8D"));
         parkLabel->setFixedHeight(12);
         centerLayout->addWidget(parkLabel);
 
         QLabel *steeringLabel = new QLabel(QString("转向:%1").arg(currentSteeringModeText()), centerWidget);
         steeringLabel->setObjectName("statusBarSteeringLabel");
-        steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
+        steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 12px;");
         steeringLabel->setFixedHeight(12);
         centerLayout->addWidget(steeringLabel);
 
@@ -10197,7 +10218,7 @@ void MainWindow::onStepMoveButtonClicked()
         QLabel *runModeLabel = ui->statusBar->findChild<QLabel*>("statusBarRunModeLabel");
         if (runModeLabel) {
             runModeLabel->setText("步进模式");
-            runModeLabel->setStyleSheet("color: #00ff00; font-weight: bold; font-size: 11px;");
+            runModeLabel->setStyleSheet("color: #00ff00; font-weight: bold; font-size: 12px;");
         }
 
     } else {
@@ -10209,7 +10230,7 @@ void MainWindow::onStepMoveButtonClicked()
         QLabel *runModeLabel = ui->statusBar->findChild<QLabel*>("statusBarRunModeLabel");
         if (runModeLabel) {
             runModeLabel->setText("点动模式");
-            runModeLabel->setStyleSheet("color: #00ccff; font-weight: bold; font-size: 11px;");
+            runModeLabel->setStyleSheet("color: #00ccff; font-weight: bold; font-size: 12px;");
         }
 
         if (isSixAxisViewActive()) {
@@ -10558,7 +10579,7 @@ void MainWindow::setupAGVStepPad()
         QStringLiteral("WenQuanYi Micro Hei"),
         QStringLiteral("DejaVu Sans")
     });
-    padFont.setPointSize(13);
+    padFont.setPointSize(14);
     padFont.setBold(true);
 
     int buttonId = 0;
@@ -10571,12 +10592,12 @@ void MainWindow::setupAGVStepPad()
         btn->setAutoExclusive(false);
         btn->setCursor(Qt::PointingHandCursor);
         btn->setFont(padFont);
-        btn->setButtonStyle(TechPushButton::StyleHolographic);
-        btn->setCornerRadius(16);
+        btn->setButtonStyle(TechPushButton::StyleDefault);
+        btn->setCornerRadius(8);
         btn->setBorderWidth(2);
-        btn->enableHoverAnimation(true);
+        btn->enableHoverAnimation(false);
         btn->enableClickAnimation(true);
-        btn->setTextGlow(true);
+        btn->setTextGlow(false);
         if (m_agvStepDirectionGroup->id(btn) == -1) {
             m_agvStepDirectionGroup->addButton(btn, buttonId);
         }
@@ -10613,12 +10634,12 @@ void MainWindow::updateAGVStepPadVisuals()
         const bool on = (btn == checked);
         const bool isRotate = (btn->objectName() == QStringLiteral("techBtn_AGVStep_Rotate"));
         const QColor primary = on ? (isRotate ? activeRotate : active) : inactive;
-        btn->setButtonStyle(on && isRotate ? TechPushButton::StyleEnergy : TechPushButton::StyleHolographic);
+        btn->setButtonStyle(TechPushButton::StyleDefault);
         btn->setPrimaryColor(primary);
         btn->setSecondaryColor(on ? QColor(160, 255, 255) : QColor(70, 100, 120));
         btn->setGlowColor(on ? primary.lighter(145) : QColor(58, 82, 104));
         btn->setTextColor(on ? QColor(255, 255, 255) : inactiveText);
-        btn->enablePulseEffect(false);
+        btn->applySelectionVisual(on);
         btn->update();
     }
 }
@@ -12911,7 +12932,7 @@ void MainWindow::applyDefaultJogStepModeFromExternalKey()
                                : nullptr;
     if (runModeLabel) {
         runModeLabel->setText(QStringLiteral("点动模式"));
-        runModeLabel->setStyleSheet(QStringLiteral("color: #00ccff; font-weight: bold; font-size: 11px;"));
+        runModeLabel->setStyleSheet(QStringLiteral("color: #00ccff; font-weight: bold; font-size: 12px;"));
     }
 
     if (ui && ui->StackedWidget) {
@@ -12955,7 +12976,7 @@ void MainWindow::applyDefaultJointMoveModeFromExternalKey()
                                 : nullptr;
     if (moveModeLabel) {
         moveModeLabel->setText(QStringLiteral("关节模式"));
-        moveModeLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
+        moveModeLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 12px;"));
     }
 
     updateFunctionSwitchVisuals();

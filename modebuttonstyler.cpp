@@ -12,9 +12,12 @@ void ModeButtonStyler::configureInteractiveButton(TechPushButton *button,
         button->setObjectName(objectName);
     }
     button->setFixedSize(size);
+    button->setButtonStyle(TechPushButton::StyleDefault);
+    button->setCornerRadius(8);
     button->enableClickAnimation(true);
-    button->enableHoverAnimation(true);
-    button->setTextGlow(true);
+    button->enableHoverAnimation(false);
+    button->setTextGlow(false);
+    button->applySelectionVisual(false);
 }
 
 void ModeButtonStyler::applyTextColor(const QList<TechPushButton *> &buttons,
@@ -44,11 +47,12 @@ void ModeButtonStyler::applyGroupStyle(const QList<TechPushButton *> &buttons,
 
         const bool isActive = (index == activeIndex);
         const QColor baseColor = isActive ? activeColor : inactiveColor;
+        button->setButtonStyle(style);
         button->setPrimaryColor(baseColor);
         button->setGlowColor(isActive ? activeColor.lighter(150) : inactiveColor);
         button->setTextColor(isActive ? QColor(Qt::white) : inactiveTextColor);
         button->enablePulseEffect(isActive && enablePulseOnActive);
-        button->setButtonStyle(style);
+        button->applySelectionVisual(isActive);
         button->update();
     }
 }

@@ -25,13 +25,13 @@ TechPushButton::TechPushButton(QWidget *parent) : QPushButton(parent),
     m_borderWidth(2),
     m_cornerRadius(8),
     m_iconSize(24, 24),
-    m_hoverAnimationEnabled(true),
+    m_hoverAnimationEnabled(false),
     m_clickAnimationEnabled(true),
     m_pulseEffectEnabled(false),
     m_scanLineEnabled(false),
     m_dataFlowEnabled(false),
     m_3dEffectEnabled(false),
-    m_textGlowEnabled(true),
+    m_textGlowEnabled(false),
     m_glowOpacity(0.0),
     m_pulseScale(1.0),
     m_scanPosition(0.0),
@@ -68,9 +68,9 @@ void TechPushButton::init()
     setFocusPolicy(Qt::StrongFocus);
     setCursor(Qt::PointingHandCursor);
 
-    // 创建阴影效果
+    // 创建阴影效果（默认关闭，仅激活态发光时打开）
     m_shadowEffect = new QGraphicsDropShadowEffect(this);
-    m_shadowEffect->setBlurRadius(15);
+    m_shadowEffect->setBlurRadius(0);
     m_shadowEffect->setColor(m_glowColor);
     m_shadowEffect->setOffset(0, 0);
     setGraphicsEffect(m_shadowEffect);
@@ -90,12 +90,26 @@ void TechPushButton::init()
     // 添加默认字体设置
     QFont defaultFont = this->font();
     if (defaultFont.pointSize() <= 0) {
-        defaultFont.setPointSize(8);  // 明确的默认大小
+        defaultFont.setPointSize(14);
         this->setFont(defaultFont);
     }
 
+    connect(this, &QAbstractButton::toggled, this, &TechPushButton::applySelectionVisual);
+
     // 初始状态
     updateNormalEffect();
+}
+
+void TechPushButton::applySelectionVisual(bool active)
+{
+    setTextGlow(active);
+    if (active) {
+        setGlowOpacity(0.55);
+        return;
+    }
+    enablePulseEffect(false);
+    enableScanLine(false);
+    setGlowOpacity(0.0);
 }
 
 void TechPushButton::setupAnimations()
@@ -386,7 +400,7 @@ void TechPushButton::setGlowOpacity(qreal opacity)
         QColor shadowColor = m_glowColor;
         shadowColor.setAlphaF(m_glowOpacity);
         m_shadowEffect->setColor(shadowColor);
-        m_shadowEffect->setBlurRadius(15 + m_glowOpacity * 10);
+        m_shadowEffect->setBlurRadius(m_glowOpacity < 0.05 ? 0.0 : 12.0 + m_glowOpacity * 8.0);
     }
 
     update();
@@ -473,15 +487,7 @@ void TechPushButton::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
         m_state = StateHovered;
-
-        if (m_clickAnimationEnabled && m_hoverAnimationEnabled) {
-            // 恢复到悬停状态
-            m_glowAnimation->stop();
-            m_glowAnimation->setStartValue(m_glowOpacity);
-            m_glowAnimation->setEndValue(0.7);
-            m_glowAnimation->start();
-        }
-
+        applySelectionVisual(isCheckable() && isChecked());
         updateHoverEffect();
     }
 

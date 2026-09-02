@@ -50,33 +50,52 @@ QMainWindow &gt; QWidget {
   <widget class="QWidget" name="centralwidget">
    <property name="styleSheet">
     <string notr="true">
+/* 三档字阶：标题 18 / 正文 14 / 辅助 12 */
 QGroupBox#groupBox_2, QGroupBox#groupBox, QGroupBox#groupBox_Robot_StepMove, QGroupBox#groupBox_SixAxies_StepMove, QGroupBox#groupBox_AGVStep_Pad, QGroupBox#groupBox_4 {
   border-radius: 10px;
   margin-top: 14px;
 }
 QGroupBox#groupBox_2 {
-  border: 1px solid rgba(0, 200, 255, 0.45);
+  border: 1px solid rgba(143, 180, 200, 0.50);
+  border-left: 4px solid #8fb4c8;
   background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                              stop:0 rgba(12, 34, 58, 0.72),
-                              stop:1 rgba(8, 24, 42, 0.64));
+                              stop:0 rgba(16, 30, 40, 0.72),
+                              stop:1 rgba(10, 20, 28, 0.64));
 }
 QGroupBox#groupBox {
-  border: 1px solid rgba(0, 170, 255, 0.38);
+  border: 1px solid rgba(0, 200, 255, 0.38);
+  border-left: 4px solid #00c8ff;
   background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                               stop:0 rgba(14, 38, 64, 0.70),
                               stop:1 rgba(10, 28, 48, 0.60));
 }
 QGroupBox#groupBox_4 {
   border: 1px solid rgba(255, 120, 120, 0.58);
+  border-left: 4px solid #ff7878;
   background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                               stop:0 rgba(76, 18, 18, 0.70),
                               stop:1 rgba(56, 16, 16, 0.62));
 }
-QGroupBox#groupBox_Robot_StepMove, QGroupBox#groupBox_SixAxies_StepMove, QGroupBox#groupBox_AGVStep_Pad {
-  border: 1px solid rgba(0, 220, 255, 0.52);
+QGroupBox#groupBox_Robot_StepMove {
+  border: 1px solid rgba(77, 166, 255, 0.55);
+  border-left: 4px solid #4da6ff;
   background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                              stop:0 rgba(12, 36, 64, 0.82),
-                              stop:1 rgba(8, 26, 48, 0.70));
+                              stop:0 rgba(12, 32, 64, 0.84),
+                              stop:1 rgba(8, 22, 48, 0.70));
+}
+QGroupBox#groupBox_SixAxies_StepMove {
+  border: 1px solid rgba(183, 148, 246, 0.55);
+  border-left: 4px solid #b794f6;
+  background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                              stop:0 rgba(32, 18, 56, 0.84),
+                              stop:1 rgba(18, 12, 40, 0.70));
+}
+QGroupBox#groupBox_AGVStep_Pad {
+  border: 1px solid rgba(0, 212, 196, 0.55);
+  border-left: 4px solid #00d4c4;
+  background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                              stop:0 rgba(8, 40, 42, 0.84),
+                              stop:1 rgba(6, 28, 32, 0.70));
 }
 
 QGroupBox#groupBox_2::title, QGroupBox#groupBox::title, QGroupBox#groupBox_Robot_StepMove::title, QGroupBox#groupBox_SixAxies_StepMove::title, QGroupBox#groupBox_AGVStep_Pad::title, QGroupBox#groupBox_4::title {
@@ -84,19 +103,47 @@ QGroupBox#groupBox_2::title, QGroupBox#groupBox::title, QGroupBox#groupBox_Robot
   subcontrol-position: top center;
   padding: 1px 12px;
   font-weight: 700;
+  font-size: 18px;
   letter-spacing: 1px;
   border-radius: 5px;
 }
-QGroupBox#groupBox_2::title { color: #9fe7ff; background: rgba(8, 24, 42, 0.92); border-bottom: 1px solid rgba(0, 200, 255, 0.52); }
+QGroupBox#groupBox_2::title { color: #c5d8e4; background: rgba(10, 20, 28, 0.92); border-bottom: 1px solid rgba(143, 180, 200, 0.50); }
 QGroupBox#groupBox::title { color: #c0e8ff; background: rgba(10, 28, 48, 0.92); border-bottom: 1px solid rgba(0, 170, 255, 0.42); }
-QGroupBox#groupBox_Robot_StepMove::title, QGroupBox#groupBox_SixAxies_StepMove::title, QGroupBox#groupBox_AGVStep_Pad::title { color: #9ff4ff; background: rgba(8, 30, 50, 0.95); border-bottom: 1px solid rgba(0, 220, 255, 0.58); }
+QGroupBox#groupBox_Robot_StepMove::title { color: #b7d8ff; background: rgba(10, 28, 56, 0.95); border-bottom: 1px solid rgba(77, 166, 255, 0.58); }
+QGroupBox#groupBox_SixAxies_StepMove::title { color: #ddd0ff; background: rgba(28, 16, 48, 0.95); border-bottom: 1px solid rgba(183, 148, 246, 0.58); }
+QGroupBox#groupBox_AGVStep_Pad::title { color: #9ff4ea; background: rgba(6, 32, 34, 0.95); border-bottom: 1px solid rgba(0, 212, 196, 0.58); }
 QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92); border-bottom: 1px solid rgba(255, 120, 120, 0.62); }
+
+#stackedWidget_Status {
+  background: rgba(12, 24, 32, 0.55);
+  border: 1px solid rgba(143, 180, 200, 0.42);
+  border-left: 4px solid #8fb4c8;
+  border-radius: 10px;
+}
+#page_AGV_Parameter, #page_AGVStep_Parameter {
+  background: rgba(6, 28, 30, 0.22);
+  border: 1px solid rgba(0, 212, 196, 0.32);
+  border-left: 4px solid #00d4c4;
+  border-radius: 10px;
+}
+#page_Robot_Parameter {
+  background: rgba(10, 28, 48, 0.22);
+  border: 1px solid rgba(77, 166, 255, 0.32);
+  border-left: 4px solid #4da6ff;
+  border-radius: 10px;
+}
+#page_SixAxies_Parameter {
+  background: rgba(28, 16, 48, 0.22);
+  border: 1px solid rgba(183, 148, 246, 0.32);
+  border-left: 4px solid #b794f6;
+  border-radius: 10px;
+}
 
 #groupBox_Robot_StepMove QLabel,
 #groupBox_SixAxies_StepMove QLabel {
   color: #d8f6ff;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 #groupBox_Robot_StepMove QToolButton,
@@ -108,14 +155,14 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
   border: 1px solid rgba(0, 198, 255, 0.55);
   border-radius: 8px;
   padding: 4px 8px;
-  min-height: 34px;
+  min-height: 44px;
 }
 
 #groupBox_Robot_StepMove QToolButton,
 #groupBox_SixAxies_StepMove QToolButton {
   text-align: left;
   padding-left: 10px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -127,16 +174,20 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
   background: rgba(5, 24, 44, 0.92);
 }
 
-#groupBox_Robot_StepMove QToolButton:checked,
-#groupBox_SixAxies_StepMove QToolButton:checked {
+#groupBox_Robot_StepMove QToolButton:checked {
   background: rgba(0, 130, 200, 0.95);
   border: 1px solid #9fe7ff;
+  color: #ffffff;
+}
+#groupBox_SixAxies_StepMove QToolButton:checked {
+  background: rgba(92, 58, 160, 0.95);
+  border: 1px solid #ddd0ff;
   color: #ffffff;
 }
 
 #groupBox_Robot_StepMove QLineEdit,
 #groupBox_SixAxies_StepMove QLineEdit {
-  font-family: &quot;Consolas&quot;;
+  font-family: &quot;Consolas&quot;, &quot;Courier New&quot;, monospace;
   font-size: 14px;
   font-weight: 700;
 }
@@ -152,7 +203,17 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
   border: none;
   border-radius: 0;
   padding: 4px 10px;
+  min-height: 46px;
+  font-size: 14px;
+}
+
+#LEdit_AGV_EstimatedWeight {
+  font-family: &quot;Consolas&quot;, &quot;Courier New&quot;, monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
   min-height: 36px;
+  border-radius: 8px;
 }
 
 </string>
@@ -429,23 +490,24 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
       </property>
       <property name="styleSheet">
        <string notr="true">QFrame#frame_PlaneHeightCard {
-  background: rgba(7, 25, 43, 210);
-  border: 1px solid rgba(0, 205, 255, 150);
+  background: rgba(12, 24, 32, 210);
+  border: 1px solid rgba(143, 180, 200, 150);
+  border-left: 4px solid #8fb4c8;
   border-radius: 6px;
 }
 QLabel#label_PlaneHeightTitle {
-  color: #9fe7ff;
+  color: #8fb4c8;
   background: transparent;
   border: none;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 QLabel#label_PlaneHeightValue {
   color: #ffffff;
   background: transparent;
   border: none;
-  font-family: &quot;Consolas&quot;;
-  font-size: 12px;
+  font-family: &quot;Consolas&quot;, &quot;Courier New&quot;, monospace;
+  font-size: 14px;
   font-weight: 700;
 }</string>
       </property>
@@ -535,7 +597,7 @@ mm</string>
         <x>1070</x>
         <y>470</y>
         <width>151</width>
-        <height>51</height>
+        <height>48</height>
        </rect>
       </property>
       <property name="text">
@@ -789,7 +851,7 @@ mm</string>
           <x>20</x>
           <y>10</y>
           <width>151</width>
-          <height>51</height>
+          <height>48</height>
          </rect>
         </property>
         <property name="text">
@@ -830,7 +892,7 @@ mm</string>
             <string notr="true">QLabel {
     background: transparent;
     font-family: 'Segoe UI', 'Microsoft YaHei';
-    font-size: 13px;
+    font-size: 14px;
     font-weight: bold;
     color: #00c8ff;
     padding: 0px 5px;
@@ -866,7 +928,7 @@ mm</string>
             <string notr="true">QLabel {
     background: transparent;
     font-family: 'Segoe UI', 'Microsoft YaHei';
-    font-size: 13px;
+    font-size: 14px;
     font-weight: bold;
     color: #00c8ff;
     padding: 0px 5px;
@@ -917,7 +979,7 @@ mm</string>
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>55</height>
+              <height>48</height>
              </size>
             </property>
             <property name="text">
@@ -930,7 +992,7 @@ mm</string>
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>55</height>
+              <height>48</height>
              </size>
             </property>
             <property name="text">
@@ -965,8 +1027,8 @@ mm</string>
         <item row="0" column="1" colspan="4">
          <widget class="QWidget" name="widget_5" native="true">
           <property name="styleSheet">
-           <string notr="true">color: rgb(0, 200, 255);
-font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
+           <string notr="true">color: rgb(0, 212, 196);
+font: 700 14px &quot;Microsoft YaHei&quot;;</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
            <item row="0" column="0">
@@ -1844,7 +1906,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         <x>330</x>
         <y>10</y>
         <width>151</width>
-        <height>51</height>
+        <height>48</height>
        </rect>
       </property>
       <property name="text">
@@ -1927,7 +1989,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
         </font>
        </property>
        <property name="styleSheet">
-        <string notr="true">font-size: 22px;
+        <string notr="true">font-size: 18px;
     letter-spacing: 1px;
     line-height: 1.3;
     
@@ -2040,7 +2102,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        </property>
        <property name="font">
         <font>
-         <pointsize>11</pointsize>
+         <pointsize>14</pointsize>
          <bold>true</bold>
         </font>
        </property>
@@ -2077,7 +2139,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        </property>
        <property name="font">
         <font>
-         <pointsize>11</pointsize>
+         <pointsize>14</pointsize>
          <bold>true</bold>
         </font>
        </property>
@@ -2114,7 +2176,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        </property>
        <property name="font">
         <font>
-         <pointsize>11</pointsize>
+         <pointsize>14</pointsize>
          <bold>true</bold>
         </font>
        </property>
@@ -2167,7 +2229,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
        </property>
        <property name="font">
         <font>
-         <pointsize>11</pointsize>
+         <pointsize>14</pointsize>
          <bold>true</bold>
         </font>
        </property>

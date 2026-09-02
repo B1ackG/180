@@ -81,7 +81,7 @@ Item {
         text: root.axisLabel
         color: "#A8EAFF"
         font.family: "Noto Sans CJK SC"
-        font.pixelSize: 11
+        font.pixelSize: 12
         font.bold: true
         elide: Text.ElideRight
         verticalAlignment: Text.AlignVCenter
@@ -106,7 +106,7 @@ Item {
             text: root.axisLetter
             color: root.accentColor
             font.family: "Noto Sans CJK SC"
-            font.pixelSize: 10
+            font.pixelSize: 12
             font.bold: true
             renderType: Text.NativeRendering
         }
@@ -138,8 +138,8 @@ Item {
                 id: valueNumber
                 text: Number(root.tiltValue).toFixed(2)
                 color: "#F2FBFF"
-                font.family: "Noto Sans CJK SC"
-                font.pixelSize: 22
+                font.family: "Consolas"
+                font.pixelSize: 18
                 font.bold: true
                 renderType: Text.NativeRendering
             }
@@ -165,7 +165,7 @@ Item {
         text: root.thresholdText
         color: "#6FB8D8"
         font.family: "Noto Sans CJK SC"
-        font.pixelSize: 9
+        font.pixelSize: 12
         renderType: Text.NativeRendering
     }
 

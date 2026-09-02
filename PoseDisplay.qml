@@ -130,7 +130,7 @@ Rectangle {
         anchors.left: parent.left; anchors.top: parent.top
         anchors.margins: 10
         text: "X: " + root.xPos.toFixed(1) + " mm\n[左右]"
-        color: "#00ff00"; font.pixelSize: 10; font.family: "monospace"
+        color: "#00ff00"; font.pixelSize: 12; font.family: "Consolas"
     }
 
     // 右上: Rx (横摇)
@@ -138,7 +138,7 @@ Rectangle {
         anchors.right: parent.right; anchors.top: parent.top
         anchors.margins: 10
         text: "Rx: " + (root.roll * 180 / Math.PI).toFixed(1) + "°\n[横摇]"
-        color: "#ffaa00"; font.pixelSize: 10; font.family: "monospace"
+        color: "#ffaa00"; font.pixelSize: 12; font.family: "Consolas"
         horizontalAlignment: Text.AlignRight
     }
 
@@ -146,15 +146,15 @@ Rectangle {
     Column {
         anchors.left: parent.left; anchors.bottom: parent.bottom
         anchors.margins: 10; spacing: 4
-        Text { text: "Y: " + root.yPos.toFixed(1) + " mm [前后]"; color: "#00ff00"; font.pixelSize: 10; font.family: "monospace" }
-        Text { text: "Z: " + root.zPos.toFixed(1) + " mm [垂直]"; color: "#00ff00"; font.pixelSize: 10; font.family: "monospace" }
+        Text { text: "Y: " + root.yPos.toFixed(1) + " mm [前后]"; color: "#00ff00"; font.pixelSize: 12; font.family: "Consolas" }
+        Text { text: "Z: " + root.zPos.toFixed(1) + " mm [垂直]"; color: "#00ff00"; font.pixelSize: 12; font.family: "Consolas" }
     }
 
     // 右下: Ry (俯仰) & Rz (偏航)
     Column {
         anchors.right: parent.right; anchors.bottom: parent.bottom
         anchors.margins: 10; spacing: 4
-        Text { width: parent.width; text: "Ry: " + (root.pitch * 180 / Math.PI).toFixed(1) + "° [俯仰]"; color: "#ffaa00"; font.pixelSize: 10; font.family: "monospace"; horizontalAlignment: Text.AlignRight }
-        Text { width: parent.width; text: "Rz: " + (root.yaw * 180 / Math.PI).toFixed(1) + "° [偏航]"; color: "#ffaa00"; font.pixelSize: 10; font.family: "monospace"; horizontalAlignment: Text.AlignRight }
+        Text { width: parent.width; text: "Ry: " + (root.pitch * 180 / Math.PI).toFixed(1) + "° [俯仰]"; color: "#ffaa00"; font.pixelSize: 12; font.family: "Consolas"; horizontalAlignment: Text.AlignRight }
+        Text { width: parent.width; text: "Rz: " + (root.yaw * 180 / Math.PI).toFixed(1) + "° [偏航]"; color: "#ffaa00"; font.pixelSize: 12; font.family: "Consolas"; horizontalAlignment: Text.AlignRight }
     }
 }

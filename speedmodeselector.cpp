@@ -40,7 +40,7 @@ void SpeedModeSelector::initUI()
     // 标题
     m_titleLabel = new QLabel("速度模式选择", this);
     m_titleLabel->setAlignment(Qt::AlignCenter);
-    m_titleLabel->setStyleSheet("color: white; font-size: 16px; font-weight: bold;");
+    m_titleLabel->setStyleSheet("color: white; font-size: 18px; font-weight: bold;");
     m_mainLayout->addWidget(m_titleLabel);
 
     // 按钮布局
@@ -52,9 +52,9 @@ void SpeedModeSelector::initUI()
     m_btnMedium = new TechPushButton("中速模式", this);
     m_btnHigh = new TechPushButton("高速模式", this);
 
-    ModeButtonStyler::configureInteractiveButton(m_btnLow, QSize(100, 40), "btnLowSpeed");
-    ModeButtonStyler::configureInteractiveButton(m_btnMedium, QSize(100, 40), "btnMediumSpeed");
-    ModeButtonStyler::configureInteractiveButton(m_btnHigh, QSize(100, 40), "btnHighSpeed");
+    ModeButtonStyler::configureInteractiveButton(m_btnLow, QSize(100, 44), "btnLowSpeed");
+    ModeButtonStyler::configureInteractiveButton(m_btnMedium, QSize(100, 44), "btnMediumSpeed");
+    ModeButtonStyler::configureInteractiveButton(m_btnHigh, QSize(100, 44), "btnHighSpeed");
 
     // 添加到布局
     m_buttonLayout->addWidget(m_btnLow);
@@ -164,7 +164,7 @@ void SpeedModeSelector::setTextColor(const QColor &color)
     m_textColor = color;
     ModeButtonStyler::applyTextColor({m_btnLow, m_btnMedium, m_btnHigh}, color);
 
-    m_titleLabel->setStyleSheet(QString("color: %1; font-size: 16px; font-weight: bold;")
+    m_titleLabel->setStyleSheet(QString("color: %1; font-size: 18px; font-weight: bold;")
                                     .arg(color.name()));
 }
 
@@ -177,7 +177,7 @@ void SpeedModeSelector::updateButtonStyles()
         m_inactiveColor,
         m_textColor,
         m_buttonStyle,
-        true);
+        false);
 }
 
 void SpeedModeSelector::createAnimation()

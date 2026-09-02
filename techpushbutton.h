@@ -237,6 +237,11 @@ public:
      */
     void setTextColor(const QColor &color);
 
+    /**
+     * @brief 仅激活项显示发光；默认态保持平坦
+     */
+    void applySelectionVisual(bool active);
+
 
 public slots:
     /**

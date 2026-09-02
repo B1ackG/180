@@ -21,7 +21,7 @@ TechSliderEdit::TechSliderEdit(QWidget *parent)
     , m_primaryColor(QColor(0, 200, 255))      // 科技蓝
     , m_secondaryColor(QColor(0, 200, 255))   // 紫色
     , m_glowColor(QColor(0, 255, 255, 180))    // 青色辉光
-    , m_glowEnabled(true)
+    , m_glowEnabled(false)
     , m_scanLineEnabled(false)
     , m_pulseEnabled(false)
     , m_scanLinePos(0)
@@ -810,12 +810,12 @@ void TechSliderEdit::setupPresetButtons()
         "QPushButton {"
         "    background-color: rgba(30, 30, 60, 200);"
         "    border: 1px solid %1;"
-        "    border-radius: 4px;"
+        "    border-radius: 8px;"
         "    color: %2;"
         "    font-family: 'Segoe UI', 'Microsoft YaHei';"
-        "    font-size: 12px;"
+        "    font-size: 14px;"
         "    font-weight: bold;"
-        "    min-height: 25px;"
+        "    min-height: 36px;"
         "}"
         "QPushButton:hover {"
         "    background-color: rgba(40, 40, 80, 220);"

@@ -38,11 +38,11 @@ QString MainModbusStatus::indicatorStyle(MainModbusState state)
 {
     switch (state) {
     case MainModbusState::Connected:
-        return QStringLiteral("color: #55ff55; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
+        return QStringLiteral("color: #55ff55; font-weight: bold; font-size: 12px; font-family: 'Consolas';");
     case MainModbusState::Disconnected:
-        return QStringLiteral("color: #ff5555; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
+        return QStringLiteral("color: #ff5555; font-weight: bold; font-size: 12px; font-family: 'Consolas';");
     case MainModbusState::Error:
-        return QStringLiteral("color: #ffaa00; font-weight: bold; font-size: 10px; font-family: 'Consolas';");
+        return QStringLiteral("color: #ffaa00; font-weight: bold; font-size: 12px; font-family: 'Consolas';");
     }
     return QString();
 }

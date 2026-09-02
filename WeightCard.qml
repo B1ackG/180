@@ -69,7 +69,7 @@ Item {
         text: root.title
         color: "#A8EAFF"
         font.family: "Noto Sans CJK SC"
-        font.pixelSize: 11
+        font.pixelSize: 12
         font.bold: true
         elide: Text.ElideRight
         verticalAlignment: Text.AlignVCenter
@@ -103,8 +103,8 @@ Item {
                 id: valueNumber
                 text: root.dataValid ? Math.round(root.weightValue) : "--"
                 color: "#F2FBFF"
-                font.family: "Noto Sans CJK SC"
-                font.pixelSize: 20
+                font.family: "Consolas"
+                font.pixelSize: 18
                 font.bold: true
                 renderType: Text.NativeRendering
             }
@@ -114,7 +114,7 @@ Item {
                 text: root.unit
                 color: Qt.rgba(accentColor.r, accentColor.g, accentColor.b, 0.86)
                 font.family: "Noto Sans CJK SC"
-                font.pixelSize: 11
+                font.pixelSize: 12
                 font.bold: true
                 renderType: Text.NativeRendering
             }

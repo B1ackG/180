@@ -128,7 +128,7 @@ Item {
             text: "实时"
             color: "#0B2A3F"
             font.family: "Noto Sans CJK SC"
-            font.pixelSize: 9
+            font.pixelSize: 12
             font.bold: true
             renderType: Text.NativeRendering
         }
@@ -145,8 +145,8 @@ Item {
             id: powerNumber
             text: Math.round(root.currentPower)
             color: "#F2FBFF"
-            font.family: "Noto Sans CJK SC"
-            font.pixelSize: 22
+            font.family: "Consolas"
+            font.pixelSize: 18
             font.bold: true
             renderType: Text.NativeRendering
         }
@@ -156,7 +156,7 @@ Item {
             text: root.unit
             color: "#7EC8E8"
             font.family: "Noto Sans CJK SC"
-            font.pixelSize: 11
+            font.pixelSize: 12
             font.bold: true
             renderType: Text.NativeRendering
         }
@@ -186,7 +186,7 @@ Item {
             text: "峰值 " + Math.round(root.peakPower)
             color: "#6FB8D8"
             font.family: "Noto Sans CJK SC"
-            font.pixelSize: 9
+            font.pixelSize: 12
             renderType: Text.NativeRendering
         }
 

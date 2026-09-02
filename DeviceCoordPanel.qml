@@ -23,7 +23,7 @@ Item {
         anchors.fill: parent
         radius: 14
         border.width: 1
-        border.color: "#4ABEEE84"
+        border.color: "#8fb4c8"
         antialiasing: true
         gradient: Gradient {
             GradientStop { position: 0.0; color: "#E208223A" }
@@ -81,7 +81,7 @@ Item {
             text: "当前位姿"
             color: "#A8EAFF"
             font.family: "Noto Sans CJK SC"
-            font.pixelSize: 13
+            font.pixelSize: 12
             font.bold: true
             renderType: Text.NativeRendering
         }
@@ -105,7 +105,7 @@ Item {
                 text: "主控"
                 color: "#0B2A3F"
                 font.family: "Noto Sans CJK SC"
-                font.pixelSize: 11
+                font.pixelSize: 12
                 font.bold: true
                 renderType: Text.NativeRendering
             }
@@ -117,7 +117,7 @@ Item {
             text: "X / Y / Z / R"
             color: "#6FB8D8"
             font.family: "Noto Sans CJK SC"
-            font.pixelSize: 11
+            font.pixelSize: 12
             renderType: Text.NativeRendering
         }
     }
@@ -214,8 +214,8 @@ Item {
                             width: parent.width
                             text: root.fmt(axisValue)
                             color: "#F2FBFF"
-                            font.family: "Noto Sans CJK SC"
-                            font.pixelSize: 16
+                            font.family: "Consolas"
+                            font.pixelSize: 18
                             font.bold: true
                             elide: Text.ElideRight
                             renderType: Text.NativeRendering
@@ -226,7 +226,7 @@ Item {
                             text: modelData.unit
                             color: "#7EC8E8"
                             font.family: "Noto Sans CJK SC"
-                            font.pixelSize: 10
+                            font.pixelSize: 12
                             renderType: Text.NativeRendering
                         }
                     }

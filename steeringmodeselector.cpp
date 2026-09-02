@@ -1,10 +1,11 @@
 #include "steeringmodeselector.h"
 #include <QDebug>
+#include <QList>
 
 SteeringModeSelector::SteeringModeSelector(QWidget *parent)
     : QWidget(parent)
     , m_currentMode(STEER_FRONT_BACK)  // 默认前后轮转向
-    , m_buttonStyle(TechPushButton::StyleHolographic)
+    , m_buttonStyle(TechPushButton::StyleDefault)
     , m_activeColor(0, 200, 255)       // 激活状态颜色（科技蓝）
     , m_inactiveColor(80, 80, 100)     // 非激活状态颜色（灰色）
     , m_textColor(Qt::white)
@@ -31,7 +32,7 @@ void SteeringModeSelector::initUI()
     // 标题
     m_titleLabel = new QLabel("转向模式选择", this);
     m_titleLabel->setAlignment(Qt::AlignCenter);
-    m_titleLabel->setStyleSheet("color: white; font-size: 16px; font-weight: bold;");
+    m_titleLabel->setStyleSheet("color: white; font-size: 18px; font-weight: bold;");
     m_mainLayout->addWidget(m_titleLabel);
 
     // 按钮布局 - 两排布局（上排123，下排45）
@@ -57,7 +58,7 @@ void SteeringModeSelector::initUI()
     // 推荐总宽度：3个按钮 × 120px + 2个间距 × 10px + 边距
     // 推荐高度：标题 + 两排按钮 + 间距
     int btnWidth = 120;  // 按钮宽度（适应较长的中文文本）
-    int btnHeight = 40;  // 按钮高度（适合手指触摸）
+    int btnHeight = 44;
 
     m_btnFrontBack->setFixedSize(btnWidth, btnHeight);
     m_btnFrontOnly->setFixedSize(btnWidth, btnHeight);
@@ -73,18 +74,22 @@ void SteeringModeSelector::initUI()
     m_btnRotate->enableClickAnimation(true);
 
     // 启用悬停动画
-    m_btnFrontBack->enableHoverAnimation(true);
-    m_btnFrontOnly->enableHoverAnimation(true);
-    m_btnParallel->enableHoverAnimation(true);
-    m_btnLateral->enableHoverAnimation(true);
-    m_btnRotate->enableHoverAnimation(true);
+    m_btnFrontBack->enableHoverAnimation(false);
+    m_btnFrontOnly->enableHoverAnimation(false);
+    m_btnParallel->enableHoverAnimation(false);
+    m_btnLateral->enableHoverAnimation(false);
+    m_btnRotate->enableHoverAnimation(false);
 
-    // 启用文字发光
-    m_btnFrontBack->setTextGlow(true);
-    m_btnFrontOnly->setTextGlow(true);
-    m_btnParallel->setTextGlow(true);
-    m_btnLateral->setTextGlow(true);
-    m_btnRotate->setTextGlow(true);
+    m_btnFrontBack->setCornerRadius(8);
+    m_btnFrontOnly->setCornerRadius(8);
+    m_btnParallel->setCornerRadius(8);
+    m_btnLateral->setCornerRadius(8);
+    m_btnRotate->setCornerRadius(8);
+    m_btnFrontBack->setButtonStyle(TechPushButton::StyleDefault);
+    m_btnFrontOnly->setButtonStyle(TechPushButton::StyleDefault);
+    m_btnParallel->setButtonStyle(TechPushButton::StyleDefault);
+    m_btnLateral->setButtonStyle(TechPushButton::StyleDefault);
+    m_btnRotate->setButtonStyle(TechPushButton::StyleDefault);
 
     QHBoxLayout *topRow = new QHBoxLayout();
     topRow->setContentsMargins(0, 0, 0, 0);
@@ -191,89 +196,30 @@ void SteeringModeSelector::setTextColor(const QColor &color)
     m_btnRotate->setTextColor(color);
 
     // 更新标题颜色
-    m_titleLabel->setStyleSheet(QString("color: %1; font-size: 16px; font-weight: bold;")
+    m_titleLabel->setStyleSheet(QString("color: %1; font-size: 18px; font-weight: bold;")
                                     .arg(color.name()));
 }
 
 void SteeringModeSelector::updateButtonStyles()
 {
-    // 重置所有按钮为非激活状态
-    m_btnFrontBack->setPrimaryColor(m_inactiveColor);
-    m_btnFrontBack->setGlowColor(m_inactiveColor);
-    m_btnFrontBack->setTextColor(m_textColor);
-    m_btnFrontBack->enablePulseEffect(false);
+    QList<TechPushButton *> buttons = {
+        m_btnFrontBack, m_btnFrontOnly, m_btnParallel, m_btnLateral, m_btnRotate
+    };
+    const int activeIndex = static_cast<int>(m_currentMode);
 
-    m_btnFrontOnly->setPrimaryColor(m_inactiveColor);
-    m_btnFrontOnly->setGlowColor(m_inactiveColor);
-    m_btnFrontOnly->setTextColor(m_textColor);
-    m_btnFrontOnly->enablePulseEffect(false);
-
-    m_btnParallel->setPrimaryColor(m_inactiveColor);
-    m_btnParallel->setGlowColor(m_inactiveColor);
-    m_btnParallel->setTextColor(m_textColor);
-    m_btnParallel->enablePulseEffect(false);
-
-    m_btnLateral->setPrimaryColor(m_inactiveColor);
-    m_btnLateral->setGlowColor(m_inactiveColor);
-    m_btnLateral->setTextColor(m_textColor);
-    m_btnLateral->enablePulseEffect(false);
-
-    m_btnRotate->setPrimaryColor(m_inactiveColor);
-    m_btnRotate->setGlowColor(m_inactiveColor);
-    m_btnRotate->setTextColor(m_textColor);
-    m_btnRotate->enablePulseEffect(false);
-
-    // 激活当前模式的按钮
-    switch(m_currentMode) {
-    case STEER_FRONT_BACK:
-        m_btnFrontBack->setPrimaryColor(m_activeColor);
-        m_btnFrontBack->setGlowColor(m_activeColor.lighter(150));
-        m_btnFrontBack->setTextColor(Qt::white);
-        // m_btnFrontBack->enablePulseEffect(true);
-        break;
-
-    case STEER_FRONT_ONLY:
-        m_btnFrontOnly->setPrimaryColor(m_activeColor);
-        m_btnFrontOnly->setGlowColor(m_activeColor.lighter(150));
-        m_btnFrontOnly->setTextColor(Qt::white);
-        // m_btnFrontOnly->enablePulseEffect(true);
-        break;
-
-    case STEER_PARALLEL:
-        m_btnParallel->setPrimaryColor(m_activeColor);
-        m_btnParallel->setGlowColor(m_activeColor.lighter(150));
-        m_btnParallel->setTextColor(Qt::white);
-        // m_btnParallel->enablePulseEffect(true);
-        break;
-
-    case STEER_LATERAL:
-        m_btnLateral->setPrimaryColor(m_activeColor);
-        m_btnLateral->setGlowColor(m_activeColor.lighter(150));
-        m_btnLateral->setTextColor(Qt::white);
-        // m_btnLateral->enablePulseEffect(true);
-        break;
-
-    case STEER_ROTATE:
-        m_btnRotate->setPrimaryColor(m_activeColor);
-        m_btnRotate->setGlowColor(m_activeColor.lighter(150));
-        m_btnRotate->setTextColor(Qt::white);
-        // m_btnRotate->enablePulseEffect(true);
-        break;
+    for (int index = 0; index < buttons.size(); ++index) {
+        TechPushButton *button = buttons[index];
+        if (!button) {
+            continue;
+        }
+        const bool active = (index == activeIndex);
+        button->setButtonStyle(TechPushButton::StyleDefault);
+        button->setPrimaryColor(active ? m_activeColor : m_inactiveColor);
+        button->setGlowColor(active ? m_activeColor.lighter(150) : m_inactiveColor);
+        button->setTextColor(active ? QColor(Qt::white) : m_textColor);
+        button->applySelectionVisual(active);
+        button->update();
     }
-
-    // 设置按钮样式
-    m_btnFrontBack->setButtonStyle(m_buttonStyle);
-    m_btnFrontOnly->setButtonStyle(m_buttonStyle);
-    m_btnParallel->setButtonStyle(m_buttonStyle);
-    m_btnLateral->setButtonStyle(m_buttonStyle);
-    m_btnRotate->setButtonStyle(m_buttonStyle);
-
-    // 更新按钮
-    m_btnFrontBack->update();
-    m_btnFrontOnly->update();
-    m_btnParallel->update();
-    m_btnLateral->update();
-    m_btnRotate->update();
 }
 
 void SteeringModeSelector::onFrontBackClicked()

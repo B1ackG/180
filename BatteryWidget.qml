@@ -62,7 +62,8 @@ Item {
         anchors.centerIn: body
         text: Math.round(batteryLevel) + "%"
         color: batteryLevel > 50 ? "#000" : "#fff"
-        font.pixelSize: 10
+        font.pixelSize: 12
+        font.family: "Consolas"
         font.bold: true
         visible: parent.width > 40 // 宽度太小时不显示文字
     }
