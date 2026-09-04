@@ -242,6 +242,24 @@ public:
      */
     void applySelectionVisual(bool active);
 
+    /** @brief 方向垫矢量符号；配合底部短标题使用 */
+    enum PadGlyph {
+        PadGlyphNone = 0,
+        PadGlyphUp,
+        PadGlyphUpRight,
+        PadGlyphRight,
+        PadGlyphDownRight,
+        PadGlyphDown,
+        PadGlyphDownLeft,
+        PadGlyphLeft,
+        PadGlyphUpLeft,
+        PadGlyphRotateCW,
+        PadGlyphRotateCCW
+    };
+
+    void setPadGlyph(PadGlyph glyph);
+    PadGlyph padGlyph() const { return m_padGlyph; }
+
 
 public slots:
     /**
@@ -314,6 +332,7 @@ private:
     void drawCyberButton(QPainter &painter, const QRect &rect);
 
     void drawIcon(QPainter &painter, const QRect &rect);
+    void drawPadGlyph(QPainter &painter, const QRect &rect);
     void drawText(QPainter &painter, const QRect &rect);
     void drawGlowEffect(QPainter &painter, const QRect &rect);
     void drawScanLine(QPainter &painter, const QRect &rect);
@@ -324,6 +343,7 @@ private:
     // 样式相关
     ButtonStyle m_style;
     ButtonState m_state;
+    PadGlyph m_padGlyph;
 
     // 颜色相关
     QColor m_primaryColor;

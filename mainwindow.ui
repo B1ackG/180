@@ -139,6 +139,15 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
   border-radius: 10px;
 }
 
+#label_AGVStep_Hint {
+  color: #7ec8c0;
+  font-size: 12px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  padding-top: 2px;
+}
+
 #groupBox_Robot_StepMove QLabel,
 #groupBox_SixAxies_StepMove QLabel {
   color: #d8f6ff;
@@ -996,7 +1005,7 @@ mm</string>
              </size>
             </property>
             <property name="text">
-             <string>开启驻车</string>
+             <string>支腿</string>
             </property>
            </widget>
           </item>
@@ -1148,7 +1157,7 @@ font: 700 14px &quot;Microsoft YaHei&quot;;</string>
           <property name="sizeHint" stdset="0">
            <size>
             <width>20</width>
-            <height>16</height>
+            <height>8</height>
            </size>
           </property>
          </spacer>
@@ -1164,13 +1173,13 @@ font: 700 14px &quot;Microsoft YaHei&quot;;</string>
           <property name="minimumSize">
            <size>
             <width>420</width>
-            <height>400</height>
+            <height>428</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
             <width>420</width>
-            <height>400</height>
+            <height>428</height>
            </size>
           </property>
           <property name="title">
@@ -1178,19 +1187,19 @@ font: 700 14px &quot;Microsoft YaHei&quot;;</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_AGVStep_Pad">
            <property name="leftMargin">
-            <number>14</number>
+            <number>12</number>
            </property>
            <property name="topMargin">
-            <number>22</number>
+            <number>20</number>
            </property>
            <property name="rightMargin">
-            <number>14</number>
+            <number>12</number>
            </property>
            <property name="bottomMargin">
-            <number>14</number>
+            <number>8</number>
            </property>
            <property name="spacing">
-            <number>10</number>
+            <number>8</number>
            </property>
            <item row="0" column="0">
             <widget class="TechPushButton" name="techBtn_AGVStep_UpLeft">
@@ -1203,12 +1212,11 @@ font: 700 14px &quot;Microsoft YaHei&quot;;</string>
              <property name="minimumSize">
               <size>
                <width>112</width>
-               <height>104</height>
+               <height>96</height>
               </size>
              </property>
              <property name="text">
-              <string>↖
-左上</string>
+              <string>左上</string>
              </property>
              <property name="checkable">
               <bool>true</bool>
@@ -1226,12 +1234,11 @@ font: 700 14px &quot;Microsoft YaHei&quot;;</string>
              <property name="minimumSize">
               <size>
                <width>112</width>
-               <height>104</height>
+               <height>96</height>
               </size>
              </property>
              <property name="text">
-              <string>↑
-上</string>
+              <string>上</string>
              </property>
              <property name="checkable">
               <bool>true</bool>
@@ -1252,12 +1259,11 @@ font: 700 14px &quot;Microsoft YaHei&quot;;</string>
              <property name="minimumSize">
               <size>
                <width>112</width>
-               <height>104</height>
+               <height>96</height>
               </size>
              </property>
              <property name="text">
-              <string>↗
-右上</string>
+              <string>右上</string>
              </property>
              <property name="checkable">
               <bool>true</bool>
@@ -1275,12 +1281,11 @@ font: 700 14px &quot;Microsoft YaHei&quot;;</string>
              <property name="minimumSize">
               <size>
                <width>112</width>
-               <height>104</height>
+               <height>96</height>
               </size>
              </property>
              <property name="text">
-              <string>←
-左</string>
+              <string>左</string>
              </property>
              <property name="checkable">
               <bool>true</bool>
@@ -1298,12 +1303,11 @@ font: 700 14px &quot;Microsoft YaHei&quot;;</string>
              <property name="minimumSize">
               <size>
                <width>112</width>
-               <height>104</height>
+               <height>96</height>
               </size>
              </property>
              <property name="text">
-              <string>⟳
-原地旋转</string>
+              <string>正转</string>
              </property>
              <property name="checkable">
               <bool>true</bool>
@@ -1321,12 +1325,11 @@ font: 700 14px &quot;Microsoft YaHei&quot;;</string>
              <property name="minimumSize">
               <size>
                <width>112</width>
-               <height>104</height>
+               <height>96</height>
               </size>
              </property>
              <property name="text">
-              <string>→
-右</string>
+              <string>右</string>
              </property>
              <property name="checkable">
               <bool>true</bool>
@@ -1344,12 +1347,11 @@ font: 700 14px &quot;Microsoft YaHei&quot;;</string>
              <property name="minimumSize">
               <size>
                <width>112</width>
-               <height>104</height>
+               <height>96</height>
               </size>
              </property>
              <property name="text">
-              <string>↙
-左下</string>
+              <string>左下</string>
              </property>
              <property name="checkable">
               <bool>true</bool>
@@ -1367,12 +1369,11 @@ font: 700 14px &quot;Microsoft YaHei&quot;;</string>
              <property name="minimumSize">
               <size>
                <width>112</width>
-               <height>104</height>
+               <height>96</height>
               </size>
              </property>
              <property name="text">
-              <string>↓
-下</string>
+              <string>下</string>
              </property>
              <property name="checkable">
               <bool>true</bool>
@@ -1390,15 +1391,24 @@ font: 700 14px &quot;Microsoft YaHei&quot;;</string>
              <property name="minimumSize">
               <size>
                <width>112</width>
-               <height>104</height>
+               <height>96</height>
               </size>
              </property>
              <property name="text">
-              <string>↘
-右下</string>
+              <string>右下</string>
              </property>
              <property name="checkable">
               <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0" colspan="3">
+            <widget class="QLabel" name="label_AGVStep_Hint">
+             <property name="text">
+              <string>中间键再点一次：切换正转 / 反转</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
@@ -1413,7 +1423,7 @@ font: 700 14px &quot;Microsoft YaHei&quot;;</string>
           <property name="sizeHint" stdset="0">
            <size>
             <width>20</width>
-            <height>16</height>
+            <height>8</height>
            </size>
           </property>
          </spacer>

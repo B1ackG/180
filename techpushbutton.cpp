@@ -11,6 +11,7 @@
 #include <QDebug>
 #include <QDateTime>
 #include <QMouseEvent>
+#include <QtMath>
 #if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
 #include <QEnterEvent>
 #endif
@@ -18,6 +19,7 @@
 TechPushButton::TechPushButton(QWidget *parent) : QPushButton(parent),
     m_style(StyleDefault),
     m_state(StateNormal),
+    m_padGlyph(PadGlyphNone),
     m_primaryColor(52, 152, 219),     // 科技蓝
     m_secondaryColor(155, 89, 182),   // 紫色
     m_glowColor(0, 255, 255, 100),    // 青色
@@ -318,6 +320,15 @@ void TechPushButton::setTechIcon(const QIcon &icon)
     update();
 }
 
+void TechPushButton::setPadGlyph(PadGlyph glyph)
+{
+    if (m_padGlyph == glyph) {
+        return;
+    }
+    m_padGlyph = glyph;
+    update();
+}
+
 // 设置文字发光
 void TechPushButton::setTextGlow(bool enable)
 {
@@ -562,6 +573,7 @@ void TechPushButton::paintEvent(QPaintEvent *event)
 
     // 绘制图标和文字
     drawIcon(painter, rect);
+    drawPadGlyph(painter, rect);
     drawText(painter, rect);
 
     // 绘制附加效果
@@ -805,6 +817,136 @@ void TechPushButton::drawCyberButton(QPainter &painter, const QRect &rect)
     }
 }
 
+namespace {
+
+QColor withAlpha(const QColor &color, int alpha)
+{
+    QColor c = color;
+    c.setAlpha(alpha);
+    return c;
+}
+
+int padCaptionBand(const QRect &rect)
+{
+    return qMax(22, rect.height() * 32 / 100);
+}
+
+void drawDirectionArrow(QPainter &painter, const QRectF &slot, qreal angleDeg, const QColor &color, bool glow)
+{
+    const QPointF c = slot.center();
+    const qreal s = qMin(slot.width(), slot.height());
+    const qreal h = s * 0.44;
+    const qreal w = s * 0.30;
+
+    QPainterPath arrow;
+    arrow.moveTo(0.0, -h);
+    arrow.lineTo(w, h * 0.18);
+    arrow.lineTo(w * 0.34, h * 0.18);
+    arrow.lineTo(w * 0.34, h);
+    arrow.lineTo(-w * 0.34, h);
+    arrow.lineTo(-w * 0.34, h * 0.18);
+    arrow.lineTo(-w, h * 0.18);
+    arrow.closeSubpath();
+
+    painter.save();
+    painter.translate(c);
+    painter.rotate(angleDeg);
+    if (glow) {
+        painter.setPen(QPen(withAlpha(color, 80), 5.0, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+        painter.setBrush(Qt::NoBrush);
+        painter.drawPath(arrow);
+    }
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(color);
+    painter.drawPath(arrow);
+    painter.restore();
+}
+
+void drawRotateArrow(QPainter &painter, const QRectF &slot, bool clockwise, const QColor &color, bool glow)
+{
+    const QPointF c = slot.center();
+    const qreal s = qMin(slot.width(), slot.height());
+    const qreal r = s * 0.34;
+    const qreal penW = qMax(2.8, s * 0.11);
+
+    painter.save();
+    painter.translate(c);
+    if (!clockwise) {
+        painter.scale(-1.0, 1.0);
+    }
+
+    const qreal startDeg = 125.0;
+    const qreal spanDeg = 250.0;
+    const QRectF arcRect(-r, -r, r * 2.0, r * 2.0);
+    QPainterPath arc;
+    arc.arcMoveTo(arcRect, startDeg);
+    arc.arcTo(arcRect, startDeg, -spanDeg);
+
+    if (glow) {
+        painter.strokePath(arc, QPen(withAlpha(color, 80), penW + 3.5, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+    }
+    painter.strokePath(arc, QPen(color, penW, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+
+    const qreal endDeg = startDeg - spanDeg;
+    const qreal rad = qDegreesToRadians(endDeg);
+    const QPointF tip(r * qCos(rad), -r * qSin(rad));
+    const qreal tangentDeg = endDeg - 90.0;
+    const qreal trad = qDegreesToRadians(tangentDeg);
+    const QPointF dir(qCos(trad), -qSin(trad));
+    const QPointF nrm(-dir.y(), dir.x());
+    const qreal ah = s * 0.17;
+    const qreal aw = s * 0.11;
+    QPainterPath head;
+    head.moveTo(tip + dir * (ah * 0.12));
+    head.lineTo(tip - dir * ah + nrm * aw);
+    head.lineTo(tip - dir * ah - nrm * aw);
+    head.closeSubpath();
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(color);
+    painter.drawPath(head);
+    painter.restore();
+}
+
+} // namespace
+
+void TechPushButton::drawPadGlyph(QPainter &painter, const QRect &rect)
+{
+    if (m_padGlyph == PadGlyphNone) {
+        return;
+    }
+
+    const int captionH = padCaptionBand(rect);
+    const QRectF slot(rect.left() + 6, rect.top() + 6,
+                      rect.width() - 12, rect.height() - captionH - 8);
+    const QColor color = isEnabled() ? m_textColor : m_textColor.darker(150);
+    const bool glow = m_textGlowEnabled && isEnabled();
+
+    qreal angle = 0.0;
+    bool rotate = false;
+    bool clockwise = true;
+    switch (m_padGlyph) {
+    case PadGlyphUp:         angle = 0.0; break;
+    case PadGlyphUpRight:    angle = 45.0; break;
+    case PadGlyphRight:      angle = 90.0; break;
+    case PadGlyphDownRight:  angle = 135.0; break;
+    case PadGlyphDown:       angle = 180.0; break;
+    case PadGlyphDownLeft:   angle = 225.0; break;
+    case PadGlyphLeft:       angle = 270.0; break;
+    case PadGlyphUpLeft:     angle = 315.0; break;
+    case PadGlyphRotateCW:   rotate = true; clockwise = true; break;
+    case PadGlyphRotateCCW:  rotate = true; clockwise = false; break;
+    case PadGlyphNone:
+    default:
+        return;
+    }
+
+    if (rotate) {
+        drawRotateArrow(painter, slot, clockwise, color, glow);
+    } else {
+        drawDirectionArrow(painter, slot, angle, color, glow);
+    }
+}
+
 // 绘制图标
 void TechPushButton::drawIcon(QPainter &painter, const QRect &rect)
 {
@@ -866,6 +1008,19 @@ void TechPushButton::drawText(QPainter &painter, const QRect &rect)
 
     // ... 你原有的文字发光和绘制逻辑（使用QPainterPath等）继续放在这里...
     // 注意：如果发光效果里也创建了QFont，也需要进行同样的安全检查。
+
+    if (m_padGlyph != PadGlyphNone) {
+        const int captionH = padCaptionBand(rect);
+        textRect = QRect(rect.left() + 4, rect.bottom() - captionH - 2,
+                         rect.width() - 8, captionH);
+        QFont caption = this->font();
+        caption.setPointSize(12);
+        caption.setBold(true);
+        painter.setFont(caption);
+        painter.setPen(textColor);
+        painter.drawText(textRect, Qt::AlignHCenter | Qt::AlignTop | Qt::TextWordWrap, text());
+        return;
+    }
 
     // 第四步：绘制文字
     painter.setPen(textColor);

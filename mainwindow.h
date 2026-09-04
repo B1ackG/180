@@ -293,6 +293,16 @@ public:
     void hideLegOpenPathCheckDialog();
     /** @brief 绕车检查弹窗是否处于显示/倒计时中（与其它驻车相关弹窗互斥） */
     bool isLegOpenPathCheckActive() const;
+    /** @brief 显示支腿五键控制弹窗 */
+    void showLegControlDialog();
+    /** @brief 隐藏支腿五键控制弹窗 */
+    void hideLegControlDialog();
+    /** @brief 按 51 完成位与上次下发长度刷新五键档位高亮 */
+    void updateLegControlDialogVisuals();
+    /** @brief 伸出：绕车检查后写长度并下撑 */
+    void requestLegExtend(int legLengthMm);
+    /** @brief 一键收回支腿 */
+    void requestLegRetract();
     /** @brief 显示支腿异常驻车操作弹窗（51.bit7=1 时） */
     void showParkingLegAbnormalDialog();
     /** @brief 隐藏支腿异常驻车操作弹窗 */
@@ -411,7 +421,7 @@ public:
     void setupAGVAngleControl();
     /** @brief 初始化底盘步进方向九键盘 */
     void setupAGVStepPad();
-    /** @brief 刷新底盘步进九键盘选中态外观 */
+    /** @brief 刷新底盘步进九键盘选中态；原地旋转已选中时再点一次切换正/反转 */
     void updateAGVStepPadVisuals();
     /** @brief 底盘控制下按步进/点动切换参数页 */
     void updateChassisParameterPage();
@@ -731,6 +741,15 @@ private:
     int m_legOpenPathCheckLengthMm = -1;
     QDialog *m_parkingLegAbnormalDialog = nullptr;
     QLineEdit *m_parkingLegAbnormalLengthEdit = nullptr;
+    QDialog *m_legControlDialog = nullptr;
+    QLineEdit *m_legControlLengthEdit = nullptr;
+    QPushButton *m_legControlConfirmBtn = nullptr;
+    QPushButton *m_legControlRetractBtn = nullptr;
+    QPushButton *m_legControlGear1Btn = nullptr;
+    QPushButton *m_legControlGear2Btn = nullptr;
+    QPushButton *m_legControlGearFullBtn = nullptr;
+    QWidget *m_legControlCustomRow = nullptr;
+    int m_agvParkLastLengthMm = -1;
     QDialog *m_expectedLoadEmptyDialog = nullptr;
     QWidget *m_agvStationOfflineAlarmWidget = nullptr;
     QLabel *m_agvStationOfflineAlarmLabel = nullptr;
@@ -891,6 +910,8 @@ private:
     QButtonGroup *m_stepTargetGroup = nullptr;
     QButtonGroup *m_sixAxisStepTargetGroup = nullptr;
     QButtonGroup *m_agvStepDirectionGroup = nullptr;
+    QAbstractButton *m_agvStepLastClickedButton = nullptr;
+    bool m_agvStepRotatePositive = true; // 原地旋转：true=正转，false=反转
     QLineEdit *m_stepValueEdit = nullptr;
     QLineEdit *m_editJ1MoveStep = nullptr;
     QLineEdit *m_editJ2MoveStep = nullptr;
@@ -1023,7 +1044,7 @@ public:
     /** @brief 从 config.ini 加载平面高度偏移量，并刷新辅助显示 */
     void applyPlaneHeightOffsetRuntimeSettings();
 
-    /** @brief 将驻车按钮更新为开启/关闭外观（支腿异常态下不更新主按钮） */
+    /** @brief 将支腿主按钮更新为常态「支腿」外观（异常态下不更新） */
     void applyAGVParkingButtonUi(bool enabled);
     /** @brief 将驻车按钮与状态栏更新为支腿异常外观 */
     void applyAGVParkingLegAbnormalUi();
@@ -1031,7 +1052,7 @@ public:
     void applyAGVParkingStatusBarUi(bool enabled);
     /** @brief 驻车切换失败后按当前异常态恢复 UI */
     void restoreParkingUiAfterFailure(bool enabled);
-    /** @brief 执行驻车开启/关闭 Modbus 写入与等待确认；legLengthMm&lt;0 时从支腿异常弹窗输入框读取 */
+    /** @brief 执行支腿伸出/收回 Modbus 写入与等待确认；legLengthMm&lt;0 时从输入框读取 */
     void executeAGVParkingSwitch(bool targetEnabled, int legLengthMm = -1);
 
     /** @brief 控制台用 Modbus 寄存器四段描述：设备 / 地址 / 位 / 值 */
