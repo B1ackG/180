@@ -812,7 +812,7 @@ private:
     bool m_stepModeEnabled = false;
     bool m_stepModeUnknown = true;
     bool m_isJointMode = true;
-    bool m_moveModeUnknown = true;
+    bool m_moveModeUnknown = false;
     QHash<int, bool> m_robotExternalKeyPressed;
     quint64 m_robotExternalWriteSeq = 0;
     int m_robotActiveKey = -1;
@@ -1092,6 +1092,7 @@ private:
     void hideCollapsibleControlPanels();
     void repositionCollapsibleControlPanels();
     void positionCollapsiblePanel(QWidget *panel, QToolButton *anchorButton);
+    bool isPointOnCollapsiblePanelOrAnchor(const QPoint &globalPos) const;
     void setExclusiveNavButtonChecked(QToolButton *active);
     bool isRobotAxisViewActive() const;
     bool isSixAxisViewActive() const;

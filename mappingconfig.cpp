@@ -174,7 +174,7 @@ void MappingConfig::initDefaultMappings()
         m_controlNameMap["TBtn_SixAxies"] = "六自由度";
         m_controlNameMap["TBtn_PermissionPage"] = "权限页面按钮";
         m_controlNameMap["TBtn_Stepmove"] = "步进模式按钮";
-        m_controlNameMap["TBtn_MoveMode"] = "关节/坐标模式按钮";
+        m_controlNameMap["TBtn_MoveMode"] = "关节/斜向运动按钮";
         m_controlNameMap["TBtn_ControlMode"] = "控制模式按钮";
 
         // StepMove 控件名称映射

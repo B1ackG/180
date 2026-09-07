@@ -325,7 +325,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
         <bool>false</bool>
        </property>
        <property name="text">
-        <string>关节模式</string>
+        <string>关节运动</string>
        </property>
        <property name="iconSize">
         <size>

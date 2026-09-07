@@ -35,8 +35,10 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QSettings>
 #include <QToolTip>
 #include <QButtonGroup>
+#include <QApplication>
 #include <QGuiApplication>
 #include <QInputMethod>
+#include <QMouseEvent>
 #include <QPointer>
 #include <QSignalBlocker>
 #include <QTimer>
@@ -1303,11 +1305,7 @@ void MainWindow::setupCollapsibleControlPanels()
         ui->TBtn_ChassisControl,
         ui->TBtn_SixAxies,
         ui->TBtn_HistoryRecord,
-        ui->TBtn_PermissionPage,
-        ui->TBtn_Stepmove,
-        ui->TBtn_MoveMode,
-        ui->TBtn_Interlocking,
-        ui->TBtn_ControlMode
+        ui->TBtn_PermissionPage
     };
     for (QToolButton *button : closeAfterClick) {
         if (button) {
@@ -1315,6 +1313,8 @@ void MainWindow::setupCollapsibleControlPanels()
                     this, &MainWindow::hideCollapsibleControlPanels);
         }
     }
+
+    qApp->installEventFilter(this);
 
     repositionCollapsibleControlPanels();
     if (!isPermissionSelectionPending()) {
@@ -1483,6 +1483,20 @@ void MainWindow::positionCollapsiblePanel(QWidget *panel, QToolButton *anchorBut
         y = anchorTopLeft.y() + anchorButton->height() + 8;
     }
     panel->move(x, y);
+}
+
+bool MainWindow::isPointOnCollapsiblePanelOrAnchor(const QPoint &globalPos) const
+{
+    auto containsGlobal = [](const QWidget *widget, const QPoint &pos) {
+        return widget && widget->isVisible()
+            && widget->rect().contains(widget->mapFromGlobal(pos));
+    };
+    return containsGlobal(m_pageNavigationPopup, globalPos)
+        || containsGlobal(m_deviceControlPopup, globalPos)
+        || containsGlobal(m_controlModePopup, globalPos)
+        || containsGlobal(m_pageNavigationMenuButton, globalPos)
+        || containsGlobal(m_deviceControlMenuButton, globalPos)
+        || containsGlobal(m_controlModeMenuButton, globalPos);
 }
 
 void MainWindow::setExclusiveNavButtonChecked(QToolButton *active)
@@ -1676,50 +1690,41 @@ void MainWindow::setupRecordAndPermissionConnections()
         }
     });
 
-    ui->TBtn_MoveMode->setText("未选择模式");
+    m_moveModeUnknown = false;
+    m_isJointMode = true;
+    ui->TBtn_MoveMode->setText("关节运动");
 
     connect(ui->TBtn_MoveMode, &QPushButton::clicked, [=]() {
-        if (m_moveModeUnknown) {
-            m_moveModeUnknown = false;
-            m_isJointMode = true; // 首次默认进入关节模式
-        } else {
-            m_isJointMode = !m_isJointMode;
-        }
+        m_moveModeUnknown = false;
+        m_isJointMode = !m_isJointMode;
 
-        const ButtonModbusMapping::Binding moveBinding = buttonModbusBinding(QStringLiteral("TBtn_MoveMode"));
-        const ModbusRegisterSpec writeSpec = moveBinding.writes.isEmpty()
-            ? ModbusRegisterSpec{}
-            : moveBinding.writes.first();
-        const int writeAddr = ButtonModbusMapping::addressOr(writeSpec, 525);
-        const int jointValue = ButtonModbusMapping::stateValueOr(writeSpec, 1, 2);
-        const int coordValue = ButtonModbusMapping::stateValueOr(writeSpec, 2, 1);
-
+        QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
         if (m_isJointMode) {
+            const ButtonModbusMapping::Binding moveBinding = buttonModbusBinding(QStringLiteral("TBtn_MoveMode"));
+            const ModbusRegisterSpec writeSpec = moveBinding.writes.isEmpty()
+                ? ModbusRegisterSpec{}
+                : moveBinding.writes.first();
+            const int writeAddr = ButtonModbusMapping::addressOr(writeSpec, 525);
+            const int jointValue = ButtonModbusMapping::stateValueOr(writeSpec, 1, 2);
+
             if (writeSpec.device == QStringLiteral("AGV")) {
                 writeToAGVDevice(writeAddr, jointValue, true);
             } else {
                 writeToMainDevice(writeAddr, jointValue);
             }
-            ui->TBtn_MoveMode->setText("关节模式");
-            QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
+            ui->TBtn_MoveMode->setText("关节运动");
             if (moveModeLabel) {
-                moveModeLabel->setText("关节模式");
+                moveModeLabel->setText("关节运动");
                 moveModeLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
             }
-            showNotification("已切换至关节模式");
+            showNotification("已切换至关节运动");
         } else {
-            if (writeSpec.device == QStringLiteral("AGV")) {
-                writeToAGVDevice(writeAddr, coordValue, true);
-            } else {
-                writeToMainDevice(writeAddr, coordValue);
-            }
-            ui->TBtn_MoveMode->setText("坐标模式");
-            QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
+            ui->TBtn_MoveMode->setText("斜向运动");
             if (moveModeLabel) {
-                moveModeLabel->setText("坐标模式");
+                moveModeLabel->setText("斜向运动");
                 moveModeLabel->setStyleSheet("color: #ffaa00; font-weight: bold; font-size: 11px;");
             }
-            showNotification("已切换至坐标模式");
+            showNotification("已切换至斜向运动");
         }
 
         updateFunctionSwitchVisuals();
@@ -2010,9 +2015,7 @@ void MainWindow::updateFunctionSwitchVisuals()
                                 QColor(0xff, 0xd7, 0xa1));
     }
 
-    if (m_moveModeUnknown) {
-        applyChamferStateColors(ui->TBtn_MoveMode, unknownFill, unknownBorder);
-    } else if (m_isJointMode) {
+    if (m_isJointMode) {
         applyChamferStateColors(ui->TBtn_MoveMode,
                                 QColor(32, 140, 86, 224),
                                 QColor(0x9d, 0xff, 0xd3));
@@ -2197,6 +2200,22 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 
     // 处理LineEdit点击事件
     if (event->type() == QEvent::MouseButtonPress) {
+        const bool anyPopupVisible =
+            (m_pageNavigationPopup && m_pageNavigationPopup->isVisible())
+            || (m_deviceControlPopup && m_deviceControlPopup->isVisible())
+            || (m_controlModePopup && m_controlModePopup->isVisible());
+        if (anyPopupVisible) {
+            const auto *mouseEvent = static_cast<const QMouseEvent*>(event);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+            const QPoint globalPos = mouseEvent->globalPosition().toPoint();
+#else
+            const QPoint globalPos = mouseEvent->globalPos();
+#endif
+            if (!isPointOnCollapsiblePanelOrAnchor(globalPos)) {
+                hideCollapsibleControlPanels();
+            }
+        }
+
         QLineEdit *lineEdit = qobject_cast<QLineEdit*>(obj);
         const bool isMainWindowLineEdit = lineEdit && this->isAncestorOf(lineEdit);
         const bool isTiltLockPasswordEdit = lineEdit && lineEdit == m_inclinometerTiltLockPasswordEdit;
@@ -4228,7 +4247,7 @@ void MainWindow::dismissOperationHintToasts()
     dismissToastByMessage(QStringLiteral("当前未设置步进值"));
     dismissToastByMessage(QStringLiteral("外部按键与当前选中的步进目标不匹配"));
     dismissToastByMessage(QStringLiteral("未选择步进或者点动模式，将自动选择点动模式"));
-    dismissToastByMessage(QStringLiteral("未选择坐标或者关节模式，将自动选择关节模式"));
+    dismissToastByMessage(QStringLiteral("未选择关节运动，将自动选择关节运动"));
     dismissToastByMessage(ModbusWriteGate::teachingGateUserDialogMessage());
     dismissToastByMessage(kWirelessModeWarningText);
     dismissToastByMessage(QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。"));
@@ -4817,14 +4836,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     // - 点动模式：仅允许在[关节]模式下执行；
     // - 步进模式：允许执行（由按键映射与目标选择进一步约束）。
     // 释放事件仍继续处理，避免切模后寄存器保持在按下态。
-    const bool allowCoordinateExternalOnRobotPage =
-        isRobotPage
-        && !m_stepModeEnabled
-        && !m_moveModeUnknown
-        && !m_isJointMode
-        && keyNumber >= 1
-        && keyNumber <= 8;
-    if ((!m_stepModeEnabled && !m_isJointMode) && pressed && !allowCoordinateExternalOnRobotPage) {
+    if ((!m_stepModeEnabled && !m_isJointMode) && pressed) {
         qCDebug(lcMainWindow) << "外部按键忽略：当前未处于可执行模式，按键○" << keyNumber
                  << (pressed ? "按下" : "释放");
         return;
@@ -5162,100 +5174,6 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             m_recorder->addRecord(record);
         };
 
-        auto recordRobotExternalCoordinateMotion = [this](int key, bool isPressed) {
-            if (!m_recorder || key < 1 || key > 8) {
-                return;
-            }
-
-            const int axisIndex = (key - 1) / 2;
-            const bool isOddKey = (key % 2) == 1;
-
-            QString coordName;
-            QString unit;
-            QString negativeAction;
-            QString positiveAction;
-            int regStart = -1;
-
-            switch (axisIndex) {
-            case 0:
-                coordName = "X";
-                unit = "mm";
-                negativeAction = "负向";
-                positiveAction = "正向";
-                regStart = 103;
-                break;
-            case 1:
-                coordName = "Y";
-                unit = "mm";
-                negativeAction = "负向";
-                positiveAction = "正向";
-                regStart = 107;
-                break;
-            case 2:
-                coordName = "Z";
-                unit = "mm";
-                negativeAction = "负向";
-                positiveAction = "正向";
-                regStart = 111;
-                break;
-            case 3:
-                coordName = "R";
-                unit = "°";
-                negativeAction = "负向";
-                positiveAction = "正向";
-                regStart = 115;
-                break;
-            default:
-                return;
-            }
-
-            double currentValue = 0.0;
-            if (regStart > 0
-                && g_registerCache.contains(regStart)
-                && g_registerCache.contains(regStart + 1)
-                && g_registerCache.contains(regStart + 2)
-                && g_registerCache.contains(regStart + 3)) {
-                currentValue = registersToDoubleDCBAFEHG(
-                    g_registerCache.value(regStart),
-                    g_registerCache.value(regStart + 1),
-                    g_registerCache.value(regStart + 2),
-                    g_registerCache.value(regStart + 3));
-            } else if (m_deviceCoordPanelQml && m_deviceCoordPanelQml->rootObject()) {
-                const char *propName = (axisIndex == 0) ? "coordX"
-                                      : (axisIndex == 1) ? "coordY"
-                                      : (axisIndex == 2) ? "coordZ"
-                                                         : "coordAr";
-                currentValue = m_deviceCoordPanelQml->rootObject()->property(propName).toDouble();
-            }
-
-            const double speedPercent = getSliderEditValue("TechSliderEdit_Robot_RobotSpeed");
-            const QString directionText = isOddKey ? negativeAction : positiveAction;
-
-            OperationRecord record;
-            record.timestamp = QDateTime::currentDateTime();
-            record.pageName = "机械臂";
-            record.controlName = QString("外部按键○%1").arg(key);
-            record.controlType = "MatrixKey";
-            record.operation = isPressed ? "external_coordinate_start" : "external_coordinate_stop";
-            record.oldValue = "";
-
-            if (isPressed) {
-                record.newValue = QString("坐标%1当前值为%2%3，当前设置速度为%4%，开始%5运行")
-                                      .arg(coordName)
-                                      .arg(currentValue, 0, 'f', 2)
-                                      .arg(unit)
-                                      .arg(speedPercent, 0, 'f', 0)
-                                      .arg(directionText);
-            } else {
-                record.newValue = QString("坐标%1当前值为%2%3，运动结束")
-                                      .arg(coordName)
-                                      .arg(currentValue, 0, 'f', 2)
-                                      .arg(unit);
-            }
-
-            m_recorder->addRecord(record);
-        };
-
         if (keyNumber >= 1 && keyNumber <= 8) {
             maybeShowZeroSpeedHintForHomePageExternalKey(keyNumber, pressed);
             if (m_stepModeEnabled) {
@@ -5342,23 +5260,6 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                         .arg(targetName)
                         .arg(stepValue, 0, 'f', 3),
                     2000);
-                return;
-            }
-
-            if (!m_isJointMode && !m_moveModeUnknown) {
-                const int groupIndex = (keyNumber + 1) / 2;       // ○1/2->1 ... ○7/8->4
-                const int signedCommand = (keyNumber % 2 == 1) ? -groupIndex : groupIndex;
-                if (pressed) {
-                    writeToMainDevice(526, signedCommand);
-                } else {
-                    writeToMainDevice(526, 0);
-                }
-
-                qCDebug(lcMainWindow) << "page_Robot (Index 0, 坐标) 按键 ○" << keyNumber << " "
-                                      << (pressed ? "按下" : "释放")
-                                      << " -> 地址526写入:" << (pressed ? signedCommand : 0);
-
-                recordRobotExternalCoordinateMotion(keyNumber, pressed);
                 return;
             }
 
@@ -5781,39 +5682,19 @@ void MainWindow::refreshInterlockingButtonText()
 
 void MainWindow::applyMoveModeUiFromRegister126(quint16 value)
 {
+    Q_UNUSED(value);
     if (!ui || !ui->TBtn_MoveMode) {
         return;
     }
-    const ButtonModbusMapping::Binding moveBinding = buttonModbusBinding(QStringLiteral("TBtn_MoveMode"));
-    const ModbusRegisterSpec readSpec = moveBinding.reads.isEmpty() ? ModbusRegisterSpec{} : moveBinding.reads.first();
-    const int jointValue = ButtonModbusMapping::stateValueOr(readSpec, 1, 2);
-    const int coordValue = ButtonModbusMapping::stateValueOr(readSpec, 2, 1);
-    if (static_cast<int>(value) == jointValue) {
-        m_moveModeUnknown = false;
-        m_isJointMode = true;
-        ui->TBtn_MoveMode->setText(QStringLiteral("关节模式"));
-        QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarMoveModeLabel")) : nullptr;
-        if (moveModeLabel) {
-            moveModeLabel->setText(QStringLiteral("关节模式"));
-            moveModeLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
-        }
-    } else if (static_cast<int>(value) == coordValue) {
-        m_moveModeUnknown = false;
-        m_isJointMode = false;
-        ui->TBtn_MoveMode->setText(QStringLiteral("坐标模式"));
-        QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarMoveModeLabel")) : nullptr;
-        if (moveModeLabel) {
-            moveModeLabel->setText(QStringLiteral("坐标模式"));
-            moveModeLabel->setStyleSheet(QStringLiteral("color: #ffaa00; font-weight: bold; font-size: 11px;"));
-        }
-    } else {
-        m_moveModeUnknown = true;
-        ui->TBtn_MoveMode->setText(QStringLiteral("未选择模式"));
-        QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarMoveModeLabel")) : nullptr;
-        if (moveModeLabel) {
-            moveModeLabel->setText(QStringLiteral("运动未选择"));
-            moveModeLabel->setStyleSheet(QStringLiteral("color: #aaaaaa; font-weight: bold; font-size: 11px;"));
-        }
+    if (!m_isJointMode) {
+        return;
+    }
+    m_moveModeUnknown = false;
+    ui->TBtn_MoveMode->setText(QStringLiteral("关节运动"));
+    QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarMoveModeLabel")) : nullptr;
+    if (moveModeLabel) {
+        moveModeLabel->setText(QStringLiteral("关节运动"));
+        moveModeLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
     }
     updateStepTargetButtonsState();
 }
@@ -9809,9 +9690,9 @@ void MainWindow::setupTcpTransmissionUI()
         runModeLabel->setFixedHeight(12);
         centerLayout->addWidget(runModeLabel);
 
-        // 运动模式 (关节/坐标)
-        const QString startupMoveModeText = m_moveModeUnknown ? "运动未选择" : (m_isJointMode ? "关节模式" : "坐标模式");
-        const QString startupMoveModeColor = m_moveModeUnknown ? "#aaaaaa" : (m_isJointMode ? "#55ff55" : "#ffaa00");
+        // 运动模式（仅关节）
+        const QString startupMoveModeText = QStringLiteral("关节运动");
+        const QString startupMoveModeColor = QStringLiteral("#55ff55");
         QLabel *moveModeLabel = new QLabel(startupMoveModeText, centerWidget);
         moveModeLabel->setObjectName("statusBarMoveModeLabel");
         moveModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
@@ -10431,8 +10312,6 @@ void MainWindow::updateStepTargetButtonsState()
     QToolButton *axis4Btn = findChild<QToolButton*>("btnStepTargetAxis4");
     QToolButton *agvBtn = findChild<QToolButton*>("btnStepTargetAgv");
     const QList<QToolButton*> firstPageTargetButtons = {axis1Btn, axis2Btn, axis3Btn, axis4Btn, agvBtn};
-    const bool isFirstPage = isRobotAxisViewActive();
-    const bool useCoordinateDisplay = isFirstPage && !m_stepModeEnabled && !m_moveModeUnknown && !m_isJointMode;
 
     for (QToolButton *btn : firstPageTargetButtons) {
         if (!btn) {
@@ -10441,23 +10320,9 @@ void MainWindow::updateStepTargetButtonsState()
         if (!btn->property("stepTargetDefaultText").isValid()) {
             btn->setProperty("stepTargetDefaultText", btn->text());
         }
-    }
-
-    if (useCoordinateDisplay) {
-        if (axis1Btn) axis1Btn->setText("X");
-        if (axis2Btn) axis2Btn->setText("Y");
-        if (axis3Btn) axis3Btn->setText("Z");
-        if (axis4Btn) axis4Btn->setText("R");
-        if (agvBtn) agvBtn->setText("无");
-    } else {
-        for (QToolButton *btn : firstPageTargetButtons) {
-            if (!btn) {
-                continue;
-            }
-            const QVariant defaultText = btn->property("stepTargetDefaultText");
-            if (defaultText.isValid()) {
-                btn->setText(defaultText.toString());
-            }
+        const QVariant defaultText = btn->property("stepTargetDefaultText");
+        if (defaultText.isValid()) {
+            btn->setText(defaultText.toString());
         }
     }
 
@@ -12780,7 +12645,7 @@ namespace {
 const QString kUnselectedStepModeHintText =
     QStringLiteral("未选择步进或者点动模式，将自动选择点动模式");
 const QString kUnselectedMoveModeHintText =
-    QStringLiteral("未选择坐标或者关节模式，将自动选择关节模式");
+    QStringLiteral("未选择关节运动，将自动选择关节运动");
 
 bool stepEditValueIsEmptyOrZero(const QLineEdit *edit)
 {
@@ -12947,14 +12812,14 @@ void MainWindow::applyDefaultJointMoveModeFromExternalKey()
     }
 
     if (ui && ui->TBtn_MoveMode) {
-        ui->TBtn_MoveMode->setText(QStringLiteral("关节模式"));
+        ui->TBtn_MoveMode->setText(QStringLiteral("关节运动"));
     }
 
     QLabel *moveModeLabel = ui && ui->statusBar
                                 ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarMoveModeLabel"))
                                 : nullptr;
     if (moveModeLabel) {
-        moveModeLabel->setText(QStringLiteral("关节模式"));
+        moveModeLabel->setText(QStringLiteral("关节运动"));
         moveModeLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
     }
 

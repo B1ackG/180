@@ -105,6 +105,10 @@ MainWindow::~MainWindow()
 {
     qDebug() << "正在清理资源...";
 
+    if (qApp) {
+        qApp->removeEventFilter(this);
+    }
+
     if (m_historyRuntimeUpdateTimer) {
         m_historyRuntimeUpdateTimer->stop();
     }
