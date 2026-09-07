@@ -14,7 +14,6 @@
         <file>Picture/TechBackGround4.png</file>
         <file>TechSpeedGauge.qml</file>
         <file>RobotTotalPowerCard.qml</file>
-        <file>DeviceCoordPanel.qml</file>
         <file>InclinometerCard.qml</file>
         <file>WeightCard.qml</file>
         <file>HistoryList.qml</file>

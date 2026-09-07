@@ -63,6 +63,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QResizeEvent>
 #include <QAbstractButton>
 #include <QFont>
+#include <QHash>
 
 namespace {
 constexpr int kRuntimePersistRegister = 8193;
@@ -2603,70 +2604,6 @@ void MainWindow::initWeightCard()
     layout->addWidget(m_weightCardQml);
 }
 
-void MainWindow::initDeviceCoordPanel()
-{
-    m_deviceCoordPanelQml = findChild<QQuickWidget*>(QStringLiteral("quickWidget_DeviceCoordPanel"));
-    if (!m_deviceCoordPanelQml) {
-        qCWarning(lcMainWindow) << "未找到 quickWidget_DeviceCoordPanel，跳过坐标面板初始化";
-        return;
-    }
-
-    m_deviceCoordPanelQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    applyTransparentQuickWidgetBackground(m_deviceCoordPanelQml);
-    connect(m_deviceCoordPanelQml, &QQuickWidget::statusChanged, this,
-            [this](QQuickWidget::Status status) {
-                if (status == QQuickWidget::Error && m_deviceCoordPanelQml) {
-                    const auto errs = m_deviceCoordPanelQml->errors();
-                    for (const auto &err : errs) {
-                        qWarning() << "DeviceCoordPanel QML error:" << err.toString();
-                    }
-                }
-            }, Qt::UniqueConnection);
-    m_deviceCoordPanelQml->setSource(QUrl(QStringLiteral("qrc:/DeviceCoordPanel.qml")));
-
-    if (QQuickItem *root = m_deviceCoordPanelQml->rootObject()) {
-        root->setProperty("coordX", 0.0);
-        root->setProperty("coordY", 0.0);
-        root->setProperty("coordZ", 0.0);
-        root->setProperty("coordAr", 0.0);
-    }
-}
-
-void MainWindow::updateDeviceCoordPanelFromCache()
-{
-    if (!(m_deviceCoordPanelQml && m_deviceCoordPanelQml->rootObject())) {
-        return;
-    }
-
-    constexpr int kStart = 103;
-    constexpr int kEnd = 118;
-    for (int a = kStart; a <= kEnd; ++a) {
-        if (!g_registerCache.contains(a)) {
-            return;
-        }
-    }
-
-    const double cx = registersToDoubleDCBAFEHG(
-        g_registerCache[103], g_registerCache[104], g_registerCache[105], g_registerCache[106]);
-    const double cy = registersToDoubleDCBAFEHG(
-        g_registerCache[107], g_registerCache[108], g_registerCache[109], g_registerCache[110]);
-    const double cz = registersToDoubleDCBAFEHG(
-        g_registerCache[111], g_registerCache[112], g_registerCache[113], g_registerCache[114]);
-    const double car = registersToDoubleDCBAFEHG(
-        g_registerCache[115], g_registerCache[116], g_registerCache[117], g_registerCache[118]);
-
-    QQuickItem *root = m_deviceCoordPanelQml->rootObject();
-    const auto setRealIfChanged = [root](const char *name, double value) {
-        if (!qFuzzyCompare(root->property(name).toDouble() + 1.0, value + 1.0)) {
-            root->setProperty(name, value);
-        }
-    };
-    setRealIfChanged("coordX", cx);
-    setRealIfChanged("coordY", cy);
-    setRealIfChanged("coordZ", cz);
-    setRealIfChanged("coordAr", car);
-}
-
 void MainWindow::updateRobotTotalPower(quint16 powerValue)
 {
     if (!(m_robotTotalPowerQml && m_robotTotalPowerQml->rootObject())) {
@@ -2971,14 +2908,14 @@ void MainWindow::initSliderEditUI()
             qCDebug(lcMainWindow) << "初始化: SEdit_AGV_MoveSpeed, 范围:0-100 mm/s, 默认值:0 mm/s";
         }
         else if (objName == "SEdit_AGV_Angle") {
-            // AGV转向角度：-25~25 °
+            // AGV转向角度：-45~45 °
             slider->setLabelText("六自由度平台转向角度");
-            slider->setRange(-25, 25);
+            slider->setRange(-45, 45);
             slider->setValue(0);
             slider->setSuffix("°");
             slider->setPrecision(0);
 
-            qCDebug(lcMainWindow) << "初始化: SEdit_AGV_Angle, 范围:-25~25 °, 默认值:0 °";
+            qCDebug(lcMainWindow) << "初始化: SEdit_AGV_Angle, 范围:-45~45 °, 默认值:0 °";
         }
         else if (objName == "TechSliderEdit_Robot_RobotSpeed") {
             slider->setLabelText("机器人全局速度");
@@ -5728,7 +5665,6 @@ void MainWindow::applyCachedMainControlSyncRegistersToUi()
         applyRobotSpeedUiFromRegister130(g_registerCache.value(130));
     }
     updateFunctionSwitchVisuals();
-    updateDeviceCoordPanelFromCache();
 }
 
 void MainWindow::on_TBtn_Interlocking_clicked()
@@ -6219,10 +6155,6 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
     if (address == kMainCurrentLoadWeightReg) {
         updateCurrentLoadWeight(value);
-    }
-
-    if (address >= 103 && address <= 118) {
-        updateDeviceCoordPanelFromCache();
     }
 
     const QStringList targetLabels = {
@@ -6835,9 +6767,6 @@ void MainWindow::readMainControlSyncRegisters()
     // 当前负载重量：192.168.1.13 的 123 寄存器
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainCurrentLoadWeightReg, 1);
 
-    // 当前位姿 X/Y/Z/AR：192.168.1.13 保持寄存器 103~118，每组 4 个寄存器为 IEEE754 双精度（与 J1~J4 解析一致）
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 103, 16);
-
     // 管理员负载阈值：5004 负载超限、5005 负载超重
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 5004, 2);
 
@@ -7230,6 +7159,7 @@ void MainWindow::setupAGVModbus()
 
                 if (address == 50) {
                     syncAGVSteeringModeFromRegister50(value);
+                    maybeApplyPendingAgvStepAngle(value);
                 }
 
                 if (address == 150 && m_agvChassisEmergency51Bit5Flag
@@ -9591,6 +9521,8 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
             m_isSwitchingSteeringMode = false;
             m_targetSteeringWaitBit = -1;
             m_isSteeringAlarmActive = false;
+            m_pendingAgvStepSteer = false;
+            m_pendingAgvStepReadyBit = -1;
             hideAlarm();
 
             if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
@@ -10408,13 +10340,31 @@ void MainWindow::setupAGVStepPad()
 
     if (!m_agvStepDirectionGroup) {
         m_agvStepDirectionGroup = new QButtonGroup(page);
-        m_agvStepDirectionGroup->setExclusive(true);
         connect(m_agvStepDirectionGroup,
                 QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
-                this, [this](QAbstractButton *) {
+                this, [this](QAbstractButton *btn) {
+                    applyAgvStepPadAxisSelection(btn);
                     updateAGVStepPadVisuals();
+
+                    const QString name = btn ? btn->objectName() : QString();
+                    if (name == QStringLiteral("techBtn_AGVStep_Left")
+                        || name == QStringLiteral("techBtn_AGVStep_Right")) {
+                        requestAgvStepSteerThenAngle(STEER_LATERAL, 11, 0);
+                    } else if (name == QStringLiteral("techBtn_AGVStep_UpLeft")
+                               || name == QStringLiteral("techBtn_AGVStep_DownRight")) {
+                        requestAgvStepSteerThenAngle(STEER_PARALLEL, 10, -45);
+                    } else if (name == QStringLiteral("techBtn_AGVStep_UpRight")
+                               || name == QStringLiteral("techBtn_AGVStep_DownLeft")) {
+                        requestAgvStepSteerThenAngle(STEER_PARALLEL, 10, 45);
+                    } else if (name == QStringLiteral("techBtn_AGVStep_Rotate")) {
+                        requestAgvStepSteerThenAngle(STEER_ROTATE, 12, 0);
+                    } else {
+                        m_pendingAgvStepSteer = false;
+                        m_pendingAgvStepReadyBit = -1;
+                    }
                 });
     }
+    m_agvStepDirectionGroup->setExclusive(false);
 
     QFont padFont;
     padFont.setFamilies({
@@ -10442,19 +10392,62 @@ void MainWindow::setupAGVStepPad()
         btn->enableHoverAnimation(true);
         btn->enableClickAnimation(true);
         btn->setTextGlow(true);
+        if (name == QStringLiteral("techBtn_AGVStep_Rotate")) {
+            btn->setText(QStringLiteral("⟳\n原地旋转"));
+        }
         if (m_agvStepDirectionGroup->id(btn) == -1) {
             m_agvStepDirectionGroup->addButton(btn, buttonId);
         }
         ++buttonId;
     }
 
-    if (!m_agvStepDirectionGroup->checkedButton()) {
-        if (TechPushButton *upBtn = page->findChild<TechPushButton*>(QStringLiteral("techBtn_AGVStep_Up"))) {
-            upBtn->setChecked(true);
+    QAbstractButton *initial = nullptr;
+    for (QAbstractButton *btn : m_agvStepDirectionGroup->buttons()) {
+        if (btn->isChecked()) {
+            initial = btn;
+            break;
+        }
+    }
+    if (!initial) {
+        initial = page->findChild<QAbstractButton*>(QStringLiteral("techBtn_AGVStep_Up"));
+    }
+    applyAgvStepPadAxisSelection(initial);
+    updateAGVStepPadVisuals();
+}
+
+void MainWindow::applyAgvStepPadAxisSelection(QAbstractButton *clicked)
+{
+    if (!m_agvStepDirectionGroup || !clicked) {
+        return;
+    }
+
+    static const QHash<QString, QString> kPair{
+        {QStringLiteral("techBtn_AGVStep_Up"), QStringLiteral("techBtn_AGVStep_Down")},
+        {QStringLiteral("techBtn_AGVStep_Down"), QStringLiteral("techBtn_AGVStep_Up")},
+        {QStringLiteral("techBtn_AGVStep_Left"), QStringLiteral("techBtn_AGVStep_Right")},
+        {QStringLiteral("techBtn_AGVStep_Right"), QStringLiteral("techBtn_AGVStep_Left")},
+        {QStringLiteral("techBtn_AGVStep_UpLeft"), QStringLiteral("techBtn_AGVStep_DownRight")},
+        {QStringLiteral("techBtn_AGVStep_DownRight"), QStringLiteral("techBtn_AGVStep_UpLeft")},
+        {QStringLiteral("techBtn_AGVStep_UpRight"), QStringLiteral("techBtn_AGVStep_DownLeft")},
+        {QStringLiteral("techBtn_AGVStep_DownLeft"), QStringLiteral("techBtn_AGVStep_UpRight")},
+    };
+
+    const QString partnerName = kPair.value(clicked->objectName());
+    QAbstractButton *partner = nullptr;
+    if (!partnerName.isEmpty()) {
+        for (QAbstractButton *btn : m_agvStepDirectionGroup->buttons()) {
+            if (btn->objectName() == partnerName) {
+                partner = btn;
+                break;
+            }
         }
     }
 
-    updateAGVStepPadVisuals();
+    const QSignalBlocker groupBlocker(m_agvStepDirectionGroup);
+    for (QAbstractButton *btn : m_agvStepDirectionGroup->buttons()) {
+        const QSignalBlocker btnBlocker(btn);
+        btn->setChecked(btn == clicked || btn == partner);
+    }
 }
 
 void MainWindow::updateAGVStepPadVisuals()
@@ -10463,7 +10456,6 @@ void MainWindow::updateAGVStepPadVisuals()
         return;
     }
 
-    QAbstractButton *checked = m_agvStepDirectionGroup->checkedButton();
     const QColor active(0, 210, 255);
     const QColor activeRotate(0, 230, 190);
     const QColor inactive(32, 52, 74);
@@ -10475,7 +10467,7 @@ void MainWindow::updateAGVStepPadVisuals()
             continue;
         }
 
-        const bool on = (btn == checked);
+        const bool on = btn->isChecked();
         const bool isRotate = (btn->objectName() == QStringLiteral("techBtn_AGVStep_Rotate"));
         const QColor primary = on ? (isRotate ? activeRotate : active) : inactive;
         btn->setButtonStyle(on && isRotate ? TechPushButton::StyleEnergy : TechPushButton::StyleHolographic);
@@ -10486,6 +10478,77 @@ void MainWindow::updateAGVStepPadVisuals()
         btn->enablePulseEffect(false);
         btn->update();
     }
+}
+
+void MainWindow::applyAgvChassisAngle(double angleDeg)
+{
+    if (isRobotWeightLockGateActive()) {
+        blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：底盘当前角度调整已无效"));
+        return;
+    }
+
+    const int angleInt = static_cast<int>(angleDeg);
+    if (m_editAGV_Angle) {
+        const QSignalBlocker blocker(m_editAGV_Angle);
+        m_editAGV_Angle->setValue(angleDeg);
+    }
+    writeToAGVDevice(4, angleInt);
+    qCDebug(lcMainWindow) << "底盘步进：目标模式到位，地址4写入角度" << angleInt;
+}
+
+void MainWindow::maybeApplyPendingAgvStepAngle(quint16 reg50)
+{
+    if (!m_pendingAgvStepSteer || m_pendingAgvStepReadyBit < 0 || m_pendingAgvStepReadyBit > 15) {
+        return;
+    }
+    if (((reg50 >> m_pendingAgvStepReadyBit) & 0x01) == 0) {
+        return;
+    }
+    const double angleDeg = m_pendingAgvStepAngleDeg;
+    m_pendingAgvStepSteer = false;
+    m_pendingAgvStepReadyBit = -1;
+    applyAgvChassisAngle(angleDeg);
+}
+
+void MainWindow::requestAgvStepSteerThenAngle(SteeringMode mode, int readyBit, double angleDeg)
+{
+    m_pendingAgvStepSteer = true;
+    m_pendingAgvStepMode = mode;
+    m_pendingAgvStepReadyBit = readyBit;
+    m_pendingAgvStepAngleDeg = angleDeg;
+
+    const bool alreadyMode = m_steeringModeSelector
+                                 ? (m_steeringModeSelector->currentMode() == mode)
+                                 : (m_lastSteeringMode == mode);
+    const bool wheelsReady = m_agvRegisterShadow.contains(50)
+                             && readyBit >= 0 && readyBit <= 15
+                             && ((m_agvRegisterShadow.value(50) >> readyBit) & 0x01);
+
+    if (alreadyMode && wheelsReady) {
+        m_pendingAgvStepSteer = false;
+        m_pendingAgvStepReadyBit = -1;
+        applyAgvChassisAngle(angleDeg);
+        return;
+    }
+
+    if (alreadyMode) {
+        return;
+    }
+
+    if (!m_steeringModeSelector) {
+        m_pendingAgvStepSteer = false;
+        m_pendingAgvStepReadyBit = -1;
+        return;
+    }
+
+    m_steeringModeSelector->setCurrentMode(mode);
+    if (m_steeringModeSelector->currentMode() != mode) {
+        m_pendingAgvStepSteer = false;
+        m_pendingAgvStepReadyBit = -1;
+        return;
+    }
+
+    maybeApplyPendingAgvStepAngle(m_agvRegisterShadow.value(50, 0));
 }
 
 // 设置步进模式控制

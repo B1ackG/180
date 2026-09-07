@@ -997,7 +997,7 @@ QMap<QString, SliderEditDefaults> builtinSliderEditDefaults()
     put("TechSliderEdit_VeSupSec_MoveSpeed", 0, 35);
     put("TechSliderEdit_EOAT_RotationSpeed", 0, 100);
     put("SEdit_AGV_MoveSpeed", 0, 100);
-    put("SEdit_AGV_Angle", -25, 25);
+    put("SEdit_AGV_Angle", -45, 45);
     put("TechSliderEdit_Robot_RobotSpeed", 0, 100);
     return defaults;
 }

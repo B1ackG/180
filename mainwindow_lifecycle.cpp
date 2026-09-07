@@ -397,7 +397,6 @@ void MainWindow::initUI()
     initSliderLabelUI();
     initTechButtons();
     initSpeedGaugeUI();
-    initDeviceCoordPanel();
     initInclinometerAndRobotPowerStrip();
     initWeightCard();
 

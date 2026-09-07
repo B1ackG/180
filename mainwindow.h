@@ -411,8 +411,16 @@ public:
     void setupAGVAngleControl();
     /** @brief 初始化底盘步进方向九键盘 */
     void setupAGVStepPad();
+    /** @brief 按对轴规则勾选步进九键盘（上/下、左/右、对角），刷新外观 */
+    void applyAgvStepPadAxisSelection(QAbstractButton *clicked);
     /** @brief 刷新底盘步进九键盘选中态外观 */
     void updateAGVStepPadVisuals();
+    /** @brief 步进九键盘：切到底盘模式，到位后写角度 */
+    void requestAgvStepSteerThenAngle(SteeringMode mode, int readyBit, double angleDeg);
+    /** @brief 将底盘角度控件与 AGV 寄存器 4 写成指定值（超重锁定时不写） */
+    void applyAgvChassisAngle(double angleDeg);
+    /** @brief 若正等待目标模式到位，且寄存器 50 对应位为 1，则写 pending 角度 */
+    void maybeApplyPendingAgvStepAngle(quint16 reg50);
     /** @brief 底盘控制下按步进/点动切换参数页 */
     void updateChassisParameterPage();
     /** @brief 初始化步进移动控制 */
@@ -469,8 +477,6 @@ public:
     // ==========================================
     /** @brief 初始化速度仪表 UI */
     void initSpeedGaugeUI();
-    /** @brief 初始化设备坐标面板（保持寄存器 103~118，双精度） */
-    void initDeviceCoordPanel();
     /**
      * @brief 初始化倾角 X + 总功率 + 倾角 Y 横向组合条（左 X、中 QML 总功率、右 Y）
      */
@@ -853,7 +859,6 @@ private:
     bool m_runtimeBaselineReady = false;
     QTimer *m_historyRuntimeUpdateTimer = nullptr;
     QQuickWidget *m_robotTotalPowerQml = nullptr;  // 使用 QML 版本总功率卡片
-    QQuickWidget *m_deviceCoordPanelQml = nullptr; // 当前 X/Y/Z/AR（寄存器 103~118）
     QQuickWidget *m_inclinometerXQml = nullptr;  // QML 版本 X 轴倾角卡片
     QQuickWidget *m_inclinometerYQml = nullptr;  // QML 版本 Y 轴倾角卡片
     QQuickWidget *m_weightCardQml = nullptr;     // 当前负载重量卡片（主控 123）
@@ -891,6 +896,10 @@ private:
     QButtonGroup *m_stepTargetGroup = nullptr;
     QButtonGroup *m_sixAxisStepTargetGroup = nullptr;
     QButtonGroup *m_agvStepDirectionGroup = nullptr;
+    bool m_pendingAgvStepSteer = false; // 步进九键盘：等待目标模式到位后写角度
+    int m_pendingAgvStepReadyBit = -1;
+    double m_pendingAgvStepAngleDeg = 0;
+    SteeringMode m_pendingAgvStepMode = STEER_FRONT_BACK;
     QLineEdit *m_stepValueEdit = nullptr;
     QLineEdit *m_editJ1MoveStep = nullptr;
     QLineEdit *m_editJ2MoveStep = nullptr;
@@ -940,9 +949,6 @@ private:
     void applyRobotSpeedUiFromRegister130(quint16 value);
     /** @brief 从 g_registerCache 刷新步进/运动/速度等与主控同步的 UI（示教切换后等） */
     void applyCachedMainControlSyncRegistersToUi();
-
-    /** @brief 将主控 103~118（四组 double）刷新到坐标 QML 面板 */
-    void updateDeviceCoordPanelFromCache();
 
     /** @brief 初始化窗口 UI（内部） */
     void initUI();
