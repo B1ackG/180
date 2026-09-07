@@ -10349,6 +10349,9 @@ void MainWindow::setupAGVStepPad()
                     if (name == QStringLiteral("techBtn_AGVStep_Left")
                         || name == QStringLiteral("techBtn_AGVStep_Right")) {
                         requestAgvStepSteerThenAngle(STEER_LATERAL, 11, 0);
+                    } else if (name == QStringLiteral("techBtn_AGVStep_Up")
+                               || name == QStringLiteral("techBtn_AGVStep_Down")) {
+                        requestAgvStepSteerThenAngle(STEER_PARALLEL, 10, 0);
                     } else if (name == QStringLiteral("techBtn_AGVStep_UpLeft")
                                || name == QStringLiteral("techBtn_AGVStep_DownRight")) {
                         requestAgvStepSteerThenAngle(STEER_PARALLEL, 10, -45);
