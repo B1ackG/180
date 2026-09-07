@@ -5637,8 +5637,7 @@ void MainWindow::setupInterlockingTeachingButton()
     }
     ui->TBtn_Interlocking->setToolTip(QStringLiteral("切换主控%1寄存器：当前显示「上方」时点按写入 0 并切换到「下方」；当前为「下方」时写入 1 并切换到「上方」")
                                            .arg(ModbusWriteGate::interlockRegisterAddress()));
-    connect(ui->TBtn_Interlocking, &QToolButton::clicked,
-            this, &MainWindow::on_TBtn_Interlocking_clicked);
+    // 槽名 on_TBtn_Interlocking_clicked 已由 setupUi 的 connectSlotsByName 接上，这里不再重复 connect。
     if (!m_interlockingSyncTimer) {
         m_interlockingSyncTimer = new QTimer(this);
         connect(m_interlockingSyncTimer, &QTimer::timeout,
