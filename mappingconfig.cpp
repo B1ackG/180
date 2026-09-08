@@ -363,10 +363,10 @@ void MappingConfig::initDefaultMappings()
     m_controlNameMap["btnStepTargetSixAxis5"] = "六轴步进目标 · 轴5";
     m_controlNameMap["btnStepTargetSixAxis6"] = "六轴步进目标 · 轴6";
     m_controlNameMap["btnStepTargetSixAxis7"] = "六轴步进目标 · 轴7";
-    m_controlNameMap["btnStepTargetAxis1"] = "单轴步进目标 · 轴1";
-    m_controlNameMap["btnStepTargetAxis2"] = "单轴步进目标 · 轴2";
-    m_controlNameMap["btnStepTargetAxis3"] = "单轴步进目标 · 轴3";
-    m_controlNameMap["btnStepTargetAxis4"] = "单轴步进目标 · 轴4";
+    m_controlNameMap["btnStepTargetAxis1"] = "单轴步进目标 · 立柱旋转";
+    m_controlNameMap["btnStepTargetAxis2"] = "单轴步进目标 · 立柱升降";
+    m_controlNameMap["btnStepTargetAxis3"] = "单轴步进目标 · 伸缩平衡臂";
+    m_controlNameMap["btnStepTargetAxis4"] = "单轴步进目标 · 末端组件";
     m_controlNameMap["btnStepTargetAgv"] = "AGV 步进目标";
     m_controlNameMap["btnStepTargetCable"] = "线缆/附加步进目标";
     m_controlNameMap["passwordEdit"] = "密码输入框";
@@ -383,10 +383,10 @@ void MappingConfig::initDefaultMappings()
     m_controlNameMap["btnStepTargetSixAxis5"] = "六轴步进目标 · 轴5";
     m_controlNameMap["btnStepTargetSixAxis6"] = "六轴步进目标 · 轴6";
     m_controlNameMap["btnStepTargetSixAxis7"] = "六轴步进目标 · 轴7";
-    m_controlNameMap["btnStepTargetAxis1"] = "单轴步进目标 · 轴1";
-    m_controlNameMap["btnStepTargetAxis2"] = "单轴步进目标 · 轴2";
-    m_controlNameMap["btnStepTargetAxis3"] = "单轴步进目标 · 轴3";
-    m_controlNameMap["btnStepTargetAxis4"] = "单轴步进目标 · 轴4";
+    m_controlNameMap["btnStepTargetAxis1"] = "单轴步进目标 · 立柱旋转";
+    m_controlNameMap["btnStepTargetAxis2"] = "单轴步进目标 · 立柱升降";
+    m_controlNameMap["btnStepTargetAxis3"] = "单轴步进目标 · 伸缩平衡臂";
+    m_controlNameMap["btnStepTargetAxis4"] = "单轴步进目标 · 末端组件";
     m_controlNameMap["btnStepTargetAgv"] = "AGV 步进目标";
     m_controlNameMap["btnStepTargetCable"] = "线缆/附加步进目标";
     m_controlNameMap["passwordEdit"] = "密码输入框";
@@ -563,6 +563,23 @@ void MappingConfig::normalizeOperationRecord(OperationRecord &record) const
         if (!cn.trimmed().isEmpty()) {
             record.controlName = cn;
         }
+    }
+
+    // 按钮 UI 可能为换行显示（如「立柱\n旋转」），历史列表始终单行。
+    auto flattenLine = [](QString s) {
+        s.remove(QLatin1Char('\r'));
+        s.remove(QLatin1Char('\n'));
+        return s;
+    };
+    record.pageName = flattenLine(record.pageName);
+    record.controlName = flattenLine(record.controlName);
+    record.operation = flattenLine(record.operation);
+    record.controlType = flattenLine(record.controlType);
+    if (record.oldValue.type() == QVariant::String) {
+        record.oldValue = flattenLine(record.oldValue.toString());
+    }
+    if (record.newValue.type() == QVariant::String) {
+        record.newValue = flattenLine(record.newValue.toString());
     }
 }
 

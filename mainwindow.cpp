@@ -157,6 +157,58 @@ void applyTransparentQuickWidgetBackground(QQuickWidget *widget)
                      });
 }
 
+void clearWidgetLayout(QWidget *host)
+{
+    if (!host) {
+        return;
+    }
+    if (QLayout *oldLayout = host->layout()) {
+        QLayoutItem *item = nullptr;
+        while ((item = oldLayout->takeAt(0)) != nullptr) {
+            if (item->widget()) {
+                item->widget()->deleteLater();
+            }
+            delete item;
+        }
+        delete oldLayout;
+    }
+}
+
+void fillHostWithWidget(QWidget *host, QWidget *child)
+{
+    if (!host || !child) {
+        return;
+    }
+    auto *layout = new QVBoxLayout(host);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+    layout->addWidget(child);
+}
+
+QString inclinometerHostNormalStyleSheet()
+{
+    return QStringLiteral(
+        "background: transparent;"
+        "border: 1px solid transparent;"
+        "border-radius: 14px;");
+}
+
+QString inclinometerHostWarningStyleSheet()
+{
+    return QStringLiteral(
+        "background: transparent;"
+        "border: 2px solid #FFD966;"
+        "border-radius: 14px;");
+}
+
+QString inclinometerHostAlarmStyleSheet()
+{
+    return QStringLiteral(
+        "background: transparent;"
+        "border: 2px solid #FF6666;"
+        "border-radius: 14px;");
+}
+
 std::array<quint16, 4> doubleToRegistersGHEFCDAB(double value)
 {
     quint64 raw = 0;
@@ -233,13 +285,7 @@ bool isInsideSteeringModeSelector(const QWidget *widget)
 
 namespace {
 constexpr int kAgvParkOutTriggerLengthRegStart = 5014;
-constexpr int kAgvEstimatedWeightReg = 157;
 constexpr int kMainCurrentLoadWeightReg = 123;
-
-QPair<int, int> estimatedWeightLimits()
-{
-    return {0, 500};
-}
 
 QPair<int, int> parkOutTriggerLengthLimitsFromSettings()
 {
@@ -557,35 +603,6 @@ void MainWindow::applySliderLabelRuntimeSettings()
                 }
             }
         }
-    }
-}
-
-void MainWindow::applyEstimatedWeightRuntimeSettings()
-{
-    QLineEdit *ed = ui ? ui->LEdit_AGV_EstimatedWeight : nullptr;
-    if (!ed) {
-        return;
-    }
-    const QPair<int, int> lim = estimatedWeightLimits();
-    if (!m_estimatedWeightValidator) {
-        m_estimatedWeightValidator = new QIntValidator(this);
-        ed->setValidator(m_estimatedWeightValidator);
-    }
-    m_estimatedWeightValidator->setRange(lim.first, lim.second);
-
-    const QString text = ed->text().trimmed();
-    if (text.isEmpty()) {
-        return;
-    }
-    bool ok = false;
-    const int cur = text.toInt(&ok);
-    if (!ok) {
-        ed->clear();
-        return;
-    }
-    const int clamped = qBound(lim.first, cur, lim.second);
-    if (clamped != cur) {
-        ed->setText(QString::number(clamped));
     }
 }
 
@@ -1593,9 +1610,6 @@ void MainWindow::showChassisView()
 {
     applyInnerDeviceStacks(InnerDeviceView::Chassis);
     setExclusiveNavButtonChecked(ui ? ui->TBtn_ChassisControl : nullptr);
-    if (QToolButton *agvBtn = findChild<QToolButton*>(QStringLiteral("btnStepTargetAgv"))) {
-        agvBtn->setChecked(true);
-    }
     syncStepModeUiByCurrentPage();
     updateStepTargetButtonsState();
 }
@@ -2460,35 +2474,58 @@ void MainWindow::updateSpeed(qreal newSpeed)
     }
 }
 
-void MainWindow::initInclinometerAndRobotPowerStrip()
+void MainWindow::initRobotTotalPowerCard()
 {
-    QWidget *host = findChild<QWidget*>(QStringLiteral("widget_InclinometerPowerStrip"));
+    QWidget *host = findChild<QWidget*>(QStringLiteral("widget_RobotTotalPower"));
     if (!host) {
-        qCWarning(lcMainWindow) << "未找到 widget_InclinometerPowerStrip，跳过倾角+总功率条初始化";
+        qCWarning(lcMainWindow) << "未找到 widget_RobotTotalPower，跳过总功率卡片初始化";
         return;
     }
-    m_inclinometerPowerStripWidget = host;
 
-    if (QLayout *oldLayout = host->layout()) {
-        QLayoutItem *item = nullptr;
-        while ((item = oldLayout->takeAt(0)) != nullptr) {
-            if (item->widget()) {
-                item->widget()->deleteLater();
-            }
-            delete item;
-        }
-        delete oldLayout;
+    clearWidgetLayout(host);
+    host->setStyleSheet(QStringLiteral("background: transparent;"));
+
+    m_robotTotalPowerQml = new QQuickWidget(host);
+    m_robotTotalPowerQml->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    m_robotTotalPowerQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    applyTransparentQuickWidgetBackground(m_robotTotalPowerQml);
+    connect(m_robotTotalPowerQml, &QQuickWidget::statusChanged, this,
+            [this](QQuickWidget::Status status) {
+                if (status == QQuickWidget::Error && m_robotTotalPowerQml) {
+                    const auto errs = m_robotTotalPowerQml->errors();
+                    for (const auto &err : errs) {
+                        qWarning() << "RobotTotalPower QML error:" << err.toString();
+                    }
+                }
+            }, Qt::UniqueConnection);
+    m_robotTotalPowerQml->setSource(QUrl("qrc:/RobotTotalPowerCard.qml"));
+
+    if (QQuickItem *root = m_robotTotalPowerQml->rootObject()) {
+        root->setProperty("title", QStringLiteral("总功率"));
+        root->setProperty("unit", QStringLiteral("W"));
+        root->setProperty("currentPower", 0.0);
+        root->setProperty("showCardBackground", true);
     }
 
-    // Independent cards provide their own shells; host only carries warn/alarm border.
-    host->setStyleSheet(QStringLiteral(
-        "background: transparent;"
-        "border: 1px solid transparent;"
-        "border-radius: 14px;"));
+    fillHostWithWidget(host, m_robotTotalPowerQml);
+}
 
-    auto createInclinometerQml = [this, host](const QString &axisTitle, QQuickWidget *&out) {
+void MainWindow::initInclinometerCards()
+{
+    auto createInclinometerQml = [this](const QString &hostName,
+                                        const QString &axisTitle,
+                                        QQuickWidget *&out,
+                                        QWidget *&hostOut) {
+        QWidget *host = findChild<QWidget*>(hostName);
+        if (!host) {
+            qCWarning(lcMainWindow) << "未找到" << hostName << "，跳过" << axisTitle << "初始化";
+            return;
+        }
+        hostOut = host;
+        clearWidgetLayout(host);
+        host->setStyleSheet(inclinometerHostNormalStyleSheet());
+
         out = new QQuickWidget(host);
-        out->setMinimumHeight(96);
         out->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         out->setResizeMode(QQuickWidget::SizeRootObjectToView);
         applyTransparentQuickWidgetBackground(out);
@@ -2512,45 +2549,17 @@ void MainWindow::initInclinometerAndRobotPowerStrip()
             root->setProperty("tiltValue", 0.0);
             root->setProperty("thresholdText", QString());
         }
+        fillHostWithWidget(host, out);
     };
 
-    createInclinometerQml(QStringLiteral("X轴倾角"), m_inclinometerXQml);
-    createInclinometerQml(QStringLiteral("Y轴倾角"), m_inclinometerYQml);
-
-    m_robotTotalPowerQml = new QQuickWidget(host);
-    m_robotTotalPowerQml->setMinimumHeight(96);
-    m_robotTotalPowerQml->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    m_robotTotalPowerQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
-    applyTransparentQuickWidgetBackground(m_robotTotalPowerQml);
-    connect(m_robotTotalPowerQml, &QQuickWidget::statusChanged, this,
-            [this](QQuickWidget::Status status) {
-                if (status == QQuickWidget::Error && m_robotTotalPowerQml) {
-                    const auto errs = m_robotTotalPowerQml->errors();
-                    for (const auto &err : errs) {
-                        qWarning() << "RobotTotalPower QML error:" << err.toString();
-                    }
-                }
-            }, Qt::UniqueConnection);
-    m_robotTotalPowerQml->setSource(QUrl("qrc:/RobotTotalPowerCard.qml"));
-
-    if (QQuickItem *root = m_robotTotalPowerQml->rootObject()) {
-        root->setProperty("title", QStringLiteral("总功率"));
-        root->setProperty("unit", QStringLiteral("W"));
-        root->setProperty("currentPower", 0.0);
-        root->setProperty("showCardBackground", true);
-    }
-
-    auto *column = new QVBoxLayout(host);
-    column->setContentsMargins(0, 0, 0, 0);
-    column->setSpacing(6);
-    column->addWidget(m_robotTotalPowerQml, 0);
-
-    auto *tiltRow = new QHBoxLayout();
-    tiltRow->setContentsMargins(0, 0, 0, 0);
-    tiltRow->setSpacing(6);
-    tiltRow->addWidget(m_inclinometerXQml, 1);
-    tiltRow->addWidget(m_inclinometerYQml, 1);
-    column->addLayout(tiltRow, 1);
+    createInclinometerQml(QStringLiteral("widget_Inclinometer_X"),
+                         QStringLiteral("X轴倾角"),
+                         m_inclinometerXQml,
+                         m_inclinometerXHost);
+    createInclinometerQml(QStringLiteral("widget_Inclinometer_Y"),
+                         QStringLiteral("Y轴倾角"),
+                         m_inclinometerYQml,
+                         m_inclinometerYHost);
 
     applyInclinometerDisplayRuntimeSettings();
 }
@@ -2668,30 +2677,6 @@ bool isInclinometerTiltLockDegree(qreal degree)
     return qAbs(degree) > 1.0;
 }
 
-QString inclinometerPowerStripNormalStyleSheet()
-{
-    return QStringLiteral(
-        "background: transparent;"
-        "border: 1px solid transparent;"
-        "border-radius: 14px;");
-}
-
-QString inclinometerPowerStripWarningStyleSheet()
-{
-    return QStringLiteral(
-        "background: transparent;"
-        "border: 2px solid #FFD966;"
-        "border-radius: 14px;");
-}
-
-QString inclinometerPowerStripAlarmStyleSheet()
-{
-    return QStringLiteral(
-        "background: transparent;"
-        "border: 2px solid #FF6666;"
-        "border-radius: 14px;");
-}
-
 void positionFloatingPopupCenter(QWidget *widget)
 {
     if (!widget) {
@@ -2735,15 +2720,20 @@ void MainWindow::refreshInclinometerTiltPresentation()
                          && (isInclinometerTiltRiskWarningDegree(m_inclinometerXDegree)
                              || isInclinometerTiltRiskWarningDegree(m_inclinometerYDegree));
 
-    if (m_inclinometerPowerStripWidget) {
-        if (inLockZone) {
-            m_inclinometerPowerStripWidget->setStyleSheet(inclinometerPowerStripAlarmStyleSheet());
-        } else if (inWarnZone) {
-            m_inclinometerPowerStripWidget->setStyleSheet(inclinometerPowerStripWarningStyleSheet());
-        } else {
-            m_inclinometerPowerStripWidget->setStyleSheet(inclinometerPowerStripNormalStyleSheet());
+    const auto applyInclinometerHostStyle = [](QWidget *host, qreal degree) {
+        if (!host) {
+            return;
         }
-    }
+        if (isInclinometerTiltLockDegree(degree)) {
+            host->setStyleSheet(inclinometerHostAlarmStyleSheet());
+        } else if (isInclinometerTiltRiskWarningDegree(degree)) {
+            host->setStyleSheet(inclinometerHostWarningStyleSheet());
+        } else {
+            host->setStyleSheet(inclinometerHostNormalStyleSheet());
+        }
+    };
+    applyInclinometerHostStyle(m_inclinometerXHost, m_inclinometerXDegree);
+    applyInclinometerHostStyle(m_inclinometerYHost, m_inclinometerYDegree);
 
     if (inLockZone != m_inclinometerTiltLockInZone) {
         if (inLockZone) {
@@ -3194,7 +3184,10 @@ void MainWindow::connectRecordSignals()
                         page = page->parentWidget();
                     }
 
-                    const QString buttonText = button->text().trimmed();
+                    const QString buttonText = QString(button->text())
+                                                   .remove(QLatin1Char('\r'))
+                                                   .remove(QLatin1Char('\n'))
+                                                   .trimmed();
                     const QString detailText = buttonText.isEmpty()
                         ? button->objectName()
                         : buttonText;
@@ -3213,7 +3206,7 @@ void MainWindow::connectRecordSignals()
                     record.controlType = MappingConfig::instance()->mapControlType("TechPushButton");
                     record.operation = MappingConfig::instance()->mapOperation("clicked");
                     record.oldValue = "";
-                    record.newValue = MappingConfig::instance()->mapValue(button->text());
+                    record.newValue = MappingConfig::instance()->mapValue(detailText);
 
                     m_recorder->addRecord(record);
                 });
@@ -3233,7 +3226,10 @@ void MainWindow::connectRecordSignals()
                     // 获取按钮所在页面
                     QString pageName = getControlPageName(toolButton);
 
-                    const QString buttonText = toolButton->text().trimmed();
+                    const QString buttonText = QString(toolButton->text())
+                                                   .remove(QLatin1Char('\r'))
+                                                   .remove(QLatin1Char('\n'))
+                                                   .trimmed();
                     const QString tooltipText = toolButton->toolTip().trimmed();
                     const QString detailText = !buttonText.isEmpty()
                         ? buttonText
@@ -3249,7 +3245,7 @@ void MainWindow::connectRecordSignals()
                     record.controlType = MappingConfig::instance()->mapControlType("QToolButton");
                     record.operation = MappingConfig::instance()->mapOperation("clicked");
                     record.oldValue = "";
-                    record.newValue = MappingConfig::instance()->mapValue(toolButton->text().isEmpty() ? toolButton->toolTip() : toolButton->text());
+                    record.newValue = MappingConfig::instance()->mapValue(detailText);
 
                     m_recorder->addRecord(record);
 
@@ -4014,7 +4010,6 @@ void MainWindow::setupAdminPasswordPage()
                     applyNetworkRuntimeSettings();
                     loadSliderLabelRuntimeSettings();
                     applySliderLabelRuntimeSettings();
-                    applyEstimatedWeightRuntimeSettings();
                     applyModbusAccessSwitches();
                     applySliderEditRuntimeSettings();
                     applyParkOutTriggerLengthRuntimeSettings();
@@ -4779,10 +4774,10 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         return;
     }
 
-    // 六自由度页面（第4页）外部键逻辑：
+    // 六自由度页面外部键逻辑：
     // - ○13/○14：固定写500=5，514=4/2；释放时514回0；
-    // - 点动模式：按键○1~○12映射到613写入±1~±6；按下/松开各记一条历史（RX/RY/RZ 角度，X/Y/Z 位置，文案仿步进列表）
-    // - 步进模式：按键○1~○12映射轴1~6，写614轴号、601~602(CDAB浮点步进值，奇数键写相反数)，再写615触发。
+    // - 仅 ○1/○2 有效：目标轴由 groupBox_SixAxies_StepMove 当前选中项决定。
+    //   点动写 613（○1 负向、○2 正向；轴6 再取反）；步进写 614 → 601/602 → 615。
     if (isSixAxisPage) {
         if (keyNumber == 13 || keyNumber == 14) {
             if (!pressed) {
@@ -4815,7 +4810,46 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             return;
         }
 
-        if (keyNumber < 1 || keyNumber > 12) {
+        if (keyNumber != 1 && keyNumber != 2) {
+            return;
+        }
+
+        const int axisIndex = selectedSixAxisTargetIndex();
+        QString selectedTargetText;
+        if (m_sixAxisStepTargetGroup && m_sixAxisStepTargetGroup->checkedButton()) {
+            selectedTargetText = QString(m_sixAxisStepTargetGroup->checkedButton()->text())
+                                     .remove(QLatin1Char('\r'))
+                                     .remove(QLatin1Char('\n'));
+        }
+
+        if (axisIndex == 7) {
+            if (m_stepModeUnknown || m_stepModeEnabled) {
+                return;
+            }
+            if (!pressed) {
+                writeToMainDevice(514, 0);
+                return;
+            }
+            const int value514 = (keyNumber == 1) ? 4 : 2;
+            writeToMainDevice(500, 5);
+            writeToMainDevice(514, value514);
+            if (m_recorder) {
+                const QString msg = (keyNumber == 1)
+                                        ? QStringLiteral("正在收回卷样机钢缆")
+                                        : QStringLiteral("正在放出卷样机钢缆");
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = getCurrentPageName();
+                record.controlName = msg;
+                record.controlType = QStringLiteral("MatrixKey");
+                record.operation = QString();
+                record.oldValue = QString();
+                record.newValue = QString();
+                m_recorder->addRecord(record);
+                showNotification(msg);
+            }
+            qCDebug(lcMainWindow) << "六自由度点动钢缆 ○" << keyNumber
+                                  << "写入 500=5, 514=" << value514;
             return;
         }
 
@@ -4853,39 +4887,10 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 return;
             }
 
-            const int axisIndex = (keyNumber + 1) / 2;       // ○1/2->1 ... ○11/12->6
-
-            // 门禁：仅当当前选中的“六轴步进目标轴”与外部按键对应轴一致时，才允许执行步进写入
-            int selectedAxisIndex = -1;
-            QString selectedTargetText;
-            if (m_sixAxisStepTargetGroup && m_sixAxisStepTargetGroup->checkedButton()) {
-                const QAbstractButton *checkedBtn = m_sixAxisStepTargetGroup->checkedButton();
-                selectedTargetText = checkedBtn->text();
-                const QString checkedObjectName = checkedBtn->objectName();
-                if (checkedObjectName == "btnStepTargetSixAxis1") selectedAxisIndex = 1;
-                else if (checkedObjectName == "btnStepTargetSixAxis2") selectedAxisIndex = 2;
-                else if (checkedObjectName == "btnStepTargetSixAxis3") selectedAxisIndex = 3;
-                else if (checkedObjectName == "btnStepTargetSixAxis4") selectedAxisIndex = 4;
-                else if (checkedObjectName == "btnStepTargetSixAxis5") selectedAxisIndex = 5;
-                else if (checkedObjectName == "btnStepTargetSixAxis6") selectedAxisIndex = 6;
-            }
-
-            if (selectedAxisIndex != axisIndex) {
-                qCDebug(lcMainWindow) << "六轴步进外部按键忽略：按键○" << keyNumber
-                                      << "与当前目标轴" << selectedTargetText << "不匹配";
-                const QString mismatchTargetName = selectedTargetText.isEmpty()
-                                                       ? QStringLiteral("轴%1").arg(axisIndex)
-                                                       : selectedTargetText;
-                showStepTargetMismatchHintDialog(keyNumber, mismatchTargetName);
-                return;
-            }
-
-            const bool isOddKey = ((keyNumber % 2) == 1);    // 奇数键写相反数
-            if (isOddKey) {
+            if (keyNumber == 1) {
                 rawStepValue = -rawStepValue;
             }
-            // ○11/○12（轴6）相对其余轴再单独取反
-            if (keyNumber == 11 || keyNumber == 12) {
+            if (axisIndex == 6) {
                 rawStepValue = -rawStepValue;
             }
 
@@ -4942,7 +4947,10 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
             QString targetName = selectedTargetText;
             if (targetName.isEmpty()) {
-                targetName = QStringLiteral("轴%1").arg(axisIndex);
+                static const char *kNames[] = {"RX", "RY", "RZ", "X", "Y", "Z"};
+                targetName = (axisIndex >= 1 && axisIndex <= 6)
+                                 ? QString::fromLatin1(kNames[axisIndex - 1])
+                                 : QStringLiteral("RX");
             }
 
             double currentValue = 0.0;
@@ -4970,16 +4978,14 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         }
 
         if (!pressed) {
-            recordSixAxisJogExternalKey(keyNumber, false);
+            recordSixAxisJogExternalKey(axisIndex, false);
             writeToMainDevice(613, 0);
             return;
         }
 
-        recordSixAxisJogExternalKey(keyNumber, true);
-        const int groupIndex = (keyNumber + 1) / 2;       // ○1/2->1 ... ○11/12->6
-        int signedCommand = (keyNumber % 2 == 1) ? -groupIndex : groupIndex;
-        // ○11/○12（轴6）相对其余轴再单独取反
-        if (keyNumber == 11 || keyNumber == 12) {
+        recordSixAxisJogExternalKey(axisIndex, true);
+        int signedCommand = (keyNumber == 1) ? -axisIndex : axisIndex;
+        if (axisIndex == 6) {
             signedCommand = -signedCommand;
         }
         const quint16 encoded = static_cast<quint16>(signedCommand); // 负数按补码写入
@@ -4996,9 +5002,16 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         return;
     }
 
-    // AGV控制页面（第5页）外部按键逻辑：
-    // ○13/○14：向500写入5，向514写入4/2 (点动/步进模式下)
+    // 底盘控制：○1/○2 沿用原 ○9/○10 底盘运动；○13/○14 仍写钢缆 500/514。
     if (isAgvPage) {
+        if (keyNumber == 1) {
+            handleAGVKeyAction(keyNumber, pressed);
+            return;
+        }
+        if (keyNumber == 2) {
+            handleAGVKey2Action(keyNumber, pressed);
+            return;
+        }
         if (keyNumber != 13 && keyNumber != 14) {
             return;
         }
@@ -5026,25 +5039,15 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         return;
     }
 
-    // 特殊处理：如果是机械臂页面（索引为0），执行唯一的 500/514 寄存器逻辑并直接返回
+    // 机械臂页面：仅 ○1/○2 有效，目标轴由 groupBox_Robot_StepMove 当前选中项决定。
     if (isRobotPage) {
-        // 将原AGV页面的○1/○2动作迁移为首页上的○9/○10。
-        if (keyNumber == 9) {
-            handleAGVKeyAction(keyNumber, pressed);
-            return;
-        }
-        if (keyNumber == 10) {
-            handleAGVKey2Action(keyNumber, pressed);
-            return;
-        }
-
         auto recordRobotExternalMotion = [this](int key, bool isPressed) {
-            if (!m_recorder || key < 1 || key > 8) {
+            if (!m_recorder || (key != 1 && key != 2)) {
                 return;
             }
 
-            const int axisIndex = (key - 1) / 2;
-            const bool isOddKey = (key % 2) == 1;
+            const int axisIndex = selectedStepTargetRegister() - 499; // 500~503 -> 1~4
+            const bool isOddKey = (key == 1);
 
             QString componentName;
             QString unit;
@@ -5052,35 +5055,35 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             QString evenAction;
 
             switch (axisIndex) {
-            case 0:
-                componentName = "悬臂角度";
-                unit = "°";
-                oddAction = "减小";
-                evenAction = "增大";
-                break;
             case 1:
-                componentName = "升降高度";
-                unit = "mm";
-                oddAction = "下降";
-                evenAction = "上升";
+                componentName = QStringLiteral("立柱旋转");
+                unit = QStringLiteral("°");
+                oddAction = QStringLiteral("减小");
+                evenAction = QStringLiteral("增大");
                 break;
             case 2:
-                componentName = "悬臂长度";
-                unit = "mm";
-                oddAction = "缩短";
-                evenAction = "伸长";
+                componentName = QStringLiteral("立柱升降");
+                unit = QStringLiteral("mm");
+                oddAction = QStringLiteral("下降");
+                evenAction = QStringLiteral("上升");
                 break;
             case 3:
-                componentName = "柔顺角度";
-                unit = "°";
-                oddAction = "负向旋转";
-                evenAction = "正向旋转";
+                componentName = QStringLiteral("伸缩平衡臂");
+                unit = QStringLiteral("mm");
+                oddAction = QStringLiteral("缩短");
+                evenAction = QStringLiteral("伸长");
+                break;
+            case 4:
+                componentName = QStringLiteral("末端组件");
+                unit = QStringLiteral("°");
+                oddAction = QStringLiteral("负向旋转");
+                evenAction = QStringLiteral("正向旋转");
                 break;
             default:
                 return;
             }
 
-            const double currentValue = getAxisCurrentValue(axisIndex + 1);
+            const double currentValue = getAxisCurrentValue(axisIndex);
             double globalSpeedPercent = getSliderEditValue("TechSliderEdit_Robot_RobotSpeed");
             if (globalSpeedPercent <= 0.0) {
                 globalSpeedPercent = getSliderEditValue("TechSliderEdit_EOAT_RotationSpeed");
@@ -5111,145 +5114,130 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             m_recorder->addRecord(record);
         };
 
-        if (keyNumber >= 1 && keyNumber <= 8) {
-            maybeShowZeroSpeedHintForHomePageExternalKey(keyNumber, pressed);
-            if (m_stepModeEnabled) {
-                maybeShowUnconfiguredStepValueHintForExternalKey(keyNumber, pressed);
-                const int axisIndex = (keyNumber - 1) / 2;   // 0~3
-                const bool isOddKey = (keyNumber % 2) == 1;  // 奇数键为反向
-                const int keyMappedTargetReg = 500 + axisIndex;
+        if (keyNumber != 1 && keyNumber != 2) {
+            return;
+        }
 
-                if (!pressed) {
-                    // 需求：步进模式由外部键按下触发，释放不再回写514。
-                    m_robotExternalKeyPressed[keyNumber] = false;
-                    maybeClearFirstPageStepValueIfAllExternalKeysReleased();
-                    return;
-                }
+        maybeShowZeroSpeedHintForHomePageExternalKey(keyNumber, pressed);
+        if (m_stepModeEnabled) {
+            maybeShowUnconfiguredStepValueHintForExternalKey(keyNumber, pressed);
+            const int targetReg = selectedStepTargetRegister();
+            const int targetCode = targetReg - 499; // 500~503 -> 1~4
+            const bool isOddKey = (keyNumber == 1);
 
-                // 同一按键长按/抖动导致的重复按下信号直接忽略，避免重复写入风暴。
-                if (m_robotExternalKeyPressed.value(keyNumber, false)) {
-                    qCDebug(lcMainWindow) << "步进外部按键去重：按键○" << keyNumber << "重复按下已忽略";
-                    return;
-                }
-
-                // 步进模式下：仅当外部按键与当前选中目标轴匹配时触发。
-                if (selectedStepTargetRegister() != keyMappedTargetReg) {
-                    qCDebug(lcMainWindow) << "步进外部按键忽略：按键○" << keyNumber
-                                          << "与当前目标" << selectedStepTargetName() << "不匹配";
-                    showStepTargetMismatchHintDialog(keyNumber, selectedStepTargetName());
-                    return;
-                }
-
-                if (!m_stepValueEdit) {
-                    qCDebug(lcMainWindow) << "步进外部按键忽略：未找到lineEdit_StepValue";
-                    return;
-                }
-
-                bool ok = false;
-                double stepValue = m_stepValueEdit->text().toDouble(&ok);
-                if (!ok) {
-                    qCDebug(lcMainWindow) << "步进外部按键忽略：步进值无效" << m_stepValueEdit->text();
-                    return;
-                }
-
-                // 奇数外部按键：先取相反数再写入。
-                if (isOddKey) {
-                    stepValue = -stepValue;
-                }
-
-                m_robotExternalKeyPressed[keyNumber] = true;
-                const quint64 seq = ++m_robotExternalWriteSeq;
-
-                const int targetCode = axisIndex + 1; // 轴1~4 -> 1~4
-                writeToMainDevice(500, targetCode);
-                writeStepValueDoubleToMainDevice(stepValue);
-
-                auto stagedWrite514 = [this, seq]() {
-                    if (seq != m_robotExternalWriteSeq) {
-                        return;
-                    }
-                    writeToMainDevice(514, 1);
-                };
-
-                // 先给502~505留出采样窗口，再触发514，降低“值未落稳就触发”的概率。
-                QTimer::singleShot(35, this, stagedWrite514);
-                QTimer::singleShot(90, this, stagedWrite514);
-                QTimer::singleShot(150, this, stagedWrite514);
-
-                qCDebug(lcMainWindow) << "page_Robot (步进) 按键○" << keyNumber
-                                      << "目标500=" << targetCode
-                                      << "步进值=" << stepValue
-                                      << "514=1";
-
-                const QString targetName = selectedStepTargetName();
-                double currentValue = 0.0;
-                if (keyMappedTargetReg == 500) currentValue = getSliderLabelValue("label_Value1");
-                else if (keyMappedTargetReg == 501) currentValue = getSliderLabelValue("label_Value2");
-                else if (keyMappedTargetReg == 502) currentValue = getSliderLabelValue("label_Value3");
-                else if (keyMappedTargetReg == 503) currentValue = getSliderLabelValue("label_Value4");
-
-                recordStepMoveAction(targetName, currentValue,
-                                     QString::number(stepValue, 'f', 3), true);
-                markStepMotionPendingStop(StepMotionStopKind::RobotJoint, targetName);
-                ui->statusBar->showMessage(
-                    QString("步进触发：按键○%1，目标%2，步进值%3")
-                        .arg(keyNumber)
-                        .arg(targetName)
-                        .arg(stepValue, 0, 'f', 3),
-                    2000);
+            if (!pressed) {
+                m_robotExternalKeyPressed[keyNumber] = false;
+                maybeClearFirstPageStepValueIfAllExternalKeysReleased();
                 return;
             }
 
-            int value500 = 0;
-            int value514 = 0;
-            if (pressed) {
-                // 地址500逻辑：○1,○2->1; ○3,○4->2; ○5,○6->3; ○7,○8->4
-                value500 = (keyNumber + 1) / 2;
-
-                // 地址514逻辑：奇数按键写4，偶数按键写2
-                value514 = (keyNumber % 2 != 0) ? 4 : 2;
-
-                // 先写轴组(500)，再延时写方向(514)，提高PLC扫描窗口内命中率。
-                m_robotExternalKeyPressed[keyNumber] = true;
-                m_robotActiveKey = keyNumber;
-                const quint64 seq = ++m_robotExternalWriteSeq;
-
-                writeToMainDevice(500, value500);
-
-                auto stagedWrite514 = [this, keyNumber, value514, seq]() {
-                    if (seq != m_robotExternalWriteSeq) {
-                        return;
-                    }
-                    if (m_robotActiveKey != keyNumber) {
-                        return;
-                    }
-                    if (!m_robotExternalKeyPressed.value(keyNumber, false)) {
-                        return;
-                    }
-                    writeToMainDevice(514, value514);
-                };
-
-                QTimer::singleShot(25, this, stagedWrite514);
-                QTimer::singleShot(90, this, stagedWrite514);
-            } else {
-                // 松开时的逻辑：500寄存器不再写0，514寄存器写0
-                value500 = -1; // 用-1表示不操作
-                value514 = 0;
-                m_robotExternalKeyPressed[keyNumber] = false;
-                if (m_robotActiveKey == keyNumber) {
-                    m_robotActiveKey = -1;
-                }
-                ++m_robotExternalWriteSeq;
-                writeToMainDevice(514, 0);
+            if (m_robotExternalKeyPressed.value(keyNumber, false)) {
+                qCDebug(lcMainWindow) << "步进外部按键去重：按键○" << keyNumber << "重复按下已忽略";
+                return;
             }
 
-            qCDebug(lcMainWindow) << "page_Robot (Index 0, 点动/关节) 按键 ○" << keyNumber << " " << (pressed ? "按下" : "释放")
-                     << " -> 地址500写入:" << (pressed ? QString::number(value500) : "保持") 
-                     << ", 地址514写入:" << value514;
+            if (!m_stepValueEdit) {
+                qCDebug(lcMainWindow) << "步进外部按键忽略：未找到lineEdit_StepValue";
+                return;
+            }
 
-            recordRobotExternalMotion(keyNumber, pressed);
+            bool ok = false;
+            double stepValue = m_stepValueEdit->text().toDouble(&ok);
+            if (!ok) {
+                qCDebug(lcMainWindow) << "步进外部按键忽略：步进值无效" << m_stepValueEdit->text();
+                return;
+            }
+
+            if (isOddKey) {
+                stepValue = -stepValue;
+            }
+
+            m_robotExternalKeyPressed[keyNumber] = true;
+            const quint64 seq = ++m_robotExternalWriteSeq;
+
+            writeToMainDevice(500, targetCode);
+            writeStepValueDoubleToMainDevice(stepValue);
+
+            auto stagedWrite514 = [this, seq]() {
+                if (seq != m_robotExternalWriteSeq) {
+                    return;
+                }
+                writeToMainDevice(514, 1);
+            };
+
+            QTimer::singleShot(35, this, stagedWrite514);
+            QTimer::singleShot(90, this, stagedWrite514);
+            QTimer::singleShot(150, this, stagedWrite514);
+
+            qCDebug(lcMainWindow) << "page_Robot (步进) 按键○" << keyNumber
+                                  << "目标500=" << targetCode
+                                  << "步进值=" << stepValue
+                                  << "514=1";
+
+            const QString targetName = selectedStepTargetName();
+            double currentValue = 0.0;
+            if (targetReg == 500) currentValue = getSliderLabelValue("label_Value1");
+            else if (targetReg == 501) currentValue = getSliderLabelValue("label_Value2");
+            else if (targetReg == 502) currentValue = getSliderLabelValue("label_Value3");
+            else if (targetReg == 503) currentValue = getSliderLabelValue("label_Value4");
+
+            recordStepMoveAction(targetName, currentValue,
+                                 QString::number(stepValue, 'f', 3), true);
+            markStepMotionPendingStop(StepMotionStopKind::RobotJoint, targetName);
+            ui->statusBar->showMessage(
+                QString("步进触发：按键○%1，目标%2，步进值%3")
+                    .arg(keyNumber)
+                    .arg(targetName)
+                    .arg(stepValue, 0, 'f', 3),
+                2000);
+            return;
         }
-        return; // 机械臂页面不再执行后续逻辑
+
+        int value500 = 0;
+        int value514 = 0;
+        const int targetCode = selectedStepTargetRegister() - 499;
+        if (pressed) {
+            value500 = qBound(1, targetCode, 4);
+            value514 = (keyNumber == 1) ? 4 : 2;
+
+            m_robotExternalKeyPressed[keyNumber] = true;
+            m_robotActiveKey = keyNumber;
+            const quint64 seq = ++m_robotExternalWriteSeq;
+
+            writeToMainDevice(500, value500);
+
+            auto stagedWrite514 = [this, keyNumber, value514, seq]() {
+                if (seq != m_robotExternalWriteSeq) {
+                    return;
+                }
+                if (m_robotActiveKey != keyNumber) {
+                    return;
+                }
+                if (!m_robotExternalKeyPressed.value(keyNumber, false)) {
+                    return;
+                }
+                writeToMainDevice(514, value514);
+            };
+
+            QTimer::singleShot(25, this, stagedWrite514);
+            QTimer::singleShot(90, this, stagedWrite514);
+        } else {
+            value500 = -1;
+            value514 = 0;
+            m_robotExternalKeyPressed[keyNumber] = false;
+            if (m_robotActiveKey == keyNumber) {
+                m_robotActiveKey = -1;
+            }
+            ++m_robotExternalWriteSeq;
+            writeToMainDevice(514, 0);
+        }
+
+        qCDebug(lcMainWindow) << "page_Robot (点动/关节) 按键 ○" << keyNumber << " " << (pressed ? "按下" : "释放")
+                 << " -> 地址500写入:" << (pressed ? QString::number(value500) : "保持")
+                 << ", 地址514写入:" << value514;
+
+        recordRobotExternalMotion(keyNumber, pressed);
+        return;
     }
 
     // 处理124地址的写入
@@ -5330,7 +5318,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         return;
     }
 
-    if (keyNumber != 9) {
+    if (keyNumber != 1 && keyNumber != 9) {
         return;
     }
 
@@ -5366,9 +5354,8 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
             return;
         }
 
-        if (selectedStepTargetRegister() != 504) {
-            qCDebug(lcMainWindow) << "首页○9(步进)：未选中 AGV 步进目标(btnStepTargetAgv)，忽略";
-            showStepTargetMismatchHintDialog(keyNumber, selectedStepTargetName());
+        if (!isChassisViewActive()) {
+            qCDebug(lcMainWindow) << "首页○9(步进)：当前非底盘页，忽略";
             return;
         }
 
@@ -8351,7 +8338,6 @@ void MainWindow::onControlModeClicked()
         if (targetReg == 501) targetCode = 2;
         else if (targetReg == 502) targetCode = 3;
         else if (targetReg == 503) targetCode = 4;
-        else if (targetReg == 504) targetCode = 5;
         writeToMainDevice(500, targetCode);
     }
 
@@ -8438,35 +8424,6 @@ void MainWindow::setupAGVOAControl()
     }
     loadSpareButtonNameRegisterSettings();
     applySpareButtonRuntimeSettings();
-
-    if (ui->LEdit_AGV_EstimatedWeight) {
-        applyEstimatedWeightRuntimeSettings();
-        connect(ui->LEdit_AGV_EstimatedWeight, &QLineEdit::editingFinished, this, [this]() {
-            if (!ui || !ui->LEdit_AGV_EstimatedWeight) {
-                return;
-            }
-            const QString text = ui->LEdit_AGV_EstimatedWeight->text().trimmed();
-            if (text.isEmpty()) {
-                return;
-            }
-            const QPair<int, int> lim = estimatedWeightLimits();
-            bool ok = false;
-            int v = text.toInt(&ok);
-            if (!ok) {
-                ui->LEdit_AGV_EstimatedWeight->clear();
-                return;
-            }
-            const int c = qBound(lim.first, v, lim.second);
-            if (c != v || !ok) {
-                ui->LEdit_AGV_EstimatedWeight->setText(QString::number(c));
-            }
-            if (!writeToAGVDevice(kAgvEstimatedWeightReg, c)) {
-                if (ui->statusBar) {
-                    ui->statusBar->showMessage(QStringLiteral("预计负载写入寄存器157失败"), 4000);
-                }
-            }
-        }, Qt::UniqueConnection);
-    }
 
 }
 
@@ -9124,12 +9081,6 @@ void MainWindow::onAGVParkBtnClicked()
         return;
     }
 
-    // 预计负载空值提示仅由主驻车按钮触发；支腿异常弹窗内开/关驻车不检查
-    if (isEstimatedWeightEmpty()) {
-        showExpectedLoadEmptyDialog();
-        return;
-    }
-
     if (m_agvLegAbnormal51Bit7Flag) {
         updateParkingLegAbnormalDialogVisibility();
         if (m_parkingLegAbnormalDialog) {
@@ -9208,7 +9159,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         return;
     }
 
-    if (keyNumber != 10) {
+    if (keyNumber != 2 && keyNumber != 10) {
         return;
     }
 
@@ -9244,9 +9195,8 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
             return;
         }
 
-        if (selectedStepTargetRegister() != 504) {
-            qCDebug(lcMainWindow) << "首页○10(步进)：未选中 AGV 步进目标(btnStepTargetAgv)，忽略";
-            showStepTargetMismatchHintDialog(keyNumber, selectedStepTargetName());
+        if (!isChassisViewActive()) {
+            qCDebug(lcMainWindow) << "首页○10(步进)：当前非底盘页，忽略";
             return;
         }
 
@@ -10074,7 +10024,6 @@ void MainWindow::onEnableButtonPressedStepMode()
         else if (targetReg == 501) currentValue = getSliderLabelValue("label_Value2");
         else if (targetReg == 502) currentValue = getSliderLabelValue("label_Value3");
         else if (targetReg == 503) currentValue = getSliderLabelValue("label_Value4");
-        else if (targetReg == 504 && m_editAGV_MoveSpeed) currentValue = m_editAGV_MoveSpeed->value();
 
         recordStepMoveAction(targetName, currentValue, stepValue, true);
         ui->statusBar->showMessage(QString("步进模式：目标%1，步进值%2")
@@ -10129,7 +10078,7 @@ void MainWindow::onEnableButtonReleasedStepMode()
 
     // 与 onEnableButtonPressedStepMode 一致：仅当首页统一步进输入框有内容时才按选中目标记录结束；
     // 否则仅判断 m_stepValueEdit 非空会在输入为空时仍走本分支，且 selectedStepTargetRegister()
-    // 无选中按钮时默认 500，误记为「悬臂组件(J1)」步进结束。
+    // 无选中按钮时默认 500，误记为「立柱旋转」步进结束。
     if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
         const int targetReg = selectedStepTargetRegister();
         const QString targetName = selectedStepTargetName();
@@ -10139,7 +10088,6 @@ void MainWindow::onEnableButtonReleasedStepMode()
         else if (targetReg == 501) currentValue = getSliderLabelValue("label_Value2");
         else if (targetReg == 502) currentValue = getSliderLabelValue("label_Value3");
         else if (targetReg == 503) currentValue = getSliderLabelValue("label_Value4");
-        else if (targetReg == 504 && m_editAGV_MoveSpeed) currentValue = m_editAGV_MoveSpeed->value();
 
         recordStepMoveEnd(targetName, currentValue);
         ui->statusBar->showMessage(QString("步进模式：目标%1，步进结束").arg(targetName), 2000);
@@ -10181,7 +10129,6 @@ int MainWindow::selectedStepTargetRegister() const
     if (name == "btnStepTargetAxis2") return 501;
     if (name == "btnStepTargetAxis3") return 502;
     if (name == "btnStepTargetAxis4") return 503;
-    if (name == "btnStepTargetAgv") return 504;
     return 500;
 }
 
@@ -10189,13 +10136,28 @@ QString MainWindow::selectedStepTargetName() const
 {
     const int reg = selectedStepTargetRegister();
     switch (reg) {
-    case 500: return "悬臂组件(J1)";
-    case 501: return "升降组件(J2)";
-    case 502: return "伸缩臂(J3)";
-    case 503: return "柔顺组件(J4)";
-    case 504: return "底盘(AGV)";
-    default: return "悬臂组件(J1)";
+    case 500: return QStringLiteral("立柱旋转");
+    case 501: return QStringLiteral("立柱升降");
+    case 502: return QStringLiteral("伸缩平衡臂");
+    case 503: return QStringLiteral("末端组件");
+    default: return QStringLiteral("立柱旋转");
     }
+}
+
+int MainWindow::selectedSixAxisTargetIndex() const
+{
+    if (!m_sixAxisStepTargetGroup || !m_sixAxisStepTargetGroup->checkedButton()) {
+        return 1;
+    }
+
+    const QString name = m_sixAxisStepTargetGroup->checkedButton()->objectName();
+    if (name == QStringLiteral("btnStepTargetSixAxis2")) return 2;
+    if (name == QStringLiteral("btnStepTargetSixAxis3")) return 3;
+    if (name == QStringLiteral("btnStepTargetSixAxis4")) return 4;
+    if (name == QStringLiteral("btnStepTargetSixAxis5")) return 5;
+    if (name == QStringLiteral("btnStepTargetSixAxis6")) return 6;
+    if (name == QStringLiteral("btnStepTargetSixAxis7")) return 7;
+    return 1;
 }
 
 void MainWindow::updateStepMoveGroupBoxState()
@@ -10219,15 +10181,32 @@ void MainWindow::updateStepMoveGroupBoxState()
         ui->groupBox_SixAxies_StepMove->setTitle(groupTitle);
     }
 
-    const bool isFirstPage = isRobotAxisViewActive() || isChassisViewActive();
-    const bool shouldDisable = (!isStepMode && isFirstPage);
+    const bool showStepValue = isStepMode;
     if (ui->groupBox_Robot_StepMove) {
-        ui->groupBox_Robot_StepMove->setEnabled(!shouldDisable);
+        ui->groupBox_Robot_StepMove->setVisible(!isChassisViewActive());
+        ui->groupBox_Robot_StepMove->setEnabled(true);
+        if (QLabel *label = ui->groupBox_Robot_StepMove->findChild<QLabel*>("label_StepValue")) {
+            label->setVisible(showStepValue);
+        }
+        if (QLabel *unitLabel = ui->groupBox_Robot_StepMove->findChild<QLabel*>("label_2")) {
+            unitLabel->setVisible(showStepValue);
+        }
+        if (QWidget *input = ui->groupBox_Robot_StepMove->findChild<QWidget*>("widget_StepValueInput")) {
+            input->setVisible(showStepValue);
+        }
     }
 
     if (ui->groupBox_SixAxies_StepMove) {
-        const bool sixAxisShouldDisable = (!isStepMode && isSixAxisViewActive());
-        ui->groupBox_SixAxies_StepMove->setEnabled(!sixAxisShouldDisable);
+        ui->groupBox_SixAxies_StepMove->setEnabled(true);
+        if (QLabel *label = ui->groupBox_SixAxies_StepMove->findChild<QLabel*>("label_SixAxies_StepValue")) {
+            label->setVisible(showStepValue);
+        }
+        if (QLabel *unitLabel = ui->groupBox_SixAxies_StepMove->findChild<QLabel*>("label_3")) {
+            unitLabel->setVisible(showStepValue);
+        }
+        if (QWidget *input = ui->groupBox_SixAxies_StepMove->findChild<QWidget*>("widget_SixAxies_StepValueInput")) {
+            input->setVisible(showStepValue);
+        }
     }
 
     updateChassisParameterPage();
@@ -10241,8 +10220,7 @@ void MainWindow::updateStepTargetButtonsState()
     QToolButton *axis2Btn = findChild<QToolButton*>("btnStepTargetAxis2");
     QToolButton *axis3Btn = findChild<QToolButton*>("btnStepTargetAxis3");
     QToolButton *axis4Btn = findChild<QToolButton*>("btnStepTargetAxis4");
-    QToolButton *agvBtn = findChild<QToolButton*>("btnStepTargetAgv");
-    const QList<QToolButton*> firstPageTargetButtons = {axis1Btn, axis2Btn, axis3Btn, axis4Btn, agvBtn};
+    const QList<QToolButton*> firstPageTargetButtons = {axis1Btn, axis2Btn, axis3Btn, axis4Btn};
 
     for (QToolButton *btn : firstPageTargetButtons) {
         if (!btn) {
@@ -10257,44 +10235,41 @@ void MainWindow::updateStepTargetButtonsState()
         }
     }
 
-    auto updateGroupState = [this](QButtonGroup *group, const QString &defaultButtonName) {
+    auto applyExclusiveStepStyle = [](QButtonGroup *group, const QString &defaultButtonName) {
         if (!group) {
             return;
         }
 
+        group->setExclusive(true);
         const auto btns = group->buttons();
-
-        if (!m_stepModeUnknown && m_stepModeEnabled) {
-            group->setExclusive(true);
-            if (!group->checkedButton()) {
-                for (QAbstractButton *btn : btns) {
-                    if (btn && btn->objectName() == defaultButtonName) {
-                        btn->setChecked(true);
-                        break;
-                    }
-                }
-            }
+        if (!group->checkedButton()) {
             for (QAbstractButton *btn : btns) {
-                if (btn) {
-                    btn->setEnabled(true);
+                if (btn && btn->objectName() == defaultButtonName) {
+                    btn->setChecked(true);
+                    break;
                 }
             }
-            return;
         }
-
-        // 点动/未选择模式：按钮保持亮显可见，不做互斥
-        group->setExclusive(false);
         for (QAbstractButton *btn : btns) {
-            if (!btn) {
-                continue;
+            if (btn) {
+                btn->setEnabled(true);
             }
-            btn->setEnabled(true);
-            btn->setChecked(false);
         }
     };
 
-    updateGroupState(m_stepTargetGroup, "btnStepTargetAxis1");
-    updateGroupState(m_sixAxisStepTargetGroup, "btnStepTargetSixAxis1");
+    applyExclusiveStepStyle(m_stepTargetGroup, "btnStepTargetAxis1");
+    applyExclusiveStepStyle(m_sixAxisStepTargetGroup, "btnStepTargetSixAxis1");
+
+    const bool hideSixAxisCable = (!m_stepModeUnknown && m_stepModeEnabled);
+    if (QAbstractButton *cableBtn = findChild<QAbstractButton*>(QStringLiteral("btnStepTargetSixAxis7"))) {
+        if (hideSixAxisCable && cableBtn->isChecked()) {
+            if (QAbstractButton *rxBtn = findChild<QAbstractButton*>(QStringLiteral("btnStepTargetSixAxis1"))) {
+                rxBtn->setChecked(true);
+            }
+        }
+        cableBtn->setVisible(!hideSixAxisCable);
+        cableBtn->setEnabled(!hideSixAxisCable);
+    }
 }
 
 void MainWindow::updateChassisParameterPage()
@@ -10568,7 +10543,26 @@ void MainWindow::setupStepMoveControl()
     QToolButton *axis2Btn = findChild<QToolButton*>("btnStepTargetAxis2");
     QToolButton *axis3Btn = findChild<QToolButton*>("btnStepTargetAxis3");
     QToolButton *axis4Btn = findChild<QToolButton*>("btnStepTargetAxis4");
-    QToolButton *agvBtn = findChild<QToolButton*>("btnStepTargetAgv");
+    auto setTwoCharsPerLine = [](QToolButton *btn, const QString &name) {
+        if (!btn) {
+            return;
+        }
+        QString wrapped;
+        wrapped.reserve(name.size() + name.size() / 2);
+        for (int i = 0; i < name.size(); ++i) {
+            if (i > 0 && (i % 2) == 0) {
+                wrapped.append(QLatin1Char('\n'));
+            }
+            wrapped.append(name.at(i));
+        }
+        btn->setText(wrapped);
+        btn->setProperty("stepTargetDefaultText", wrapped);
+        btn->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    };
+    setTwoCharsPerLine(axis1Btn, QStringLiteral("立柱旋转"));
+    setTwoCharsPerLine(axis2Btn, QStringLiteral("立柱升降"));
+    setTwoCharsPerLine(axis3Btn, QStringLiteral("伸缩平衡臂"));
+    setTwoCharsPerLine(axis4Btn, QStringLiteral("末端组件"));
 
     if (!m_stepTargetGroup) {
         m_stepTargetGroup = new QButtonGroup(this);
@@ -10579,7 +10573,7 @@ void MainWindow::setupStepMoveControl()
         m_stepTargetGroup->removeButton(btn);
     }
 
-    const QList<QToolButton*> stepTargetButtons = {axis1Btn, axis2Btn, axis3Btn, axis4Btn, agvBtn};
+    const QList<QToolButton*> stepTargetButtons = {axis1Btn, axis2Btn, axis3Btn, axis4Btn};
     for (QToolButton *btn : stepTargetButtons) {
         if (!btn) {
             continue;
@@ -10614,11 +10608,11 @@ void MainWindow::setupStepMoveControl()
             else if (n == "btnStepTargetAxis2") targetCode = 2;
             else if (n == "btnStepTargetAxis3") targetCode = 3;
             else if (n == "btnStepTargetAxis4") targetCode = 4;
-            else if (n == "btnStepTargetAgv") targetCode = 5;
 
             writeToMainDevice(500, targetCode);
             ui->statusBar->showMessage(QString("步进目标切换：%1 (500=%2)")
-                                           .arg(btn->text()).arg(targetCode), 1500);
+                                           .arg(QString(btn->text()).remove(QLatin1Char('\n')))
+                                           .arg(targetCode), 1500);
         }, Qt::UniqueConnection);
     }
 
@@ -10636,6 +10630,7 @@ void MainWindow::setupStepMoveControl()
     if (axis5Btn2) axis5Btn2->setText("Y");
 
     QToolButton *axis6Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis6");
+    QToolButton *axis7Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis7");
     if (!axis6Btn2) {
         QWidget *stepTargetList2 = findChild<QWidget*>("widget_SixAxies_StepTargetList");
         QVBoxLayout *stepTargetLayout2 = findChild<QVBoxLayout*>("verticalLayout_SixAxies_StepTargetList");
@@ -10678,7 +10673,7 @@ void MainWindow::setupStepMoveControl()
         m_sixAxisStepTargetGroup->removeButton(btn);
     }
 
-    const QList<QToolButton*> sixAxisButtons = {axis1Btn2, axis2Btn2, axis3Btn2, axis4Btn2, axis5Btn2, axis6Btn2};
+    const QList<QToolButton*> sixAxisButtons = {axis1Btn2, axis2Btn2, axis3Btn2, axis4Btn2, axis5Btn2, axis6Btn2, axis7Btn2};
     for (QToolButton *btn : sixAxisButtons) {
         if (!btn) {
             continue;
@@ -10709,6 +10704,9 @@ void MainWindow::setupStepMoveControl()
 
             int targetCode = 1;
             const QString n = btn->objectName();
+            if (n == "btnStepTargetSixAxis7") {
+                return;
+            }
             if (n == "btnStepTargetSixAxis1") targetCode = 1;
             else if (n == "btnStepTargetSixAxis2") targetCode = 2;
             else if (n == "btnStepTargetSixAxis3") targetCode = 3;
@@ -10960,14 +10958,9 @@ void MainWindow::writeStepMoveRegisters()
             return;
         }
 
-        const int targetRegister = selectedStepTargetRegister();
-        if (targetRegister != 504) {
-            writeStepValueDoubleToMainDevice(value);
-            qCDebug(lcMainWindow) << "步进目标:" << selectedStepTargetName()
-                                  << "步进值(double):" << value;
-        } else {
-            qCDebug(lcMainWindow) << "当前为AGV目标，跳过502~505双浮点写入";
-        }
+        writeStepValueDoubleToMainDevice(value);
+        qCDebug(lcMainWindow) << "步进目标:" << selectedStepTargetName()
+                              << "步进值(double):" << value;
         return;
     }
 
@@ -11041,13 +11034,13 @@ void MainWindow::recordStepMoveAction(const QString &jointName, double currentVa
                   .arg(jointName)
                   .arg(currentValue, 0, 'f', 3)
                   .arg(stepValue);
-    } else if (jointName.contains("J1")) {
+    } else if (jointName.contains("J1") || jointName.contains("立柱旋转")) {
         msg = QString("立柱旋转当前角度为%1°，开始步进%2°").arg(currentValue, 0, 'f', 1).arg(stepValue);
-    } else if (jointName.contains("J2")) {
+    } else if (jointName.contains("J2") || jointName.contains("立柱升降")) {
         msg = QString("立柱升降当前高度为%1mm，开始步进%2mm").arg(currentValue, 0, 'f', 1).arg(stepValue);
-    } else if (jointName.contains("J3")) {
+    } else if (jointName.contains("J3") || jointName.contains("伸缩平衡臂") || jointName.contains("伸缩臂")) {
         msg = QString("伸缩臂当前长度为%1mm，开始步进%2mm").arg(currentValue, 0, 'f', 1).arg(stepValue);
-    } else if (jointName.contains("J4")) {
+    } else if (jointName.contains("J4") || jointName.contains("末端组件")) {
         msg = QString("末端组件当前角度为%1°，开始步进%2°").arg(currentValue, 0, 'f', 1).arg(stepValue);
     } else {
         msg = QString("%1当前%2为%3，步进%4°")
@@ -11091,13 +11084,13 @@ void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue
     record.oldValue = "";
     QString msg;
     if (motionStopStyle) {
-        if (jointName.contains("J1")) {
+        if (jointName.contains("J1") || jointName.contains("立柱旋转")) {
             msg = QString("运动停止，当前立柱旋转角度为%1°").arg(currentValue, 0, 'f', 1);
-        } else if (jointName.contains("J2")) {
+        } else if (jointName.contains("J2") || jointName.contains("立柱升降")) {
             msg = QString("运动停止，当前立柱升降高度为%1mm").arg(currentValue, 0, 'f', 1);
-        } else if (jointName.contains("J3")) {
+        } else if (jointName.contains("J3") || jointName.contains("伸缩平衡臂") || jointName.contains("伸缩臂")) {
             msg = QString("运动停止，当前伸缩臂长度为%1mm").arg(currentValue, 0, 'f', 1);
-        } else if (jointName.contains("J4")) {
+        } else if (jointName.contains("J4") || jointName.contains("末端组件")) {
             msg = QString("运动停止，当前末端组件角度为%1°").arg(currentValue, 0, 'f', 1);
         } else if (jointName.contains("AGV") || jointName.contains("底盘")) {
             msg = QString("运动停止，当前底盘速度为%1").arg(currentValue, 0, 'f', 1);
@@ -11111,13 +11104,13 @@ void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue
                       .arg(valueLabel)
                       .arg(currentValue, 0, 'f', 1);
         }
-    } else if (jointName.contains("J1")) {
+    } else if (jointName.contains("J1") || jointName.contains("立柱旋转")) {
         msg = QString("立柱旋转当前角度为%1°，步进结束").arg(currentValue, 0, 'f', 1);
-    } else if (jointName.contains("J2")) {
+    } else if (jointName.contains("J2") || jointName.contains("立柱升降")) {
         msg = QString("立柱升降当前高度为%1mm，步进结束").arg(currentValue, 0, 'f', 1);
-    } else if (jointName.contains("J3")) {
+    } else if (jointName.contains("J3") || jointName.contains("伸缩平衡臂") || jointName.contains("伸缩臂")) {
         msg = QString("伸缩臂当前长度为%1mm，步进结束").arg(currentValue, 0, 'f', 1);
-    } else if (jointName.contains("J4")) {
+    } else if (jointName.contains("J4") || jointName.contains("末端组件")) {
         msg = QString("末端组件当前角度为%1°，步进结束").arg(currentValue, 0, 'f', 1);
     } else {
         msg = QString("%1当前%2为%3，步进结束")
@@ -11156,13 +11149,14 @@ void MainWindow::flushPendingStepMotionStopsOnEnableRelease()
         switch (pending.kind) {
         case StepMotionStopKind::RobotJoint: {
             double currentValue = 0.0;
-            if (pending.targetName.contains("J1")) {
+            if (pending.targetName.contains("J1") || pending.targetName.contains("立柱旋转")) {
                 currentValue = getSliderLabelValue("label_Value1");
-            } else if (pending.targetName.contains("J2")) {
+            } else if (pending.targetName.contains("J2") || pending.targetName.contains("立柱升降")) {
                 currentValue = getSliderLabelValue("label_Value2");
-            } else if (pending.targetName.contains("J3")) {
+            } else if (pending.targetName.contains("J3") || pending.targetName.contains("伸缩平衡臂")
+                       || pending.targetName.contains("伸缩臂")) {
                 currentValue = getSliderLabelValue("label_Value3");
-            } else if (pending.targetName.contains("J4")) {
+            } else if (pending.targetName.contains("J4") || pending.targetName.contains("末端组件")) {
                 currentValue = getSliderLabelValue("label_Value4");
             } else if (pending.targetName.contains("AGV") || pending.targetName.contains("底盘")) {
                 currentValue = m_editAGV_MoveSpeed ? m_editAGV_MoveSpeed->value()
@@ -11171,11 +11165,19 @@ void MainWindow::flushPendingStepMotionStopsOnEnableRelease()
             recordStepMoveEnd(pending.targetName, currentValue, true);
             break;
         }
-        case StepMotionStopKind::SixAxis:
-            if (pending.externalKeyNumber >= 1 && pending.externalKeyNumber <= 12) {
-                recordSixAxisJogExternalKey(pending.externalKeyNumber, false);
+        case StepMotionStopKind::SixAxis: {
+            int axisIndex = 0;
+            if (pending.targetName.contains(QStringLiteral("RX"))) axisIndex = 1;
+            else if (pending.targetName.contains(QStringLiteral("RY"))) axisIndex = 2;
+            else if (pending.targetName.contains(QStringLiteral("RZ"))) axisIndex = 3;
+            else if (pending.targetName == QStringLiteral("X")) axisIndex = 4;
+            else if (pending.targetName == QStringLiteral("Y")) axisIndex = 5;
+            else if (pending.targetName == QStringLiteral("Z")) axisIndex = 6;
+            if (axisIndex >= 1) {
+                recordSixAxisJogExternalKey(axisIndex, false);
             }
             break;
+        }
         case StepMotionStopKind::Agv:
             if (pending.externalKeyNumber >= 1) {
                 appendAgvExternalKeyRecord(pending.externalKeyNumber, false);
@@ -11185,13 +11187,12 @@ void MainWindow::flushPendingStepMotionStopsOnEnableRelease()
     }
 }
 
-void MainWindow::recordSixAxisJogExternalKey(int keyNumber, bool pressed)
+void MainWindow::recordSixAxisJogExternalKey(int axisIndex, bool pressed)
 {
-    if (!m_recorder || keyNumber < 1 || keyNumber > 12) {
+    if (!m_recorder || axisIndex < 1 || axisIndex > 6) {
         return;
     }
 
-    const int axisIndex = (keyNumber + 1) / 2; // ○1/2->1 … ○11/12->6
     QString axisName;
     switch (axisIndex) {
     case 1: axisName = QStringLiteral("RX"); break;
@@ -11964,18 +11965,6 @@ void MainWindow::hideLegOpenPathCheckDialog()
     }
 }
 
-bool MainWindow::isEstimatedWeightEmpty() const
-{
-    return !ui || !ui->LEdit_AGV_EstimatedWeight
-           || ui->LEdit_AGV_EstimatedWeight->text().trimmed().isEmpty();
-}
-
-// 仅 onAGVParkBtnClicked 调用；支腿异常弹窗开/关驻车豁免预计负载检查
-void MainWindow::showExpectedLoadEmptyDialog()
-{
-    showToast(QStringLiteral("预计负载不能为空"), ToastKind::Warning);
-}
-
 void MainWindow::updateParkingLegAbnormalDialogVisibility()
 {
     // 驻车切换等待中、绕车检查倒计时中：不弹支腿异常窗，避免三窗互抢。
@@ -12641,6 +12630,19 @@ void MainWindow::maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, boo
     if (!pressed) {
         return;
     }
+    if (isChassisViewActive()) {
+        if (keyNumber != 1 && keyNumber != 2 && keyNumber != 9 && keyNumber != 10) {
+            return;
+        }
+        const double agvSpeed = m_editAGV_MoveSpeed
+                                      ? m_editAGV_MoveSpeed->value()
+                                      : getSliderEditValue(QStringLiteral("SEdit_AGV_MoveSpeed"));
+        if (agvSpeed > 0.0) {
+            return;
+        }
+        showZeroSpeedOperationHintDialog(kAgvZeroSpeedHintText, kAgvZeroSpeedHistoryText);
+        return;
+    }
     if (!isRobotAxisViewActive()) {
         return;
     }
@@ -12657,7 +12659,7 @@ void MainWindow::maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, boo
     }
 
     bool speedIsZero = false;
-    if (keyNumber >= 1 && keyNumber <= 8) {
+    if (keyNumber == 1 || keyNumber == 2) {
         speedIsZero = (getSliderEditValue(QStringLiteral("TechSliderEdit_Robot_RobotSpeed")) <= 0.0);
     } else if (keyNumber == 9 || keyNumber == 10) {
         const double agvSpeed = m_editAGV_MoveSpeed
@@ -12672,7 +12674,7 @@ void MainWindow::maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, boo
         return;
     }
 
-    if (keyNumber >= 1 && keyNumber <= 8) {
+    if (keyNumber == 1 || keyNumber == 2) {
         showZeroSpeedOperationHintDialog(kRobotZeroSpeedHintText,
                                          kRobotZeroSpeedHistoryText);
     } else {
@@ -12749,18 +12751,21 @@ void MainWindow::maybeShowUnconfiguredStepValueHintForExternalKey(int keyNumber,
     const QString pageObjectName = currentPageWidget->objectName();
     if (isSixAxisViewActive()
         || pageObjectName == QStringLiteral("page_SixAxies")) {
-        if (keyNumber < 1 || keyNumber > 12) {
+        if (keyNumber != 1 && keyNumber != 2) {
             return;
         }
         stepEdit = findChild<QLineEdit*>(QStringLiteral("lineEdit_SixAxies_StepValue"));
     } else if (isChassisViewActive()) {
-        return;
+        if (keyNumber != 1 && keyNumber != 2 && keyNumber != 9 && keyNumber != 10) {
+            return;
+        }
+        stepEdit = m_stepValueEdit;
     } else if (isRobotAxisViewActive()
                || pageObjectName == QStringLiteral("page_Robot")) {
         if (!isRobotAxisViewActive()) {
             return;
         }
-        if (keyNumber < 1 || keyNumber > 10) {
+        if (keyNumber != 1 && keyNumber != 2) {
             return;
         }
         stepEdit = m_stepValueEdit;
@@ -12931,16 +12936,16 @@ bool MainWindow::maybeShowUnselectedStepModeHintForExternalKey(int keyNumber, bo
     const QString pageObjectName = currentPageWidget->objectName();
     if (isSixAxisViewActive()
         || pageObjectName == QStringLiteral("page_SixAxies")) {
-        if (keyNumber < 1 || keyNumber > 14) {
+        if (keyNumber != 1 && keyNumber != 2 && keyNumber != 13 && keyNumber != 14) {
             return false;
         }
     } else if (isChassisViewActive()) {
-        if (keyNumber != 13 && keyNumber != 14) {
+        if (keyNumber != 1 && keyNumber != 2 && keyNumber != 13 && keyNumber != 14) {
             return false;
         }
     } else if (isRobotAxisViewActive()
                || pageObjectName == QStringLiteral("page_Robot")) {
-        if (keyNumber < 1 || keyNumber > 10) {
+        if (keyNumber != 1 && keyNumber != 2) {
             return false;
         }
     } else {
@@ -12991,16 +12996,16 @@ bool MainWindow::maybeShowUnselectedMoveModeHintForExternalKey(int keyNumber, bo
     const QString pageObjectName = currentPageWidget->objectName();
     if (isSixAxisViewActive()
         || pageObjectName == QStringLiteral("page_SixAxies")) {
-        if (keyNumber < 1 || keyNumber > 14) {
+        if (keyNumber != 1 && keyNumber != 2 && keyNumber != 13 && keyNumber != 14) {
             return false;
         }
     } else if (isChassisViewActive()) {
-        if (keyNumber != 13 && keyNumber != 14) {
+        if (keyNumber != 1 && keyNumber != 2 && keyNumber != 13 && keyNumber != 14) {
             return false;
         }
     } else if (isRobotAxisViewActive()
                || pageObjectName == QStringLiteral("page_Robot")) {
-        if (keyNumber < 1 || keyNumber > 10) {
+        if (keyNumber != 1 && keyNumber != 2) {
             return false;
         }
     } else {

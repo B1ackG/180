@@ -299,10 +299,6 @@ public:
     void hideParkingLegAbnormalDialog();
     /** @brief 按 bit7 与驻车切换状态更新支腿异常弹窗显隐（与切换提示窗/绕车检查窗互斥） */
     void updateParkingLegAbnormalDialogVisibility();
-    /** @brief 显示预计负载为空提示窗（确认后关闭） */
-    void showExpectedLoadEmptyDialog();
-    /** @brief 主页面预计负载输入是否为空 */
-    bool isEstimatedWeightEmpty() const;
     /** @brief 显示倾覆风险提示窗（倾角 0.8°~1°） */
     void showInclinometerTiltRiskDialog();
     /** @brief 隐藏倾覆风险提示窗 */
@@ -351,8 +347,6 @@ public:
                               bool bypassWirelessWarning = false);
     /** @brief 按主控150 / AGV 51.bit5 写 HR0.6（1=正常，0=急停） */
     void syncAgvHostEmergencyStopCommand(bool emergencyActive);
-    /** @brief 主页面预计负载输入：应用 0~500 范围与校验器 */
-    void applyEstimatedWeightRuntimeSettings();
     /** @brief 驻车伸出触发长度输入：从 config.ini 应用允许范围与校验器 */
     void applyParkOutTriggerLengthRuntimeSettings();
     /** @brief 按功能控制台配置更新管理员负载阈值输入范围 */
@@ -431,6 +425,8 @@ public:
     int selectedStepTargetRegister() const;
     /** @brief 获取当前选中的步进目标名称 */
     QString selectedStepTargetName() const;
+    /** @brief 获取当前选中的六轴目标轴号（1~6，默认 RX） */
+    int selectedSixAxisTargetIndex() const;
     /** @brief 根据模式与当前页刷新步进控制分组标题与可用态 */
     void updateStepMoveGroupBoxState();
     /** @brief 根据模式启用或禁用步进目标按钮 */
@@ -477,10 +473,10 @@ public:
     // ==========================================
     /** @brief 初始化速度仪表 UI */
     void initSpeedGaugeUI();
-    /**
-     * @brief 初始化倾角 X + 总功率 + 倾角 Y 横向组合条（左 X、中 QML 总功率、右 Y）
-     */
-    void initInclinometerAndRobotPowerStrip();
+    /** @brief 初始化首页总功率 QML 卡片 */
+    void initRobotTotalPowerCard();
+    /** @brief 初始化首页 X/Y 倾角 QML 卡片 */
+    void initInclinometerCards();
     /** @brief 初始化首页当前负载重量卡片（主控 192.168.1.13 寄存器 123） */
     void initWeightCard();
     /**
@@ -500,7 +496,7 @@ public:
     void updateInclinometerValue(bool isXAxis, quint16 rawValue);
     /** @brief 更新当前负载重量显示（主控 123，单位 KG） */
     void updateCurrentLoadWeight(quint16 rawValue);
-    /** @brief 根据 X/Y 倾角刷新倾角条颜色与倾覆风险/锁定提示窗 */
+    /** @brief 根据 X/Y 倾角刷新各倾角卡片边框与倾覆风险/锁定提示窗 */
     void refreshInclinometerTiltPresentation();
     /** @brief 主程序初始化完成前禁止显示用户弹窗/Toast */
     bool userPopupsAllowed() const;
@@ -784,7 +780,6 @@ private:
     bool m_agvParkingEnabled = false;
     bool m_agvLegAbnormal51Bit7Flag = false;
     QMap<int, quint16> m_agvRegisterShadow;
-    QIntValidator *m_estimatedWeightValidator = nullptr;
     QIntValidator *m_parkOutTriggerLengthValidator = nullptr;
     QIntValidator *m_weightOverloadLimitValidator = nullptr;
     QIntValidator *m_weightLockLimitValidator = nullptr;
@@ -862,7 +857,8 @@ private:
     QQuickWidget *m_inclinometerXQml = nullptr;  // QML 版本 X 轴倾角卡片
     QQuickWidget *m_inclinometerYQml = nullptr;  // QML 版本 Y 轴倾角卡片
     QQuickWidget *m_weightCardQml = nullptr;     // 当前负载重量卡片（主控 123）
-    QWidget *m_inclinometerPowerStripWidget = nullptr;
+    QWidget *m_inclinometerXHost = nullptr;
+    QWidget *m_inclinometerYHost = nullptr;
     qreal m_inclinometerXDegree = 0.0;
     qreal m_inclinometerYDegree = 0.0;
     double m_planeHeightOffsetMm = 1900.0;
@@ -1204,8 +1200,8 @@ private:
     /** @brief 使能松开时写入待记录的步进运动停止历史 */
     void flushPendingStepMotionStopsOnEnableRelease();
 
-    /** @brief 第四页六自由度点动：○1～○12 对应 RX/RY/RZ/X/Y/Z，按下/松开记录当前角度或位置（展示方式与步进一致） */
-    void recordSixAxisJogExternalKey(int keyNumber, bool pressed);
+    /** @brief 第四页六自由度点动：按当前选中轴记录 RX/RY/RZ/X/Y/Z */
+    void recordSixAxisJogExternalKey(int axisIndex, bool pressed);
 
     /** @brief 返回蓝色风格的 Widget 样式 */
     QString BlueWidgetStyle(const QString &WidgetType );

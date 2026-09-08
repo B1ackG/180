@@ -323,6 +323,8 @@ Item {
                             text: model.control; color: "#ffffff"; verticalAlignment: Text.AlignVCenter
                             font.pixelSize: 13; font.bold: true
                             elide: Text.ElideRight
+                            wrapMode: Text.NoWrap
+                            width: parent.width
                         }
 
                         Row {

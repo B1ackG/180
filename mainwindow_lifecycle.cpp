@@ -397,7 +397,8 @@ void MainWindow::initUI()
     initSliderLabelUI();
     initTechButtons();
     initSpeedGaugeUI();
-    initInclinometerAndRobotPowerStrip();
+    initRobotTotalPowerCard();
+    initInclinometerCards();
     initWeightCard();
 
     if (isFeatureEnabled("ui_navigation", "ui.virtual_keyboard")) {
