@@ -8,6 +8,11 @@ CONFIG += c++17 thread
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+# 本机 Debug 编译虚拟外部按键；示教器 Release 不带该宏、不显示面板。
+CONFIG(debug, debug|release) {
+    DEFINES += ENABLE_VIRTUAL_MATRIX_KEYS
+}
+
 SOURCES += \
     agvmodbusmanager.cpp \
     animationmanager.cpp \
@@ -46,7 +51,8 @@ SOURCES += \
     techslideredit.cpp \
     techsliderlabel.cpp \
     techspeedgauge.cpp \
-    techvirtualkeyboard.cpp
+    techvirtualkeyboard.cpp \
+    virtualmatrixkeypanel.cpp
 
 HEADERS += \
     agvmodbusmanager.h \
@@ -84,6 +90,7 @@ HEADERS += \
     techsliderlabel.h \
     techspeedgauge.h \
     techvirtualkeyboard.h \
+    virtualmatrixkeypanel.h \
     batterywidget.h
 
 FORMS += \

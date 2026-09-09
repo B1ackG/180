@@ -326,6 +326,10 @@ void MainWindow::initializeCoreSubsystems()
         setupKeyManager();
     }
 
+#ifdef ENABLE_VIRTUAL_MATRIX_KEYS
+    setupVirtualMatrixKeyPanel();
+#endif
+
     if (isBigFeatureEnabled("modbus_main")) {
         modbusInit();
     }
@@ -400,6 +404,7 @@ void MainWindow::initUI()
     initRobotTotalPowerCard();
     initInclinometerCards();
     initWeightCard();
+    initPlaneHeightCard();
 
     if (isFeatureEnabled("ui_navigation", "ui.virtual_keyboard")) {
         setupVirtualKeyboard();

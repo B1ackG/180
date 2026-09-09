@@ -36,6 +36,10 @@
 #include "enablebuttonworker.h"
 #include "buttonmodbusmapping.h"
 
+#ifdef ENABLE_VIRTUAL_MATRIX_KEYS
+class VirtualMatrixKeyPanel;
+#endif
+
 
 #include <QPushButton>
 #include <QToolButton>
@@ -377,6 +381,10 @@ public:
     void setupVirtualKeyboard();
     /** @brief 初始化按键管理器 */
     void setupKeyManager();
+#ifdef ENABLE_VIRTUAL_MATRIX_KEYS
+    /** @brief 本机 Debug：叠一层虚拟外部按键，接到真实矩阵键/使能槽 */
+    void setupVirtualMatrixKeyPanel();
+#endif
     /** @brief 初始化线程监控 UI */
     void setupThreadMonitorUI();
     /** @brief 更新线程状态显示 */
@@ -479,6 +487,10 @@ public:
     void initInclinometerCards();
     /** @brief 初始化首页当前负载重量卡片（主控 192.168.1.13 寄存器 123） */
     void initWeightCard();
+    /** @brief 初始化首页装配面高度 QML 卡片 */
+    void initPlaneHeightCard();
+    /** @brief 按当前 J2 高度与偏移量刷新装配面高度卡片 */
+    void refreshPlaneHeightCard();
     /**
      * @brief 更新速度显示
      * @param newSpeed 新速度值
@@ -843,6 +855,9 @@ private:
     // ----- 其他组件与 UI 指针缓存 -----
     TechVirtualKeyboard *m_virtualKeyboard;
     MatrixKeyThreadManager *m_keyManager;
+#ifdef ENABLE_VIRTUAL_MATRIX_KEYS
+    VirtualMatrixKeyPanel *m_virtualMatrixKeyPanel = nullptr;
+#endif
     SteeringModeSelector *m_steeringModeSelector = nullptr;
     SteeringMode m_lastSteeringMode = STEER_FRONT_BACK;
     SpeedModeSelector *m_speedModeSelector;
@@ -857,6 +872,7 @@ private:
     QQuickWidget *m_inclinometerXQml = nullptr;  // QML 版本 X 轴倾角卡片
     QQuickWidget *m_inclinometerYQml = nullptr;  // QML 版本 Y 轴倾角卡片
     QQuickWidget *m_weightCardQml = nullptr;     // 当前负载重量卡片（主控 123）
+    QQuickWidget *m_planeHeightCardQml = nullptr; // 装配面高度卡片（J2 − 偏移）
     QWidget *m_inclinometerXHost = nullptr;
     QWidget *m_inclinometerYHost = nullptr;
     qreal m_inclinometerXDegree = 0.0;

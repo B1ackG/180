@@ -13,6 +13,9 @@
 #include "modbusstringregisters.h"
 #include "navigationicon.h"
 #include "techchamfertoolbutton.h"
+#ifdef ENABLE_VIRTUAL_MATRIX_KEYS
+#include "virtualmatrixkeypanel.h"
+#endif
 #include <QMovie>
 #include <QDateTime>
 #include <QDebug>
@@ -1129,14 +1132,20 @@ void MainWindow::applyPlaneHeightOffsetRuntimeSettings()
         100000.0);
     settings.endGroup();
 
-    if (!ui || !ui->label_PlaneHeightValue) {
+    refreshPlaneHeightCard();
+}
+
+void MainWindow::refreshPlaneHeightCard()
+{
+    if (!(m_planeHeightCardQml && m_planeHeightCardQml->rootObject())) {
         return;
     }
 
+    QQuickItem *root = m_planeHeightCardQml->rootObject();
     const double j2Height = m_hasLastJ2Height ? m_lastJ2HeightMm : 0.0;
     const double planeHeight = j2Height - m_planeHeightOffsetMm;
-    ui->label_PlaneHeightValue->setText(
-        QStringLiteral("%1\nmm").arg(planeHeight, 0, 'f', 0));
+    root->setProperty("heightValue", planeHeight);
+    root->setProperty("dataValid", m_hasLastJ2Height);
 }
 
 // 1. 生命周期与核心初始化 (Life Cycle)
@@ -2611,6 +2620,47 @@ void MainWindow::initWeightCard()
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
     layout->addWidget(m_weightCardQml);
+}
+
+void MainWindow::initPlaneHeightCard()
+{
+    QWidget *host = findChild<QWidget*>(QStringLiteral("frame_PlaneHeightCard"));
+    if (!host) {
+        qCWarning(lcMainWindow) << "未找到 frame_PlaneHeightCard，跳过装配面高度卡片初始化";
+        return;
+    }
+
+    clearWidgetLayout(host);
+    host->setStyleSheet(QStringLiteral("background: transparent;"));
+
+    m_planeHeightCardQml = new QQuickWidget(host);
+    m_planeHeightCardQml->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    m_planeHeightCardQml->setResizeMode(QQuickWidget::SizeRootObjectToView);
+    applyTransparentQuickWidgetBackground(m_planeHeightCardQml);
+    connect(m_planeHeightCardQml, &QQuickWidget::statusChanged, this,
+            [this](QQuickWidget::Status status) {
+                if (status == QQuickWidget::Error && m_planeHeightCardQml) {
+                    const auto errs = m_planeHeightCardQml->errors();
+                    for (const auto &err : errs) {
+                        qWarning() << "PlaneHeightCard QML error:" << err.toString();
+                    }
+                    return;
+                }
+                if (status == QQuickWidget::Ready) {
+                    refreshPlaneHeightCard();
+                }
+            }, Qt::UniqueConnection);
+    m_planeHeightCardQml->setSource(QUrl(QStringLiteral("qrc:/PlaneHeightCard.qml")));
+
+    if (QQuickItem *root = m_planeHeightCardQml->rootObject()) {
+        root->setProperty("title", QStringLiteral("装配面高度"));
+        root->setProperty("unit", QStringLiteral("mm"));
+        root->setProperty("heightValue", 0.0);
+        root->setProperty("dataValid", false);
+    }
+
+    fillHostWithWidget(host, m_planeHeightCardQml);
+    refreshPlaneHeightCard();
 }
 
 void MainWindow::updateRobotTotalPower(quint16 powerValue)
@@ -4226,6 +4276,11 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     QMainWindow::resizeEvent(event);
     repositionToastHost();
     repositionCollapsibleControlPanels();
+#ifdef ENABLE_VIRTUAL_MATRIX_KEYS
+    if (m_virtualMatrixKeyPanel) {
+        m_virtualMatrixKeyPanel->relayoutToHost();
+    }
+#endif
 }
 
 QString MainWindow::toastStyleSheet(ToastKind kind) const
@@ -4775,45 +4830,10 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     }
 
     // 六自由度页面外部键逻辑：
-    // - ○13/○14：固定写500=5，514=4/2；释放时514回0；
-    // - 仅 ○1/○2 有效：目标轴由 groupBox_SixAxies_StepMove 当前选中项决定。
+    // - 仅 ○1/○2 驱动六轴：目标轴由 groupBox_SixAxies_StepMove 当前选中项决定。
     //   点动写 613（○1 负向、○2 正向；轴6 再取反）；步进写 614 → 601/602 → 615。
+    // - 选中钢缆时：○1/○13 收回、○2/○14 放出；写 500=5，514=4/2；释放时 514 回 0。
     if (isSixAxisPage) {
-        if (keyNumber == 13 || keyNumber == 14) {
-            if (!pressed) {
-                writeToMainDevice(514, 0);
-                return;
-            }
-
-            const int value514 = (keyNumber == 13) ? 4 : 2;
-            writeToMainDevice(500, 5);
-            writeToMainDevice(514, value514);
-
-            if (m_recorder) {
-                const QString msg = (keyNumber == 13)
-                                        ? QStringLiteral("正在收回卷样机钢缆")
-                                        : QStringLiteral("正在放出卷样机钢缆");
-                OperationRecord record;
-                record.timestamp = QDateTime::currentDateTime();
-                record.pageName = getCurrentPageName();
-                record.controlName = msg;
-                record.controlType = QStringLiteral("MatrixKey");
-                record.operation = QString();
-                record.oldValue = QString();
-                record.newValue = QString();
-                m_recorder->addRecord(record);
-                showNotification(msg);
-            }
-
-            qCDebug(lcMainWindow) << "六自由度页面外部按键○" << keyNumber
-                                  << "写入 500=5, 514=" << value514;
-            return;
-        }
-
-        if (keyNumber != 1 && keyNumber != 2) {
-            return;
-        }
-
         const int axisIndex = selectedSixAxisTargetIndex();
         QString selectedTargetText;
         if (m_sixAxisStepTargetGroup && m_sixAxisStepTargetGroup->checkedButton()) {
@@ -4822,19 +4842,23 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                                      .remove(QLatin1Char('\n'));
         }
 
+        const bool isCableRetractKey = (keyNumber == 1 || keyNumber == 13);
+        const bool isCableExtendKey = (keyNumber == 2 || keyNumber == 14);
         if (axisIndex == 7) {
-            if (m_stepModeUnknown || m_stepModeEnabled) {
+            if (!isCableRetractKey && !isCableExtendKey) {
                 return;
             }
             if (!pressed) {
                 writeToMainDevice(514, 0);
                 return;
             }
-            const int value514 = (keyNumber == 1) ? 4 : 2;
+
+            const int value514 = isCableRetractKey ? 4 : 2;
             writeToMainDevice(500, 5);
             writeToMainDevice(514, value514);
+
             if (m_recorder) {
-                const QString msg = (keyNumber == 1)
+                const QString msg = isCableRetractKey
                                         ? QStringLiteral("正在收回卷样机钢缆")
                                         : QStringLiteral("正在放出卷样机钢缆");
                 OperationRecord record;
@@ -4848,8 +4872,13 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 m_recorder->addRecord(record);
                 showNotification(msg);
             }
-            qCDebug(lcMainWindow) << "六自由度点动钢缆 ○" << keyNumber
+
+            qCDebug(lcMainWindow) << "六自由度页面钢缆外部按键○" << keyNumber
                                   << "写入 500=5, 514=" << value514;
+            return;
+        }
+
+        if (keyNumber != 1 && keyNumber != 2) {
             return;
         }
 
@@ -5477,6 +5506,11 @@ void MainWindow::setupKeyManager()
 
     qCDebug(lcMainWindow) << "信号连接完成";
 
+#ifdef ENABLE_VIRTUAL_MATRIX_KEYS
+    // 本机 Debug：PC 上 /dev/input/event0 常是笔记本键盘，避免误触发 ○1～○14。
+    qCDebug(lcMainWindow) << "虚拟矩阵键已启用，跳过 /dev/input/event0";
+    ui->statusBar->showMessage(QStringLiteral("虚拟外部按键已启用（本机 Debug）"), 3000);
+#else
     // 2. 启动键盘监控
     if (m_keyManager->start("/dev/input/event0")) {
         QString threadInfo;
@@ -5494,9 +5528,28 @@ void MainWindow::setupKeyManager()
         ui->statusBar->showMessage("错误：无法启动矩阵按键监控！", 5000);
         qWarning() << "键盘管理器启动失败";
     }
+#endif
 
     // 删除对 setupThreadMonitorUI() 和 updateThreadStatus() 的调用
 }
+
+#ifdef ENABLE_VIRTUAL_MATRIX_KEYS
+void MainWindow::setupVirtualMatrixKeyPanel()
+{
+    if (!ui || !ui->centralwidget || m_virtualMatrixKeyPanel) {
+        return;
+    }
+
+    m_virtualMatrixKeyPanel = new VirtualMatrixKeyPanel(ui->centralwidget);
+    connect(m_virtualMatrixKeyPanel, &VirtualMatrixKeyPanel::matrixKeyChanged,
+            this, &MainWindow::onMatrixKeyPressed);
+    connect(m_virtualMatrixKeyPanel, &VirtualMatrixKeyPanel::enableButtonChanged,
+            this, &MainWindow::onEnableButtonStateChanged);
+    m_virtualMatrixKeyPanel->relayoutToHost();
+    m_virtualMatrixKeyPanel->show();
+    m_virtualMatrixKeyPanel->raise();
+}
+#endif
 
 //modbus TCP
 void MainWindow::setupModbusManager()
@@ -6041,11 +6094,7 @@ void MainWindow::updateSliderLabelValue(const QString& labelName, float value)
     if (labelName == QStringLiteral("robot_ArcGauge_J2Height")) {
         m_lastJ2HeightMm = static_cast<double>(value);
         m_hasLastJ2Height = true;
-        const double planeHeight = m_lastJ2HeightMm - m_planeHeightOffsetMm;
-        if (ui && ui->label_PlaneHeightValue) {
-            ui->label_PlaneHeightValue->setText(
-                QStringLiteral("%1\nmm").arg(planeHeight, 0, 'f', 0));
-        }
+        refreshPlaneHeightCard();
     }
 
     // 更新对应的环形仪表 (TechArcGauge)
@@ -12939,6 +12988,9 @@ bool MainWindow::maybeShowUnselectedStepModeHintForExternalKey(int keyNumber, bo
         if (keyNumber != 1 && keyNumber != 2 && keyNumber != 13 && keyNumber != 14) {
             return false;
         }
+        if ((keyNumber == 13 || keyNumber == 14) && selectedSixAxisTargetIndex() != 7) {
+            return false;
+        }
     } else if (isChassisViewActive()) {
         if (keyNumber != 1 && keyNumber != 2 && keyNumber != 13 && keyNumber != 14) {
             return false;
@@ -12997,6 +13049,9 @@ bool MainWindow::maybeShowUnselectedMoveModeHintForExternalKey(int keyNumber, bo
     if (isSixAxisViewActive()
         || pageObjectName == QStringLiteral("page_SixAxies")) {
         if (keyNumber != 1 && keyNumber != 2 && keyNumber != 13 && keyNumber != 14) {
+            return false;
+        }
+        if ((keyNumber == 13 || keyNumber == 14) && selectedSixAxisTargetIndex() != 7) {
             return false;
         }
     } else if (isChassisViewActive()) {

@@ -456,86 +456,6 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
        <number>0</number>
       </property>
       <widget class="QWidget" name="page_Robot">
-       <widget class="QFrame" name="frame_PlaneHeightCard">
-        <property name="geometry">
-         <rect>
-          <x>350</x>
-          <y>100</y>
-          <width>50</width>
-          <height>91</height>
-         </rect>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QFrame#frame_PlaneHeightCard {
-  background: rgba(7, 25, 43, 210);
-  border: 1px solid rgba(0, 205, 255, 150);
-  border-radius: 6px;
-}
-QLabel#label_PlaneHeightTitle {
-  color: #9fe7ff;
-  background: transparent;
-  border: none;
-  font-size: 11px;
-  font-weight: 600;
-}
-QLabel#label_PlaneHeightValue {
-  color: #ffffff;
-  background: transparent;
-  border: none;
-  font-family: &quot;Consolas&quot;;
-  font-size: 12px;
-  font-weight: 700;
-}</string>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <layout class="QVBoxLayout" name="verticalLayout_PlaneHeightCard">
-         <property name="spacing">
-          <number>4</number>
-         </property>
-         <property name="leftMargin">
-          <number>2</number>
-         </property>
-         <property name="topMargin">
-          <number>6</number>
-         </property>
-         <property name="rightMargin">
-          <number>2</number>
-         </property>
-         <property name="bottomMargin">
-          <number>6</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label_PlaneHeightTitle">
-           <property name="text">
-            <string>装配面
-高度</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignHCenter|Qt::AlignTop</set>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_PlaneHeightValue">
-           <property name="text">
-            <string>-1900
-mm</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-           <property name="wordWrap">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
        <widget class="QLabel" name="lab_Overall">
         <property name="geometry">
          <rect>
@@ -570,44 +490,14 @@ mm</string>
        <widget class="TechPushButton" name="techBtn_spare_2">
         <property name="geometry">
          <rect>
-          <x>1070</x>
-          <y>470</y>
+          <x>160</x>
+          <y>0</y>
           <width>151</width>
           <height>51</height>
          </rect>
         </property>
         <property name="text">
          <string>去皮</string>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_Inclinometer_X" native="true">
-        <property name="geometry">
-         <rect>
-          <x>330</x>
-          <y>390</y>
-          <width>107</width>
-          <height>108</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_Inclinometer_Y" native="true">
-        <property name="geometry">
-         <rect>
-          <x>490</x>
-          <y>400</y>
-          <width>108</width>
-          <height>108</height>
-         </rect>
-        </property>
-       </widget>
-       <widget class="QWidget" name="widget_Weight" native="true">
-        <property name="geometry">
-         <rect>
-          <x>1010</x>
-          <y>440</y>
-          <width>120</width>
-          <height>80</height>
-         </rect>
         </property>
        </widget>
        <widget class="QStackedWidget" name="stackedWidget_Status">
@@ -620,7 +510,7 @@ mm</string>
          </rect>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="page_Robot_Status">
          <layout class="QGridLayout" name="gridLayout">
@@ -798,9 +688,9 @@ mm</string>
           <property name="geometry">
            <rect>
             <x>60</x>
-            <y>110</y>
-            <width>200</width>
-            <height>200</height>
+            <y>109</y>
+            <width>221</width>
+            <height>221</height>
            </rect>
           </property>
          </widget>
@@ -810,13 +700,13 @@ mm</string>
         <property name="geometry">
          <rect>
           <x>590</x>
-          <y>0</y>
+          <y>120</y>
           <width>551</width>
-          <height>551</height>
+          <height>431</height>
          </rect>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="page_SixAxies_Parameter">
          <widget class="TechPushButton" name="techBtn_resetSixAxies">
@@ -850,71 +740,9 @@ mm</string>
            </size>
           </property>
          </widget>
-         <widget class="QWidget" name="widget_RobotTotalPower" native="true">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>170</y>
-            <width>221</width>
-            <height>96</height>
-           </rect>
-          </property>
-         </widget>
         </widget>
         <widget class="QWidget" name="page_AGV_Parameter">
          <layout class="QGridLayout" name="gridLayout_6">
-          <item row="3" column="0" colspan="4">
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>75</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="8" column="0" colspan="3">
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <item>
-             <widget class="TechPushButton" name="techBtn_AGV_OA">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>55</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>避障开启</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="TechPushButton" name="techBtn_AGV_Park">
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>55</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>开启驻车</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
           <item row="1" column="0" colspan="2">
            <widget class="TechSliderEdit" name="SEdit_AGV_Angle" native="true">
             <property name="sizePolicy">
@@ -937,7 +765,94 @@ mm</string>
             </property>
            </widget>
           </item>
-          <item row="0" column="1" colspan="4">
+          <item row="2" column="0" colspan="2">
+           <widget class="TechSliderEdit" name="SEdit_AGV_MoveSpeed" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>520</width>
+              <height>70</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>75</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" rowspan="3" colspan="3">
+           <widget class="SteeringModeSelector" name="steeringModeSelector" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>1</verstretch>
+             </sizepolicy>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0" colspan="3">
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="TechPushButton" name="techBtn_AGV_OA">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>55</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>避障开启</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="TechPushButton" name="techBtn_AGV_Park">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>55</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>开启驻车</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="1" colspan="3">
            <widget class="QWidget" name="widget_5" native="true">
             <property name="styleSheet">
              <string notr="true">color: rgb(0, 200, 255);
@@ -970,28 +885,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
             </layout>
            </widget>
           </item>
-          <item row="2" column="0" colspan="2">
-           <widget class="TechSliderEdit" name="SEdit_AGV_MoveSpeed" native="true">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>1</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>520</width>
-              <height>70</height>
-             </size>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>75</height>
-             </size>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="0">
            <spacer name="horizontalSpacer_2">
             <property name="orientation">
@@ -1004,32 +897,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
              <size>
               <width>377</width>
               <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="4" column="0" rowspan="3" colspan="3">
-           <widget class="SteeringModeSelector" name="steeringModeSelector" native="true">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>0</horstretch>
-              <verstretch>1</verstretch>
-             </sizepolicy>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0" colspan="2">
-           <spacer name="verticalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Fixed</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>75</height>
              </size>
             </property>
            </spacer>
@@ -1737,15 +1604,69 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
          </layout>
         </widget>
        </widget>
-       <zorder>lab_Overall</zorder>
-       <zorder>frame_PlaneHeightCard</zorder>
-       <zorder>techBtn_spare_2</zorder>
-       <zorder>widget_Inclinometer_X</zorder>
-       <zorder>widget_Inclinometer_Y</zorder>
-       <zorder>widget_Weight</zorder>
-       <zorder>stackedWidget_Status</zorder>
-       <zorder>stackedWidget_Parameter</zorder>
-       <zorder>stackedWidget</zorder>
+       <widget class="QWidget" name="horizontalLayoutWidget">
+        <property name="geometry">
+         <rect>
+          <x>530</x>
+          <y>0</y>
+          <width>631</width>
+          <height>111</height>
+         </rect>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QWidget" name="frame_PlaneHeightCard" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_Weight" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_3"/>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_RobotTotalPower" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>2</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_Inclinometer_X" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_Inclinometer_Y" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
       <widget class="QWidget" name="page_HistoryRecord">
        <widget class="QQuickWidget" name="quickWidget_HistoryList">

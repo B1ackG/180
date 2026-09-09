@@ -15,6 +15,7 @@
         <file>TechSpeedGauge.qml</file>
         <file>RobotTotalPowerCard.qml</file>
         <file>InclinometerCard.qml</file>
+        <file>PlaneHeightCard.qml</file>
         <file>WeightCard.qml</file>
         <file>HistoryList.qml</file>
         <file>BatteryWidget.qml</file>
