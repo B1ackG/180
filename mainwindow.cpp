@@ -4096,11 +4096,9 @@ void MainWindow::showNotification(const QString &message)
         ui->statusBar->showMessage(message, 3000);
     }
 
-    // Wayland下避免触发 requestActivate 警告与高频弹框开销
-    const QString platform = QGuiApplication::platformName().toLower();
-    if (!platform.contains("wayland")) {
-        QToolTip::showText(QCursor::pos(), message, nullptr, QRect(), 2000);
-    }
+    // 示教器是 X11/xcb 触摸屏：QToolTip 是 override-redirect 小黄条，
+    // 点到它会把后续触摸全部吃掉，直到重启 180。通知只走状态栏。
+    QToolTip::hideText();
 }
 
 void MainWindow::showModbusWriteDisabledToast()
