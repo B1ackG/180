@@ -93,7 +93,8 @@ QGroupBox#groupBox_Robot_StepMove::title, QGroupBox#groupBox_SixAxies_StepMove::
 QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92); border-bottom: 1px solid rgba(255, 120, 120, 0.62); }
 
 #groupBox_Robot_StepMove QLabel,
-#groupBox_SixAxies_StepMove QLabel {
+#groupBox_SixAxies_StepMove QLabel,
+#groupBox_AGVStep_Pad QLabel {
   color: #d8f6ff;
   font-weight: 600;
   font-size: 13px;
@@ -102,7 +103,8 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
 #groupBox_Robot_StepMove QToolButton,
 #groupBox_SixAxies_StepMove QToolButton,
 #groupBox_Robot_StepMove QLineEdit,
-#groupBox_SixAxies_StepMove QLineEdit {
+#groupBox_SixAxies_StepMove QLineEdit,
+#groupBox_AGVStep_Pad QLineEdit {
   color: #ffffff;
   background: rgba(3, 18, 34, 0.84);
   border: 1px solid rgba(0, 198, 255, 0.55);
@@ -128,7 +130,8 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
 #groupBox_Robot_StepMove QToolButton:hover,
 #groupBox_SixAxies_StepMove QToolButton:hover,
 #groupBox_Robot_StepMove QLineEdit:hover,
-#groupBox_SixAxies_StepMove QLineEdit:hover {
+#groupBox_SixAxies_StepMove QLineEdit:hover,
+#groupBox_AGVStep_Pad QLineEdit:hover {
   border: 1px solid #6fe7ff;
   background: rgba(5, 24, 44, 0.92);
 }
@@ -141,14 +144,16 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
 }
 
 #groupBox_Robot_StepMove QLineEdit,
-#groupBox_SixAxies_StepMove QLineEdit {
+#groupBox_SixAxies_StepMove QLineEdit,
+#groupBox_AGVStep_Pad QLineEdit {
   font-family: &quot;Consolas&quot;;
   font-size: 14px;
   font-weight: 700;
 }
 
 #groupBox_Robot_StepMove QLineEdit:focus,
-#groupBox_SixAxies_StepMove QLineEdit:focus {
+#groupBox_SixAxies_StepMove QLineEdit:focus,
+#groupBox_AGVStep_Pad QLineEdit:focus {
   border: 1px solid #9ff4ff;
 }
 
@@ -841,12 +846,12 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
              <widget class="TechPushButton" name="techBtn_AGV_Park">
               <property name="minimumSize">
                <size>
-                <width>0</width>
-                <height>55</height>
+                <width>240</width>
+                <height>64</height>
                </size>
               </property>
               <property name="text">
-               <string>开启驻车</string>
+               <string>支腿展出状态选择</string>
               </property>
              </widget>
             </item>
@@ -983,7 +988,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                <property name="minimumSize">
                 <size>
                  <width>112</width>
-                 <height>104</height>
+                 <height>88</height>
                 </size>
                </property>
                <property name="text">
@@ -1006,7 +1011,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                <property name="minimumSize">
                 <size>
                  <width>112</width>
-                 <height>104</height>
+                 <height>88</height>
                 </size>
                </property>
                <property name="text">
@@ -1032,7 +1037,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                <property name="minimumSize">
                 <size>
                  <width>112</width>
-                 <height>104</height>
+                 <height>88</height>
                 </size>
                </property>
                <property name="text">
@@ -1055,7 +1060,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                <property name="minimumSize">
                 <size>
                  <width>112</width>
-                 <height>104</height>
+                 <height>88</height>
                 </size>
                </property>
                <property name="text">
@@ -1078,7 +1083,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                <property name="minimumSize">
                 <size>
                  <width>112</width>
-                 <height>104</height>
+                 <height>88</height>
                 </size>
                </property>
                <property name="text">
@@ -1101,7 +1106,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                <property name="minimumSize">
                 <size>
                  <width>112</width>
-                 <height>104</height>
+                 <height>88</height>
                 </size>
                </property>
                <property name="text">
@@ -1124,7 +1129,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                <property name="minimumSize">
                 <size>
                  <width>112</width>
-                 <height>104</height>
+                 <height>88</height>
                 </size>
                </property>
                <property name="text">
@@ -1147,7 +1152,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                <property name="minimumSize">
                 <size>
                  <width>112</width>
-                 <height>104</height>
+                 <height>88</height>
                 </size>
                </property>
                <property name="text">
@@ -1170,7 +1175,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                <property name="minimumSize">
                 <size>
                  <width>112</width>
-                 <height>104</height>
+                 <height>88</height>
                 </size>
                </property>
                <property name="text">
@@ -1180,6 +1185,56 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                <property name="checkable">
                 <bool>true</bool>
                </property>
+              </widget>
+             </item>
+             <item row="3" column="0" colspan="3">
+              <widget class="QWidget" name="widget_AGVStep_DistanceInput" native="true">
+               <layout class="QHBoxLayout" name="horizontalLayout_AGVStep_Distance">
+                <property name="spacing">
+                 <number>8</number>
+                </property>
+                <property name="leftMargin">
+                 <number>2</number>
+                </property>
+                <property name="topMargin">
+                 <number>4</number>
+                </property>
+                <property name="rightMargin">
+                 <number>2</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="label_AGVStep_Distance">
+                  <property name="text">
+                   <string>距离</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="lineEdit_AGVStep_Distance">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <horstretch>1</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                  <property name="placeholderText">
+                   <string>输入距离</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </widget>
              </item>
             </layout>

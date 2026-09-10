@@ -71,6 +71,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 namespace {
 constexpr int kRuntimePersistRegister = 8193;
 constexpr int kRuntimePersistRegisterHi = 8194;
+constexpr int kMainDevicePageSelectReg = 616; // Robot=0, Chassis=1, SixAxis=2
 const QString kWirelessModeWarningText =
     QStringLiteral("遥控器控制互锁，请切换到当前示教器。");
 const QString kRobotZeroSpeedHintText =
@@ -289,6 +290,57 @@ bool isInsideSteeringModeSelector(const QWidget *widget)
 namespace {
 constexpr int kAgvParkOutTriggerLengthRegStart = 5014;
 constexpr int kMainCurrentLoadWeightReg = 123;
+constexpr int kLegGear1Mm = 400;
+constexpr int kLegGear2Mm = 750;
+constexpr int kLegGearFullMm = 1100;
+
+int loadPersistedAgvParkLastLengthMm()
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("AGVParking"));
+    const int mm = settings.value(QStringLiteral("last_leg_length_mm"), -1).toInt();
+    settings.endGroup();
+    return mm;
+}
+
+void persistAgvParkLastLengthMm(int mm)
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("AGVParking"));
+    settings.setValue(QStringLiteral("last_leg_length_mm"), mm);
+    settings.endGroup();
+}
+
+QString legDeployedStatusButtonText(int lastLengthMm)
+{
+    if (lastLengthMm == kLegGear1Mm) {
+        return QStringLiteral("档位1：适合吊重≤80kg下的工控");
+    }
+    if (lastLengthMm == kLegGear2Mm) {
+        return QStringLiteral("档位2：适合80kg＜吊重≤120kg下的工控");
+    }
+    if (lastLengthMm == kLegGearFullMm) {
+        return QStringLiteral("全开：适合吊重＞120kg下的工控");
+    }
+    if (lastLengthMm > 0) {
+        return QStringLiteral("自定义：%1mm").arg(lastLengthMm);
+    }
+    return QStringLiteral("支腿已展出");
+}
+
+QString legExtendCommandHistoryText(int lengthMm)
+{
+    if (lengthMm == kLegGear1Mm) {
+        return QStringLiteral("选择支腿展出档位1：适合吊重≤80kg下的工控");
+    }
+    if (lengthMm == kLegGear2Mm) {
+        return QStringLiteral("选择支腿展出档位2：适合80kg＜吊重≤120kg下的工控");
+    }
+    if (lengthMm == kLegGearFullMm) {
+        return QStringLiteral("选择支腿展出全开：适合吊重＞120kg下的工控");
+    }
+    return QStringLiteral("支腿自定义伸出：%1mm").arg(lengthMm);
+}
 
 QPair<int, int> parkOutTriggerLengthLimitsFromSettings()
 {
@@ -611,27 +663,32 @@ void MainWindow::applySliderLabelRuntimeSettings()
 
 void MainWindow::applyParkOutTriggerLengthRuntimeSettings()
 {
-    QLineEdit *ed = m_parkingLegAbnormalLengthEdit;
-    if (!ed) {
-        return;
-    }
     const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
     if (!m_parkOutTriggerLengthValidator) {
         m_parkOutTriggerLengthValidator = new QIntValidator(this);
-        ed->setValidator(m_parkOutTriggerLengthValidator);
     }
     m_parkOutTriggerLengthValidator->setRange(lim.first, lim.second);
 
-    bool ok = false;
-    const int cur = ed->text().trimmed().toInt(&ok);
-    if (!ok) {
-        ed->setText(QStringLiteral("1100"));
-        return;
-    }
-    const int clamped = qBound(lim.first, cur, lim.second);
-    if (clamped != cur) {
-        ed->setText(QString::number(clamped));
-    }
+    const auto applyToEdit = [this, lim](QLineEdit *ed, bool fillDefaultIfEmpty) {
+        if (!ed) {
+            return;
+        }
+        ed->setValidator(m_parkOutTriggerLengthValidator);
+        bool ok = false;
+        const int cur = ed->text().trimmed().toInt(&ok);
+        if (!ok) {
+            if (fillDefaultIfEmpty) {
+                ed->setText(QStringLiteral("1100"));
+            }
+            return;
+        }
+        const int clamped = qBound(lim.first, cur, lim.second);
+        if (clamped != cur) {
+            ed->setText(QString::number(clamped));
+        }
+    };
+    applyToEdit(m_parkingLegAbnormalLengthEdit, true);
+    applyToEdit(m_legControlLengthEdit, false);
 }
 
 void MainWindow::applyWeightThresholdRuntimeSettings()
@@ -1605,6 +1662,22 @@ void MainWindow::applyInnerDeviceStacks(InnerDeviceView view)
         ui->stackedWidget->setCurrentWidget(controlPage);
         ui->stackedWidget->raise();
     }
+
+    int pageCode = 0;
+    switch (view) {
+    case InnerDeviceView::Chassis:
+        pageCode = 1;
+        break;
+    case InnerDeviceView::SixAxis:
+        pageCode = 2;
+        break;
+    case InnerDeviceView::Robot:
+    default:
+        pageCode = 0;
+        break;
+    }
+    writeToMainDevice(kMainDevicePageSelectReg, pageCode);
+    qCDebug(lcMainWindow) << "设备功能页切换，地址616写入" << pageCode;
 }
 
 void MainWindow::showRobotView()
@@ -2214,7 +2287,7 @@ void MainWindow::paintEvent(QPaintEvent *)
 // 修改事件过滤器(虚拟键盘)
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
-    if (obj == m_parkingLegAbnormalLengthEdit
+    if ((obj == m_parkingLegAbnormalLengthEdit || obj == m_legControlLengthEdit)
         && (event->type() == QEvent::KeyPress || event->type() == QEvent::KeyRelease)) {
         QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
         if (keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter) {
@@ -2244,8 +2317,10 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         const bool isMainWindowLineEdit = lineEdit && this->isAncestorOf(lineEdit);
         const bool isTiltLockPasswordEdit = lineEdit && lineEdit == m_inclinometerTiltLockPasswordEdit;
         const bool isParkingLegAbnormalLengthEdit = lineEdit && lineEdit == m_parkingLegAbnormalLengthEdit;
+        const bool isLegControlLengthEdit = lineEdit && lineEdit == m_legControlLengthEdit;
         if (lineEdit && lineEdit->isEnabled()
-            && (isMainWindowLineEdit || isTiltLockPasswordEdit || isParkingLegAbnormalLengthEdit)) {
+            && (isMainWindowLineEdit || isTiltLockPasswordEdit
+                || isParkingLegAbnormalLengthEdit || isLegControlLengthEdit)) {
             // // 检查是否为管理员页面的密码输入框
             // if (lineEdit->objectName() == "passwordEdit") {
             //     // 对于密码框，我们可能需要特殊处理
@@ -4071,6 +4146,10 @@ void MainWindow::setupAdminPasswordPage()
                     syncSpareButtonNamesFromRegisters();
                     applySpareButtonRuntimeSettings();
                     refreshInterlockingButtonText();
+                    if (!isFeatureEnabled("motion_control", "motion.agv_leg_path_check")
+                        && isLegOpenPathCheckActive()) {
+                        hideLegOpenPathCheckDialog();
+                    }
                 });
             }
             m_featureSwitchWidget->show();
@@ -4749,6 +4828,22 @@ void MainWindow::recordHorizontalSupportMoveAction(int keyNumber, bool pressed)
     showNotification(record.newValue.toString());
 }
 
+void MainWindow::appendLegControlHistory(const QString &text)
+{
+    if (!m_recorder || text.trimmed().isEmpty()) {
+        return;
+    }
+    OperationRecord record;
+    record.timestamp = QDateTime::currentDateTime();
+    record.pageName = QStringLiteral("AGV控制");
+    record.controlName = text;
+    record.controlType = QStringLiteral("");
+    record.operation = QStringLiteral("");
+    record.oldValue = QString();
+    record.newValue = QString();
+    m_recorder->addRecord(record);
+}
+
 //连接电池
 //矩阵键盘
 void MainWindow::onMatrixKeyPressed(int keyNumber, bool pressed)
@@ -5386,8 +5481,8 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
             return;
         }
 
-        if (!m_stepValueEdit) {
-            qCDebug(lcMainWindow) << "首页○9(步进)：未找到 lineEdit_StepValue，仅写 bit4/bit5";
+        if (!m_agvStepDistanceEdit) {
+            qCDebug(lcMainWindow) << "首页○9(步进)：未找到 lineEdit_AGVStep_Distance，仅写 bit4/bit5";
             writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○9步进按下(1)：寄存器0 bit4=1"));
             writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
             appendAgvExternalKeyRecord(keyNumber, pressed);
@@ -5397,9 +5492,9 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         }
 
         bool ok = false;
-        const double raw = m_stepValueEdit->text().trimmed().toDouble(&ok);
+        const double raw = m_agvStepDistanceEdit->text().trimmed().toDouble(&ok);
         if (!ok) {
-            qCDebug(lcMainWindow) << "首页○9(步进)：步进值无效" << m_stepValueEdit->text();
+            qCDebug(lcMainWindow) << "首页○9(步进)：步进距离无效" << m_agvStepDistanceEdit->text();
             return;
         }
         int stepInt = static_cast<int>(raw);
@@ -5408,7 +5503,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○9步进按下(1)：寄存器0 bit4=1"));
         writeToAGVDevice(5, stepInt);
         writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
-        appendAgvExternalKeyRecord(keyNumber, pressed, m_stepValueEdit->text().trimmed());
+        appendAgvExternalKeyRecord(keyNumber, pressed, m_agvStepDistanceEdit->text().trimmed());
         markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
         m_robotExternalKeyPressed[keyNumber] = true;
         return;
@@ -7792,7 +7887,9 @@ void MainWindow::applyAGVParkingButtonUi(bool enabled)
     if (!m_techBtnAGV_Park || m_agvLegAbnormal51Bit7Flag) {
         return;
     }
-    m_techBtnAGV_Park->setText(enabled ? QStringLiteral("驻车开启") : QStringLiteral("驻车关闭"));
+    m_techBtnAGV_Park->setText(enabled
+        ? legDeployedStatusButtonText(m_agvParkLastLengthMm)
+        : QStringLiteral("支腿展出状态选择"));
     m_techBtnAGV_Park->setPrimaryColor(enabled ? QColor("#00C8FF") : QColor("#7F8C8D"));
     m_techBtnAGV_Park->setGlowColor(enabled ? QColor(0, 200, 255, 180) : QColor(127, 140, 141, 100));
 }
@@ -7881,6 +7978,7 @@ void MainWindow::syncAGVParkingStateFromRegister51(quint16 value, bool updateLeg
     }
 
     updateParkingLegAbnormalDialogVisibility();
+    updateLegControlDialogVisuals();
 }
 
 void MainWindow::syncAGVSteeringModeFromRegister50(quint16 value)
@@ -8439,10 +8537,11 @@ void MainWindow::setupAGVOAControl()
         qWarning() << "未找到techBtn_AGV_OA按钮";
     }
 
-    // 查找驻车按钮
+    // 查找支腿展出状态选择按钮
     m_techBtnAGV_Park = findChild<TechPushButton*>("techBtn_AGV_Park");
     if (m_techBtnAGV_Park) {
         m_agvParkingEnabled = false;
+        m_agvParkLastLengthMm = loadPersistedAgvParkLastLengthMm();
         applyAGVParkingButtonUi(false);
 
         connect(m_techBtnAGV_Park, &TechPushButton::clicked,
@@ -8964,6 +9063,9 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
         if (m_parkingLegAbnormalLengthEdit) {
             m_parkingLegAbnormalLengthEdit->setText(QString::number(clampedMm));
         }
+        if (m_legControlLengthEdit) {
+            m_legControlLengthEdit->setText(QString::number(clampedMm));
+        }
 
         const auto wordsArr = doubleToRegistersGHEFCDAB(static_cast<double>(clampedMm));
         const QVector<quint16> parkLenWords = {wordsArr[0], wordsArr[1], wordsArr[2], wordsArr[3]};
@@ -8972,19 +9074,13 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
             m_agvParkingEnabled = oldParkingEnabled;
             restoreParkingUiAfterFailure(oldParkingEnabled);
 
-            ui->statusBar->showMessage(QStringLiteral("驻车伸出长度写入寄存器失败，未开启驻车"), 4000);
-            OperationRecord failRecord;
-            failRecord.timestamp = QDateTime::currentDateTime();
-            failRecord.pageName = QStringLiteral("AGV控制");
-            failRecord.controlName = QStringLiteral("驻车伸出长度写入失败");
-            failRecord.controlType = "";
-            failRecord.operation = "";
-            failRecord.oldValue = "";
-            failRecord.newValue = "";
-            m_recorder->addRecord(failRecord);
+            ui->statusBar->showMessage(QStringLiteral("支腿伸出长度写入失败，未开始展出"), 4000);
+            appendLegControlHistory(QStringLiteral("支腿伸出长度写入失败"));
             updateParkingLegAbnormalDialogVisibility();
             return;
         }
+        m_agvParkLastLengthMm = clampedMm;
+        persistAgvParkLastLengthMm(clampedMm);
     }
 
     const bool writeOk = writeAGVRegisterBits(parkWriteAddr,
@@ -8996,21 +9092,18 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
         m_agvParkingEnabled = oldParkingEnabled;
         restoreParkingUiAfterFailure(oldParkingEnabled);
 
-        ui->statusBar->showMessage(QStringLiteral("AGV驻车指令发送失败"), 3000);
-        OperationRecord failRecord;
-        failRecord.timestamp = QDateTime::currentDateTime();
-        failRecord.pageName = QStringLiteral("AGV控制");
-        failRecord.controlName = QStringLiteral("驻车指令发送失败");
-        failRecord.controlType = "";
-        failRecord.operation = "";
-        failRecord.oldValue = "";
-        failRecord.newValue = "";
-        m_recorder->addRecord(failRecord);
+        ui->statusBar->showMessage(QStringLiteral("支腿指令发送失败"), 3000);
+        appendLegControlHistory(QStringLiteral("支腿指令发送失败"));
         updateParkingLegAbnormalDialogVisibility();
         return;
     }
 
     m_agvParkingEnabled = targetParkingEnabled;
+    if (!targetParkingEnabled && writeOk) {
+        m_agvParkLastLengthMm = 0;
+        persistAgvParkLastLengthMm(0);
+    }
+    updateLegControlDialogVisuals();
 
     if (!m_agvLegAbnormal51Bit7Flag) {
         applyAGVParkingButtonUi(targetParkingEnabled);
@@ -9055,18 +9148,10 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
                         setProperty("parkingTargetBit", -1);
                         hideParkingSwitchHintDialog();
                         updateParkingLegAbnormalDialogVisibility();
-
-                        OperationRecord okRecord;
-                        okRecord.timestamp = QDateTime::currentDateTime();
-                        okRecord.pageName = QStringLiteral("AGV控制");
-                        okRecord.controlName = targetParkingEnabled
-                                                     ? QStringLiteral("驻车模式已开启")
-                                                     : QStringLiteral("驻车模式已关闭");
-                        okRecord.controlType = "";
-                        okRecord.operation = "";
-                        okRecord.oldValue = "";
-                        okRecord.newValue = "";
-                        m_recorder->addRecord(okRecord);
+                        appendLegControlHistory(targetParkingEnabled
+                            ? QStringLiteral("支腿展出完成：%1")
+                                  .arg(legDeployedStatusButtonText(m_agvParkLastLengthMm))
+                            : QStringLiteral("支腿已收回"));
                         return;
                     }
                 }
@@ -9078,16 +9163,7 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
                     setProperty("parkingTargetBit", -1);
                     hideParkingSwitchHintDialog();
                     updateParkingLegAbnormalDialogVisibility();
-
-                    OperationRecord timeoutRecord;
-                    timeoutRecord.timestamp = QDateTime::currentDateTime();
-                    timeoutRecord.pageName = QStringLiteral("AGV控制");
-                    timeoutRecord.controlName = QStringLiteral("驻车模式90秒已超时");
-                    timeoutRecord.controlType = "";
-                    timeoutRecord.operation = "";
-                    timeoutRecord.oldValue = "";
-                    timeoutRecord.newValue = "";
-                    m_recorder->addRecord(timeoutRecord);
+                    appendLegControlHistory(QStringLiteral("支腿动作90秒已超时"));
                 }
             });
     parkingWaitTimer->start();
@@ -9129,6 +9205,7 @@ void MainWindow::onAGVParkBtnClicked()
     }
 
     if (m_agvLegAbnormal51Bit7Flag) {
+        hideLegControlDialog();
         updateParkingLegAbnormalDialogVisibility();
         if (m_parkingLegAbnormalDialog) {
             m_parkingLegAbnormalDialog->raise();
@@ -9137,13 +9214,7 @@ void MainWindow::onAGVParkBtnClicked()
         return;
     }
 
-    // 支腿打开：先绕车干涉检查；支腿关闭：直接执行原逻辑。
-    if (!m_agvParkingEnabled) {
-        showLegOpenPathCheckDialog(-1);
-        return;
-    }
-
-    executeAGVParkingSwitch(false);
+    showLegControlDialog();
 }
 
 // AGV运动速度变化槽函数
@@ -9247,8 +9318,8 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
             return;
         }
 
-        if (!m_stepValueEdit) {
-            qCDebug(lcMainWindow) << "首页○10(步进)：未找到 lineEdit_StepValue，仅写 bit4/bit5";
+        if (!m_agvStepDistanceEdit) {
+            qCDebug(lcMainWindow) << "首页○10(步进)：未找到 lineEdit_AGVStep_Distance，仅写 bit4/bit5";
             writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○10步进按下(1)：寄存器0 bit4=1"));
             writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
             appendAgvExternalKeyRecord(keyNumber, pressed);
@@ -9258,9 +9329,9 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         }
 
         bool ok = false;
-        const double raw = m_stepValueEdit->text().trimmed().toDouble(&ok);
+        const double raw = m_agvStepDistanceEdit->text().trimmed().toDouble(&ok);
         if (!ok) {
-            qCDebug(lcMainWindow) << "首页○10(步进)：步进值无效" << m_stepValueEdit->text();
+            qCDebug(lcMainWindow) << "首页○10(步进)：步进距离无效" << m_agvStepDistanceEdit->text();
             return;
         }
         const int stepInt = static_cast<int>(raw);
@@ -9268,7 +9339,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○10步进按下(1)：寄存器0 bit4=1"));
         writeToAGVDevice(5, stepInt);
         writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
-        appendAgvExternalKeyRecord(keyNumber, pressed, m_stepValueEdit->text().trimmed());
+        appendAgvExternalKeyRecord(keyNumber, pressed, m_agvStepDistanceEdit->text().trimmed());
         markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
         m_robotExternalKeyPressed[keyNumber] = true;
         return;
@@ -9304,7 +9375,7 @@ QString MainWindow::currentSteeringModeText() const
     return QStringLiteral("未知模式");
 }
 
-void MainWindow::appendAgvExternalKeyRecord(int keyNumber, bool pressed, const QString &stepValueFromLineEdit)
+void MainWindow::appendAgvExternalKeyRecord(int keyNumber, bool pressed, const QString &stepDistanceText)
 {
     if (!m_recorder) {
         return;
@@ -9329,8 +9400,8 @@ void MainWindow::appendAgvExternalKeyRecord(int keyNumber, bool pressed, const Q
                                .arg(currentSteeringModeText())
                                .arg(speedValue, 0, 'f', 0)
                                .arg(angleValue, 0, 'f', 0);
-    if (!stepValueFromLineEdit.isEmpty()) {
-        detail += QStringLiteral("，步进值为：%1").arg(stepValueFromLineEdit);
+    if (!stepDistanceText.isEmpty()) {
+        detail += QStringLiteral("，步进距离为：%1").arg(stepDistanceText);
     }
     record.newValue = detail;
     m_recorder->addRecord(record);
@@ -10040,8 +10111,7 @@ void MainWindow::onStepMoveButtonClicked()
 
 void MainWindow::maybeClearFirstPageStepValueIfAllExternalKeysReleased()
 {
-    if (!m_stepModeEnabled || !ui || !ui->StackedWidget || ui->StackedWidget->currentIndex() != 0
-        || !m_stepValueEdit) {
+    if (!m_stepModeEnabled || !ui || !ui->StackedWidget || ui->StackedWidget->currentIndex() != 0) {
         return;
     }
     for (int k = 1; k <= 10; ++k) {
@@ -10049,7 +10119,15 @@ void MainWindow::maybeClearFirstPageStepValueIfAllExternalKeysReleased()
             return;
         }
     }
-    m_stepValueEdit->clear();
+    if (isChassisViewActive()) {
+        if (m_agvStepDistanceEdit) {
+            m_agvStepDistanceEdit->clear();
+        }
+        return;
+    }
+    if (m_stepValueEdit) {
+        m_stepValueEdit->clear();
+    }
 }
 
 // 步进模式下使能按钮按下
@@ -10061,7 +10139,7 @@ void MainWindow::onEnableButtonPressedStepMode()
 
     // 需求变更：步进模式下使能按钮不再触发514或步进值写入，改由外部按键触发。
 
-    if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
+    if (!isChassisViewActive() && m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
         const int targetReg = selectedStepTargetRegister();
         const QString stepValue = m_stepValueEdit->text();
         const QString targetName = selectedStepTargetName();
@@ -10111,9 +10189,9 @@ void MainWindow::onEnableButtonReleasedStepMode()
 {
     qCDebug(lcMainWindow) << "步进模式下使能按钮释放";
 
-    // 首页统一步进输入框：不在使能松开时清空，改由所有外部按键(○1~○10)均松开后清空。
+    // 首页步进输入：不在使能松开时清空，改由所有外部按键(○1~○10)均松开后清空。
 
-    // 步进模式下使能按钮释放：不写514；首页 lineEdit_StepValue 清空见 maybeClearFirstPageStepValueIfAllExternalKeysReleased。
+    // 步进模式下使能按钮释放：不写514；机械臂 lineEdit_StepValue / 底盘 lineEdit_AGVStep_Distance 清空见 maybeClearFirstPageStepValueIfAllExternalKeysReleased。
 
     const bool hadPendingStepStops = !m_pendingStepMotionStops.isEmpty();
     flushPendingStepMotionStopsOnEnableRelease();
@@ -10123,10 +10201,9 @@ void MainWindow::onEnableButtonReleasedStepMode()
         return;
     }
 
-    // 与 onEnableButtonPressedStepMode 一致：仅当首页统一步进输入框有内容时才按选中目标记录结束；
-    // 否则仅判断 m_stepValueEdit 非空会在输入为空时仍走本分支，且 selectedStepTargetRegister()
-    // 无选中按钮时默认 500，误记为「立柱旋转」步进结束。
-    if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
+    // 与 onEnableButtonPressedStepMode 一致：仅当机械臂步进输入框有内容时才按选中目标记录结束；
+    // 底盘距离走独立输入框，不在此用 lineEdit_StepValue 误记为「立柱旋转」步进结束。
+    if (!isChassisViewActive() && m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
         const int targetReg = selectedStepTargetRegister();
         const QString targetName = selectedStepTargetName();
 
@@ -10437,6 +10514,34 @@ void MainWindow::setupAGVStepPad()
     }
     applyAgvStepPadAxisSelection(initial);
     updateAGVStepPadVisuals();
+
+    if (!m_agvStepDistanceEdit) {
+        m_agvStepDistanceEdit = page->findChild<QLineEdit*>(QStringLiteral("lineEdit_AGVStep_Distance"));
+        if (m_agvStepDistanceEdit) {
+            QRegularExpression regExp(QStringLiteral("^-?\\d+(\\.\\d+)?$"));
+            m_agvStepDistanceEdit->setValidator(new QRegularExpressionValidator(regExp, m_agvStepDistanceEdit));
+            m_agvStepDistanceEdit->setPlaceholderText(QStringLiteral("输入距离"));
+            m_agvStepDistanceEdit->setStyleSheet(QString());
+            connect(m_agvStepDistanceEdit, &QLineEdit::editingFinished, this, [this]() {
+                if (!m_agvStepDistanceEdit || !m_recorder) {
+                    return;
+                }
+                const QString distanceText = m_agvStepDistanceEdit->text().trimmed();
+                if (distanceText.isEmpty()) {
+                    return;
+                }
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = QStringLiteral("AGV控制");
+                record.controlName = QStringLiteral("底盘步进距离被设定为%1").arg(distanceText);
+                record.controlType = QString();
+                record.operation = QString();
+                record.oldValue = QString();
+                record.newValue = QString();
+                m_recorder->addRecord(record);
+            });
+        }
+    }
 }
 
 void MainWindow::applyAgvStepPadAxisSelection(QAbstractButton *clicked)
@@ -10835,7 +10940,7 @@ void MainWindow::setupStepMoveLineEdits()
         return;
     }
 
-    // 新版UI：统一步进输入框 + 轴/AGV互斥目标按钮
+    // 机械臂步进输入框（底盘距离改由 lineEdit_AGVStep_Distance）
     m_stepValueEdit = findChild<QLineEdit*>("lineEdit_StepValue");
 
     QRegularExpression regExp("^-?\\d+(\\.\\d+)?$");  // 匹配整数/小数，可正可负
@@ -10998,7 +11103,7 @@ void MainWindow::writeStepValueDoubleToMainDevice(double value)
 // 写入步进寄存器
 void MainWindow::writeStepMoveRegisters()
 {
-    if (m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
+    if (!isChassisViewActive() && m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
         bool ok = false;
         const double value = m_stepValueEdit->text().toDouble(&ok);
         if (!ok) {
@@ -11647,6 +11752,7 @@ void MainWindow::hideNonEmergencyPopups()
 
     hideParkingSwitchHintDialog();
     hideLegOpenPathCheckDialog();
+    hideLegControlDialog();
     hideParkingLegAbnormalDialog();
     hideAgvStationOfflineAlarm();
     hideAgvDriveFaultAlarm();
@@ -11860,6 +11966,14 @@ bool MainWindow::isLegOpenPathCheckActive() const
 
 void MainWindow::showLegOpenPathCheckDialog(int legLengthMm)
 {
+    if (!isFeatureEnabled("motion_control", "motion.agv_leg_path_check")) {
+        if (isLegOpenPathCheckActive()) {
+            hideLegOpenPathCheckDialog();
+        }
+        executeAGVParkingSwitch(true, legLengthMm);
+        return;
+    }
+
     if (!userPopupsAllowed()) {
         return;
     }
@@ -11911,6 +12025,9 @@ void MainWindow::showLegOpenPathCheckDialog(int legLengthMm)
         connect(m_legOpenPathCheckConfirmBtn, &QPushButton::clicked, this, [this]() {
             const int pendingLengthMm = m_legOpenPathCheckLengthMm;
             hideLegOpenPathCheckDialog();
+            appendLegControlHistory(pendingLengthMm > 0
+                ? QStringLiteral("确认支腿伸出路径检查，开始展出%1mm").arg(pendingLengthMm)
+                : QStringLiteral("确认支腿伸出路径检查，开始展出"));
             executeAGVParkingSwitch(true, pendingLengthMm);
         });
 
@@ -12012,12 +12129,320 @@ void MainWindow::hideLegOpenPathCheckDialog()
     }
 }
 
+namespace {
+
+void setLegControlButtonActive(QPushButton *btn, bool active)
+{
+    if (!btn) {
+        return;
+    }
+    btn->setStyleSheet(active
+        ? QStringLiteral(
+              "QPushButton {"
+              "  background-color: rgba(0, 168, 176, 0.95);"
+              "  color: #ffffff;"
+              "  border: 3px solid #9ff4ea;"
+              "  border-radius: 8px;"
+              "  padding: 8px 12px;"
+              "  font-size: 14px;"
+              "  font-weight: bold;"
+              "  min-height: 44px;"
+              "}")
+        : QStringLiteral(
+              "QPushButton {"
+              "  background-color: rgba(24, 52, 64, 230);"
+              "  color: #d8f6ff;"
+              "  border: 1px solid rgba(0, 212, 196, 0.55);"
+              "  border-radius: 8px;"
+              "  padding: 8px 12px;"
+              "  font-size: 14px;"
+              "  font-weight: bold;"
+              "  min-height: 44px;"
+              "}"
+              "QPushButton:hover {"
+              "  border: 1px solid #6fe7ff;"
+              "}"));
+}
+
+} // namespace
+
+void MainWindow::requestLegExtend(int legLengthMm)
+{
+    if (property("parkingSwitchWaiting").toBool()) {
+        ui->statusBar->showMessage(QStringLiteral("驻车切换进行中，请等待完成"), 2000);
+        return;
+    }
+    if (isLegOpenPathCheckActive()) {
+        ui->statusBar->showMessage(QStringLiteral("请先完成支腿伸出路径检查"), 2000);
+        return;
+    }
+
+    const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
+    const int clampedMm = qBound(lim.first, legLengthMm, lim.second);
+    if (m_legControlLengthEdit) {
+        m_legControlLengthEdit->setText(QString::number(clampedMm));
+    }
+    appendLegControlHistory(legExtendCommandHistoryText(clampedMm));
+    hideLegControlDialog();
+    showLegOpenPathCheckDialog(clampedMm);
+}
+
+void MainWindow::requestLegRetract()
+{
+    if (property("parkingSwitchWaiting").toBool()) {
+        ui->statusBar->showMessage(QStringLiteral("驻车切换进行中，请等待完成"), 2000);
+        return;
+    }
+    hideLegControlDialog();
+    if (isLegOpenPathCheckActive()) {
+        hideLegOpenPathCheckDialog();
+    }
+    appendLegControlHistory(QStringLiteral("一键收回支腿"));
+    executeAGVParkingSwitch(false);
+}
+
+void MainWindow::showLegControlDialog()
+{
+    if (!userPopupsAllowed()) {
+        return;
+    }
+    if (!m_legControlDialog) {
+        m_legControlDialog = new QDialog(this);
+        m_legControlDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_legControlDialog->setWindowModality(Qt::ApplicationModal);
+        m_legControlDialog->setModal(true);
+        m_legControlDialog->setObjectName(QStringLiteral("legControlDialog"));
+
+        auto *layout = new QVBoxLayout(m_legControlDialog);
+        layout->setContentsMargins(18, 16, 18, 16);
+        layout->setSpacing(10);
+
+        auto *titleLabel = new QLabel(QStringLiteral("支腿展出状态选择"), m_legControlDialog);
+        titleLabel->setObjectName(QStringLiteral("legControlTitleLabel"));
+        titleLabel->setAlignment(Qt::AlignCenter);
+        layout->addWidget(titleLabel);
+
+        m_legControlCustomRow = new QWidget(m_legControlDialog);
+        m_legControlCustomRow->setObjectName(QStringLiteral("legControlCustomRow"));
+        auto *customLayout = new QHBoxLayout(m_legControlCustomRow);
+        customLayout->setContentsMargins(8, 6, 8, 6);
+        customLayout->setSpacing(8);
+
+        m_legControlLengthEdit = new QLineEdit(m_legControlCustomRow);
+        m_legControlLengthEdit->setObjectName(QStringLiteral("legControlLengthEdit"));
+        m_legControlLengthEdit->setPlaceholderText(QStringLiteral("输入伸出距离 mm"));
+        m_legControlLengthEdit->setAlignment(Qt::AlignCenter);
+        if (m_virtualKeyboard) {
+            m_legControlLengthEdit->installEventFilter(this);
+        }
+        customLayout->addWidget(m_legControlLengthEdit, 1);
+
+        m_legControlConfirmBtn = new QPushButton(QStringLiteral("确定"), m_legControlCustomRow);
+        m_legControlConfirmBtn->setObjectName(QStringLiteral("legControlConfirmBtn"));
+        m_legControlConfirmBtn->setAutoDefault(false);
+        m_legControlConfirmBtn->setDefault(false);
+        m_legControlConfirmBtn->setFixedWidth(100);
+        customLayout->addWidget(m_legControlConfirmBtn);
+        layout->addWidget(m_legControlCustomRow);
+
+        m_legControlRetractBtn = new QPushButton(QStringLiteral("一键收回"), m_legControlDialog);
+        m_legControlRetractBtn->setObjectName(QStringLiteral("legControlRetractBtn"));
+        m_legControlRetractBtn->setAutoDefault(false);
+        m_legControlRetractBtn->setDefault(false);
+        layout->addWidget(m_legControlRetractBtn);
+
+        auto addGearRow = [this, layout](QPushButton **btn, const QString &name, const QString &text,
+                                         const QString &noteText) {
+            auto *row = new QWidget(m_legControlDialog);
+            auto *rowLayout = new QHBoxLayout(row);
+            rowLayout->setContentsMargins(0, 0, 0, 0);
+            rowLayout->setSpacing(8);
+            *btn = new QPushButton(text, row);
+            (*btn)->setObjectName(name);
+            (*btn)->setAutoDefault(false);
+            (*btn)->setDefault(false);
+            rowLayout->addWidget(*btn, 1);
+            auto *note = new QLabel(noteText, row);
+            note->setObjectName(QStringLiteral("legControlNoteLabel"));
+            note->setWordWrap(true);
+            note->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+            rowLayout->addWidget(note, 1);
+            layout->addWidget(row);
+        };
+        addGearRow(&m_legControlGear1Btn,
+                   QStringLiteral("legControlGear1Btn"),
+                   QStringLiteral("支腿展出档位1"),
+                   QStringLiteral("适合吊重≤80kg下的工控！"));
+        addGearRow(&m_legControlGear2Btn,
+                   QStringLiteral("legControlGear2Btn"),
+                   QStringLiteral("支腿展出档位2"),
+                   QStringLiteral("适合80kg＜吊重≤120kg下的工控！"));
+        addGearRow(&m_legControlGearFullBtn,
+                   QStringLiteral("legControlGearFullBtn"),
+                   QStringLiteral("支腿展出全开"),
+                   QStringLiteral("适合吊重＞120kg下的工控！"));
+
+        auto *closeBtn = new QPushButton(QStringLiteral("关闭"), m_legControlDialog);
+        closeBtn->setObjectName(QStringLiteral("legControlCloseBtn"));
+        closeBtn->setAutoDefault(false);
+        closeBtn->setDefault(false);
+        layout->addWidget(closeBtn, 0, Qt::AlignHCenter);
+
+        connect(m_legControlConfirmBtn, &QPushButton::clicked, this, [this]() {
+            if (!m_legControlLengthEdit) {
+                return;
+            }
+            bool ok = false;
+            const int v = m_legControlLengthEdit->text().trimmed().toInt(&ok);
+            if (!ok) {
+                ui->statusBar->showMessage(QStringLiteral("请输入伸出距离"), 2000);
+                showToast(QStringLiteral("请输入伸出距离"), ToastKind::Warning);
+                return;
+            }
+            requestLegExtend(v);
+        });
+        connect(m_legControlRetractBtn, &QPushButton::clicked, this, [this]() {
+            requestLegRetract();
+        });
+        connect(m_legControlGear1Btn, &QPushButton::clicked, this, [this]() {
+            requestLegExtend(kLegGear1Mm);
+        });
+        connect(m_legControlGear2Btn, &QPushButton::clicked, this, [this]() {
+            requestLegExtend(kLegGear2Mm);
+        });
+        connect(m_legControlGearFullBtn, &QPushButton::clicked, this, [this]() {
+            requestLegExtend(kLegGearFullMm);
+        });
+        connect(closeBtn, &QPushButton::clicked, this, [this]() {
+            hideLegControlDialog();
+        });
+
+        m_legControlDialog->setFixedSize(580, 460);
+        m_legControlDialog->setStyleSheet(
+            "#legControlDialog {"
+            "  background-color: rgba(6, 28, 30, 240);"
+            "  border: 2px solid #00d4c4;"
+            "  border-radius: 10px;"
+            "}"
+            "#legControlTitleLabel {"
+            "  color: #9ff4ea;"
+            "  font-size: 18px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "#legControlLengthEdit {"
+            "  color: #ffffff;"
+            "  background-color: rgba(0, 0, 0, 120);"
+            "  border: 2px solid rgba(0, 212, 196, 0.65);"
+            "  border-radius: 6px;"
+            "  padding: 6px;"
+            "  font-size: 14px;"
+            "  font-family: Consolas, 'Courier New', monospace;"
+            "  min-height: 36px;"
+            "}"
+            "#legControlNoteLabel {"
+            "  color: #7ec8c0;"
+            "  font-size: 12px;"
+            "  font-weight: 600;"
+            "  background-color: transparent;"
+            "}"
+            "#legControlCloseBtn {"
+            "  background-color: rgba(24, 52, 64, 230);"
+            "  color: #d8f6ff;"
+            "  border: 1px solid rgba(0, 212, 196, 0.55);"
+            "  border-radius: 8px;"
+            "  padding: 8px 24px;"
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  min-height: 44px;"
+            "  min-width: 120px;"
+            "}"
+            "#legControlCloseBtn:hover {"
+            "  border: 1px solid #6fe7ff;"
+            "}");
+    }
+
+    applyParkOutTriggerLengthRuntimeSettings();
+    if (m_legControlLengthEdit) {
+        if (m_agvParkLastLengthMm > 0) {
+            m_legControlLengthEdit->setText(QString::number(m_agvParkLastLengthMm));
+        } else if (m_legControlLengthEdit->text().trimmed().isEmpty()) {
+            m_legControlLengthEdit->clear();
+        }
+    }
+
+    updateLegControlDialogVisuals();
+
+    const bool alreadyVisible = m_legControlDialog->isVisible();
+    const QPoint center = mapToGlobal(rect().center());
+    m_legControlDialog->move(center.x() - m_legControlDialog->width() / 2,
+                             center.y() - m_legControlDialog->height() / 2);
+    m_legControlDialog->show();
+    m_legControlDialog->raise();
+    m_legControlDialog->activateWindow();
+    if (!alreadyVisible) {
+        appendLegControlHistory(QStringLiteral("打开支腿展出状态选择"));
+    }
+}
+
+void MainWindow::hideLegControlDialog()
+{
+    if (m_legControlDialog && m_legControlDialog->isVisible()) {
+        m_legControlDialog->hide();
+    }
+}
+
+void MainWindow::updateLegControlDialogVisuals()
+{
+    if (!m_legControlDialog) {
+        return;
+    }
+
+    const bool retracted = !m_agvParkingEnabled;
+    const bool deployed = m_agvParkingEnabled;
+    const bool customActive = deployed
+                              && m_agvParkLastLengthMm > 0
+                              && m_agvParkLastLengthMm != kLegGear1Mm
+                              && m_agvParkLastLengthMm != kLegGear2Mm
+                              && m_agvParkLastLengthMm != kLegGearFullMm;
+    const bool gear1Active = deployed && m_agvParkLastLengthMm == kLegGear1Mm;
+    const bool gear2Active = deployed && m_agvParkLastLengthMm == kLegGear2Mm;
+    const bool fullActive = deployed && m_agvParkLastLengthMm == kLegGearFullMm;
+
+    if (m_legControlCustomRow) {
+        m_legControlCustomRow->setStyleSheet(customActive
+            ? QStringLiteral(
+                  "#legControlCustomRow {"
+                  "  border: 3px solid #9ff4ea;"
+                  "  border-radius: 8px;"
+                  "  background: rgba(0, 80, 84, 0.55);"
+                  "}")
+            : QStringLiteral(
+                  "#legControlCustomRow {"
+                  "  border: 1px solid rgba(0, 212, 196, 0.35);"
+                  "  border-radius: 8px;"
+                  "  background: transparent;"
+                  "}"));
+    }
+    setLegControlButtonActive(m_legControlConfirmBtn, customActive);
+    setLegControlButtonActive(m_legControlRetractBtn, retracted);
+    setLegControlButtonActive(m_legControlGear1Btn, gear1Active);
+    setLegControlButtonActive(m_legControlGear2Btn, gear2Active);
+    setLegControlButtonActive(m_legControlGearFullBtn, fullActive);
+
+    if (deployed && m_agvParkLastLengthMm > 0 && m_legControlLengthEdit
+        && m_legControlLengthEdit->text().trimmed().toInt() != m_agvParkLastLengthMm) {
+        m_legControlLengthEdit->setText(QString::number(m_agvParkLastLengthMm));
+    }
+}
+
 void MainWindow::updateParkingLegAbnormalDialogVisibility()
 {
     // 驻车切换等待中、绕车检查倒计时中：不弹支腿异常窗，避免三窗互抢。
     if (m_agvLegAbnormal51Bit7Flag
         && !property("parkingSwitchWaiting").toBool()
         && !isLegOpenPathCheckActive()) {
+        hideLegControlDialog();
         if (m_parkingLegAbnormalDialog && m_parkingLegAbnormalDialog->isVisible()) {
             return;
         }
@@ -12111,6 +12536,7 @@ void MainWindow::showParkingLegAbnormalDialog()
             const int clampedMm = qBound(lim.first, v, lim.second);
             m_parkingLegAbnormalLengthEdit->setText(QString::number(clampedMm));
             hideParkingLegAbnormalDialog();
+            appendLegControlHistory(QStringLiteral("支腿异常窗确认展出：%1mm").arg(clampedMm));
             showLegOpenPathCheckDialog(clampedMm);
         });
 
@@ -12119,6 +12545,7 @@ void MainWindow::showParkingLegAbnormalDialog()
             if (isLegOpenPathCheckActive()) {
                 hideLegOpenPathCheckDialog();
             }
+            appendLegControlHistory(QStringLiteral("支腿异常窗确认收回"));
             executeAGVParkingSwitch(false);
         });
 
@@ -12806,7 +13233,7 @@ void MainWindow::maybeShowUnconfiguredStepValueHintForExternalKey(int keyNumber,
         if (keyNumber != 1 && keyNumber != 2 && keyNumber != 9 && keyNumber != 10) {
             return;
         }
-        stepEdit = m_stepValueEdit;
+        stepEdit = m_agvStepDistanceEdit;
     } else if (isRobotAxisViewActive()
                || pageObjectName == QStringLiteral("page_Robot")) {
         if (!isRobotAxisViewActive()) {

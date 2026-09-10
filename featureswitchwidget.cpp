@@ -549,6 +549,7 @@ void FeatureSwitchWidget::setupUI()
         {QStringLiteral("motion.control_mode_switch"), QStringLiteral("控制模式切换(示教/遥控)")},
         {QStringLiteral("motion.agv_oa_switch"), QStringLiteral("AGV 避障开关")},
         {QStringLiteral("motion.agv_park_switch"), QStringLiteral("AGV 驻车开关")},
+        {QStringLiteral("motion.agv_leg_path_check"), QStringLiteral("绕车检查支腿弹窗")},
         {QStringLiteral("motion.agv_speed_control"), QStringLiteral("AGV 速度调节")},
         {QStringLiteral("motion.agv_angle_control"), QStringLiteral("AGV 角度调节")},
         {QStringLiteral("input.matrix_key"), QStringLiteral("矩阵按键")},

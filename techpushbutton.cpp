@@ -863,7 +863,7 @@ void TechPushButton::drawText(QPainter &painter, const QRect &rect)
 
     // 第四步：绘制文字
     painter.setPen(textColor);
-    painter.drawText(textRect, Qt::AlignCenter, text());
+    painter.drawText(textRect, Qt::AlignCenter | Qt::TextWordWrap, text());
 }
 
 // 绘制扫描线

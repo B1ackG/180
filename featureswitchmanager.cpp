@@ -89,6 +89,7 @@ void FeatureSwitchManager::initializeFeatureSets()
         "motion.control_mode_switch",
         "motion.agv_oa_switch",
         "motion.agv_park_switch",
+        "motion.agv_leg_path_check",
         "motion.agv_speed_control",
         "motion.agv_angle_control",
 
