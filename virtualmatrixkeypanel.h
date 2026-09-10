@@ -3,6 +3,7 @@
 
 #ifdef ENABLE_VIRTUAL_MATRIX_KEYS
 
+#include <QMap>
 #include <QSet>
 #include <QWidget>
 
@@ -11,7 +12,8 @@ class QPushButton;
 /**
  * @brief 本机 Debug 用的虚拟外部按键条：叠在主窗口右侧，默认折叠。
  *
- * 按下/松开映射到真实矩阵键 ○1～○14 与使能键，示教器 Release 不编译此控件。
+ * ○1～○14 与使能键均为点按切换：点一下进入按下，再点一下进入松开。
+ * 示教器 Release 不编译此控件。
  */
 class VirtualMatrixKeyPanel : public QWidget
 {
@@ -37,10 +39,8 @@ private:
     void buildUi();
     void applyCollapsedState();
     void releaseAllHeldInputs();
-    void onKeyPressed(int keyNumber);
-    void onKeyReleased(int keyNumber);
-    void onEnablePressed();
-    void onEnableReleased();
+    void onKeyToggled(int keyNumber, bool pressed);
+    void onEnableToggled(bool enabled);
     void onToggleClicked();
 
     static constexpr int kCollapsedWidth = 22;
@@ -54,6 +54,7 @@ private:
     QWidget *m_expandedBody = nullptr;
     QPushButton *m_toggleButton = nullptr;
     QPushButton *m_enableButton = nullptr;
+    QMap<int, QPushButton *> m_keyButtons;
 };
 
 #endif // ENABLE_VIRTUAL_MATRIX_KEYS

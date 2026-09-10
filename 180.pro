@@ -104,14 +104,12 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 RESOURCES += \
     res.qrc
 
-# --- 构建路径优化：解决 UI/MOC 文件不更新问题 ---
-# 将生成的 UI 头文件放在源码目录，确保被第一个包含
-UI_DIR = .
-# 将中间文件分类存放在 build 目录下，保持源码目录整洁
+# 生成文件相对 OUT_PWD（影子构建目录），不要写回源码根目录。
+# UI_DIR=. 时源码树会留下 ui_*.h，影子构建的 -I$${PWD} 会优先吃到旧头文件。
+UI_DIR = build/ui
 MOC_DIR = build/moc
 OBJECTS_DIR = build/obj
 RCC_DIR = build/rcc
-# ---------------------------------------------
 
 # Doxygen docs target: run `make docs` to generate API docs.
 docs.target = docs

@@ -28,7 +28,8 @@ VirtualMatrixKeyPanel::VirtualMatrixKeyPanel(QWidget *parent)
         "  font-size: 11px;"
         "  padding: 0px;"
         "}"
-        "#virtualMatrixKeyPanel QPushButton:pressed {"
+        "#virtualMatrixKeyPanel QPushButton:pressed,"
+        "#virtualMatrixKeyPanel QPushButton:checked {"
         "  background: rgba(0, 130, 200, 0.95);"
         "  border: 1px solid #9fe7ff;"
         "}"
@@ -37,7 +38,8 @@ VirtualMatrixKeyPanel::VirtualMatrixKeyPanel(QWidget *parent)
         "  border: 1px solid rgba(255, 184, 77, 0.70);"
         "  min-height: 28px;"
         "}"
-        "#virtualMatrixKeyPanel QPushButton#virtualEnableButton:pressed {"
+        "#virtualMatrixKeyPanel QPushButton#virtualEnableButton:pressed,"
+        "#virtualMatrixKeyPanel QPushButton#virtualEnableButton:checked {"
         "  background: rgba(180, 110, 20, 0.95);"
         "  border: 1px solid #ffd27a;"
         "}"
@@ -75,10 +77,10 @@ void VirtualMatrixKeyPanel::buildUi()
     m_enableButton = new QPushButton(QStringLiteral("使能"), m_expandedBody);
     m_enableButton->setObjectName(QStringLiteral("virtualEnableButton"));
     m_enableButton->setFocusPolicy(Qt::NoFocus);
+    m_enableButton->setCheckable(true);
     m_enableButton->setAutoRepeat(false);
     m_enableButton->setCursor(Qt::PointingHandCursor);
-    connect(m_enableButton, &QPushButton::pressed, this, &VirtualMatrixKeyPanel::onEnablePressed);
-    connect(m_enableButton, &QPushButton::released, this, &VirtualMatrixKeyPanel::onEnableReleased);
+    connect(m_enableButton, &QPushButton::toggled, this, &VirtualMatrixKeyPanel::onEnableToggled);
     bodyLayout->addWidget(m_enableButton);
 
     auto *grid = new QGridLayout();
@@ -89,11 +91,14 @@ void VirtualMatrixKeyPanel::buildUi()
     for (int keyNumber = 1; keyNumber <= 14; ++keyNumber) {
         auto *button = new QPushButton(QStringLiteral("○%1").arg(keyNumber), m_expandedBody);
         button->setFocusPolicy(Qt::NoFocus);
+        button->setCheckable(true);
         button->setAutoRepeat(false);
         button->setCursor(Qt::PointingHandCursor);
         button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        connect(button, &QPushButton::pressed, this, [this, keyNumber]() { onKeyPressed(keyNumber); });
-        connect(button, &QPushButton::released, this, [this, keyNumber]() { onKeyReleased(keyNumber); });
+        connect(button, &QPushButton::toggled, this, [this, keyNumber](bool pressed) {
+            onKeyToggled(keyNumber, pressed);
+        });
+        m_keyButtons.insert(keyNumber, button);
         const int row = (keyNumber - 1) / 2;
         const int col = (keyNumber - 1) % 2;
         grid->addWidget(button, row, col);
@@ -150,51 +155,38 @@ void VirtualMatrixKeyPanel::hideEvent(QHideEvent *event)
 
 void VirtualMatrixKeyPanel::releaseAllHeldInputs()
 {
-    if (m_enableHeld) {
-        m_enableHeld = false;
-        emit enableButtonChanged(false);
+    if (m_enableButton && m_enableButton->isChecked()) {
+        m_enableButton->setChecked(false);
     }
 
-    const QSet<int> held = m_heldKeys;
-    m_heldKeys.clear();
-    for (int keyNumber : held) {
-        emit matrixKeyChanged(keyNumber, false);
+    for (auto it = m_keyButtons.cbegin(); it != m_keyButtons.cend(); ++it) {
+        QPushButton *button = it.value();
+        if (button && button->isChecked()) {
+            button->setChecked(false);
+        }
     }
 }
 
-void VirtualMatrixKeyPanel::onKeyPressed(int keyNumber)
+void VirtualMatrixKeyPanel::onKeyToggled(int keyNumber, bool pressed)
 {
-    if (m_heldKeys.contains(keyNumber)) {
+    if (pressed) {
+        if (m_heldKeys.contains(keyNumber)) {
+            return;
+        }
+        m_heldKeys.insert(keyNumber);
+    } else if (!m_heldKeys.remove(keyNumber)) {
         return;
     }
-    m_heldKeys.insert(keyNumber);
-    emit matrixKeyChanged(keyNumber, true);
+    emit matrixKeyChanged(keyNumber, pressed);
 }
 
-void VirtualMatrixKeyPanel::onKeyReleased(int keyNumber)
+void VirtualMatrixKeyPanel::onEnableToggled(bool enabled)
 {
-    if (!m_heldKeys.remove(keyNumber)) {
+    if (m_enableHeld == enabled) {
         return;
     }
-    emit matrixKeyChanged(keyNumber, false);
-}
-
-void VirtualMatrixKeyPanel::onEnablePressed()
-{
-    if (m_enableHeld) {
-        return;
-    }
-    m_enableHeld = true;
-    emit enableButtonChanged(true);
-}
-
-void VirtualMatrixKeyPanel::onEnableReleased()
-{
-    if (!m_enableHeld) {
-        return;
-    }
-    m_enableHeld = false;
-    emit enableButtonChanged(false);
+    m_enableHeld = enabled;
+    emit enableButtonChanged(enabled);
 }
 
 void VirtualMatrixKeyPanel::onToggleClicked()

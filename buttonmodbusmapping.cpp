@@ -120,6 +120,10 @@ const QMap<QString, Binding> &knownBindings()
             specList({makeSpec(QStringLiteral("主控"), QStringLiteral("615"), QStringLiteral("1"), QStringLiteral("1"))}),
             specList({makeSpec(QStringLiteral("主控"), QStringLiteral("615"), QStringLiteral("1"), QStringLiteral("1"))}),
             false}},
+        {QStringLiteral("techBtn_balanceSixAxies"), {
+            specList({makeSpec(QStringLiteral("主控"), QStringLiteral("615"), QStringLiteral("2"), QStringLiteral("1"))}),
+            specList({makeSpec(QStringLiteral("主控"), QStringLiteral("615"), QStringLiteral("2"), QStringLiteral("1"))}),
+            false}},
         {QStringLiteral("techBtn_spare_1"), {{}, {}, false}},
         {QStringLiteral("techBtn_spare_2"), {{}, {}, false}},
         {QStringLiteral("Btn_bigForceControl"), {

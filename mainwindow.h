@@ -1314,7 +1314,7 @@ private:
     /** @brief 获取当前转向模式文本（用于记录） */
     QString currentSteeringModeText() const;
 
-    /** @brief 记录AGV外部按键运动日志；stepDistanceText 非空时追加「步进距离为：…」（来自 lineEdit_AGVStep_Distance） */
+    /** @brief 记录AGV外部按键运动日志；按下时按○2/○10正向、○1/○9反向写入「开始正向/反向运动」；stepDistanceText 非空时追加「步进距离为：…」 */
     void appendAgvExternalKeyRecord(int keyNumber, bool pressed, const QString &stepDistanceText = QString());
 
     /** @brief 处理矩阵键动作 */

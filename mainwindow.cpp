@@ -1114,6 +1114,7 @@ void MainWindow::reloadButtonModbusBindings()
         QStringLiteral("techBtn_AGV_OA"),
         QStringLiteral("techBtn_AGV_Park"),
         QStringLiteral("techBtn_resetSixAxies"),
+        QStringLiteral("techBtn_balanceSixAxies"),
         QStringLiteral("techBtn_spare_1"),
         QStringLiteral("techBtn_spare_2"),
         QStringLiteral("TBtn_MoveMode"),
@@ -1904,9 +1905,19 @@ void MainWindow::setupControlConnections()
         qWarning() << "未找到TBtn_ControlMode按钮";
     }
 
-    // 六自由度页：主控 192.168.1.13 保持寄存器 615 的 bit1 置 1（读改写，保留其它位）
-    if (TechPushButton *resetSixBtn = findChild<TechPushButton*>(QStringLiteral("techBtn_resetSixAxies"))) {
-        connect(resetSixBtn, &TechPushButton::clicked, this, [this]() {
+    // 六自由度参数页：主控保持寄存器 615 读改写置位（姿态回零 bit1，姿态调平 bit2）
+    const auto connectSixAxisPoseBitButton = [this](const QString &objectName, int defaultBit) {
+        TechPushButton *btn = findChild<TechPushButton*>(objectName);
+        if (!btn) {
+            qWarning() << "未找到" << objectName << "按钮";
+            return;
+        }
+        connect(btn, &TechPushButton::clicked, this, [this, objectName, defaultBit, btn]() {
+            const QString actionName = QString(btn->text())
+                                           .remove(QLatin1Char('\r'))
+                                           .remove(QLatin1Char('\n'))
+                                           .trimmed();
+            const QString logTag = actionName.isEmpty() ? objectName : actionName;
             if (!isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
                 showNotification(QStringLiteral("Main Modbus 读功能已关闭"));
                 return;
@@ -1915,14 +1926,14 @@ void MainWindow::setupControlConnections()
                 showModbusWriteDisabledToast();
                 return;
             }
-            const ButtonModbusMapping::Binding resetBinding = buttonModbusBinding(QStringLiteral("techBtn_resetSixAxies"));
-            const ModbusRegisterSpec spec = !resetBinding.writes.isEmpty()
-                ? resetBinding.writes.first()
-                : (!resetBinding.reads.isEmpty() ? resetBinding.reads.first() : ModbusRegisterSpec{});
+            const ButtonModbusMapping::Binding binding = buttonModbusBinding(objectName);
+            const ModbusRegisterSpec spec = !binding.writes.isEmpty()
+                ? binding.writes.first()
+                : (!binding.reads.isEmpty() ? binding.reads.first() : ModbusRegisterSpec{});
             const int addr = ButtonModbusMapping::addressOr(spec, 615);
-            const int bitIndex = ButtonModbusMapping::bitOr(spec, 1);
+            const int bitIndex = ButtonModbusMapping::bitOr(spec, defaultBit);
             if (spec.device == QStringLiteral("AGV")) {
-                writeAGVRegisterBits(addr, {qMakePair(bitIndex, true)}, QStringLiteral("六轴复位"));
+                writeAGVRegisterBits(addr, {qMakePair(bitIndex, true)}, logTag);
                 return;
             }
             if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
@@ -1931,17 +1942,18 @@ void MainWindow::setupControlConnections()
             }
             quint16 cur = 0;
             if (!m_modbusManager->readSingleRegister(addr, cur)) {
-                qWarning() << "[六轴复位] 同步读取寄存器失败, addr=" << addr;
-                showNotification(QStringLiteral("读取复位寄存器失败"));
+                qWarning() << "[" << logTag << "] 同步读取寄存器失败, addr=" << addr;
+                showNotification(QStringLiteral("读取%1寄存器失败").arg(logTag));
                 return;
             }
             const quint16 next = static_cast<quint16>(cur | (static_cast<quint16>(1u) << bitIndex));
             writeToMainDevice(addr, next);
-            qCDebug(lcMainWindow) << "[六轴复位]" << addr << ": 原值" << cur << "→ 写入" << next << "(bit" << bitIndex << "=1)";
+            qCDebug(lcMainWindow) << "[" << logTag << "]" << addr << ": 原值" << cur
+                                  << "→ 写入" << next << "(bit" << bitIndex << "=1)";
         });
-    } else {
-        qWarning() << "未找到 techBtn_resetSixAxies 按钮";
-    }
+    };
+    connectSixAxisPoseBitButton(QStringLiteral("techBtn_resetSixAxies"), 1);
+    connectSixAxisPoseBitButton(QStringLiteral("techBtn_balanceSixAxies"), 2);
 }
 
 void MainWindow::setupSubsystemConnections()
@@ -3323,6 +3335,9 @@ void MainWindow::connectRecordSignals()
                     record.pageName = MappingConfig::instance()->mapPageName(QString::number(pageIndex));
                     if (isInsideSteeringModeSelector(button)) {
                         record.controlName = QStringLiteral("转向模式切换为：“%1”").arg(detailText);
+                    } else if (button->objectName() == QStringLiteral("techBtn_resetSixAxies")
+                               || button->objectName() == QStringLiteral("techBtn_balanceSixAxies")) {
+                        record.controlName = QStringLiteral("执行“%1”").arg(detailText);
                     } else {
                         record.controlName = groupTitle.isEmpty()
                             ? QStringLiteral("切换到“%1”").arg(detailText)
@@ -9391,11 +9406,14 @@ void MainWindow::appendAgvExternalKeyRecord(int keyNumber, bool pressed, const Q
     record.controlType = "MatrixKey";
     record.operation = pressed ? "agv_external_motion_start" : "agv_external_motion_end";
     record.oldValue = "";
+    // ○2/○10 写正值步进、点动 bit2 → 正向；○1/○9 写负值步进、点动 bit3 → 反向
+    const bool isForwardKey = (keyNumber == 2 || keyNumber == 10);
     QString detail = pressed
-                         ? QString("当前模式为%1，设置速度为%2，设置角度为%3，开始运动")
+                         ? QString("当前模式为%1，设置速度为%2，设置角度为%3，开始%4运动")
                                .arg(currentSteeringModeText())
                                .arg(speedValue, 0, 'f', 0)
                                .arg(angleValue, 0, 'f', 0)
+                               .arg(isForwardKey ? QStringLiteral("正向") : QStringLiteral("反向"))
                          : QString("运动完成，当前模式为%1，设置速度为%2，设置角度为%3")
                                .arg(currentSteeringModeText())
                                .arg(speedValue, 0, 'f', 0)
