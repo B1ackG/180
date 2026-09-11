@@ -26,9 +26,16 @@ class FeatureSwitchWidget : public QWidget
 public:
     explicit FeatureSwitchWidget(QWidget *parent = nullptr);
 
+    /** @brief 用主控回读刷新立柱/臂收回门槛当前值（5007/5008） */
+    void setChassisRetractCurrentValue(int address, int value);
+    /** @brief 按当前值框夹取后请求写入 5007/5008 */
+    void commitChassisRetractThresholdWrites();
+
 signals:
     // 通知外部宿主（通常是 MainWindow）重新加载并应用运行时配置
     void runtimeSettingsChanged();
+    /** @brief 功能控制台请求写主控保持寄存器 */
+    void mainDeviceRegisterWriteRequested(int address, int value);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -136,11 +143,13 @@ private:
 
     /** 非环形仪表的参数范围（如驻车伸出触发长度） */
     struct LimitEdits {
-        QLineEdit *minEdit;
-        QLineEdit *maxEdit;
+        QLineEdit *minEdit = nullptr;
+        QLineEdit *maxEdit = nullptr;
     };
     QMap<QString, LimitEdits> m_limitEdits;
 
+    QLineEdit *m_editColumnRetractLimit = nullptr;
+    QLineEdit *m_editArmRetractLimit = nullptr;
     QLineEdit *m_editInclinometerThresholdX = nullptr;
     QLineEdit *m_editInclinometerThresholdY = nullptr;
     QLineEdit *m_editPlaneHeightOffset = nullptr;

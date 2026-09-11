@@ -291,6 +291,18 @@ public:
     void showParkingSwitchHintDialog(const QString &message);
     /** @brief 隐藏驻车切换等待提示窗 */
     void hideParkingSwitchHintDialog();
+    /** @brief 姿态回零/调平：写 615 对应位后弹出等待窗 */
+    void beginSixAxisPoseWait(int bitIndex, const QString &actionName);
+    /** @brief 显示六自由度姿态等待提示窗（样式同驻车切换等待） */
+    void showSixAxisPoseWaitDialog(const QString &message);
+    /** @brief 隐藏六自由度姿态等待提示窗 */
+    void hideSixAxisPoseWaitDialog();
+    /** @brief 结束姿态等待（到位或超时） */
+    void finishSixAxisPoseWait(bool timedOut);
+    /** @brief 615 回读：等待位置 0 后关窗 */
+    void checkSixAxisPoseWaitCompletion(int address, quint16 value);
+    /** @brief 将缓存中的 5007/5008 同步到功能控制台当前值框 */
+    void syncChassisRetractThresholdEditsToConsole();
     /** @brief 支腿打开前：绕车干涉检查弹窗（30 秒倒计时后可确认） */
     void showLegOpenPathCheckDialog(int legLengthMm = -1);
     /** @brief 隐藏支腿打开绕车检查弹窗并停止倒计时 */
@@ -365,6 +377,8 @@ public:
     void applyParkOutTriggerLengthRuntimeSettings();
     /** @brief 按功能控制台配置更新管理员负载阈值输入范围 */
     void applyWeightThresholdRuntimeSettings();
+    /** @brief 按功能控制台范围夹取并写入立柱/臂收回门槛（5007/5008） */
+    void commitChassisRetractThresholdWrites();
     /** @brief 连续写 AGV 保持寄存器并更新 m_agvRegisterShadow */
     bool writeAgvHoldingRegisterBlock(int startAddress, const QVector<quint16> &words);
     
@@ -744,6 +758,12 @@ private:
     bool m_agvBatteryLowAcked = false;
     QDialog *m_parkingSwitchHintDialog = nullptr;
     QLabel *m_parkingSwitchHintLabel = nullptr;
+    QDialog *m_sixAxisPoseWaitDialog = nullptr;
+    QLabel *m_sixAxisPoseWaitLabel = nullptr;
+    /** @brief 正在等待清零的 615 位：1=回零，2=调平，&lt;0=未等待 */
+    int m_sixAxisPoseWaitBit = -1;
+    bool m_sixAxisPoseWaitSawActive = false;
+    qint64 m_sixAxisPoseWaitBeginMs = 0;
     /** @brief 支腿打开前绕车干涉检查弹窗 */
     QDialog *m_legOpenPathCheckDialog = nullptr;
     QLabel *m_legOpenPathCheckMessageLabel = nullptr;
@@ -1319,6 +1339,10 @@ private:
 
     /** @brief 处理矩阵键动作 */
     void handleMatrixKeyAction(int keyNumber, bool pressed);
+    /** @brief 外部运动键是否视为已使能（功能关闭时不拦截） */
+    bool isExternalKeyEnableHeld() const;
+    /** @brief 使能松开时对仍按下的外部键补一次释放，停轴 */
+    void releaseHeldExternalKeysOnEnableRelease();
 
     /** @brief 获取按键对应的 1/2/4 地址值（内部映射） */
     int getValueFor124Address(int keyNumber, bool pressed);

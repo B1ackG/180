@@ -67,6 +67,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QAbstractButton>
 #include <QFont>
 #include <QHash>
+#include <QSet>
 
 namespace {
 constexpr int kRuntimePersistRegister = 8193;
@@ -290,6 +291,10 @@ bool isInsideSteeringModeSelector(const QWidget *widget)
 namespace {
 constexpr int kAgvParkOutTriggerLengthRegStart = 5014;
 constexpr int kMainCurrentLoadWeightReg = 123;
+constexpr int kMainColumnRetractLimitReg = 5007;
+constexpr int kMainArmRetractLimitReg = 5008;
+constexpr int kSixAxisPoseReg = 615;
+constexpr int kChassisRetractLimitDefaultMm = 200;
 constexpr int kLegGear1Mm = 400;
 constexpr int kLegGear2Mm = 750;
 constexpr int kLegGearFullMm = 1100;
@@ -1950,6 +1955,9 @@ void MainWindow::setupControlConnections()
             writeToMainDevice(addr, next);
             qCDebug(lcMainWindow) << "[" << logTag << "]" << addr << ": 原值" << cur
                                   << "→ 写入" << next << "(bit" << bitIndex << "=1)";
+            if (addr == kSixAxisPoseReg && (bitIndex == 1 || bitIndex == 2)) {
+                beginSixAxisPoseWait(bitIndex, logTag);
+            }
         });
     };
     connectSixAxisPoseBitButton(QStringLiteral("techBtn_resetSixAxies"), 1);
@@ -4166,10 +4174,32 @@ void MainWindow::setupAdminPasswordPage()
                         hideLegOpenPathCheckDialog();
                     }
                 });
+                connect(m_featureSwitchWidget, &FeatureSwitchWidget::mainDeviceRegisterWriteRequested,
+                        this, [this](int address, int value) {
+                    writeToMainDevice(address, value);
+                    OperationRecord record;
+                    record.timestamp = QDateTime::currentDateTime();
+                    record.pageName = QStringLiteral("功能控制台");
+                    record.controlName = (address == kMainColumnRetractLimitReg)
+                        ? QStringLiteral("立柱收回门槛")
+                        : QStringLiteral("臂伸出收回门槛");
+                    record.controlType = QStringLiteral("FeatureConsole");
+                    record.operation = QStringLiteral("write_register");
+                    record.oldValue = QString();
+                    record.newValue = QStringLiteral("已向主控寄存器%1写入%2").arg(address).arg(value);
+                    if (m_recorder) {
+                        m_recorder->addRecord(record);
+                    }
+                    showNotification(QStringLiteral("%1已写入主控%2: %3")
+                                         .arg(record.controlName)
+                                         .arg(address)
+                                         .arg(value));
+                });
             }
             m_featureSwitchWidget->show();
             m_featureSwitchWidget->raise();
             m_featureSwitchWidget->activateWindow();
+            syncChassisRetractThresholdEditsToConsole();
         }
     });
 }
@@ -4891,6 +4921,13 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 {
     // 获取当前页面
     int currentPage = ui->StackedWidget->currentIndex();
+    if (pressed && !isExternalKeyEnableHeld()) {
+        qCDebug(lcMainWindow) << "外部按键忽略：使能未按下，按键○" << keyNumber;
+        if (ui && ui->statusBar) {
+            ui->statusBar->showMessage(QStringLiteral("请先按下使能按钮"), 2000);
+        }
+        return;
+    }
     // 负载超重锁定（150.bit7）仍有效时：拦截全部外部按键
     if (pressed && isRobotWeightLockGateActive()) {
         blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：该外部按键操作已无效"));
@@ -4957,6 +4994,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 return;
             }
             if (!pressed) {
+                m_sixAxisExternalKeyPressed[keyNumber] = false;
                 writeToMainDevice(514, 0);
                 return;
             }
@@ -4964,6 +5002,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             const int value514 = isCableRetractKey ? 4 : 2;
             writeToMainDevice(500, 5);
             writeToMainDevice(514, value514);
+            m_sixAxisExternalKeyPressed[keyNumber] = true;
 
             if (m_recorder) {
                 const QString msg = isCableRetractKey
@@ -5154,6 +5193,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         }
 
         if (!pressed) {
+            m_robotExternalKeyPressed[keyNumber] = false;
             writeToMainDevice(514, 0);
             return;
         }
@@ -5170,6 +5210,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 writeToMainDevice(514, value514);
             });
 
+            m_robotExternalKeyPressed[keyNumber] = true;
             qCDebug(lcMainWindow) << "AGV页面外部按键○" << keyNumber
                                   << "写入 500=5, 514=" << value514;
         }
@@ -6292,6 +6333,16 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         m_weightLockLimitEdit->setText(QString::number(qBound(lim.first, static_cast<int>(value), lim.second)));
     }
 
+    if (address == kMainColumnRetractLimitReg || address == kMainArmRetractLimitReg) {
+        if (m_featureSwitchWidget) {
+            m_featureSwitchWidget->setChassisRetractCurrentValue(address, static_cast<int>(value));
+        }
+    }
+
+    if (address == kSixAxisPoseReg) {
+        checkSixAxisPoseWaitCompletion(address, value);
+    }
+
     if (address == 134) {
         updateRobotTotalPower(value);
     }
@@ -6912,6 +6963,12 @@ void MainWindow::readMainControlSyncRegisters()
 
     // 管理员负载阈值：5004 负载超限、5005 负载超重
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 5004, 2);
+
+    // 底盘收回门槛：5007 立柱、5008 臂
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainColumnRetractLimitReg, 2);
+
+    // 六自由度姿态回零/调平状态：615 bit1 / bit2
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kSixAxisPoseReg, 1);
 
     // 当前运动目标轴：500（1~4=J1~J4，5=六自由度），供限位 Toast 文案使用
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 500, 1);
@@ -8195,6 +8252,10 @@ void MainWindow::onEnableButtonActivated(int socket)
  */
 void MainWindow::processEnableButton(bool enabled)
 {
+    if (!enabled) {
+        releaseHeldExternalKeysOnEnableRelease();
+    }
+
     if (!m_stepModeEnabled && !m_isJointMode) {
         if (enabled) {
             qCDebug(lcMainWindow) << "使能按钮按下忽略：当前非关节模式且非步进模式";
@@ -11767,8 +11828,15 @@ void MainWindow::hideNonEmergencyPopups()
     setProperty("parkingSwitchWaiting", false);
     setProperty("parkingTargetBit", -1);
     setProperty("parkingTargetEnabled", false);
+    if (QTimer *poseWaitTimer = findChild<QTimer*>(QStringLiteral("sixAxisPoseWaitTimer"))) {
+        poseWaitTimer->stop();
+        poseWaitTimer->deleteLater();
+    }
+    m_sixAxisPoseWaitBit = -1;
+    m_sixAxisPoseWaitSawActive = false;
 
     hideParkingSwitchHintDialog();
+    hideSixAxisPoseWaitDialog();
     hideLegOpenPathCheckDialog();
     hideLegControlDialog();
     hideParkingLegAbnormalDialog();
@@ -11974,6 +12042,224 @@ void MainWindow::hideParkingSwitchHintDialog()
 {
     if (m_parkingSwitchHintDialog && m_parkingSwitchHintDialog->isVisible()) {
         m_parkingSwitchHintDialog->hide();
+    }
+}
+
+void MainWindow::beginSixAxisPoseWait(int bitIndex, const QString &actionName)
+{
+    if (bitIndex != 1 && bitIndex != 2) {
+        return;
+    }
+
+    if (QTimer *oldTimer = findChild<QTimer*>(QStringLiteral("sixAxisPoseWaitTimer"))) {
+        oldTimer->stop();
+        oldTimer->deleteLater();
+    }
+
+    m_sixAxisPoseWaitBit = bitIndex;
+    m_sixAxisPoseWaitSawActive = false;
+    m_sixAxisPoseWaitBeginMs = QDateTime::currentMSecsSinceEpoch();
+
+    const QString message = (bitIndex == 1)
+        ? QStringLiteral("正在姿态回零")
+        : QStringLiteral("正在姿态调平");
+    showSixAxisPoseWaitDialog(message);
+
+    if (m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = QStringLiteral("六自由度");
+        record.controlName = actionName;
+        record.controlType = QStringLiteral("SixAxisPose");
+        record.operation = QStringLiteral("pose_wait_start");
+        record.oldValue = QString();
+        record.newValue = QStringLiteral("已写入主控615 bit%1=1，等待该位清零").arg(bitIndex);
+        m_recorder->addRecord(record);
+    }
+
+    auto *waitTimer = new QTimer(this);
+    waitTimer->setObjectName(QStringLiteral("sixAxisPoseWaitTimer"));
+    waitTimer->setSingleShot(true);
+    connect(waitTimer, &QTimer::timeout, this, [this]() {
+        finishSixAxisPoseWait(true);
+    });
+    waitTimer->start(90000);
+}
+
+void MainWindow::showSixAxisPoseWaitDialog(const QString &message)
+{
+    if (!userPopupsAllowed()) {
+        return;
+    }
+    if (!m_sixAxisPoseWaitDialog) {
+        m_sixAxisPoseWaitDialog = new QDialog(this);
+        m_sixAxisPoseWaitDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_sixAxisPoseWaitDialog->setWindowModality(Qt::ApplicationModal);
+        m_sixAxisPoseWaitDialog->setModal(true);
+        m_sixAxisPoseWaitDialog->setObjectName(QStringLiteral("sixAxisPoseWaitDialog"));
+
+        auto *layout = new QVBoxLayout(m_sixAxisPoseWaitDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(8);
+
+        m_sixAxisPoseWaitLabel = new QLabel(m_sixAxisPoseWaitDialog);
+        m_sixAxisPoseWaitLabel->setObjectName(QStringLiteral("sixAxisPoseWaitLabel"));
+        m_sixAxisPoseWaitLabel->setAlignment(Qt::AlignCenter);
+        m_sixAxisPoseWaitLabel->setWordWrap(true);
+        layout->addWidget(m_sixAxisPoseWaitLabel);
+
+        m_sixAxisPoseWaitDialog->setFixedSize(360, 120);
+        m_sixAxisPoseWaitDialog->setStyleSheet(
+            "#sixAxisPoseWaitDialog {"
+            "  background-color: rgba(30, 0, 0, 230);"
+            "  border: 3px solid #FFFF00;"
+            "  border-radius: 10px;"
+            "}"
+            "#sixAxisPoseWaitLabel {"
+            "  color: #FFFF00;"
+            "  font-size: 20px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}");
+    }
+
+    if (m_sixAxisPoseWaitLabel) {
+        m_sixAxisPoseWaitLabel->setText(message);
+    }
+
+    QScreen *screen = QGuiApplication::primaryScreen();
+    if (!screen) {
+        return;
+    }
+    const QRect screenGeometry = screen->availableGeometry();
+    const int x = screenGeometry.width() - m_sixAxisPoseWaitDialog->width() - 40;
+    const int y = 820;
+    m_sixAxisPoseWaitDialog->move(x, y);
+    m_sixAxisPoseWaitDialog->show();
+    m_sixAxisPoseWaitDialog->raise();
+    m_sixAxisPoseWaitDialog->activateWindow();
+}
+
+void MainWindow::hideSixAxisPoseWaitDialog()
+{
+    if (m_sixAxisPoseWaitDialog && m_sixAxisPoseWaitDialog->isVisible()) {
+        m_sixAxisPoseWaitDialog->hide();
+    }
+}
+
+void MainWindow::finishSixAxisPoseWait(bool timedOut)
+{
+    if (m_sixAxisPoseWaitBit < 0) {
+        hideSixAxisPoseWaitDialog();
+        return;
+    }
+
+    if (QTimer *waitTimer = findChild<QTimer*>(QStringLiteral("sixAxisPoseWaitTimer"))) {
+        waitTimer->stop();
+        waitTimer->deleteLater();
+    }
+
+    const int bitIndex = m_sixAxisPoseWaitBit;
+    m_sixAxisPoseWaitBit = -1;
+    m_sixAxisPoseWaitSawActive = false;
+    hideSixAxisPoseWaitDialog();
+
+    if (m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = QStringLiteral("六自由度");
+        record.controlName = (bitIndex == 1)
+            ? QStringLiteral("姿态回零")
+            : QStringLiteral("姿态调平");
+        record.controlType = QStringLiteral("SixAxisPose");
+        record.operation = timedOut ? QStringLiteral("pose_wait_timeout")
+                                    : QStringLiteral("pose_wait_done");
+        record.oldValue = QStringLiteral("等待615 bit%1=0").arg(bitIndex);
+        record.newValue = timedOut
+            ? QStringLiteral("90秒超时，姿态等待已结束")
+            : QStringLiteral("主控615 bit%1已清零").arg(bitIndex);
+        m_recorder->addRecord(record);
+    }
+}
+
+void MainWindow::checkSixAxisPoseWaitCompletion(int address, quint16 value)
+{
+    if (m_sixAxisPoseWaitBit < 0 || address != kSixAxisPoseReg) {
+        return;
+    }
+    if (m_sixAxisPoseWaitBit > 15) {
+        return;
+    }
+
+    const bool bitSet = (((value >> m_sixAxisPoseWaitBit) & 0x01) == 1);
+    if (bitSet) {
+        m_sixAxisPoseWaitSawActive = true;
+        return;
+    }
+
+    const qint64 elapsedMs = QDateTime::currentMSecsSinceEpoch() - m_sixAxisPoseWaitBeginMs;
+    if (m_sixAxisPoseWaitSawActive || elapsedMs >= 300) {
+        finishSixAxisPoseWait(false);
+    }
+}
+
+bool MainWindow::isExternalKeyEnableHeld() const
+{
+    if (!isFeatureEnabled("input_devices", "input.enable_button")) {
+        return true;
+    }
+    return m_lastEnableButtonState;
+}
+
+void MainWindow::releaseHeldExternalKeysOnEnableRelease()
+{
+    QSet<int> keys;
+    for (auto it = m_robotExternalKeyPressed.cbegin(); it != m_robotExternalKeyPressed.cend(); ++it) {
+        if (it.value()) {
+            keys.insert(it.key());
+        }
+    }
+    for (auto it = m_sixAxisExternalKeyPressed.cbegin(); it != m_sixAxisExternalKeyPressed.cend(); ++it) {
+        if (it.value()) {
+            keys.insert(it.key());
+        }
+    }
+    if (m_robotActiveKey > 0) {
+        keys.insert(m_robotActiveKey);
+    }
+    if (m_sixAxisActiveKey > 0) {
+        keys.insert(m_sixAxisActiveKey);
+    }
+    for (int keyNumber : keys) {
+        handleMatrixKeyAction(keyNumber, false);
+    }
+}
+
+void MainWindow::syncChassisRetractThresholdEditsToConsole()
+{
+    if (!m_featureSwitchWidget) {
+        return;
+    }
+    if (g_registerCache.contains(kMainColumnRetractLimitReg)) {
+        m_featureSwitchWidget->setChassisRetractCurrentValue(
+            kMainColumnRetractLimitReg, static_cast<int>(g_registerCache.value(kMainColumnRetractLimitReg)));
+    } else {
+        m_featureSwitchWidget->setChassisRetractCurrentValue(
+            kMainColumnRetractLimitReg, kChassisRetractLimitDefaultMm);
+    }
+    if (g_registerCache.contains(kMainArmRetractLimitReg)) {
+        m_featureSwitchWidget->setChassisRetractCurrentValue(
+            kMainArmRetractLimitReg, static_cast<int>(g_registerCache.value(kMainArmRetractLimitReg)));
+    } else {
+        m_featureSwitchWidget->setChassisRetractCurrentValue(
+            kMainArmRetractLimitReg, kChassisRetractLimitDefaultMm);
+    }
+}
+
+void MainWindow::commitChassisRetractThresholdWrites()
+{
+    if (m_featureSwitchWidget) {
+        m_featureSwitchWidget->commitChassisRetractThresholdWrites();
     }
 }
 
