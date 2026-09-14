@@ -286,9 +286,22 @@ bool isInsideSteeringModeSelector(const QWidget *widget)
     }
     return false;
 }
+
+bool isScreenMotionEnableGatedWidget(const QWidget *widget)
+{
+    if (!widget) {
+        return false;
+    }
+    if (isInsideSteeringModeSelector(widget)) {
+        return true;
+    }
+    const QString name = widget->objectName();
+    return name == QStringLiteral("techBtn_resetSixAxies")
+        || name == QStringLiteral("techBtn_balanceSixAxies")
+        || name.startsWith(QStringLiteral("techBtn_AGVStep_"))
+        || name == QStringLiteral("SEdit_AGV_Angle");
 }
 
-namespace {
 constexpr int kAgvParkOutTriggerLengthRegStart = 5014;
 constexpr int kMainCurrentLoadWeightReg = 123;
 constexpr int kMainColumnRetractLimitReg = 5007;
@@ -1923,6 +1936,9 @@ void MainWindow::setupControlConnections()
                                            .remove(QLatin1Char('\n'))
                                            .trimmed();
             const QString logTag = actionName.isEmpty() ? objectName : actionName;
+            if (rejectIfEnableNotHeld()) {
+                return;
+            }
             if (!isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
                 showNotification(QStringLiteral("Main Modbus 读功能已关闭"));
                 return;
@@ -3282,6 +3298,9 @@ void MainWindow::connectRecordSignals()
             // 使用lambda捕获页面信息
             connect(slider, &TechSliderEdit::valueChangedWithRecord,
                     this, [this, slider, pageIndex](double /*oldValue*/, double newValue) {
+                        if (!isExternalKeyEnableHeld() && isScreenMotionEnableGatedWidget(slider)) {
+                            return;
+                        }
                         OperationRecord record;
                         const QString labelTextRaw = slider->labelText().trimmed();
                         const QString sliderLabelText = labelTextRaw.isEmpty()
@@ -3316,6 +3335,9 @@ void MainWindow::connectRecordSignals()
         }
         connect(button, &TechPushButton::clicked,
                 this, [this, button]() {
+                    if (!isExternalKeyEnableHeld() && isScreenMotionEnableGatedWidget(button)) {
+                        return;
+                    }
                     // 获取按钮所在页面
                     QWidget *page = qobject_cast<QWidget*>(button->parent());
                     int pageIndex = -1;
@@ -4921,12 +4943,21 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 {
     // 获取当前页面
     int currentPage = ui->StackedWidget->currentIndex();
-    if (pressed && !isExternalKeyEnableHeld()) {
-        qCDebug(lcMainWindow) << "外部按键忽略：使能未按下，按键○" << keyNumber;
-        if (ui && ui->statusBar) {
-            ui->statusBar->showMessage(QStringLiteral("请先按下使能按钮"), 2000);
+    if (!isExternalKeyEnableHeld()) {
+        const bool keyHeld = m_robotExternalKeyPressed.value(keyNumber, false)
+            || m_sixAxisExternalKeyPressed.value(keyNumber, false)
+            || m_robotActiveKey == keyNumber
+            || m_sixAxisActiveKey == keyNumber;
+        // 未按使能：按下忽略；松开若并非在途运动也忽略，避免回转/伸缩/EOAT 等路径记「完成」历史。
+        // 使能松开补写的停轴（keyHeld=true）仍继续，不在此拦截。
+        if (pressed || !keyHeld) {
+            qCDebug(lcMainWindow) << "外部按键忽略：使能未按下，按键○" << keyNumber
+                                  << (pressed ? "按下" : "释放");
+            if (pressed) {
+                rejectIfEnableNotHeld();
+            }
+            return;
         }
-        return;
     }
     // 负载超重锁定（150.bit7）仍有效时：拦截全部外部按键
     if (pressed && isRobotWeightLockGateActive()) {
@@ -5137,6 +5168,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
             recordStepMoveAction(targetName, currentValue, QString::number(stepValueFloat, 'f', 3), true);
             markStepMotionPendingStop(StepMotionStopKind::SixAxis, targetName, keyNumber);
+            showStepMotionWaitDialog(QStringLiteral("正在步进运动"));
             ui->statusBar->showMessage(
                 QString("步进触发：按键○%1，目标%2，步进值%3")
                     .arg(keyNumber)
@@ -5362,6 +5394,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             recordStepMoveAction(targetName, currentValue,
                                  QString::number(stepValue, 'f', 3), true);
             markStepMotionPendingStop(StepMotionStopKind::RobotJoint, targetName);
+            showStepMotionWaitDialog(QStringLiteral("正在步进运动"));
             ui->statusBar->showMessage(
                 QString("步进触发：按键○%1，目标%2，步进值%3")
                     .arg(keyNumber)
@@ -5543,6 +5576,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
             writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
             appendAgvExternalKeyRecord(keyNumber, pressed);
             markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
+            showStepMotionWaitDialog(QStringLiteral("正在步进运动"));
             m_robotExternalKeyPressed[keyNumber] = true;
             return;
         }
@@ -5561,6 +5595,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
         appendAgvExternalKeyRecord(keyNumber, pressed, m_agvStepDistanceEdit->text().trimmed());
         markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
+        showStepMotionWaitDialog(QStringLiteral("正在步进运动"));
         m_robotExternalKeyPressed[keyNumber] = true;
         return;
     }
@@ -5685,11 +5720,11 @@ void MainWindow::setupKeyManager()
 #ifdef ENABLE_VIRTUAL_MATRIX_KEYS
 void MainWindow::setupVirtualMatrixKeyPanel()
 {
-    if (!ui || !ui->centralwidget || m_virtualMatrixKeyPanel) {
+    if (m_virtualMatrixKeyPanel) {
         return;
     }
 
-    m_virtualMatrixKeyPanel = new VirtualMatrixKeyPanel(ui->centralwidget);
+    m_virtualMatrixKeyPanel = new VirtualMatrixKeyPanel(this);
     connect(m_virtualMatrixKeyPanel, &VirtualMatrixKeyPanel::matrixKeyChanged,
             this, &MainWindow::onMatrixKeyPressed);
     connect(m_virtualMatrixKeyPanel, &VirtualMatrixKeyPanel::enableButtonChanged,
@@ -8254,6 +8289,8 @@ void MainWindow::processEnableButton(bool enabled)
 {
     if (!enabled) {
         releaseHeldExternalKeysOnEnableRelease();
+        hideStepMotionWaitDialog();
+        interruptEnableGatedWaitPopupsOnEnableRelease();
     }
 
     if (!m_stepModeEnabled && !m_isJointMode) {
@@ -9247,6 +9284,10 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
 
 void MainWindow::onAGVParkBtnClicked()
 {
+    if (rejectIfEnableNotHeld()) {
+        return;
+    }
+
     if (m_controlMode != WIRED_MODE) {
         ui->statusBar->showMessage("当前为无线控制，驻车功能仅在有线控制模式下生效", 3000);
         qWarning() << "驻车请求被拒绝：当前不是有线控制模式";
@@ -9312,6 +9353,23 @@ void MainWindow::onAGVMoveSpeedChanged(double value)
 void MainWindow::onAGVAngleChanged(double value)
 {
     if (!isFeatureEnabled("motion_control", "motion.agv_angle_control")) {
+        return;
+    }
+    if (rejectIfEnableNotHeld()) {
+        if (m_editAGV_Angle) {
+            double revertValue = 0;
+            if (m_agvRegisterShadow.contains(154)) {
+                revertValue = qBound(m_editAGV_Angle->minimum(),
+                                     static_cast<double>(m_agvRegisterShadow.value(154)),
+                                     m_editAGV_Angle->maximum());
+            } else if (m_agvRegisterShadow.contains(4)) {
+                revertValue = qBound(m_editAGV_Angle->minimum(),
+                                     static_cast<double>(static_cast<qint16>(m_agvRegisterShadow.value(4))),
+                                     m_editAGV_Angle->maximum());
+            }
+            const QSignalBlocker blocker(m_editAGV_Angle);
+            m_editAGV_Angle->setValue(revertValue);
+        }
         return;
     }
     if (isRobotWeightLockGateActive()) {
@@ -9400,6 +9458,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
             writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
             appendAgvExternalKeyRecord(keyNumber, pressed);
             markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
+            showStepMotionWaitDialog(QStringLiteral("正在步进运动"));
             m_robotExternalKeyPressed[keyNumber] = true;
             return;
         }
@@ -9417,6 +9476,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
         appendAgvExternalKeyRecord(keyNumber, pressed, m_agvStepDistanceEdit->text().trimmed());
         markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
+        showStepMotionWaitDialog(QStringLiteral("正在步进运动"));
         m_robotExternalKeyPressed[keyNumber] = true;
         return;
     }
@@ -9538,6 +9598,14 @@ void MainWindow::setupSteeringModeControl()
 void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
 {
     qCDebug(lcMainWindow) << "转向模式改变为:" << mode << "，Modbus值:" << modbusValue;
+
+    if (rejectIfEnableNotHeld()) {
+        if (m_steeringModeSelector) {
+            const QSignalBlocker blocker(m_steeringModeSelector);
+            m_steeringModeSelector->setCurrentMode(m_lastSteeringMode);
+        }
+        return;
+    }
 
     if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
@@ -10520,6 +10588,21 @@ void MainWindow::setupAGVStepPad()
         connect(m_agvStepDirectionGroup,
                 QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
                 this, [this](QAbstractButton *btn) {
+                    if (rejectIfEnableNotHeld()) {
+                        QAbstractButton *restore = m_agvStepPadLastSelection;
+                        if (!restore && m_agvStepDirectionGroup) {
+                            const QList<QAbstractButton*> buttons = m_agvStepDirectionGroup->buttons();
+                            for (QAbstractButton *existing : buttons) {
+                                if (existing && existing->objectName() == QStringLiteral("techBtn_AGVStep_Up")) {
+                                    restore = existing;
+                                    break;
+                                }
+                            }
+                        }
+                        applyAgvStepPadAxisSelection(restore);
+                        updateAGVStepPadVisuals();
+                        return;
+                    }
                     applyAgvStepPadAxisSelection(btn);
                     updateAGVStepPadVisuals();
 
@@ -10656,6 +10739,7 @@ void MainWindow::applyAgvStepPadAxisSelection(QAbstractButton *clicked)
         const QSignalBlocker btnBlocker(btn);
         btn->setChecked(btn == clicked || btn == partner);
     }
+    m_agvStepPadLastSelection = clicked;
 }
 
 void MainWindow::updateAGVStepPadVisuals()
@@ -11834,6 +11918,7 @@ void MainWindow::hideNonEmergencyPopups()
     }
     m_sixAxisPoseWaitBit = -1;
     m_sixAxisPoseWaitSawActive = false;
+    hideStepMotionWaitDialog();
 
     hideParkingSwitchHintDialog();
     hideSixAxisPoseWaitDialog();
@@ -12203,12 +12288,142 @@ void MainWindow::checkSixAxisPoseWaitCompletion(int address, quint16 value)
     }
 }
 
+void MainWindow::showStepMotionWaitDialog(const QString &message)
+{
+    if (!userPopupsAllowed()) {
+        return;
+    }
+    if (!m_stepMotionWaitDialog) {
+        m_stepMotionWaitDialog = new QDialog(this);
+        m_stepMotionWaitDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_stepMotionWaitDialog->setWindowModality(Qt::ApplicationModal);
+        m_stepMotionWaitDialog->setModal(true);
+        m_stepMotionWaitDialog->setObjectName(QStringLiteral("stepMotionWaitDialog"));
+
+        auto *layout = new QVBoxLayout(m_stepMotionWaitDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(8);
+
+        m_stepMotionWaitLabel = new QLabel(m_stepMotionWaitDialog);
+        m_stepMotionWaitLabel->setObjectName(QStringLiteral("stepMotionWaitLabel"));
+        m_stepMotionWaitLabel->setAlignment(Qt::AlignCenter);
+        m_stepMotionWaitLabel->setWordWrap(true);
+        layout->addWidget(m_stepMotionWaitLabel);
+
+        m_stepMotionWaitDialog->setFixedSize(360, 120);
+        m_stepMotionWaitDialog->setStyleSheet(
+            "#stepMotionWaitDialog {"
+            "  background-color: rgba(30, 0, 0, 230);"
+            "  border: 3px solid #FFFF00;"
+            "  border-radius: 10px;"
+            "}"
+            "#stepMotionWaitLabel {"
+            "  color: #FFFF00;"
+            "  font-size: 20px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}");
+    }
+
+    if (m_stepMotionWaitLabel) {
+        m_stepMotionWaitLabel->setText(message);
+    }
+
+    QScreen *screen = QGuiApplication::primaryScreen();
+    if (!screen) {
+        return;
+    }
+    const QRect screenGeometry = screen->availableGeometry();
+    const int x = screenGeometry.width() - m_stepMotionWaitDialog->width() - 40;
+    const int y = 820;
+    m_stepMotionWaitDialog->move(x, y);
+    m_stepMotionWaitDialog->show();
+    m_stepMotionWaitDialog->raise();
+}
+
+void MainWindow::hideStepMotionWaitDialog()
+{
+    if (m_stepMotionWaitDialog && m_stepMotionWaitDialog->isVisible()) {
+        m_stepMotionWaitDialog->hide();
+    }
+}
+
+void MainWindow::interruptEnableGatedWaitPopupsOnEnableRelease()
+{
+    bool interrupted = false;
+
+    if (m_isSwitchingSteeringMode) {
+        m_isSwitchingSteeringMode = false;
+        m_targetSteeringWaitBit = -1;
+        m_isSteeringAlarmActive = false;
+        m_pendingAgvStepSteer = false;
+        m_pendingAgvStepReadyBit = -1;
+        updateAlarmDisplay();
+        interrupted = true;
+    }
+
+    const bool parkingWaiting = property("parkingSwitchWaiting").toBool()
+        || (m_parkingSwitchHintDialog && m_parkingSwitchHintDialog->isVisible());
+    if (parkingWaiting) {
+        if (QTimer *parkingWaitTimer = findChild<QTimer*>(QStringLiteral("parkingSwitchWaitTimer"))) {
+            parkingWaitTimer->stop();
+            parkingWaitTimer->deleteLater();
+        }
+        setProperty("parkingSwitchWaiting", false);
+        setProperty("parkingTargetBit", -1);
+        hideParkingSwitchHintDialog();
+        updateParkingLegAbnormalDialogVisibility();
+        interrupted = true;
+    }
+
+    if (m_sixAxisPoseWaitBit >= 0
+        || (m_sixAxisPoseWaitDialog && m_sixAxisPoseWaitDialog->isVisible())) {
+        if (QTimer *poseWaitTimer = findChild<QTimer*>(QStringLiteral("sixAxisPoseWaitTimer"))) {
+            poseWaitTimer->stop();
+            poseWaitTimer->deleteLater();
+        }
+        m_sixAxisPoseWaitBit = -1;
+        m_sixAxisPoseWaitSawActive = false;
+        hideSixAxisPoseWaitDialog();
+        interrupted = true;
+    }
+
+    if (!interrupted) {
+        return;
+    }
+
+    showToast(QStringLiteral("使能松开，操作中断"), ToastKind::Warning);
+    if (!m_recorder) {
+        return;
+    }
+
+    OperationRecord record;
+    record.timestamp = QDateTime::currentDateTime();
+    record.pageName = getCurrentPageName();
+    record.controlName = QStringLiteral("使能按钮");
+    record.controlType = QStringLiteral("EnableButton");
+    record.operation = QStringLiteral("enable_release_abort");
+    record.oldValue = QString();
+    record.newValue = QStringLiteral("使能松开，操作中断");
+    m_recorder->addRecord(record);
+}
+
 bool MainWindow::isExternalKeyEnableHeld() const
 {
     if (!isFeatureEnabled("input_devices", "input.enable_button")) {
         return true;
     }
     return m_lastEnableButtonState;
+}
+
+bool MainWindow::rejectIfEnableNotHeld()
+{
+    if (isExternalKeyEnableHeld()) {
+        return false;
+    }
+    qCDebug(lcMainWindow) << "运动忽略：使能未按下";
+    showToast(QStringLiteral("未按使能键"), ToastKind::Warning);
+    return true;
 }
 
 void MainWindow::releaseHeldExternalKeysOnEnableRelease()
@@ -12472,6 +12687,9 @@ void setLegControlButtonActive(QPushButton *btn, bool active)
 
 void MainWindow::requestLegExtend(int legLengthMm)
 {
+    if (rejectIfEnableNotHeld()) {
+        return;
+    }
     if (property("parkingSwitchWaiting").toBool()) {
         ui->statusBar->showMessage(QStringLiteral("驻车切换进行中，请等待完成"), 2000);
         return;
@@ -12493,6 +12711,9 @@ void MainWindow::requestLegExtend(int legLengthMm)
 
 void MainWindow::requestLegRetract()
 {
+    if (rejectIfEnableNotHeld()) {
+        return;
+    }
     if (property("parkingSwitchWaiting").toBool()) {
         ui->statusBar->showMessage(QStringLiteral("驻车切换进行中，请等待完成"), 2000);
         return;

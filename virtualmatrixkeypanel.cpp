@@ -2,22 +2,40 @@
 
 #include "virtualmatrixkeypanel.h"
 
+#include <QApplication>
+#include <QEvent>
 #include <QGridLayout>
+#include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QHideEvent>
+#include <QPointer>
 #include <QPushButton>
+#include <QScreen>
+#include <QTimer>
 #include <QVBoxLayout>
 
-VirtualMatrixKeyPanel::VirtualMatrixKeyPanel(QWidget *parent)
-    : QWidget(parent)
+namespace {
+QPointer<VirtualMatrixKeyPanel> g_virtualMatrixKeyPanel;
+}
+
+VirtualMatrixKeyPanel::VirtualMatrixKeyPanel(QWidget *hostWindow)
+    : QWidget(nullptr)
+    , m_host(hostWindow)
 {
+    g_virtualMatrixKeyPanel = this;
     setObjectName(QStringLiteral("virtualMatrixKeyPanel"));
+    setWindowTitle(QStringLiteral("虚拟外部按键"));
+    setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint
+                   | Qt::WindowDoesNotAcceptFocus);
     setAttribute(Qt::WA_StyledBackground, true);
+    setAttribute(Qt::WA_ShowWithoutActivating, true);
+    setAttribute(Qt::WA_QuitOnClose, false);
     setFocusPolicy(Qt::NoFocus);
+
     setStyleSheet(QStringLiteral(
         "#virtualMatrixKeyPanel {"
-        "  background: rgba(8, 18, 32, 210);"
-        "  border-left: 1px solid rgba(0, 200, 255, 0.45);"
+        "  background: rgba(8, 18, 32, 235);"
+        "  border: 1px solid rgba(0, 200, 255, 0.55);"
         "}"
         "#virtualMatrixKeyPanel QPushButton {"
         "  color: #dff6ff;"
@@ -52,6 +70,38 @@ VirtualMatrixKeyPanel::VirtualMatrixKeyPanel(QWidget *parent)
 
     buildUi();
     applyCollapsedState();
+
+    if (m_host) {
+        m_host->installEventFilter(this);
+        connect(m_host, &QObject::destroyed, this, &QObject::deleteLater);
+    }
+    if (qApp) {
+        qApp->installEventFilter(this);
+    }
+}
+
+VirtualMatrixKeyPanel::~VirtualMatrixKeyPanel()
+{
+    if (g_virtualMatrixKeyPanel == this) {
+        g_virtualMatrixKeyPanel.clear();
+    }
+    if (qApp) {
+        qApp->removeEventFilter(this);
+    }
+    if (m_host) {
+        m_host->removeEventFilter(this);
+    }
+}
+
+bool VirtualMatrixKeyPanel::shouldReceiveDuringModal(QObject *receiver, QEvent *event)
+{
+    if (!g_virtualMatrixKeyPanel || !g_virtualMatrixKeyPanel->isVisible()) {
+        return false;
+    }
+    if (!QApplication::activeModalWidget()) {
+        return false;
+    }
+    return isPointerEvent(event) && g_virtualMatrixKeyPanel->isPanelWidget(receiver);
 }
 
 void VirtualMatrixKeyPanel::buildUi()
@@ -136,14 +186,36 @@ void VirtualMatrixKeyPanel::applyCollapsedState()
 
 void VirtualMatrixKeyPanel::relayoutToHost()
 {
-    QWidget *host = parentWidget();
-    if (!host) {
+    if (!m_host) {
         return;
     }
 
     const int width = m_collapsed ? kCollapsedWidth : kExpandedWidth;
-    const int height = qMax(200, host->height() - kTopOffset - kBottomMargin);
-    setGeometry(host->width() - width, kTopOffset, width, height);
+    const int height = qMax(240, m_host->height() - kTopOffset - kBottomMargin);
+    const QRect hostGeo = m_host->frameGeometry();
+
+    QRect screen = hostGeo;
+    if (QScreen *s = QGuiApplication::screenAt(hostGeo.center())) {
+        screen = s->availableGeometry();
+    } else if (QScreen *s = QGuiApplication::primaryScreen()) {
+        screen = s->availableGeometry();
+    }
+
+    // 优先弹到主窗口右侧外侧；全屏/空间不够时贴回窗口内右缘。
+    int x = hostGeo.right() + kOutsideGap;
+    if (x + width > screen.right()) {
+        x = hostGeo.right() - width;
+    }
+    if (x < screen.left()) {
+        x = screen.left();
+    }
+
+    int y = hostGeo.top() + kTopOffset;
+    if (y + height > screen.bottom()) {
+        y = qMax(screen.top(), screen.bottom() - height);
+    }
+
+    setGeometry(x, y, width, height);
     raise();
 }
 
@@ -151,6 +223,82 @@ void VirtualMatrixKeyPanel::hideEvent(QHideEvent *event)
 {
     releaseAllHeldInputs();
     QWidget::hideEvent(event);
+}
+
+bool VirtualMatrixKeyPanel::isPanelWidget(QObject *obj) const
+{
+    auto *widget = qobject_cast<QWidget *>(obj);
+    return widget && (widget == this || isAncestorOf(widget));
+}
+
+bool VirtualMatrixKeyPanel::isPointerEvent(const QEvent *event)
+{
+    if (!event) {
+        return false;
+    }
+    switch (event->type()) {
+    case QEvent::MouseButtonPress:
+    case QEvent::MouseButtonRelease:
+    case QEvent::MouseButtonDblClick:
+    case QEvent::MouseMove:
+    case QEvent::HoverEnter:
+    case QEvent::HoverLeave:
+    case QEvent::HoverMove:
+    case QEvent::Enter:
+    case QEvent::Leave:
+    case QEvent::Wheel:
+    case QEvent::TouchBegin:
+    case QEvent::TouchUpdate:
+    case QEvent::TouchEnd:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool VirtualMatrixKeyPanel::eventFilter(QObject *watched, QEvent *event)
+{
+    if (!event) {
+        return QWidget::eventFilter(watched, event);
+    }
+
+    if (m_host && watched == m_host) {
+        switch (event->type()) {
+        case QEvent::Move:
+        case QEvent::Resize:
+        case QEvent::WindowStateChange:
+            relayoutToHost();
+            break;
+        case QEvent::Hide:
+            hide();
+            break;
+        case QEvent::Show:
+            show();
+            relayoutToHost();
+            raise();
+            break;
+        case QEvent::Close:
+            close();
+            break;
+        default:
+            break;
+        }
+        return QWidget::eventFilter(watched, event);
+    }
+
+    if (event->type() == QEvent::Show) {
+        auto *shown = qobject_cast<QWidget *>(watched);
+        if (shown && shown->isWindow() && shown != this
+            && shown->windowModality() != Qt::NonModal && isVisible()) {
+            QTimer::singleShot(0, this, [this]() {
+                if (isVisible()) {
+                    raise();
+                }
+            });
+        }
+    }
+
+    return QWidget::eventFilter(watched, event);
 }
 
 void VirtualMatrixKeyPanel::releaseAllHeldInputs()

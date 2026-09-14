@@ -280,6 +280,7 @@ void MappingConfig::initDefaultMappings()
     m_operationMap["pose_wait_start"] = "姿态等待开始";
     m_operationMap["pose_wait_done"] = "姿态等待完成";
     m_operationMap["pose_wait_timeout"] = "姿态等待超时";
+    m_operationMap["enable_release_abort"] = "使能松开中断";
     m_operationMap["external_motion_start"] = "外部运动触发";
     m_operationMap["external_motion_stop"] = "外部运动停止";
     m_operationMap["agv_external_motion_start"] = "AGV外部联动开始";

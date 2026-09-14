@@ -23,6 +23,11 @@
 #include <QSGRendererInterface>
 #include "debug.h"
 #include "runtimehealthmonitor.h"
+#ifdef ENABLE_VIRTUAL_MATRIX_KEYS
+#include "virtualmatrixkeypanel.h"
+#include <QCoreApplication>
+#include <QEvent>
+#endif
 
 // 全局定义（在 debug.h 中声明）
 int debug = 0;
@@ -418,6 +423,22 @@ bool performSystemChecks(QSplashScreen* splash, MainWindow* mainWindow) {
     return allPassed;
 }
 
+#ifdef ENABLE_VIRTUAL_MATRIX_KEYS
+class DebugApplication : public QApplication
+{
+public:
+    using QApplication::QApplication;
+
+    bool notify(QObject *receiver, QEvent *event) override
+    {
+        if (VirtualMatrixKeyPanel::shouldReceiveDuringModal(receiver, event)) {
+            return QCoreApplication::notify(receiver, event);
+        }
+        return QApplication::notify(receiver, event);
+    }
+};
+#endif
+
 int main(int argc, char *argv[])
 {
     // RK356x 上的 Mali Qt Quick/OpenGL 路径会持续泄漏 malitl timeline fd。
@@ -439,7 +460,11 @@ int main(int argc, char *argv[])
 
     qInfo() << "Qt Quick scene graph backend:" << QQuickWindow::sceneGraphBackend();
     qDebug() << "程序启动 - 创建QApplication";
+#ifdef ENABLE_VIRTUAL_MATRIX_KEYS
+    DebugApplication a(argc, argv);
+#else
     QApplication a(argc, argv);
+#endif
 
     // 单实例保护：禁止同时跑两个 180。
     // 两实例都会打开 /dev/input/event0 并写同一套 Modbus；后台实例常停在首页，

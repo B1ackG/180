@@ -44,6 +44,7 @@ class VirtualMatrixKeyPanel;
 #include <QPushButton>
 #include <QToolButton>
 #include <QButtonGroup>
+#include <QAbstractButton>
 #include <QLineEdit>
 #include <QRegularExpression>
 #include <QRegularExpressionValidator> // 验证器需要这个
@@ -301,6 +302,12 @@ public:
     void finishSixAxisPoseWait(bool timedOut);
     /** @brief 615 回读：等待位置 0 后关窗 */
     void checkSixAxisPoseWaitCompletion(int address, quint16 value);
+    /** @brief 显示步进运动提示窗（样式同底盘切换；松开使能即关，不等待到位信号） */
+    void showStepMotionWaitDialog(const QString &message);
+    /** @brief 隐藏步进运动提示窗 */
+    void hideStepMotionWaitDialog();
+    /** @brief 使能松开时关闭“等信号关窗”的运动等待弹窗（步进除外）并记中断 */
+    void interruptEnableGatedWaitPopupsOnEnableRelease();
     /** @brief 将缓存中的 5007/5008 同步到功能控制台当前值框 */
     void syncChassisRetractThresholdEditsToConsole();
     /** @brief 支腿打开前：绕车干涉检查弹窗（30 秒倒计时后可确认） */
@@ -406,7 +413,7 @@ public:
     /** @brief 初始化按键管理器 */
     void setupKeyManager();
 #ifdef ENABLE_VIRTUAL_MATRIX_KEYS
-    /** @brief 本机 Debug：叠一层虚拟外部按键，接到真实矩阵键/使能槽 */
+    /** @brief 本机 Debug：弹出独立虚拟外部按键窗口，接到真实矩阵键/使能槽 */
     void setupVirtualMatrixKeyPanel();
 #endif
     /** @brief 初始化线程监控 UI */
@@ -764,6 +771,8 @@ private:
     int m_sixAxisPoseWaitBit = -1;
     bool m_sixAxisPoseWaitSawActive = false;
     qint64 m_sixAxisPoseWaitBeginMs = 0;
+    QDialog *m_stepMotionWaitDialog = nullptr;
+    QLabel *m_stepMotionWaitLabel = nullptr;
     /** @brief 支腿打开前绕车干涉检查弹窗 */
     QDialog *m_legOpenPathCheckDialog = nullptr;
     QLabel *m_legOpenPathCheckMessageLabel = nullptr;
@@ -948,6 +957,7 @@ private:
     QButtonGroup *m_stepTargetGroup = nullptr;
     QButtonGroup *m_sixAxisStepTargetGroup = nullptr;
     QButtonGroup *m_agvStepDirectionGroup = nullptr;
+    QAbstractButton *m_agvStepPadLastSelection = nullptr;
     bool m_pendingAgvStepSteer = false; // 步进九键盘：等待目标模式到位后写角度
     int m_pendingAgvStepReadyBit = -1;
     double m_pendingAgvStepAngleDeg = 0;
@@ -1341,6 +1351,8 @@ private:
     void handleMatrixKeyAction(int keyNumber, bool pressed);
     /** @brief 外部运动键是否视为已使能（功能关闭时不拦截） */
     bool isExternalKeyEnableHeld() const;
+    /** @brief 屏幕运动操作使能拦截：未按时提示并返回 true */
+    bool rejectIfEnableNotHeld();
     /** @brief 使能松开时对仍按下的外部键补一次释放，停轴 */
     void releaseHeldExternalKeysOnEnableRelease();
 

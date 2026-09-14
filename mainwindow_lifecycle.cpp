@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "featureswitchmanager.h"
+#ifdef ENABLE_VIRTUAL_MATRIX_KEYS
+#include "virtualmatrixkeypanel.h"
+#endif
 
 #include <QApplication>
 #include <QStackedWidget>
@@ -104,6 +107,14 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     qDebug() << "正在清理资源...";
+
+#ifdef ENABLE_VIRTUAL_MATRIX_KEYS
+    if (m_virtualMatrixKeyPanel) {
+        m_virtualMatrixKeyPanel->disconnect(this);
+        delete m_virtualMatrixKeyPanel;
+        m_virtualMatrixKeyPanel = nullptr;
+    }
+#endif
 
     if (qApp) {
         qApp->removeEventFilter(this);
