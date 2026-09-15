@@ -1979,7 +1979,7 @@ void FeatureSwitchWidget::loadSliderLimitState()
         {"robot_ArcGauge_SixAxis6", qMakePair(-90.0, 90.0)},
         {"agv_park_out_trigger_length", qMakePair(100.0, 1100.0)},
         {"weight_overload_limit", qMakePair(0.0, 350.0)},
-        {"weight_lock_limit", qMakePair(0.0, 400.0)},
+        {"weight_lock_limit", qMakePair(0.0, 450.0)},
         {"column_retract_limit", qMakePair(0.0, 2000.0)},
         {"arm_extend_retract_limit", qMakePair(0.0, 2000.0)}
     };

@@ -401,7 +401,7 @@ QPair<int, int> weightLockLimitRangeFromSettings()
     QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
     settings.beginGroup(QStringLiteral("SliderLabelLimits"));
     int lo = qRound(settings.value(QStringLiteral("weight_lock_limit_min"), 0).toDouble());
-    int hi = qRound(settings.value(QStringLiteral("weight_lock_limit_max"), 400).toDouble());
+    int hi = qRound(settings.value(QStringLiteral("weight_lock_limit_max"), 450).toDouble());
     settings.endGroup();
     if (hi < lo) {
         qSwap(lo, hi);
@@ -714,22 +714,22 @@ void MainWindow::applyWeightThresholdRuntimeSettings()
     const QPair<int, int> overloadLim = weightOverloadLimitRangeFromSettings();
     const QPair<int, int> lockLim = weightLockLimitRangeFromSettings();
 
+    if (m_weightOverloadLimitRangeLabel) {
+        m_weightOverloadLimitRangeLabel->setText(
+            QStringLiteral("可输入范围：%1 ~ %2").arg(overloadLim.first).arg(overloadLim.second));
+    }
+    if (m_weightLockLimitRangeLabel) {
+        m_weightLockLimitRangeLabel->setText(
+            QStringLiteral("可输入范围：%1 ~ %2").arg(lockLim.first).arg(lockLim.second));
+    }
+
     if (m_weightOverloadLimitEdit) {
         if (!m_weightOverloadLimitValidator) {
             m_weightOverloadLimitValidator = new QIntValidator(this);
             m_weightOverloadLimitEdit->setValidator(m_weightOverloadLimitValidator);
         }
-        m_weightOverloadLimitValidator->setRange(overloadLim.first, overloadLim.second);
-
-        bool ok = false;
-        const int cur = m_weightOverloadLimitEdit->text().trimmed().toInt(&ok);
-        if (ok) {
-            const int clamped = qBound(overloadLim.first, cur, overloadLim.second);
-            if (clamped != cur) {
-                const QSignalBlocker blocker(m_weightOverloadLimitEdit);
-                m_weightOverloadLimitEdit->setText(QString::number(clamped));
-            }
-        }
+        // 只拦非整数；业务量程在失焦时校验并 Toast 拒绝，避免 QIntValidator 把超范围值夹回去。
+        m_weightOverloadLimitValidator->setRange(0, 1000000);
     }
 
     if (m_weightLockLimitEdit) {
@@ -737,17 +737,7 @@ void MainWindow::applyWeightThresholdRuntimeSettings()
             m_weightLockLimitValidator = new QIntValidator(this);
             m_weightLockLimitEdit->setValidator(m_weightLockLimitValidator);
         }
-        m_weightLockLimitValidator->setRange(lockLim.first, lockLim.second);
-
-        bool ok = false;
-        const int cur = m_weightLockLimitEdit->text().trimmed().toInt(&ok);
-        if (ok) {
-            const int clamped = qBound(lockLim.first, cur, lockLim.second);
-            if (clamped != cur) {
-                const QSignalBlocker blocker(m_weightLockLimitEdit);
-                m_weightLockLimitEdit->setText(QString::number(clamped));
-            }
-        }
+        m_weightLockLimitValidator->setRange(0, 1000000);
     }
 }
 
@@ -1937,6 +1927,10 @@ void MainWindow::setupControlConnections()
                                            .trimmed();
             const QString logTag = actionName.isEmpty() ? objectName : actionName;
             if (rejectIfEnableNotHeld()) {
+                return;
+            }
+            if (isRobotWeightLockGateActive()) {
+                blockRobotWeightLockOperation(QStringLiteral("超重锁定：仅允许六自由度 Z 轴下移"));
                 return;
             }
             if (!isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
@@ -3770,6 +3764,12 @@ void MainWindow::setupAdminPasswordPage()
 
     QLabel *overloadLimitLabel = new QLabel(QStringLiteral("负载超限阈值"), weightThresholdSection);
     overloadLimitLabel->setStyleSheet(weightLabelStyle);
+    QLabel *overloadRangeLabel = new QLabel(weightThresholdSection);
+    overloadRangeLabel->setObjectName(QStringLiteral("weightOverloadLimitRangeLabel"));
+    overloadRangeLabel->setAlignment(Qt::AlignCenter);
+    overloadRangeLabel->setStyleSheet(QStringLiteral(
+        "color: #88aacc; font-family: 'Microsoft YaHei UI'; font-size: 12px;"));
+    m_weightOverloadLimitRangeLabel = overloadRangeLabel;
     QLineEdit *weightOverloadLimitEdit = new QLineEdit(weightThresholdSection);
     weightOverloadLimitEdit->setObjectName(QStringLiteral("weightOverloadLimitEdit"));
     weightOverloadLimitEdit->setAlignment(Qt::AlignCenter);
@@ -3778,6 +3778,12 @@ void MainWindow::setupAdminPasswordPage()
 
     QLabel *lockLimitLabel = new QLabel(QStringLiteral("负载超重阈值"), weightThresholdSection);
     lockLimitLabel->setStyleSheet(weightLabelStyle);
+    QLabel *lockRangeLabel = new QLabel(weightThresholdSection);
+    lockRangeLabel->setObjectName(QStringLiteral("weightLockLimitRangeLabel"));
+    lockRangeLabel->setAlignment(Qt::AlignCenter);
+    lockRangeLabel->setStyleSheet(QStringLiteral(
+        "color: #88aacc; font-family: 'Microsoft YaHei UI'; font-size: 12px;"));
+    m_weightLockLimitRangeLabel = lockRangeLabel;
     QLineEdit *weightLockLimitEdit = new QLineEdit(weightThresholdSection);
     weightLockLimitEdit->setObjectName(QStringLiteral("weightLockLimitEdit"));
     weightLockLimitEdit->setAlignment(Qt::AlignCenter);
@@ -3785,9 +3791,11 @@ void MainWindow::setupAdminPasswordPage()
     m_weightLockLimitEdit = weightLockLimitEdit;
 
     weightMainLayout->addWidget(overloadLimitLabel);
+    weightMainLayout->addWidget(overloadRangeLabel);
     weightMainLayout->addWidget(weightOverloadLimitEdit);
     weightMainLayout->addSpacing(8);
     weightMainLayout->addWidget(lockLimitLabel);
+    weightMainLayout->addWidget(lockRangeLabel);
     weightMainLayout->addWidget(weightLockLimitEdit);
     weightThresholdSection->setVisible(false);
 
@@ -3816,7 +3824,7 @@ void MainWindow::setupAdminPasswordPage()
     containerLayout->addStretch(3);
 
     // 设置容器大小和居中
-    container->setFixedSize(480, 480);
+    container->setFixedSize(480, 560);
 
     // 添加容器到主布局
     QHBoxLayout *centerLayout = new QHBoxLayout();
@@ -3947,21 +3955,24 @@ void MainWindow::setupAdminPasswordPage()
         bool ok = false;
         const QPair<int, int> overloadLim = weightOverloadLimitRangeFromSettings();
         int value = weightOverloadLimitEdit->text().trimmed().toInt(&ok);
-        if (!ok) {
-            if (ui && ui->statusBar) {
-                ui->statusBar->showMessage(QStringLiteral("负载超限阈值无效，请输入整数"), 3000);
-            }
+        const auto restoreOverload = [weightOverloadLimitEdit]() {
             if (g_registerCache.contains(5004)) {
                 const QSignalBlocker blocker(weightOverloadLimitEdit);
                 weightOverloadLimitEdit->setText(QString::number(g_registerCache.value(5004)));
             }
+        };
+        if (!ok) {
+            restoreOverload();
+            showToast(QStringLiteral("负载超限阈值无效，请输入整数"), ToastKind::Warning);
             return;
         }
-        const int rawOverload = value;
-        value = qBound(overloadLim.first, value, overloadLim.second);
-        if (value != rawOverload) {
-            const QSignalBlocker blocker(weightOverloadLimitEdit);
-            weightOverloadLimitEdit->setText(QString::number(value));
+        if (value < overloadLim.first || value > overloadLim.second) {
+            restoreOverload();
+            showToast(QStringLiteral("负载超限阈值超出可输入范围（%1 ~ %2）")
+                          .arg(overloadLim.first)
+                          .arg(overloadLim.second),
+                      ToastKind::Warning);
+            return;
         }
         bool lockOk = false;
         int lockValue = weightLockLimitEdit->text().trimmed().toInt(&lockOk);
@@ -3969,12 +3980,9 @@ void MainWindow::setupAdminPasswordPage()
             lockValue = static_cast<int>(g_registerCache.value(5005));
             lockOk = true;
         }
-        if (lockOk && value > lockValue) {
-            if (g_registerCache.contains(5004)) {
-                const QSignalBlocker blocker(weightOverloadLimitEdit);
-                weightOverloadLimitEdit->setText(QString::number(g_registerCache.value(5004)));
-            }
-            showNotification(QStringLiteral("负载超限阈值不能大于负载超重阈值"));
+        if (lockOk && value >= lockValue) {
+            restoreOverload();
+            showToast(QStringLiteral("负载超限阈值必须小于负载超重阈值"), ToastKind::Warning);
             return;
         }
         writeToMainDevice(5004, value);
@@ -3997,21 +4005,24 @@ void MainWindow::setupAdminPasswordPage()
         bool ok = false;
         const QPair<int, int> lockLim = weightLockLimitRangeFromSettings();
         int value = weightLockLimitEdit->text().trimmed().toInt(&ok);
-        if (!ok) {
-            if (ui && ui->statusBar) {
-                ui->statusBar->showMessage(QStringLiteral("负载超重阈值无效，请输入整数"), 3000);
-            }
+        const auto restoreLock = [weightLockLimitEdit]() {
             if (g_registerCache.contains(5005)) {
                 const QSignalBlocker blocker(weightLockLimitEdit);
                 weightLockLimitEdit->setText(QString::number(g_registerCache.value(5005)));
             }
+        };
+        if (!ok) {
+            restoreLock();
+            showToast(QStringLiteral("负载超重阈值无效，请输入整数"), ToastKind::Warning);
             return;
         }
-        const int rawLock = value;
-        value = qBound(lockLim.first, value, lockLim.second);
-        if (value != rawLock) {
-            const QSignalBlocker blocker(weightLockLimitEdit);
-            weightLockLimitEdit->setText(QString::number(value));
+        if (value < lockLim.first || value > lockLim.second) {
+            restoreLock();
+            showToast(QStringLiteral("负载超重阈值超出可输入范围（%1 ~ %2）")
+                          .arg(lockLim.first)
+                          .arg(lockLim.second),
+                      ToastKind::Warning);
+            return;
         }
         bool overloadOk = false;
         int overloadValue = weightOverloadLimitEdit->text().trimmed().toInt(&overloadOk);
@@ -4019,12 +4030,9 @@ void MainWindow::setupAdminPasswordPage()
             overloadValue = static_cast<int>(g_registerCache.value(5004));
             overloadOk = true;
         }
-        if (overloadOk && value < overloadValue) {
-            if (g_registerCache.contains(5005)) {
-                const QSignalBlocker blocker(weightLockLimitEdit);
-                weightLockLimitEdit->setText(QString::number(g_registerCache.value(5005)));
-            }
-            showNotification(QStringLiteral("负载超限阈值不能大于负载超重阈值"));
+        if (overloadOk && value <= overloadValue) {
+            restoreLock();
+            showToast(QStringLiteral("负载超限阈值必须小于负载超重阈值"), ToastKind::Warning);
             return;
         }
         writeToMainDevice(5005, value);
@@ -4959,10 +4967,18 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             return;
         }
     }
-    // 负载超重锁定（150.bit7）仍有效时：拦截全部外部按键
-    if (pressed && isRobotWeightLockGateActive()) {
-        blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：该外部按键操作已无效"));
-        return;
+    // 负载超重锁定（150.bit7）：仅放行六自由度 Z 轴 ○1 下移；在途松开仍停轴
+    if (isRobotWeightLockGateActive()) {
+        const bool keyHeld = m_robotExternalKeyPressed.value(keyNumber, false)
+            || m_sixAxisExternalKeyPressed.value(keyNumber, false)
+            || m_robotActiveKey == keyNumber
+            || m_sixAxisActiveKey == keyNumber;
+        if (!isWeightLockZDownExempt(keyNumber, pressed) && (pressed || !keyHeld)) {
+            if (pressed) {
+                blockRobotWeightLockOperation(QStringLiteral("超重锁定：仅允许六自由度 Z 轴下移"));
+            }
+            return;
+        }
     }
     // 支腿异常（51.bit7=1）时：拦截全部外部按键，并确保异常操作弹窗可见
     if (m_agvLegAbnormal51Bit7Flag) {
@@ -6565,6 +6581,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             if (weightLock) {
                 m_robotWeightLockUserAckedWhileActive = false;
                 hideRobotWeightOverloadDialog();
+                prepareWeightLockZDownUnlock();
                 showRobotWeightLockDialog();
             } else {
                 hideRobotWeightLockDialog();
@@ -11013,6 +11030,14 @@ void MainWindow::setupStepMoveControl()
         m_sixAxisStepTargetGroup->addButton(btn);
 
         connect(btn, &QToolButton::clicked, this, [this, btn]() {
+            if (isRobotWeightLockGateActive()
+                && btn
+                && btn->objectName() != QStringLiteral("btnStepTargetSixAxis6")) {
+                blockRobotWeightLockOperation(QStringLiteral("超重锁定：仅允许六自由度 Z 轴下移"));
+                prepareWeightLockZDownUnlock();
+                return;
+            }
+
             if (!m_stepModeEnabled || m_stepModeUnknown || !btn || !btn->isChecked()) {
                 return;
             }
@@ -14202,6 +14227,31 @@ bool MainWindow::isRobotWeightLockGateActive() const
     return m_robotWeightLock150Bit7Flag;
 }
 
+bool MainWindow::isWeightLockZDownExempt(int keyNumber, bool pressed) const
+{
+    if (!isSixAxisViewActive() || selectedSixAxisTargetIndex() != 6) {
+        return false;
+    }
+    if (!pressed) {
+        return m_sixAxisExternalKeyPressed.value(keyNumber, false)
+            || m_sixAxisActiveKey == keyNumber;
+    }
+    return keyNumber == 1;
+}
+
+void MainWindow::prepareWeightLockZDownUnlock()
+{
+    showSixAxisView();
+    QAbstractButton *zBtn = findChild<QAbstractButton*>(QStringLiteral("btnStepTargetSixAxis6"));
+    if (!zBtn) {
+        return;
+    }
+    zBtn->setChecked(true);
+    if (!m_stepModeUnknown && m_stepModeEnabled) {
+        writeToMainDevice(614, 6);
+    }
+}
+
 void MainWindow::blockRobotWeightLockOperation(const QString &hint)
 {
     m_robotWeightLockUserAckedWhileActive = false;
@@ -14234,7 +14284,7 @@ void MainWindow::showRobotWeightLockDialog()
         m_robotWeightLockLabel = new QLabel(m_robotWeightLockWidget);
         m_robotWeightLockLabel->setAlignment(Qt::AlignCenter);
         m_robotWeightLockLabel->setWordWrap(true);
-        m_robotWeightLockLabel->setText(QStringLiteral("负载超重锁定，需应急解锁！"));
+        m_robotWeightLockLabel->setText(QStringLiteral("超重锁定！请在控制六自由度平台 Z 轴下移解除报警。"));
         layout->addWidget(m_robotWeightLockLabel);
 
         m_robotWeightLockConfirmBtn = new QPushButton(QStringLiteral("确认"), m_robotWeightLockWidget);
@@ -14243,7 +14293,7 @@ void MainWindow::showRobotWeightLockDialog()
         connect(m_robotWeightLockConfirmBtn, &QPushButton::clicked,
                 this, &MainWindow::onRobotWeightLockConfirmClicked);
 
-        m_robotWeightLockWidget->setFixedSize(360, 168);
+        m_robotWeightLockWidget->setFixedSize(420, 210);
         m_robotWeightLockWidget->setStyleSheet(
             "#robotWeightLockWidget {"
             "  background-color: rgba(45, 0, 0, 232);"
@@ -14279,7 +14329,6 @@ void MainWindow::showRobotWeightLockDialog()
 
 void MainWindow::onRobotWeightLockConfirmClicked()
 {
-    writeToMainDevice(290, 1);
     if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
@@ -14288,7 +14337,7 @@ void MainWindow::onRobotWeightLockConfirmClicked()
         record.controlType = QStringLiteral("提示窗口");
         record.operation = QStringLiteral("用户确认");
         record.oldValue = QString();
-        record.newValue = QStringLiteral("用户确认负载超重锁定提示，已向主控(192.168.1.13)寄存器290写入1");
+        record.newValue = QStringLiteral("用户确认超重锁定提示，请 Z 轴下移解除报警");
         m_recorder->addRecord(record);
     }
     m_robotWeightLockUserAckedWhileActive = true;

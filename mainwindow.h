@@ -278,6 +278,10 @@ public:
     void hideRobotWeightLockDialog();
     /** @brief 150.bit7 锁定态是否生效（拦截外部键/转向/控制模式/驻车/底盘当前角度） */
     bool isRobotWeightLockGateActive() const;
+    /** @brief 超重锁定时是否允许该外部键：六自由度 Z 轴 ○1 下移，或在途松开停轴 */
+    bool isWeightLockZDownExempt(int keyNumber, bool pressed) const;
+    /** @brief 超重置位时切到六自由度页并选中 Z，便于应急下移 */
+    void prepareWeightLockZDownUnlock();
     /** @brief bit7 锁定态下拦截操作并再次弹出锁定窗 */
     void blockRobotWeightLockOperation(const QString &hint);
     /** @brief 显示主副轴位置偏差提示窗（150.bit6=1），急停全屏清理时不隐藏 */
@@ -995,6 +999,8 @@ private:
     TechSliderEdit *m_editAGV_Angle = nullptr;
     QLineEdit *m_weightOverloadLimitEdit = nullptr;
     QLineEdit *m_weightLockLimitEdit = nullptr;
+    QLabel *m_weightOverloadLimitRangeLabel = nullptr;
+    QLabel *m_weightLockLimitRangeLabel = nullptr;
     QToolButton *m_controlModeBtn = nullptr;
     QToolButton *m_enableBtn = nullptr;
 
