@@ -25,6 +25,7 @@
 #include <QSignalBlocker>
 #include <QTabWidget>
 #include <QIntValidator>
+#include <QDoubleValidator>
 #include <QFrame>
 #include <QDialog>
 #include <QScrollBar>
@@ -37,6 +38,61 @@ using ButtonModbusMapping::kMaxTargetsPerDirection;
 using ButtonModbusMapping::loadRegisterSpecs;
 using ButtonModbusMapping::resolvedBinding;
 
+QString lastValidEditText(const QLineEdit *edit, const QString &fallback)
+{
+    if (!edit) {
+        return fallback;
+    }
+    const QString stored = edit->property("lastValidText").toString();
+    return stored.isEmpty() ? fallback : stored;
+}
+
+void rememberValidEditText(QLineEdit *edit, const QString &text = QString())
+{
+    if (!edit) {
+        return;
+    }
+    edit->setProperty("lastValidText", text.isEmpty() ? edit->text() : text);
+}
+
+void restoreLineEditText(QLineEdit *edit, const QString &text)
+{
+    if (!edit) {
+        return;
+    }
+    const QSignalBlocker blocker(edit);
+    edit->setText(text);
+}
+
+void toastInputOutOfRange(QWidget *host, double lo, double hi, int precision = 0)
+{
+    if (!host) {
+        return;
+    }
+    MainWindow *mw = qobject_cast<MainWindow*>(host->parentWidget());
+    if (!mw) {
+        mw = qobject_cast<MainWindow*>(host->parent());
+    }
+    if (!mw) {
+        return;
+    }
+    mw->showInputOutOfRangeToast(lo, hi, precision);
+}
+
+void toastInvalidNumber(QWidget *host, const QString &message)
+{
+    if (!host) {
+        return;
+    }
+    MainWindow *mw = qobject_cast<MainWindow*>(host->parentWidget());
+    if (!mw) {
+        mw = qobject_cast<MainWindow*>(host->parent());
+    }
+    if (!mw) {
+        return;
+    }
+    mw->showWarningToast(message);
+}
 
 bool hasModbusOperation(const MainWindow::ControllableButtonInfo &info)
 {
@@ -753,12 +809,35 @@ void FeatureSwitchWidget::setupNetworkUI(QVBoxLayout *scrollLayout)
         QLabel *prefix = new QLabel(prefixLabel);
         prefix->setMinimumWidth(150);
 
+        const auto wireIpOctet = [this](QLineEdit *edit, const QString &fallback) {
+            if (!edit) {
+                return;
+            }
+            rememberValidEditText(edit, fallback);
+            connect(edit, &QLineEdit::editingFinished, this, [this, edit, fallback]() {
+                bool ok = false;
+                const int v = edit->text().trimmed().toInt(&ok);
+                if (!ok || v < 0 || v > 255) {
+                    restoreLineEditText(edit, lastValidEditText(edit, fallback));
+                    if (!ok) {
+                        toastInvalidNumber(this, QStringLiteral("IP 段无效，请输入 0-255 的整数"));
+                    } else {
+                        toastInputOutOfRange(this, 0, 255);
+                    }
+                    return;
+                }
+                rememberValidEditText(edit, QString::number(v));
+            });
+        };
+
         subnetEdit = new QLineEdit();
         subnetEdit->setPlaceholderText(QStringLiteral("1"));
         subnetEdit->setFixedWidth(52);
         subnetEdit->setAlignment(Qt::AlignCenter);
-        subnetEdit->setValidator(new QIntValidator(0, 255, netGroup));
+        // 只拦非整数；0~255 在失焦时校验并 Toast 拒绝，避免 QIntValidator 把超范围值夹回去。
+        subnetEdit->setValidator(new QIntValidator(0, 999, netGroup));
         subnetEdit->installEventFilter(this);
+        wireIpOctet(subnetEdit, QStringLiteral("1"));
 
         QLabel *dot = new QLabel(QStringLiteral("."));
         dot->setAlignment(Qt::AlignCenter);
@@ -768,8 +847,9 @@ void FeatureSwitchWidget::setupNetworkUI(QVBoxLayout *scrollLayout)
         hostEdit->setPlaceholderText(QStringLiteral("70"));
         hostEdit->setFixedWidth(52);
         hostEdit->setAlignment(Qt::AlignCenter);
-        hostEdit->setValidator(new QIntValidator(0, 255, netGroup));
+        hostEdit->setValidator(new QIntValidator(0, 999, netGroup));
         hostEdit->installEventFilter(this);
+        wireIpOctet(hostEdit, QStringLiteral("70"));
 
         row->addWidget(prefix);
         row->addWidget(subnetEdit);
@@ -822,6 +902,7 @@ void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
             editRef = new QLineEdit(section);
             editRef->setMinimumWidth(88);
             editRef->setMaximumWidth(140);
+            editRef->setValidator(new QIntValidator(0, 1000000, section));
             editRef->installEventFilter(this);
             grid->addWidget(lbl, row, col);
             grid->addWidget(editRef, row, col + 1);
@@ -845,6 +926,39 @@ void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
         {QStringLiteral("Modbus 轮询"), &m_editAgvPoll},
         {QStringLiteral("重连间隔"), &m_editAgvReconnect},
     });
+
+    const auto wirePollRange = [this](QLineEdit *edit, int lo, int hi, int fallback) {
+        if (!edit) {
+            return;
+        }
+        rememberValidEditText(edit, QString::number(fallback));
+        connect(edit, &QLineEdit::editingFinished, this, [this, edit, lo, hi, fallback]() {
+            bool ok = false;
+            const int v = edit->text().trimmed().toInt(&ok);
+            if (!ok) {
+                restoreLineEditText(edit, lastValidEditText(edit, QString::number(fallback)));
+                toastInvalidNumber(this, QStringLiteral("请输入整数"));
+                return;
+            }
+            if (v < lo || v > hi) {
+                restoreLineEditText(edit, lastValidEditText(edit, QString::number(fallback)));
+                toastInputOutOfRange(this, lo, hi);
+                return;
+            }
+            rememberValidEditText(edit, QString::number(v));
+        });
+    };
+    wirePollRange(m_editMainModbusPoll, 50, 60000, 500);
+    wirePollRange(m_editMainUiPoll, 50, 60000, 200);
+    wirePollRange(m_editMainDeviceStatusPoll, 50, 60000, 200);
+    wirePollRange(m_editMainDeviceStatusStart, 0, 65535, 0);
+    wirePollRange(m_editMainDeviceStatusCount, 1, 125, 85);
+    wirePollRange(m_editMainControlSyncStart, 0, 65535, 125);
+    wirePollRange(m_editMainControlSyncCount, 1, 125, 6);
+    wirePollRange(m_editMainReconnect, 500, 120000, 5000);
+    wirePollRange(m_editAgvPoll, 50, 60000, 200);
+    wirePollRange(m_editAgvReconnect, 500, 120000, 5000);
+    wirePollRange(m_editTeachingWriteDeviceId, 0, 255, 0);
 
     scrollLayout->addWidget(pollGroup);
 }
@@ -991,6 +1105,7 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
         (*valueEdit)->setPlaceholderText(QStringLiteral("当前值"));
         (*valueEdit)->setFixedWidth(80);
         (*valueEdit)->setAlignment(Qt::AlignCenter);
+        (*valueEdit)->setValidator(new QIntValidator(-1000000, 1000000, *valueEdit));
         (*valueEdit)->installEventFilter(this);
         row->addWidget(*valueEdit);
 
@@ -1037,14 +1152,18 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
                 qSwap(lo, hi);
             }
             bool ok = false;
-            int value = (*valueEdit)->text().trimmed().toInt(&ok);
+            const int value = (*valueEdit)->text().trimmed().toInt(&ok);
             if (!ok) {
-                (*valueEdit)->setText(QString::number(200));
+                restoreLineEditText(*valueEdit, lastValidEditText(*valueEdit, QStringLiteral("200")));
+                toastInvalidNumber(this, QStringLiteral("请输入整数"));
                 return;
             }
-            value = qBound(lo, value, hi);
-            const QSignalBlocker blocker(*valueEdit);
-            (*valueEdit)->setText(QString::number(value));
+            if (value < lo || value > hi) {
+                restoreLineEditText(*valueEdit, lastValidEditText(*valueEdit, QStringLiteral("200")));
+                toastInputOutOfRange(this, lo, hi);
+                return;
+            }
+            rememberValidEditText(*valueEdit, QString::number(value));
             emit mainDeviceRegisterWriteRequested(address, value);
         });
     };
@@ -1061,10 +1180,12 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
     if (m_editColumnRetractLimit) {
         m_editColumnRetractLimit->setObjectName(QStringLiteral("columnRetractLimitEdit"));
         m_editColumnRetractLimit->setText(QStringLiteral("200"));
+        rememberValidEditText(m_editColumnRetractLimit, QStringLiteral("200"));
     }
     if (m_editArmRetractLimit) {
         m_editArmRetractLimit->setObjectName(QStringLiteral("armRetractLimitEdit"));
         m_editArmRetractLimit->setText(QStringLiteral("200"));
+        rememberValidEditText(m_editArmRetractLimit, QStringLiteral("200"));
     }
 
     scrollLayout->addWidget(otherGroup);
@@ -1272,6 +1393,7 @@ void FeatureSwitchWidget::setupInclinometerThresholdUI(QVBoxLayout *scrollLayout
         h->addWidget(new QLabel(desc));
         edit = new QLineEdit();
         edit->setFixedWidth(120);
+        edit->setValidator(new QDoubleValidator(-1000000.0, 1000000.0, 2, this));
         edit->installEventFilter(this);
         h->addWidget(edit);
         h->addStretch();
@@ -1280,6 +1402,30 @@ void FeatureSwitchWidget::setupInclinometerThresholdUI(QVBoxLayout *scrollLayout
 
     addRow(QStringLiteral("X 轴阈值"), m_editInclinometerThresholdX);
     addRow(QStringLiteral("Y 轴阈值"), m_editInclinometerThresholdY);
+
+    const auto wireIncRange = [this](QLineEdit *edit) {
+        if (!edit) {
+            return;
+        }
+        rememberValidEditText(edit, QStringLiteral("1.00"));
+        connect(edit, &QLineEdit::editingFinished, this, [this, edit]() {
+            bool ok = false;
+            const double v = edit->text().trimmed().toDouble(&ok);
+            if (!ok) {
+                restoreLineEditText(edit, lastValidEditText(edit, QStringLiteral("1.00")));
+                toastInvalidNumber(this, QStringLiteral("请输入有效数字"));
+                return;
+            }
+            if (v < 0.01 || v > 90.0) {
+                restoreLineEditText(edit, lastValidEditText(edit, QStringLiteral("1.00")));
+                toastInputOutOfRange(this, 0.01, 90.0, 2);
+                return;
+            }
+            rememberValidEditText(edit, QString::number(v, 'f', 2));
+        });
+    };
+    wireIncRange(m_editInclinometerThresholdX);
+    wireIncRange(m_editInclinometerThresholdY);
 
     scrollLayout->addWidget(incGroup);
 }
@@ -1295,11 +1441,34 @@ void FeatureSwitchWidget::setupPlaneHeightOffsetUI(QVBoxLayout *scrollLayout)
     h->addWidget(new QLabel(QStringLiteral("偏移量")));
     m_editPlaneHeightOffset = new QLineEdit();
     m_editPlaneHeightOffset->setFixedWidth(120);
+    m_editPlaneHeightOffset->setValidator(new QDoubleValidator(-1000000.0, 1000000.0, 0, this));
     m_editPlaneHeightOffset->installEventFilter(this);
     h->addWidget(m_editPlaneHeightOffset);
     h->addWidget(new QLabel(QStringLiteral("mm")));
     h->addStretch();
     planeLayout->addLayout(h);
+
+    rememberValidEditText(m_editPlaneHeightOffset, QStringLiteral("1900"));
+    connect(m_editPlaneHeightOffset, &QLineEdit::editingFinished, this, [this]() {
+        if (!m_editPlaneHeightOffset) {
+            return;
+        }
+        bool ok = false;
+        const double v = m_editPlaneHeightOffset->text().trimmed().toDouble(&ok);
+        if (!ok) {
+            restoreLineEditText(m_editPlaneHeightOffset,
+                                lastValidEditText(m_editPlaneHeightOffset, QStringLiteral("1900")));
+            toastInvalidNumber(this, QStringLiteral("请输入有效数字"));
+            return;
+        }
+        if (v < -100000.0 || v > 100000.0) {
+            restoreLineEditText(m_editPlaneHeightOffset,
+                                lastValidEditText(m_editPlaneHeightOffset, QStringLiteral("1900")));
+            toastInputOutOfRange(this, -100000.0, 100000.0);
+            return;
+        }
+        rememberValidEditText(m_editPlaneHeightOffset, QString::number(v, 'f', 0));
+    });
 
     scrollLayout->addWidget(planeGroup);
 }
@@ -1659,24 +1828,41 @@ void FeatureSwitchWidget::loadInclinometerThresholdState()
         QString::number(settings.value("display_threshold_x_deg", 1.0).toDouble(), 'f', 2));
     m_editInclinometerThresholdY->setText(
         QString::number(settings.value("display_threshold_y_deg", 1.0).toDouble(), 'f', 2));
+    rememberValidEditText(m_editInclinometerThresholdX);
+    rememberValidEditText(m_editInclinometerThresholdY);
     settings.endGroup();
 }
 
 void FeatureSwitchWidget::saveInclinometerThresholdState()
 {
-    auto parseBounded = [](const QString &text, double fallback) -> double {
-        bool ok = false;
-        const double v = text.trimmed().toDouble(&ok);
-        if (!ok) {
+    auto parseOrReject = [this](QLineEdit *edit, double fallback) -> double {
+        if (!edit) {
             return fallback;
         }
-        return qBound(0.01, v, 90.0);
+        bool ok = false;
+        const double v = edit->text().trimmed().toDouble(&ok);
+        if (!ok) {
+            restoreLineEditText(edit, lastValidEditText(edit, QString::number(fallback, 'f', 2)));
+            toastInvalidNumber(this, QStringLiteral("请输入有效数字"));
+            bool restoreOk = false;
+            const double restored = edit->text().trimmed().toDouble(&restoreOk);
+            return restoreOk ? restored : fallback;
+        }
+        if (v < 0.01 || v > 90.0) {
+            restoreLineEditText(edit, lastValidEditText(edit, QString::number(fallback, 'f', 2)));
+            toastInputOutOfRange(this, 0.01, 90.0, 2);
+            bool restoreOk = false;
+            const double restored = edit->text().trimmed().toDouble(&restoreOk);
+            return restoreOk ? restored : fallback;
+        }
+        rememberValidEditText(edit, QString::number(v, 'f', 2));
+        return v;
     };
 
     QSettings settings("config.ini", QSettings::IniFormat);
     settings.beginGroup("Inclinometer");
-    settings.setValue("display_threshold_x_deg", parseBounded(m_editInclinometerThresholdX->text(), 1.0));
-    settings.setValue("display_threshold_y_deg", parseBounded(m_editInclinometerThresholdY->text(), 1.0));
+    settings.setValue("display_threshold_x_deg", parseOrReject(m_editInclinometerThresholdX, 1.0));
+    settings.setValue("display_threshold_y_deg", parseOrReject(m_editInclinometerThresholdY, 1.0));
     settings.endGroup();
     settings.sync();
 }
@@ -1689,24 +1875,39 @@ void FeatureSwitchWidget::loadPlaneHeightOffsetState()
     settings.endGroup();
     if (m_editPlaneHeightOffset) {
         m_editPlaneHeightOffset->setText(QString::number(offset, 'f', 0));
+        rememberValidEditText(m_editPlaneHeightOffset);
     }
 }
 
 void FeatureSwitchWidget::savePlaneHeightOffsetState()
 {
-    auto parseOffset = [](const QString &text, double fallback) -> double {
+    double offset = 1900.0;
+    if (m_editPlaneHeightOffset) {
         bool ok = false;
-        const double v = text.trimmed().toDouble(&ok);
+        const double v = m_editPlaneHeightOffset->text().trimmed().toDouble(&ok);
         if (!ok) {
-            return fallback;
+            restoreLineEditText(m_editPlaneHeightOffset,
+                                lastValidEditText(m_editPlaneHeightOffset, QStringLiteral("1900")));
+            toastInvalidNumber(this, QStringLiteral("请输入有效数字"));
+            bool restoreOk = false;
+            const double restored = m_editPlaneHeightOffset->text().trimmed().toDouble(&restoreOk);
+            offset = restoreOk ? restored : 1900.0;
+        } else if (v < -100000.0 || v > 100000.0) {
+            restoreLineEditText(m_editPlaneHeightOffset,
+                                lastValidEditText(m_editPlaneHeightOffset, QStringLiteral("1900")));
+            toastInputOutOfRange(this, -100000.0, 100000.0);
+            bool restoreOk = false;
+            const double restored = m_editPlaneHeightOffset->text().trimmed().toDouble(&restoreOk);
+            offset = restoreOk ? restored : 1900.0;
+        } else {
+            rememberValidEditText(m_editPlaneHeightOffset, QString::number(v, 'f', 0));
+            offset = v;
         }
-        return qBound(-100000.0, v, 100000.0);
-    };
+    }
 
     QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
     settings.beginGroup(QStringLiteral("PlaneHeight"));
-    settings.setValue(QStringLiteral("offset_mm"),
-                      parseOffset(m_editPlaneHeightOffset ? m_editPlaneHeightOffset->text() : QString(), 1900.0));
+    settings.setValue(QStringLiteral("offset_mm"), offset);
     settings.endGroup();
     settings.sync();
 }
@@ -1878,6 +2079,8 @@ void FeatureSwitchWidget::loadNetworkState()
         const QString host = parts.size() >= 4 ? parts.at(3) : defaultHost;
         subnetEdit->setText(subnet);
         hostEdit->setText(host);
+        rememberValidEditText(subnetEdit, subnet);
+        rememberValidEditText(hostEdit, host);
     };
 
     QSettings settings("config.ini", QSettings::IniFormat);
@@ -1909,7 +2112,21 @@ bool FeatureSwitchWidget::saveNetworkState()
     const QString tcpHost = composeIp(m_editWin7Subnet, m_editWin7Host);
     const QString simHost = composeIp(m_editSimSubnet, m_editSimHost);
     if (tcpHost.isEmpty() || simHost.isEmpty()) {
-        QMessageBox::warning(this, QStringLiteral("网络配置"), QStringLiteral("IP 段无效，请输入 0-255 的整数"));
+        auto restoreOctet = [this](QLineEdit *edit, const QString &fallback) {
+            if (!edit) {
+                return;
+            }
+            bool ok = false;
+            const int v = edit->text().trimmed().toInt(&ok);
+            if (!ok || v < 0 || v > 255) {
+                restoreLineEditText(edit, lastValidEditText(edit, fallback));
+            }
+        };
+        restoreOctet(m_editWin7Subnet, QStringLiteral("1"));
+        restoreOctet(m_editWin7Host, QStringLiteral("70"));
+        restoreOctet(m_editSimSubnet, QStringLiteral("1"));
+        restoreOctet(m_editSimHost, QStringLiteral("70"));
+        toastInputOutOfRange(this, 0, 255);
         return false;
     }
 
@@ -1940,6 +2157,17 @@ void FeatureSwitchWidget::loadPollingState()
     m_editAgvPoll->setText(settings.value("agv_poll_ms", 200).toString());
     m_editAgvReconnect->setText(settings.value("agv_reconnect_ms", 5000).toString());
     m_editTeachingWriteDeviceId->setText(QString::number(settings.value("teaching_write_device_id", 0).toInt()));
+    rememberValidEditText(m_editMainModbusPoll);
+    rememberValidEditText(m_editMainUiPoll);
+    rememberValidEditText(m_editMainDeviceStatusPoll);
+    rememberValidEditText(m_editMainDeviceStatusStart);
+    rememberValidEditText(m_editMainDeviceStatusCount);
+    rememberValidEditText(m_editMainControlSyncStart);
+    rememberValidEditText(m_editMainControlSyncCount);
+    rememberValidEditText(m_editMainReconnect);
+    rememberValidEditText(m_editAgvPoll);
+    rememberValidEditText(m_editAgvReconnect);
+    rememberValidEditText(m_editTeachingWriteDeviceId);
     settings.endGroup();
 }
 
@@ -1949,17 +2177,41 @@ void FeatureSwitchWidget::savePollingState()
     settings.beginGroup("Polling");
     settings.setValue("main_ui_state_sync_enabled", m_cbMainUiStateSync->isChecked());
     settings.setValue("agv_ui_state_sync_enabled", m_cbAgvUiStateSync->isChecked());
-    settings.setValue("main_modbus_poll_ms", m_editMainModbusPoll->text().toInt());
-    settings.setValue("main_ui_poll_ms", m_editMainUiPoll->text().toInt());
-    settings.setValue("main_device_status_poll_ms", m_editMainDeviceStatusPoll->text().toInt());
-    settings.setValue("main_device_status_start", m_editMainDeviceStatusStart->text().toInt());
-    settings.setValue("main_device_status_count", m_editMainDeviceStatusCount->text().toInt());
-    settings.setValue("main_control_sync_start", m_editMainControlSyncStart->text().toInt());
-    settings.setValue("main_control_sync_count", m_editMainControlSyncCount->text().toInt());
-    settings.setValue("main_reconnect_ms", m_editMainReconnect->text().toInt());
-    settings.setValue("agv_poll_ms", m_editAgvPoll->text().toInt());
-    settings.setValue("agv_reconnect_ms", m_editAgvReconnect->text().toInt());
-    settings.setValue("teaching_write_device_id", m_editTeachingWriteDeviceId->text().toInt());
+
+    const auto saveBounded = [this, &settings](QLineEdit *edit, const QString &key, int lo, int hi, int fallback) {
+        if (!edit) {
+            settings.setValue(key, fallback);
+            return;
+        }
+        bool ok = false;
+        const int v = edit->text().trimmed().toInt(&ok);
+        if (!ok || v < lo || v > hi) {
+            restoreLineEditText(edit, lastValidEditText(edit, QString::number(fallback)));
+            if (!ok) {
+                toastInvalidNumber(this, QStringLiteral("请输入整数"));
+            } else {
+                toastInputOutOfRange(this, lo, hi);
+            }
+            bool restoreOk = false;
+            const int restored = edit->text().trimmed().toInt(&restoreOk);
+            settings.setValue(key, restoreOk ? restored : fallback);
+            return;
+        }
+        rememberValidEditText(edit, QString::number(v));
+        settings.setValue(key, v);
+    };
+
+    saveBounded(m_editMainModbusPoll, "main_modbus_poll_ms", 50, 60000, 500);
+    saveBounded(m_editMainUiPoll, "main_ui_poll_ms", 50, 60000, 200);
+    saveBounded(m_editMainDeviceStatusPoll, "main_device_status_poll_ms", 50, 60000, 200);
+    saveBounded(m_editMainDeviceStatusStart, "main_device_status_start", 0, 65535, 0);
+    saveBounded(m_editMainDeviceStatusCount, "main_device_status_count", 1, 125, 85);
+    saveBounded(m_editMainControlSyncStart, "main_control_sync_start", 0, 65535, 125);
+    saveBounded(m_editMainControlSyncCount, "main_control_sync_count", 1, 125, 6);
+    saveBounded(m_editMainReconnect, "main_reconnect_ms", 500, 120000, 5000);
+    saveBounded(m_editAgvPoll, "agv_poll_ms", 50, 60000, 200);
+    saveBounded(m_editAgvReconnect, "agv_reconnect_ms", 500, 120000, 5000);
+    saveBounded(m_editTeachingWriteDeviceId, "teaching_write_device_id", 0, 255, 0);
     settings.endGroup();
     settings.sync();
 }
@@ -2128,7 +2380,10 @@ void FeatureSwitchWidget::setChassisRetractCurrentValue(int address, int value)
     }
 
     const QSignalBlocker blocker(edit);
-    edit->setText(QString::number(qBound(lo, value, hi)));
+    edit->setText(QString::number(value));
+    if (value >= lo && value <= hi) {
+        rememberValidEditText(edit, QString::number(value));
+    }
 }
 
 void FeatureSwitchWidget::commitChassisRetractThresholdWrites()
@@ -2158,15 +2413,18 @@ void FeatureSwitchWidget::commitChassisRetractThresholdWrites()
             qSwap(lo, hi);
         }
         bool ok = false;
-        int value = edit->text().trimmed().toInt(&ok);
+        const int value = edit->text().trimmed().toInt(&ok);
         if (!ok) {
-            value = 200;
+            restoreLineEditText(edit, lastValidEditText(edit, QStringLiteral("200")));
+            toastInvalidNumber(this, QStringLiteral("请输入整数"));
+            return;
         }
-        value = qBound(lo, value, hi);
-        {
-            const QSignalBlocker blocker(edit);
-            edit->setText(QString::number(value));
+        if (value < lo || value > hi) {
+            restoreLineEditText(edit, lastValidEditText(edit, QStringLiteral("200")));
+            toastInputOutOfRange(this, lo, hi);
+            return;
         }
+        rememberValidEditText(edit, QString::number(value));
         emit mainDeviceRegisterWriteRequested(address, value);
     };
 

@@ -266,6 +266,10 @@ public:
     void showWirelessModeWarningDialog();
     /** @brief 隐藏遥控器控制互锁 Toast */
     void hideWirelessModeWarningDialog();
+    /** @brief 数字输入超出可输入范围时的 Toast */
+    void showInputOutOfRangeToast(double lo, double hi, int precision = 0);
+    /** @brief 警告级 Toast（供功能控制台等子页面调用） */
+    void showWarningToast(const QString &message);
     /** @brief 校验示教写门禁，未通过时弹出互锁提示并返回 false */
     bool verifyTeachingWriteGateOrShowDialog();
     /** @brief 显示负载超限预警窗（150.bit3=1） */

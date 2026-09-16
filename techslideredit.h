@@ -323,6 +323,8 @@ signals:
     void valueChangedWithRecord(double oldValue, double newValue);  // 新增信号
     void editingFinished();
     void modbusAddressChanged(int address);  // Modbus地址改变信号
+    /** @brief 键盘/虚拟键盘输入超出可输入范围，已拒绝并恢复原值 */
+    void rangeRejected(const QString &message);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -346,7 +348,6 @@ private:
     void updateLineEditFromValue();
     void updateRangeLabels();  // 新增：更新范围标签
     void setupPresetButtons(); // 新增：设置预设按钮样式
-    double clampLineEditInputValue(double value) const;
     void commitLineEditInput(double rawValue);
     double sliderToValue(int sliderVal) const;
     int valueToSlider(double value) const;

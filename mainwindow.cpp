@@ -378,6 +378,22 @@ QPair<int, int> parkOutTriggerLengthLimitsFromSettings()
     return {lo, hi};
 }
 
+int restoredParkLengthMm(int lastLengthMm)
+{
+    const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
+    const int fallback = lastLengthMm > 0 ? lastLengthMm : 1100;
+    return qBound(lim.first, fallback, lim.second);
+}
+
+void restoreParkLengthEdit(QLineEdit *edit, int lastLengthMm)
+{
+    if (!edit) {
+        return;
+    }
+    const QSignalBlocker blocker(edit);
+    edit->setText(QString::number(restoredParkLengthMm(lastLengthMm)));
+}
+
 QPair<int, int> weightOverloadLimitRangeFromSettings()
 {
     QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
@@ -685,7 +701,7 @@ void MainWindow::applyParkOutTriggerLengthRuntimeSettings()
     if (!m_parkOutTriggerLengthValidator) {
         m_parkOutTriggerLengthValidator = new QIntValidator(this);
     }
-    m_parkOutTriggerLengthValidator->setRange(lim.first, lim.second);
+    m_parkOutTriggerLengthValidator->setRange(0, 1000000);
 
     const auto applyToEdit = [this, lim](QLineEdit *ed, bool fillDefaultIfEmpty) {
         if (!ed) {
@@ -2995,6 +3011,9 @@ void MainWindow::initSliderEditUI()
     QList<TechSliderEdit*> nonAGVSliders;
 
     for (TechSliderEdit *slider : sliders) {
+        connect(slider, &TechSliderEdit::rangeRejected, this, [this](const QString &message) {
+            showToast(message, ToastKind::Warning);
+        });
         QString objName = slider->objectName();
 
         // 根据控件对象名设置特定的值范围
@@ -4258,6 +4277,21 @@ void MainWindow::showNotification(const QString &message)
 void MainWindow::showModbusWriteDisabledToast()
 {
     showToast(QStringLiteral("当前操作在目前设备上不被允许"), ToastKind::Warning);
+}
+
+void MainWindow::showWarningToast(const QString &message)
+{
+    showToast(message, ToastKind::Warning);
+}
+
+void MainWindow::showInputOutOfRangeToast(double lo, double hi, int precision)
+{
+    const QString message = (precision <= 0)
+        ? QStringLiteral("输入值超出可输入范围（%1 ~ %2）").arg(qRound(lo)).arg(qRound(hi))
+        : QStringLiteral("输入值超出可输入范围（%1 ~ %2）")
+              .arg(lo, 0, 'f', precision)
+              .arg(hi, 0, 'f', precision);
+    showToast(message, ToastKind::Warning);
 }
 
 void MainWindow::showToast(const QString &message,
@@ -9185,19 +9219,33 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
             bool lenOk = false;
             mm = lenEdit ? lenEdit->text().trimmed().toInt(&lenOk) : 0;
             if (!lenOk) {
-                mm = 1100;
+                restoreParkLengthEdit(m_parkingLegAbnormalLengthEdit, m_agvParkLastLengthMm);
+                showToast(QStringLiteral("请输入伸出距离"), ToastKind::Warning);
+                m_agvParkingEnabled = oldParkingEnabled;
+                restoreParkingUiAfterFailure(oldParkingEnabled);
+                return;
             }
         }
-        const int clampedMm = qBound(lim.first, mm, lim.second);
+        if (mm < lim.first || mm > lim.second) {
+            restoreParkLengthEdit(m_parkingLegAbnormalLengthEdit, m_agvParkLastLengthMm);
+            restoreParkLengthEdit(m_legControlLengthEdit, m_agvParkLastLengthMm);
+            showToast(QStringLiteral("输入值超出可输入范围（%1 ~ %2）")
+                          .arg(lim.first)
+                          .arg(lim.second),
+                      ToastKind::Warning);
+            m_agvParkingEnabled = oldParkingEnabled;
+            restoreParkingUiAfterFailure(oldParkingEnabled);
+            return;
+        }
 
         if (m_parkingLegAbnormalLengthEdit) {
-            m_parkingLegAbnormalLengthEdit->setText(QString::number(clampedMm));
+            m_parkingLegAbnormalLengthEdit->setText(QString::number(mm));
         }
         if (m_legControlLengthEdit) {
-            m_legControlLengthEdit->setText(QString::number(clampedMm));
+            m_legControlLengthEdit->setText(QString::number(mm));
         }
 
-        const auto wordsArr = doubleToRegistersGHEFCDAB(static_cast<double>(clampedMm));
+        const auto wordsArr = doubleToRegistersGHEFCDAB(static_cast<double>(mm));
         const QVector<quint16> parkLenWords = {wordsArr[0], wordsArr[1], wordsArr[2], wordsArr[3]};
 
         if (!writeAgvHoldingRegisterBlock(parkLengthAddr, parkLenWords)) {
@@ -9209,8 +9257,8 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
             updateParkingLegAbnormalDialogVisibility();
             return;
         }
-        m_agvParkLastLengthMm = clampedMm;
-        persistAgvParkLastLengthMm(clampedMm);
+        m_agvParkLastLengthMm = mm;
+        persistAgvParkLastLengthMm(mm);
     }
 
     const bool writeOk = writeAGVRegisterBits(parkWriteAddr,
@@ -12725,13 +12773,20 @@ void MainWindow::requestLegExtend(int legLengthMm)
     }
 
     const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
-    const int clampedMm = qBound(lim.first, legLengthMm, lim.second);
-    if (m_legControlLengthEdit) {
-        m_legControlLengthEdit->setText(QString::number(clampedMm));
+    if (legLengthMm < lim.first || legLengthMm > lim.second) {
+        restoreParkLengthEdit(m_legControlLengthEdit, m_agvParkLastLengthMm);
+        showToast(QStringLiteral("输入值超出可输入范围（%1 ~ %2）")
+                      .arg(lim.first)
+                      .arg(lim.second),
+                  ToastKind::Warning);
+        return;
     }
-    appendLegControlHistory(legExtendCommandHistoryText(clampedMm));
+    if (m_legControlLengthEdit) {
+        m_legControlLengthEdit->setText(QString::number(legLengthMm));
+    }
+    appendLegControlHistory(legExtendCommandHistoryText(legLengthMm));
     hideLegControlDialog();
-    showLegOpenPathCheckDialog(clampedMm);
+    showLegOpenPathCheckDialog(legLengthMm);
 }
 
 void MainWindow::requestLegRetract()
@@ -13063,13 +13118,16 @@ void MainWindow::showParkingLegAbnormalDialog()
             }
             const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
             bool ok = false;
-            int v = m_parkingLegAbnormalLengthEdit->text().trimmed().toInt(&ok);
+            const int v = m_parkingLegAbnormalLengthEdit->text().trimmed().toInt(&ok);
             if (!ok) {
-                v = 1100;
+                showToast(QStringLiteral("请输入伸出距离"), ToastKind::Warning);
+                return;
             }
-            const int clampedMm = qBound(lim.first, v, lim.second);
-            if (clampedMm != v || !ok) {
-                m_parkingLegAbnormalLengthEdit->setText(QString::number(clampedMm));
+            if (v < lim.first || v > lim.second) {
+                showToast(QStringLiteral("输入值超出可输入范围（%1 ~ %2）")
+                              .arg(lim.first)
+                              .arg(lim.second),
+                          ToastKind::Warning);
             }
         });
 
@@ -13079,15 +13137,23 @@ void MainWindow::showParkingLegAbnormalDialog()
             }
             const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
             bool ok = false;
-            int v = m_parkingLegAbnormalLengthEdit->text().trimmed().toInt(&ok);
+            const int v = m_parkingLegAbnormalLengthEdit->text().trimmed().toInt(&ok);
             if (!ok) {
-                v = 1100;
+                restoreParkLengthEdit(m_parkingLegAbnormalLengthEdit, m_agvParkLastLengthMm);
+                showToast(QStringLiteral("请输入伸出距离"), ToastKind::Warning);
+                return;
             }
-            const int clampedMm = qBound(lim.first, v, lim.second);
-            m_parkingLegAbnormalLengthEdit->setText(QString::number(clampedMm));
+            if (v < lim.first || v > lim.second) {
+                restoreParkLengthEdit(m_parkingLegAbnormalLengthEdit, m_agvParkLastLengthMm);
+                showToast(QStringLiteral("输入值超出可输入范围（%1 ~ %2）")
+                              .arg(lim.first)
+                              .arg(lim.second),
+                          ToastKind::Warning);
+                return;
+            }
             hideParkingLegAbnormalDialog();
-            appendLegControlHistory(QStringLiteral("支腿异常窗确认展出：%1mm").arg(clampedMm));
-            showLegOpenPathCheckDialog(clampedMm);
+            appendLegControlHistory(QStringLiteral("支腿异常窗确认展出：%1mm").arg(v));
+            showLegOpenPathCheckDialog(v);
         });
 
         connect(disableBtn, &QPushButton::clicked, this, [this]() {
@@ -13137,11 +13203,10 @@ void MainWindow::showParkingLegAbnormalDialog()
             "}");
     }
 
-    const QPair<int, int> lim = parkOutTriggerLengthLimitsFromSettings();
     if (!m_parkOutTriggerLengthValidator) {
         m_parkOutTriggerLengthValidator = new QIntValidator(this);
     }
-    m_parkOutTriggerLengthValidator->setRange(lim.first, lim.second);
+    m_parkOutTriggerLengthValidator->setRange(0, 1000000);
     if (m_parkingLegAbnormalLengthEdit) {
         m_parkingLegAbnormalLengthEdit->setValidator(m_parkOutTriggerLengthValidator);
         if (m_parkingLegAbnormalLengthEdit->text().trimmed().isEmpty()) {

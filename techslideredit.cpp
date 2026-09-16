@@ -312,21 +312,28 @@ void TechSliderEdit::onLineEditTextChanged()
     // 实时验证，但不立即更新滑块（等待编辑完成）
 }
 
-double TechSliderEdit::clampLineEditInputValue(double value) const
-{
-    double clamped = qBound(m_lineEditInputMinimum, value, m_lineEditInputMaximum);
-    if (m_precision > 0) {
-        clamped = qRound(clamped * m_conversionFactor) / static_cast<double>(m_conversionFactor);
-    } else {
-        clamped = qRound(clamped);
-    }
-    return qBound(m_lineEditInputMinimum, clamped, m_lineEditInputMaximum);
-}
-
 void TechSliderEdit::commitLineEditInput(double rawValue)
 {
-    double newValue = clampLineEditInputValue(rawValue);
-    newValue = qBound(m_minimum, newValue, m_maximum);
+    double newValue = rawValue;
+    if (m_precision > 0) {
+        newValue = qRound(newValue * m_conversionFactor) / static_cast<double>(m_conversionFactor);
+    } else {
+        newValue = qRound(newValue);
+    }
+
+    const double inMin = qMin(m_lineEditInputMinimum, m_lineEditInputMaximum);
+    const double inMax = qMax(m_lineEditInputMinimum, m_lineEditInputMaximum);
+    const double valMin = qMin(m_minimum, m_maximum);
+    const double valMax = qMax(m_minimum, m_maximum);
+    const double lo = qMax(inMin, valMin);
+    const double hi = qMin(inMax, valMax);
+    if (newValue < lo || newValue > hi) {
+        updateLineEditFromValue();
+        emit rangeRejected(QStringLiteral("输入值超出可输入范围（%1 ~ %2）")
+                               .arg(lo, 0, 'f', m_precision)
+                               .arg(hi, 0, 'f', m_precision));
+        return;
+    }
 
     if (qAbs(newValue - m_value) > 0.0001) {
         m_oldValue = m_value;
@@ -426,12 +433,13 @@ void TechSliderEdit::onSliderValueChanged(int sliderValue)
 
 void TechSliderEdit::updateLineEditValidator()
 {
+    // 校验器只拦非法字符；业务量程在 commit 时 Toast 拒绝，避免 fixup 把超范围值夹回去。
+    const int validatorLo = -1000000;
+    const int validatorHi = 1000000;
     if (m_precision == 0) {
-        const int lo = qRound(m_lineEditInputMinimum);
-        const int hi = qRound(m_lineEditInputMaximum);
-        m_lineEdit->setValidator(new QIntValidator(qMin(lo, hi), qMax(lo, hi), this));
+        m_lineEdit->setValidator(new QIntValidator(validatorLo, validatorHi, this));
     } else {
-        auto *validator = new QDoubleValidator(m_lineEditInputMinimum, m_lineEditInputMaximum, m_precision, this);
+        auto *validator = new QDoubleValidator(validatorLo, validatorHi, m_precision, this);
         validator->setNotation(QDoubleValidator::StandardNotation);
         m_lineEdit->setValidator(validator);
     }
