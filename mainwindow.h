@@ -296,6 +296,10 @@ public:
     void showRobotLimitReachedDialog(bool positiveLimit);
     /** @brief 隐藏主控限位提示窗 */
     void hideRobotLimitReachedDialog();
+    /** @brief 显示吊重-支腿-伸缩臂联锁 Toast（主控 151.bit3~7） */
+    void showLegArmInterlockToast();
+    /** @brief 隐藏吊重-支腿-伸缩臂联锁 Toast */
+    void hideLegArmInterlockToast();
     /** @brief 显示驻车切换等待提示窗（与报警窗解耦） */
     void showParkingSwitchHintDialog(const QString &message);
     /** @brief 隐藏驻车切换等待提示窗 */
@@ -310,6 +314,8 @@ public:
     void finishSixAxisPoseWait(bool timedOut);
     /** @brief 615 回读：等待位置 0 后关窗 */
     void checkSixAxisPoseWaitCompletion(int address, quint16 value);
+    /** @brief 姿态调平进行中（615 bit2 等待窗显示），用于拦截外部按键写入 */
+    bool isSixAxisLevelingActive() const;
     /** @brief 显示步进运动提示窗（样式同底盘切换；松开使能即关，不等待到位信号） */
     void showStepMotionWaitDialog(const QString &message);
     /** @brief 隐藏步进运动提示窗 */
@@ -768,6 +774,12 @@ private:
     bool m_cableRetracted151Bit0Flag = false;
     /** @brief 主控 151.bit1：卷样机钢缆已完全放出 */
     bool m_cableExtended151Bit1Flag = false;
+    /** @brief 主控 151.bit3~7：吊重-支腿-伸缩臂联锁（保留原 bit 号） */
+    quint16 m_legArmInterlock151Bits = 0;
+    /** @brief 联锁位仍为 1 时用户已点确认关闭 Toast，待出现新的 0→1 再弹 */
+    bool m_legArmInterlockUserAckedWhileActive = false;
+    /** @brief 当前正在显示的联锁 Toast 文案，便于换条/关条 */
+    QString m_legArmInterlockShownMessage;
     bool m_robotHeightInterlock150Bit1Flag = false;
     bool m_robotLengthInterlock150Bit2Flag = false;
     bool m_agvBatteryLowAcked = false;

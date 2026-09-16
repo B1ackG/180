@@ -311,6 +311,44 @@ constexpr int kChassisRetractLimitDefaultMm = 200;
 constexpr int kLegGear1Mm = 400;
 constexpr int kLegGear2Mm = 750;
 constexpr int kLegGearFullMm = 1100;
+/** 主控 151 吊重-支腿-伸缩臂联锁：bit3~7 */
+constexpr quint16 kLegArmInterlock151Mask = 0x00F8;
+
+int highestLegArmInterlockBit(quint16 mask)
+{
+    static const int kOrder[] = {7, 4, 3, 5, 6};
+    for (int bit : kOrder) {
+        if ((mask >> bit) & 0x1) {
+            return bit;
+        }
+    }
+    return -1;
+}
+
+QString legArmInterlockMessage(int bit)
+{
+    QString head;
+    switch (bit) {
+    case 3:
+        head = QStringLiteral("支腿伸出量应设为\"支腿展出全开\"");
+        break;
+    case 4:
+        head = QStringLiteral("重载工况，伸缩臂伸出量禁止超过2000mm");
+        break;
+    case 5:
+        head = QStringLiteral("支腿伸出量应设为\"档位2\"");
+        break;
+    case 6:
+        head = QStringLiteral("支腿伸出量应设为\"档位1\"");
+        break;
+    case 7:
+        head = QStringLiteral("支腿伸出量错误，请立即收回伸缩臂");
+        break;
+    default:
+        return QString();
+    }
+    return head + QStringLiteral("，操作已中断，请修改后再进行操作");
+}
 
 int loadPersistedAgvParkLastLengthMm()
 {
@@ -4985,6 +5023,11 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 {
     // 获取当前页面
     int currentPage = ui->StackedWidget->currentIndex();
+    if (isSixAxisLevelingActive()) {
+        qCDebug(lcMainWindow) << "外部按键忽略：姿态调平进行中，按键○" << keyNumber
+                              << (pressed ? "按下" : "释放");
+        return;
+    }
     if (!isExternalKeyEnableHeld()) {
         const bool keyHeld = m_robotExternalKeyPressed.value(keyNumber, false)
             || m_sixAxisExternalKeyPressed.value(keyNumber, false)
@@ -6782,6 +6825,22 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                 showToast(kMsg, ToastKind::Warning);
             }
         }
+
+        const quint16 newMask = static_cast<quint16>(value & kLegArmInterlock151Mask);
+        const quint16 oldMask = m_legArmInterlock151Bits;
+        if (newMask != oldMask) {
+            const quint16 rising = static_cast<quint16>(newMask & ~oldMask);
+            m_legArmInterlock151Bits = newMask;
+            if (newMask == 0) {
+                m_legArmInterlockUserAckedWhileActive = false;
+                hideLegArmInterlockToast();
+            } else if (rising) {
+                m_legArmInterlockUserAckedWhileActive = false;
+                showLegArmInterlockToast();
+            } else if (!m_legArmInterlockUserAckedWhileActive) {
+                showLegArmInterlockToast();
+            }
+        }
     }
 
 }
@@ -7059,7 +7118,7 @@ void MainWindow::readMainControlSyncRegisters()
     // 当前运动目标轴：500（1~4=J1~J4，5=六自由度），供限位 Toast 文案使用
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 500, 1);
 
-    // 卷样机钢缆到位：151.bit0 完全收回 / 151.bit1 完全放出
+    // 卷样机钢缆到位：151.bit0/bit1；吊重-支腿-伸缩臂联锁：151.bit3~7
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 151, 1);
 
     syncSpareButtonNamesFromRegisters();
@@ -11719,7 +11778,7 @@ void MainWindow::checkAlarmConditions()
             MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
         }
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 102, 1);
-        // 卷样机钢缆到位：151.bit0 完全收回 / 151.bit1 完全放出（不在默认 0~84 状态组内）
+        // 卷样机钢缆到位：151.bit0/bit1；吊重-支腿-伸缩臂联锁：151.bit3~7
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 151, 1);
     }
 
@@ -12006,6 +12065,7 @@ void MainWindow::hideNonEmergencyPopups()
     hideRobotLimitReachedDialog();
     hideRobotWeightOverloadDialog();
     hideRobotWeightLockDialog();
+    hideLegArmInterlockToast();
     hideInclinometerTiltRiskDialog();
     hideInclinometerTiltLockDialog();
 }
@@ -12361,6 +12421,11 @@ void MainWindow::checkSixAxisPoseWaitCompletion(int address, quint16 value)
     }
 }
 
+bool MainWindow::isSixAxisLevelingActive() const
+{
+    return m_sixAxisPoseWaitBit == 2;
+}
+
 void MainWindow::showStepMotionWaitDialog(const QString &message)
 {
     if (!userPopupsAllowed()) {
@@ -12449,8 +12514,10 @@ void MainWindow::interruptEnableGatedWaitPopupsOnEnableRelease()
         interrupted = true;
     }
 
-    if (m_sixAxisPoseWaitBit >= 0
-        || (m_sixAxisPoseWaitDialog && m_sixAxisPoseWaitDialog->isVisible())) {
+    const bool poseWaitAbortable = (m_sixAxisPoseWaitBit != 2)
+        && (m_sixAxisPoseWaitBit >= 0
+            || (m_sixAxisPoseWaitDialog && m_sixAxisPoseWaitDialog->isVisible()));
+    if (poseWaitAbortable) {
         if (QTimer *poseWaitTimer = findChild<QTimer*>(QStringLiteral("sixAxisPoseWaitTimer"))) {
             poseWaitTimer->stop();
             poseWaitTimer->deleteLater();
@@ -14414,6 +14481,50 @@ void MainWindow::hideRobotWeightLockDialog()
     if (m_robotWeightLockWidget && m_robotWeightLockWidget->isVisible()) {
         m_robotWeightLockWidget->hide();
     }
+}
+
+void MainWindow::showLegArmInterlockToast()
+{
+    if (m_legArmInterlockUserAckedWhileActive) {
+        return;
+    }
+    const int bit = highestLegArmInterlockBit(m_legArmInterlock151Bits);
+    const QString message = legArmInterlockMessage(bit);
+    if (message.isEmpty()) {
+        hideLegArmInterlockToast();
+        return;
+    }
+    const bool isNewToast = (m_legArmInterlockShownMessage != message);
+    if (isNewToast) {
+        hideLegArmInterlockToast();
+        m_legArmInterlockShownMessage = message;
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = QStringLiteral("提示系统");
+            record.controlName = message;
+            record.controlType = QStringLiteral("提示窗口");
+            record.operation = QStringLiteral("提示触发");
+            record.oldValue = QString();
+            record.newValue = QString();
+            m_recorder->addRecord(record);
+        }
+    }
+    showToast(message, ToastKind::Warning, 0, [this, message]() {
+        if (m_legArmInterlockShownMessage == message) {
+            m_legArmInterlockUserAckedWhileActive = true;
+            m_legArmInterlockShownMessage.clear();
+        }
+    });
+}
+
+void MainWindow::hideLegArmInterlockToast()
+{
+    static const int kBits[] = {7, 4, 3, 5, 6};
+    for (int bit : kBits) {
+        dismissToastByMessage(legArmInterlockMessage(bit));
+    }
+    m_legArmInterlockShownMessage.clear();
 }
 
 void MainWindow::showRobotAxisSyncDeviationDialog()
