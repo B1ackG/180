@@ -13583,10 +13583,14 @@ void MainWindow::showInclinometerTiltLockDialog()
                 record.controlType = QStringLiteral("提示窗口");
                 record.operation = QStringLiteral("用户确认");
                 record.oldValue = kInclinometerTiltLockDialogText;
-                record.newValue = QStringLiteral("管理员密码验证通过，锁定提示改为 Toast 持续显示");
+                record.newValue = QStringLiteral("管理员密码验证通过，AGV 寄存器1 bit3=1，锁定提示改为 Toast 持续显示");
                 m_recorder->addRecord(record);
             }
 
+            writeAGVRegisterBits(1,
+                                 { qMakePair(3, true) },
+                                 QStringLiteral("倾角锁定密码通过：AGV 寄存器1 bit3=1"),
+                                 true);
             m_inclinometerTiltLockUnlocked = true;
             presentInclinometerTiltLockUnlocked();
         });
