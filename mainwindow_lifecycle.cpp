@@ -259,7 +259,7 @@ void MainWindow::syncActiveUserPopups()
         showAgvBatteryLowDialog();
     }
 
-    if (m_robotWeightLock150Bit7Flag && !m_robotWeightLockUserAckedWhileActive) {
+    if (m_robotWeightLock150Bit7Flag) {
         showRobotWeightLockDialog();
     } else if (m_robotWeightOverload150Bit3Flag && !m_robotWeightOverloadUserAckedWhileActive) {
         showRobotWeightOverloadDialog();

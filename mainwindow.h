@@ -276,17 +276,19 @@ public:
     void showRobotWeightOverloadDialog();
     /** @brief 隐藏负载超限预警窗（150.bit3=0） */
     void hideRobotWeightOverloadDialog();
-    /** @brief 显示负载超重锁定窗（150.bit7=1） */
+    /** @brief 显示负载超重锁定：未确认时非模态弹窗一次，同时常驻 Toast */
     void showRobotWeightLockDialog();
-    /** @brief 隐藏负载超重锁定窗（150.bit7=0） */
+    /** @brief 隐藏负载超重锁定弹窗与 Toast（150.bit7=0） */
     void hideRobotWeightLockDialog();
+    /** @brief 确保超重锁定 Toast 可见（无确认键） */
+    void ensureRobotWeightLockToast();
     /** @brief 150.bit7 锁定态是否生效（拦截外部键/转向/控制模式/驻车/底盘当前角度） */
     bool isRobotWeightLockGateActive() const;
     /** @brief 超重锁定时是否允许该外部键：六自由度 Z 轴 ○1 下移，或在途松开停轴 */
     bool isWeightLockZDownExempt(int keyNumber, bool pressed) const;
     /** @brief 超重置位时切到六自由度页并选中 Z，便于应急下移 */
     void prepareWeightLockZDownUnlock();
-    /** @brief bit7 锁定态下拦截操作并再次弹出锁定窗 */
+    /** @brief bit7 锁定态下拦截操作：补回 Toast 并在状态栏提示 */
     void blockRobotWeightLockOperation(const QString &hint);
     /** @brief 显示主副轴位置偏差提示窗（150.bit6=1），急停全屏清理时不隐藏 */
     void showRobotAxisSyncDeviationDialog();
@@ -577,7 +579,7 @@ private slots:
     void onTestAlarmButtonClicked();
     /** @brief 负载超限预警窗「确认」：写主控290=1并进入已确认门禁态 */
     void onRobotWeightOverloadConfirmClicked();
-    /** @brief 负载超重锁定窗「确认」：写主控290=1并隐藏弹窗 */
+    /** @brief 负载超重锁定非模态窗「确认」：关弹窗，Toast 继续显示直至 150.bit7 清零 */
     void onRobotWeightLockConfirmClicked();
     /** @brief 主副轴偏差窗「开始同步」：主控290=1，527.bit5=1（读改写） */
     void onRobotAxisSyncStartClicked();
@@ -832,7 +834,7 @@ private:
     QWidget *m_robotWeightLockWidget = nullptr;
     QLabel *m_robotWeightLockLabel = nullptr;
     QPushButton *m_robotWeightLockConfirmBtn = nullptr;
-    /** @brief 150.bit7 仍为锁定时用户已点确认关窗，被禁操作尝试时重置并再次弹出 */
+    /** @brief 150.bit7 锁定时用户已确认关窗，之后只保留 Toast 直至解除 */
     bool m_robotWeightLockUserAckedWhileActive = false;
     QWidget *m_robotAxisSyncDeviationWidget = nullptr;
     QLabel *m_robotAxisSyncDeviationLabel = nullptr;

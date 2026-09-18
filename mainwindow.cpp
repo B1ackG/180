@@ -79,6 +79,8 @@ const QString kInclinometerTiltLockDialogText =
     QStringLiteral("高倾覆风险报警！！！设备倾角过大锁定。");
 const QString kInclinometerTiltLockToastText =
     QStringLiteral("高倾覆风险报警！！设备倾角过大！！");
+const QString kRobotWeightLockToastText =
+    QStringLiteral("当前为应急解锁，请控制六自由度平台 Z 轴下移解除报警");
 const QString kRobotZeroSpeedHintText =
     QStringLiteral("当前设置的机器人全局速度为0");
 const QString kAgvZeroSpeedHintText =
@@ -14364,11 +14366,23 @@ void MainWindow::prepareWeightLockZDownUnlock()
 
 void MainWindow::blockRobotWeightLockOperation(const QString &hint)
 {
-    m_robotWeightLockUserAckedWhileActive = false;
     showRobotWeightLockDialog();
     if (ui && ui->statusBar) {
         ui->statusBar->showMessage(hint, 3000);
     }
+}
+
+void MainWindow::ensureRobotWeightLockToast()
+{
+    for (int i = 0; i < m_toasts.size(); ++i) {
+        if (m_toasts.at(i).message == kRobotWeightLockToastText) {
+            return;
+        }
+    }
+    if (m_lastToastMessage == kRobotWeightLockToastText) {
+        m_lastToastMessage.clear();
+    }
+    showToast(kRobotWeightLockToastText, ToastKind::Warning, 0, nullptr, false);
 }
 
 void MainWindow::showRobotWeightLockDialog()
@@ -14376,6 +14390,8 @@ void MainWindow::showRobotWeightLockDialog()
     if (!userPopupsAllowed()) {
         return;
     }
+
+    ensureRobotWeightLockToast();
     if (m_robotWeightLockUserAckedWhileActive) {
         return;
     }
@@ -14384,7 +14400,7 @@ void MainWindow::showRobotWeightLockDialog()
         m_robotWeightLockWidget = new QWidget(nullptr);
         m_robotWeightLockWidget->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
                                                   Qt::WindowStaysOnTopHint);
-        m_robotWeightLockWidget->setWindowModality(Qt::ApplicationModal);
+        m_robotWeightLockWidget->setWindowModality(Qt::NonModal);
         m_robotWeightLockWidget->setObjectName(QStringLiteral("robotWeightLockWidget"));
 
         QVBoxLayout *layout = new QVBoxLayout(m_robotWeightLockWidget);
@@ -14394,7 +14410,7 @@ void MainWindow::showRobotWeightLockDialog()
         m_robotWeightLockLabel = new QLabel(m_robotWeightLockWidget);
         m_robotWeightLockLabel->setAlignment(Qt::AlignCenter);
         m_robotWeightLockLabel->setWordWrap(true);
-        m_robotWeightLockLabel->setText(QStringLiteral("超重锁定！请在控制六自由度平台 Z 轴下移解除报警。"));
+        m_robotWeightLockLabel->setText(kRobotWeightLockToastText);
         layout->addWidget(m_robotWeightLockLabel);
 
         m_robotWeightLockConfirmBtn = new QPushButton(QStringLiteral("确认"), m_robotWeightLockWidget);
@@ -14434,7 +14450,6 @@ void MainWindow::showRobotWeightLockDialog()
     positionFloatingPopupTopRight(m_robotWeightLockWidget, 1020);
     m_robotWeightLockWidget->show();
     m_robotWeightLockWidget->raise();
-    m_robotWeightLockWidget->activateWindow();
 }
 
 void MainWindow::onRobotWeightLockConfirmClicked()
@@ -14447,11 +14462,14 @@ void MainWindow::onRobotWeightLockConfirmClicked()
         record.controlType = QStringLiteral("提示窗口");
         record.operation = QStringLiteral("用户确认");
         record.oldValue = QString();
-        record.newValue = QStringLiteral("用户确认超重锁定提示，请 Z 轴下移解除报警");
+        record.newValue = QStringLiteral("用户确认超重锁定提示，Toast 持续显示至解除");
         m_recorder->addRecord(record);
     }
     m_robotWeightLockUserAckedWhileActive = true;
-    hideRobotWeightLockDialog();
+    if (m_robotWeightLockWidget && m_robotWeightLockWidget->isVisible()) {
+        m_robotWeightLockWidget->hide();
+    }
+    ensureRobotWeightLockToast();
 }
 
 void MainWindow::hideRobotWeightLockDialog()
@@ -14459,6 +14477,7 @@ void MainWindow::hideRobotWeightLockDialog()
     if (m_robotWeightLockWidget && m_robotWeightLockWidget->isVisible()) {
         m_robotWeightLockWidget->hide();
     }
+    dismissToastByMessage(kRobotWeightLockToastText);
 }
 
 void MainWindow::showLegArmInterlockToast()
