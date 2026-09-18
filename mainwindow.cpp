@@ -75,6 +75,10 @@ constexpr int kRuntimePersistRegisterHi = 8194;
 constexpr int kMainDevicePageSelectReg = 616; // Robot=0, Chassis=1, SixAxis=2
 const QString kWirelessModeWarningText =
     QStringLiteral("遥控器控制互锁，请切换到当前示教器。");
+const QString kInclinometerTiltLockDialogText =
+    QStringLiteral("高倾覆风险报警！！！设备倾角过大锁定。");
+const QString kInclinometerTiltLockToastText =
+    QStringLiteral("高倾覆风险报警！！设备倾角过大！！");
 const QString kRobotZeroSpeedHintText =
     QStringLiteral("当前设置的机器人全局速度为0");
 const QString kAgvZeroSpeedHintText =
@@ -2900,25 +2904,6 @@ void positionFloatingPopupCenter(QWidget *widget)
     const int y = area.top() + (area.height() - widget->height()) / 2;
     widget->move(x, y);
 }
-
-void positionFloatingPopupBottomRight(QWidget *widget, int bottomMarginPx, QWidget *avoidWidget = nullptr)
-{
-    if (!widget) {
-        return;
-    }
-    QScreen *screen = QGuiApplication::primaryScreen();
-    if (!screen) {
-        return;
-    }
-    const QRect area = screen->availableGeometry();
-    const int x = area.right() - widget->width() - 50;
-    int y = area.bottom() - widget->height() - bottomMarginPx;
-    if (avoidWidget && avoidWidget->isVisible()) {
-        y = qMin(y, avoidWidget->y() - widget->height() - 12);
-    }
-    y = qBound(area.top() + 20, y, area.bottom() - widget->height() - 20);
-    widget->move(x, y);
-}
 } // namespace
 
 void MainWindow::refreshInclinometerTiltPresentation()
@@ -2945,6 +2930,7 @@ void MainWindow::refreshInclinometerTiltPresentation()
     applyInclinometerHostStyle(m_inclinometerYHost, m_inclinometerYDegree);
 
     if (inLockZone != m_inclinometerTiltLockInZone) {
+        m_inclinometerTiltLockInZone = inLockZone;
         if (inLockZone) {
             m_inclinometerTiltLockUnlocked = false;
             m_inclinometerTiltRiskInZone = false;
@@ -2958,7 +2944,7 @@ void MainWindow::refreshInclinometerTiltPresentation()
                 record.controlType = QStringLiteral("提示窗口");
                 record.operation = QStringLiteral("报警触发");
                 record.oldValue = QString();
-                record.newValue = QStringLiteral("高倾覆风险报警！！！设备倾角过大锁定。");
+                record.newValue = kInclinometerTiltLockToastText;
                 m_recorder->addRecord(record);
             }
             showInclinometerTiltLockDialog();
@@ -2966,12 +2952,9 @@ void MainWindow::refreshInclinometerTiltPresentation()
             m_inclinometerTiltLockUnlocked = false;
             hideInclinometerTiltLockDialog();
         }
-        m_inclinometerTiltLockInZone = inLockZone;
     } else if (inLockZone) {
         if (m_inclinometerTiltLockUnlocked) {
-            if (m_inclinometerTiltLockDialog && !m_inclinometerTiltLockDialog->isVisible()) {
-                presentInclinometerTiltLockUnlocked();
-            }
+            presentInclinometerTiltLockUnlocked();
         } else {
             showInclinometerTiltLockDialog();
         }
@@ -4335,7 +4318,8 @@ void MainWindow::showInputOutOfRangeToast(double lo, double hi, int precision)
 void MainWindow::showToast(const QString &message,
                            ToastKind kind,
                            int durationMs,
-                           const std::function<void()> &onDismissed)
+                           const std::function<void()> &onDismissed,
+                           bool showConfirmButton)
 {
     if (!userPopupsAllowed()) {
         return;
@@ -4388,24 +4372,26 @@ void MainWindow::showToast(const QString &message,
     label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     layout->addWidget(label, 1);
 
-    auto *confirmBtn = new QPushButton(QStringLiteral("确认"), toast);
-    confirmBtn->setObjectName(QStringLiteral("toastConfirmBtn"));
-    confirmBtn->setAutoDefault(false);
-    confirmBtn->setDefault(false);
-    confirmBtn->setFocusPolicy(Qt::NoFocus);
-    confirmBtn->setFixedSize(76, 34);
-    layout->addWidget(confirmBtn, 0, Qt::AlignVCenter);
+    if (showConfirmButton) {
+        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), toast);
+        confirmBtn->setObjectName(QStringLiteral("toastConfirmBtn"));
+        confirmBtn->setAutoDefault(false);
+        confirmBtn->setDefault(false);
+        confirmBtn->setFocusPolicy(Qt::NoFocus);
+        confirmBtn->setFixedSize(76, 34);
+        layout->addWidget(confirmBtn, 0, Qt::AlignVCenter);
+
+        connect(confirmBtn, &QPushButton::clicked, this, [this, toast, onDismissed]() {
+            dismissToast(toast);
+            if (onDismissed) {
+                onDismissed();
+            }
+        });
+    }
 
     const int lineCount = qMax(1, text.count(QLatin1Char('\n')) + 1);
     const int height = qBound(kToastMinHeight, 38 + lineCount * 24, kToastMaxHeight);
     toast->setFixedSize(kToastWidth, height);
-
-    connect(confirmBtn, &QPushButton::clicked, this, [this, toast, onDismissed]() {
-        dismissToast(toast);
-        if (onDismissed) {
-            onDismissed();
-        }
-    });
 
     m_toasts.append({toast, nullptr, text});
     updateToastHostVisibility();
@@ -13463,36 +13449,25 @@ void MainWindow::hideInclinometerTiltRiskDialog()
     }
 }
 
+void MainWindow::ensureInclinometerTiltLockToast()
+{
+    for (int i = 0; i < m_toasts.size(); ++i) {
+        if (m_toasts.at(i).message == kInclinometerTiltLockToastText) {
+            return;
+        }
+    }
+    if (m_lastToastMessage == kInclinometerTiltLockToastText) {
+        m_lastToastMessage.clear();
+    }
+    showToast(kInclinometerTiltLockToastText, ToastKind::Warning, 0, nullptr, false);
+}
+
 void MainWindow::presentInclinometerTiltLockUnlocked()
 {
-    if (!userPopupsAllowed()) {
-        return;
+    if (m_inclinometerTiltLockDialog && m_inclinometerTiltLockDialog->isVisible()) {
+        m_inclinometerTiltLockDialog->hide();
     }
-    if (!m_inclinometerTiltLockDialog) {
-        return;
-    }
-
-    m_inclinometerTiltLockDialog->hide();
-
-    if (m_inclinometerTiltLockPasswordHint) {
-        m_inclinometerTiltLockPasswordHint->hide();
-    }
-    if (m_inclinometerTiltLockPasswordEdit) {
-        m_inclinometerTiltLockPasswordEdit->hide();
-    }
-    if (m_inclinometerTiltLockErrorLabel) {
-        m_inclinometerTiltLockErrorLabel->hide();
-    }
-    if (m_inclinometerTiltLockConfirmBtn) {
-        m_inclinometerTiltLockConfirmBtn->hide();
-    }
-
-    m_inclinometerTiltLockDialog->setWindowModality(Qt::ApplicationModal);
-    m_inclinometerTiltLockDialog->setModal(true);
-    m_inclinometerTiltLockDialog->setFixedSize(420, 120);
-    positionFloatingPopupBottomRight(m_inclinometerTiltLockDialog, 50, m_alarmWidget);
-    m_inclinometerTiltLockDialog->show();
-    m_inclinometerTiltLockDialog->raise();
+    ensureInclinometerTiltLockToast();
 }
 
 void MainWindow::presentInclinometerTiltLockModal()
@@ -13549,7 +13524,7 @@ void MainWindow::showInclinometerTiltLockDialog()
         layout->setContentsMargins(20, 15, 20, 15);
         layout->setSpacing(10);
 
-        auto *msgLabel = new QLabel(QStringLiteral("高倾覆风险报警！！！设备倾角过大锁定。"),
+        auto *msgLabel = new QLabel(kInclinometerTiltLockDialogText,
                                     m_inclinometerTiltLockDialog);
         msgLabel->setObjectName(QStringLiteral("inclinometerTiltLockLabel"));
         msgLabel->setAlignment(Qt::AlignCenter);
@@ -13605,8 +13580,8 @@ void MainWindow::showInclinometerTiltLockDialog()
                 record.controlName = QStringLiteral("高倾覆风险锁定");
                 record.controlType = QStringLiteral("提示窗口");
                 record.operation = QStringLiteral("用户确认");
-                record.oldValue = QStringLiteral("高倾覆风险报警！！！设备倾角过大锁定。");
-                record.newValue = QStringLiteral("管理员密码验证通过，锁定窗转为非模态并移至右下角");
+                record.oldValue = kInclinometerTiltLockDialogText;
+                record.newValue = QStringLiteral("管理员密码验证通过，锁定提示改为 Toast 持续显示");
                 m_recorder->addRecord(record);
             }
 
@@ -13670,10 +13645,12 @@ void MainWindow::showInclinometerTiltLockDialog()
     }
 
     if (m_inclinometerTiltLockDialog->isVisible() && m_inclinometerTiltLockDialog->isModal()) {
+        ensureInclinometerTiltLockToast();
         return;
     }
 
     presentInclinometerTiltLockModal();
+    ensureInclinometerTiltLockToast();
 }
 
 void MainWindow::hideInclinometerTiltLockDialog()
@@ -13681,6 +13658,7 @@ void MainWindow::hideInclinometerTiltLockDialog()
     if (m_inclinometerTiltLockDialog && m_inclinometerTiltLockDialog->isVisible()) {
         m_inclinometerTiltLockDialog->hide();
     }
+    dismissToastByMessage(kInclinometerTiltLockToastText);
 }
 
 void MainWindow::showRobotOperationHintDialog(const QString &message)

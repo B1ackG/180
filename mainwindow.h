@@ -350,13 +350,15 @@ public:
     void showInclinometerTiltRiskDialog();
     /** @brief 隐藏倾覆风险提示窗 */
     void hideInclinometerTiltRiskDialog();
-    /** @brief 显示高倾覆风险锁定窗（倾角 >1°，需管理员密码解锁） */
+    /** @brief 显示高倾覆风险锁定（倾角 >1°：Toast + 管理员密码窗） */
     void showInclinometerTiltLockDialog();
-    /** @brief 隐藏高倾覆风险锁定窗 */
+    /** @brief 隐藏高倾覆风险锁定密码窗与 Toast */
     void hideInclinometerTiltLockDialog();
-    /** @brief 以模态居中方式展示倾角锁定窗（待输入密码） */
+    /** @brief 确保高倾覆风险锁定 Toast 可见（倾角安全前关闭会立刻再弹出） */
+    void ensureInclinometerTiltLockToast();
+    /** @brief 以模态居中方式展示倾角锁定密码窗（待输入密码） */
     void presentInclinometerTiltLockModal();
-    /** @brief 以非模态右下角方式展示已解锁的倾角锁定窗 */
+    /** @brief 密码通过后关闭密码窗，锁定提示改为 Toast 直至倾角安全 */
     void presentInclinometerTiltLockUnlocked();
 
     // 提示信息系统
@@ -1210,11 +1212,12 @@ private:
     void showNotification(const QString &message);
     /** @brief Modbus 写使能关闭时的 Toast 提示 */
     void showModbusWriteDisabledToast();
-    /** @brief 显示右下角 Toast（可选 onDismissed 在确认关闭后调用） */
+    /** @brief 显示右下角 Toast（可选 onDismissed 在确认关闭后调用；showConfirmButton 为 false 时无确认键） */
     void showToast(const QString &message,
                    ToastKind kind = ToastKind::Info,
                    int durationMs = 0,
-                   const std::function<void()> &onDismissed = nullptr);
+                   const std::function<void()> &onDismissed = nullptr,
+                   bool showConfirmButton = true);
     /** @brief 按寄存器 500 生成正负限位 Toast 文案 */
     QString robotLimitToastMessage(bool positiveLimit) const;
     /** @brief 隐藏指定 Toast 并重排剩余项 */
