@@ -904,6 +904,16 @@ void applyTwoStateButtonStyle(TechPushButton *button,
     button->setGlowColor(useDark ? QColor(127, 140, 141, 100) : QColor(0, 200, 255, 180));
 }
 
+void applyPoseActionButtonStyle(TechPushButton *button, bool usable)
+{
+    if (!button) {
+        return;
+    }
+    button->setPrimaryColor(usable ? QColor("#00C8FF") : QColor("#7F8C8D"));
+    button->setGlowColor(usable ? QColor(0, 200, 255, 180) : QColor(127, 140, 141, 100));
+    button->setEnabled(usable);
+}
+
 QString pickStateValue(const MainWindow::ModbusRegisterSpec &spec, int stateIndex)
 {
     if (stateIndex <= 1) {
@@ -1771,6 +1781,7 @@ void MainWindow::showSixAxisView()
     setExclusiveNavButtonChecked(ui ? ui->TBtn_SixAxies : nullptr);
     syncStepModeUiByCurrentPage();
     updateStepTargetButtonsState();
+    updateSixAxisPoseActionButtons();
 }
 
 void MainWindow::setupNavigationConnections()
@@ -1980,12 +1991,25 @@ void MainWindow::setupControlConnections()
             qWarning() << "未找到" << objectName << "按钮";
             return;
         }
+        if (objectName == QStringLiteral("techBtn_resetSixAxies")) {
+            m_techBtnResetSixAxies = btn;
+        } else if (objectName == QStringLiteral("techBtn_balanceSixAxies")) {
+            m_techBtnBalanceSixAxies = btn;
+        }
         connect(btn, &TechPushButton::clicked, this, [this, objectName, defaultBit, btn]() {
             const QString actionName = QString(btn->text())
                                            .remove(QLatin1Char('\r'))
                                            .remove(QLatin1Char('\n'))
                                            .trimmed();
             const QString logTag = actionName.isEmpty() ? objectName : actionName;
+            if (objectName == QStringLiteral("techBtn_balanceSixAxies")
+                && m_sixAxisLevelingBlocked151Bit2) {
+                return;
+            }
+            if (objectName == QStringLiteral("techBtn_resetSixAxies")
+                && areSixAxisPoseValuesAllZero()) {
+                return;
+            }
             if (rejectIfEnableNotHeld()) {
                 return;
             }
@@ -2032,6 +2056,7 @@ void MainWindow::setupControlConnections()
     };
     connectSixAxisPoseBitButton(QStringLiteral("techBtn_resetSixAxies"), 1);
     connectSixAxisPoseBitButton(QStringLiteral("techBtn_balanceSixAxies"), 2);
+    updateSixAxisPoseActionButtons();
 }
 
 void MainWindow::setupSubsystemConnections()
@@ -6578,6 +6603,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             }
             updateSliderLabelValue(gaugeName, axisValue);
         }
+        updateSixAxisPoseActionButtons();
     }
 
     // ============ 仅保留主设备150急停报警源 ============
@@ -6813,6 +6839,9 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                 showToast(kMsg, ToastKind::Warning);
             }
         }
+
+        m_sixAxisLevelingBlocked151Bit2 = (((value >> 2) & 0x01) == 1);
+        updateSixAxisPoseActionButtons();
 
         const quint16 newMask = static_cast<quint16>(value & kLegArmInterlock151Mask);
         const quint16 oldMask = m_legArmInterlock151Bits;
@@ -7106,7 +7135,7 @@ void MainWindow::readMainControlSyncRegisters()
     // 当前运动目标轴：500（1~4=J1~J4，5=六自由度），供限位 Toast 文案使用
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 500, 1);
 
-    // 卷样机钢缆到位：151.bit0/bit1；吊重-支腿-伸缩臂联锁：151.bit3~7
+    // 卷样机钢缆到位：151.bit0/bit1；姿态调平门控：151.bit2；吊重-支腿-伸缩臂联锁：151.bit3~7
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 151, 1);
 
     syncSpareButtonNamesFromRegisters();
@@ -11766,7 +11795,7 @@ void MainWindow::checkAlarmConditions()
             MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
         }
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 102, 1);
-        // 卷样机钢缆到位：151.bit0/bit1；吊重-支腿-伸缩臂联锁：151.bit3~7
+        // 卷样机钢缆到位：151.bit0/bit1；姿态调平门控：151.bit2；吊重-支腿-伸缩臂联锁：151.bit3~7
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 151, 1);
     }
 
@@ -12231,14 +12260,7 @@ void MainWindow::showParkingSwitchHintDialog(const QString &message)
         m_parkingSwitchHintLabel->setText(message);
     }
 
-    QScreen *screen = QGuiApplication::primaryScreen();
-    if (!screen) {
-        return;
-    }
-    const QRect screenGeometry = screen->availableGeometry();
-    const int x = screenGeometry.width() - m_parkingSwitchHintDialog->width() - 40;
-    const int y = 820;
-    m_parkingSwitchHintDialog->move(x, y);
+    positionFloatingPopupCenter(m_parkingSwitchHintDialog);
     m_parkingSwitchHintDialog->show();
     m_parkingSwitchHintDialog->raise();
     m_parkingSwitchHintDialog->activateWindow();
@@ -12333,14 +12355,7 @@ void MainWindow::showSixAxisPoseWaitDialog(const QString &message)
         m_sixAxisPoseWaitLabel->setText(message);
     }
 
-    QScreen *screen = QGuiApplication::primaryScreen();
-    if (!screen) {
-        return;
-    }
-    const QRect screenGeometry = screen->availableGeometry();
-    const int x = screenGeometry.width() - m_sixAxisPoseWaitDialog->width() - 40;
-    const int y = 820;
-    m_sixAxisPoseWaitDialog->move(x, y);
+    positionFloatingPopupCenter(m_sixAxisPoseWaitDialog);
     m_sixAxisPoseWaitDialog->show();
     m_sixAxisPoseWaitDialog->raise();
     m_sixAxisPoseWaitDialog->activateWindow();
@@ -12414,6 +12429,47 @@ bool MainWindow::isSixAxisLevelingActive() const
     return m_sixAxisPoseWaitBit == 2;
 }
 
+bool MainWindow::areSixAxisPoseValuesAllZero()
+{
+    static const struct {
+        int highAddr;
+        int lowAddr;
+        bool scaleThousand;
+        bool negate;
+    } pairs[] = {
+        {73, 74, false, false},
+        {75, 76, false, false},
+        {77, 78, false, false},
+        {79, 80, true, false},
+        {81, 82, true, false},
+        {83, 84, true, true}
+    };
+
+    for (const auto &pair : pairs) {
+        if (!g_registerCache.contains(pair.highAddr) || !g_registerCache.contains(pair.lowAddr)) {
+            return false;
+        }
+        float axisValue = registersToFloatCDAB(g_registerCache.value(pair.highAddr),
+                                              g_registerCache.value(pair.lowAddr));
+        if (pair.scaleThousand) {
+            axisValue *= 1000.0f;
+        }
+        if (pair.negate) {
+            axisValue = -axisValue;
+        }
+        if (qAbs(axisValue) >= 0.005f) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void MainWindow::updateSixAxisPoseActionButtons()
+{
+    applyPoseActionButtonStyle(m_techBtnBalanceSixAxies, !m_sixAxisLevelingBlocked151Bit2);
+    applyPoseActionButtonStyle(m_techBtnResetSixAxies, !areSixAxisPoseValuesAllZero());
+}
+
 void MainWindow::showStepMotionWaitDialog(const QString &message)
 {
     if (!userPopupsAllowed()) {
@@ -12455,14 +12511,7 @@ void MainWindow::showStepMotionWaitDialog(const QString &message)
         m_stepMotionWaitLabel->setText(message);
     }
 
-    QScreen *screen = QGuiApplication::primaryScreen();
-    if (!screen) {
-        return;
-    }
-    const QRect screenGeometry = screen->availableGeometry();
-    const int x = screenGeometry.width() - m_stepMotionWaitDialog->width() - 40;
-    const int y = 820;
-    m_stepMotionWaitDialog->move(x, y);
+    positionFloatingPopupCenter(m_stepMotionWaitDialog);
     m_stepMotionWaitDialog->show();
     m_stepMotionWaitDialog->raise();
 }
@@ -12746,15 +12795,7 @@ void MainWindow::showLegOpenPathCheckDialog(int legLengthMm)
     }
     m_legOpenPathCheckDialog->setFixedSize(420, 190);
 
-    // 与底盘模式切换提示同风格：右下区域；y 与驻车切换提示错开，避免瞬时叠影。
-    QScreen *screen = QGuiApplication::primaryScreen();
-    if (!screen) {
-        return;
-    }
-    const QRect screenGeometry = screen->availableGeometry();
-    const int x = screenGeometry.width() - m_legOpenPathCheckDialog->width() - 40;
-    const int y = 700;
-    m_legOpenPathCheckDialog->move(x, y);
+    positionFloatingPopupCenter(m_legOpenPathCheckDialog);
     m_legOpenPathCheckDialog->show();
     m_legOpenPathCheckDialog->raise();
     m_legOpenPathCheckDialog->activateWindow();

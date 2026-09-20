@@ -318,6 +318,10 @@ public:
     void checkSixAxisPoseWaitCompletion(int address, quint16 value);
     /** @brief 姿态调平进行中（615 bit2 等待窗显示），用于拦截外部按键写入 */
     bool isSixAxisLevelingActive() const;
+    /** @brief 按主控 151.bit2 与六轴读数刷新姿态回零/调平亮灭与可点 */
+    void updateSixAxisPoseActionButtons();
+    /** @brief 六轴显示值均约为 0（73~84 已齐）；数据不全时返回 false */
+    bool areSixAxisPoseValuesAllZero();
     /** @brief 显示步进运动提示窗（样式同底盘切换；松开使能即关，不等待到位信号） */
     void showStepMotionWaitDialog(const QString &message);
     /** @brief 隐藏步进运动提示窗 */
@@ -778,6 +782,8 @@ private:
     bool m_cableRetracted151Bit0Flag = false;
     /** @brief 主控 151.bit1：卷样机钢缆已完全放出 */
     bool m_cableExtended151Bit1Flag = false;
+    /** @brief 主控 151.bit2：1=姿态调平灭灯不可用 */
+    bool m_sixAxisLevelingBlocked151Bit2 = false;
     /** @brief 主控 151.bit3~7：吊重-支腿-伸缩臂联锁（保留原 bit 号） */
     quint16 m_legArmInterlock151Bits = 0;
     /** @brief 联锁位仍为 1 时用户已点确认关闭 Toast，待出现新的 0→1 再弹 */
@@ -996,6 +1002,8 @@ private:
     TechPushButton *m_techBtnAGV_Park = nullptr;
     TechPushButton *m_techBtnSpare1 = nullptr;
     TechPushButton *m_techBtnSpare2 = nullptr;
+    TechPushButton *m_techBtnResetSixAxies = nullptr;
+    TechPushButton *m_techBtnBalanceSixAxies = nullptr;
 
     struct SpareButtonNameRegisterSpec {
         QString device;
