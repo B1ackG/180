@@ -11948,19 +11948,12 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
 
     m_alarmWidget->setStyleSheet(styleSheet);
 
-    // 计算显示位置（屏幕右下角，随窗口高度变化）
-    QScreen *screen = QGuiApplication::primaryScreen();
-    QRect screenGeometry = screen->geometry();
-    int x = screenGeometry.width() - m_alarmWidget->width() - 50;
-    int y = screenGeometry.height() - m_alarmWidget->height() - 50;
-
-    // 显示报警窗口
-    m_alarmWidget->move(x, y);
+    positionFloatingPopupCenter(m_alarmWidget);
     m_alarmWidget->show();
     m_alarmWidget->raise();
     m_alarmWidget->activateWindow();
 
-    qCDebug(lcMainWindow) << "报警窗口显示在位置: (" << x << "," << y << ")";
+    qCDebug(lcMainWindow) << "报警窗口已在屏幕正中显示";
 }
 // 新增：隐藏报警
 void MainWindow::hideAlarm()
@@ -12155,24 +12148,6 @@ void MainWindow::handleAGVRegister51Alerts(quint16 value)
     }
 }
 
-namespace {
-void positionFloatingPopupTopRight(QWidget *widget, int topOffsetPx)
-{
-    if (!widget) {
-        return;
-    }
-    QScreen *screen = QGuiApplication::primaryScreen();
-    if (!screen) {
-        return;
-    }
-    const QRect area = screen->availableGeometry();
-    const int x = area.right() - widget->width() - 40;
-    int y = area.top() + topOffsetPx;
-    y = qBound(area.top() + 20, y, area.bottom() - widget->height() - 20);
-    widget->move(x, y);
-}
-}
-
 void MainWindow::showAgvStationOfflineAlarm()
 {
     if (!userPopupsAllowed()) {
@@ -12214,7 +12189,7 @@ void MainWindow::showAgvStationOfflineAlarm()
         m_agvStationOfflineAlarmLabel->setText("检测到有站掉线");
     }
 
-    positionFloatingPopupTopRight(m_agvStationOfflineAlarmWidget, 60);
+    positionFloatingPopupCenter(m_agvStationOfflineAlarmWidget);
     m_agvStationOfflineAlarmWidget->show();
     m_agvStationOfflineAlarmWidget->raise();
 }
@@ -13075,9 +13050,7 @@ void MainWindow::showLegControlDialog()
     updateLegControlDialogVisuals();
 
     const bool alreadyVisible = m_legControlDialog->isVisible();
-    const QPoint center = mapToGlobal(rect().center());
-    m_legControlDialog->move(center.x() - m_legControlDialog->width() / 2,
-                             center.y() - m_legControlDialog->height() / 2);
+    positionFloatingPopupCenter(m_legControlDialog);
     m_legControlDialog->show();
     m_legControlDialog->raise();
     m_legControlDialog->activateWindow();
@@ -13311,7 +13284,7 @@ void MainWindow::showParkingLegAbnormalDialog()
         applyParkOutTriggerLengthRuntimeSettings();
     }
 
-    positionFloatingPopupTopRight(m_parkingLegAbnormalDialog, 500);
+    positionFloatingPopupCenter(m_parkingLegAbnormalDialog);
     m_parkingLegAbnormalDialog->show();
     m_parkingLegAbnormalDialog->raise();
     m_parkingLegAbnormalDialog->activateWindow();
@@ -13372,7 +13345,7 @@ void MainWindow::showAgvDriveFaultAlarm()
         m_agvDriveFaultAlarmLabel->setText("检测到驱动故障");
     }
 
-    positionFloatingPopupTopRight(m_agvDriveFaultAlarmWidget, 200);
+    positionFloatingPopupCenter(m_agvDriveFaultAlarmWidget);
     m_agvDriveFaultAlarmWidget->show();
     m_agvDriveFaultAlarmWidget->raise();
 }
@@ -13479,7 +13452,7 @@ void MainWindow::showInclinometerTiltRiskDialog()
                 "}"));
     }
 
-    positionFloatingPopupTopRight(m_inclinometerTiltRiskDialog, 1140);
+    positionFloatingPopupCenter(m_inclinometerTiltRiskDialog);
     m_inclinometerTiltRiskDialog->show();
     m_inclinometerTiltRiskDialog->raise();
     m_inclinometerTiltRiskDialog->activateWindow();
@@ -13802,7 +13775,7 @@ void MainWindow::showRobotInterlockModalDialog(const QString &message)
         m_robotInterlockLabel->setText(message);
     }
 
-    positionFloatingPopupTopRight(m_robotInterlockDialog, 660);
+    positionFloatingPopupCenter(m_robotInterlockDialog);
     m_robotInterlockDialog->exec();
 }
 
@@ -14348,7 +14321,7 @@ void MainWindow::showRobotWeightOverloadDialog()
             "}");
     }
 
-    positionFloatingPopupTopRight(m_robotWeightOverloadWidget, 980);
+    positionFloatingPopupCenter(m_robotWeightOverloadWidget);
     m_robotWeightOverloadWidget->show();
     m_robotWeightOverloadWidget->raise();
     m_robotWeightOverloadWidget->activateWindow();
@@ -14492,7 +14465,7 @@ void MainWindow::showRobotWeightLockDialog()
             "}");
     }
 
-    positionFloatingPopupTopRight(m_robotWeightLockWidget, 1020);
+    positionFloatingPopupCenter(m_robotWeightLockWidget);
     m_robotWeightLockWidget->show();
     m_robotWeightLockWidget->raise();
 }
@@ -14626,7 +14599,7 @@ void MainWindow::showRobotAxisSyncDeviationDialog()
                 "}"));
     }
 
-    positionFloatingPopupTopRight(m_robotAxisSyncDeviationWidget, 940);
+    positionFloatingPopupCenter(m_robotAxisSyncDeviationWidget);
     m_robotAxisSyncDeviationWidget->show();
     m_robotAxisSyncDeviationWidget->raise();
     m_robotAxisSyncDeviationWidget->activateWindow();
