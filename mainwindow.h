@@ -1201,6 +1201,8 @@ private:
     void hideCollapsibleControlPanels();
     void repositionCollapsibleControlPanels();
     void positionCollapsiblePanel(QWidget *panel, QToolButton *anchorButton);
+    /** @brief 设备控制弹层无可见子按钮时收起底部「设备控制」菜单 */
+    void syncDeviceControlMenuFromChildVisibility();
     bool isPointOnCollapsiblePanelOrAnchor(const QPoint &globalPos) const;
     void setExclusiveNavButtonChecked(QToolButton *active);
     bool isRobotAxisViewActive() const;
@@ -1288,7 +1290,7 @@ private:
     void recordHorizontalSupportMoveAction(int keyNumber, bool pressed);
     /** @brief 写入支腿展出/收回相关操作历史 */
     void appendLegControlHistory(const QString &text);
-    /** @brief 急停弹窗显示前，隐藏仍可见的非急停类型弹窗（主副轴偏差窗除外） */
+    /** @brief 急停弹窗显示前，隐藏仍可见的非急停类型弹窗（主副轴偏差窗与 Toast 除外） */
     void hideNonEmergencyPopups();
 
     /** @brief 记录步进移动动作开始/持续状态

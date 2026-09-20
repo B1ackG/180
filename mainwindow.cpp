@@ -1213,6 +1213,7 @@ void MainWindow::applyButtonVisibilityRuntimeSettings()
     loadSpareButtonNameRegisterSettings();
     syncSpareButtonNamesFromRegisters();
     applySpareButtonRuntimeSettings();
+    syncDeviceControlMenuFromChildVisibility();
 }
 
 void MainWindow::reloadButtonModbusBindings()
@@ -1454,6 +1455,8 @@ void MainWindow::setupCollapsibleControlPanels()
             return;
         }
 
+        QSettings visibilitySettings(QStringLiteral("config.ini"), QSettings::IniFormat);
+        visibilitySettings.beginGroup(QStringLiteral("ButtonVisibility"));
         for (TechChamferToolButton *button : buttons) {
             if (!button) {
                 continue;
@@ -1464,7 +1467,7 @@ void MainWindow::setupCollapsibleControlPanels()
             button->setParent(popup);
             button->setMinimumWidth(112);
             button->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-            button->show();
+            button->setVisible(visibilitySettings.value(button->objectName(), true).toBool());
             initChamferButtonTheme(button);
             targetLayout->addWidget(button);
         }
@@ -1515,6 +1518,7 @@ void MainWindow::setupCollapsibleControlPanels()
     }
 
     setupNavigationMenuIcons();
+    syncDeviceControlMenuFromChildVisibility();
 
     const QList<QToolButton*> closeAfterClick = {
         ui->TBtn_RobotControl,
@@ -1570,9 +1574,55 @@ void MainWindow::togglePageNavigationPanel()
     }
 }
 
+void MainWindow::syncDeviceControlMenuFromChildVisibility()
+{
+    if (!ui) {
+        return;
+    }
+
+    const auto childShown = [](QWidget *widget) {
+        return widget && !widget->isHidden();
+    };
+    const bool anyChildVisible = childShown(ui->TBtn_RobotControl)
+        || childShown(ui->TBtn_ChassisControl)
+        || childShown(ui->TBtn_SixAxies);
+
+    if (!anyChildVisible) {
+        if (m_deviceControlPopup) {
+            m_deviceControlPopup->hide();
+        }
+        if (m_deviceControlMenuButton) {
+            m_deviceControlMenuButton->setChecked(false);
+            m_deviceControlMenuButton->hide();
+        }
+        return;
+    }
+
+    if (m_deviceControlPopup && m_deviceControlPopup->isVisible()) {
+        if (QLayout *popupLayout = m_deviceControlPopup->layout()) {
+            popupLayout->invalidate();
+            popupLayout->activate();
+        }
+        positionCollapsiblePanel(m_deviceControlPopup, m_deviceControlMenuButton);
+    }
+}
+
 void MainWindow::toggleDeviceControlPanel()
 {
     if (!m_deviceControlPopup) {
+        return;
+    }
+
+    const auto childShown = [](QWidget *widget) {
+        return widget && !widget->isHidden();
+    };
+    if (!(childShown(ui->TBtn_RobotControl)
+          || childShown(ui->TBtn_ChassisControl)
+          || childShown(ui->TBtn_SixAxies))) {
+        m_deviceControlPopup->hide();
+        if (m_deviceControlMenuButton) {
+            m_deviceControlMenuButton->setChecked(false);
+        }
         return;
     }
 
@@ -12093,7 +12143,7 @@ void MainWindow::updateAlarmDisplay()
 {
     // 如果有任何报警处于激活状态，显示相应的报警
     if (m_emergencyStopAlarm) {
-        // 急停优先：出现急停时关闭其他类型提示窗，避免操作员被非急停信息干扰。
+        // 急停优先：出现急停时关闭其他类型弹窗，避免操作员被非急停信息干扰。Toast 保持可见。
         hideNonEmergencyPopups();
         const bool robotEmergency = m_robotArmEmergency150Flag;
         const bool chassisEmergency = m_agvChassisEmergency51Bit5Flag;
@@ -12138,6 +12188,7 @@ void MainWindow::updateAlarmDisplay()
 void MainWindow::hideNonEmergencyPopups()
 {
     // 主副轴位置偏差提示窗（150.bit6）不在此列表中：急停全屏报警时仍保持可见，直至位6清零。
+    // Toast 也不关闭：急停弹窗只让路独立弹窗，右下角提示继续显示。
     // 急停触发时如果清理了驻车切换提示，也要同步释放驻车切换在途锁，
     // 避免按钮继续被 parkingSwitchWaiting 拦截到 90 秒超时。
     if (QTimer *parkingWaitTimer = findChild<QTimer*>("parkingSwitchWaitTimer")) {
@@ -12163,14 +12214,14 @@ void MainWindow::hideNonEmergencyPopups()
     hideAgvStationOfflineAlarm();
     hideAgvDriveFaultAlarm();
     hideAgvBatteryLowDialog();
-    dismissOperationHintToasts();
-    hideWirelessModeWarningDialog();
-    hideRobotLimitReachedDialog();
     hideRobotWeightOverloadDialog();
-    hideRobotWeightLockDialog();
-    hideLegArmInterlockToast();
+    if (m_robotWeightLockWidget && m_robotWeightLockWidget->isVisible()) {
+        m_robotWeightLockWidget->hide();
+    }
     hideInclinometerTiltRiskDialog();
-    hideInclinometerTiltLockDialog();
+    if (m_inclinometerTiltLockDialog && m_inclinometerTiltLockDialog->isVisible()) {
+        m_inclinometerTiltLockDialog->hide();
+    }
 }
 
 void MainWindow::handleAGVRegister51Alerts(quint16 value)

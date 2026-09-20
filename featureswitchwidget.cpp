@@ -30,6 +30,8 @@
 #include <QDialog>
 #include <QScrollBar>
 #include <QSet>
+#include <QPair>
+#include <QVector>
 
 namespace {
 
@@ -113,6 +115,13 @@ bool shouldSkipControllable(const MainWindow::ControllableButtonInfo &info)
         || info.widgetKind == QStringLiteral("滑块输入")
         || info.objectName.startsWith(QStringLiteral("TechSliderEdit_"))
         || info.objectName.startsWith(QStringLiteral("SEdit_"));
+}
+
+bool isDeviceControlChildButton(const QString &objectName)
+{
+    return objectName == QStringLiteral("TBtn_RobotControl")
+        || objectName == QStringLiteral("TBtn_ChassisControl")
+        || objectName == QStringLiteral("TBtn_SixAxies");
 }
 
 /** 弹窗 / 虚拟键盘 / 功能控制台自身，不进入「其他可见性」以免干扰配置 */
@@ -1473,8 +1482,41 @@ void FeatureSwitchWidget::setupPlaneHeightOffsetUI(QVBoxLayout *scrollLayout)
     scrollLayout->addWidget(planeGroup);
 }
 
+void FeatureSwitchWidget::setupDeviceControlChildVisibilityUI(QVBoxLayout *scrollLayout)
+{
+    auto *group = new QGroupBox(QStringLiteral("设备控制子按钮"));
+    auto *layout = new QVBoxLayout(group);
+    layout->addWidget(makeHintLabel(
+        QStringLiteral("分别控制底部「设备控制」弹出菜单中的三个入口是否显示。"
+                       "全部隐藏时，「设备控制」菜单本身也会收起。"),
+        group));
+
+    const QVector<QPair<QString, QString>> children = {
+        {QStringLiteral("TBtn_RobotControl"), QStringLiteral("机械臂控制")},
+        {QStringLiteral("TBtn_ChassisControl"), QStringLiteral("底盘控制")},
+        {QStringLiteral("TBtn_SixAxies"), QStringLiteral("六自由度")},
+    };
+
+    auto *grid = new QGridLayout();
+    grid->setHorizontalSpacing(16);
+    grid->setVerticalSpacing(4);
+    for (int i = 0; i < children.size(); ++i) {
+        const QString &objectName = children.at(i).first;
+        const QString &label = children.at(i).second;
+        auto *cb = new QCheckBox(label, group);
+        cb->setToolTip(objectName);
+        cb->setChecked(true);
+        grid->addWidget(cb, i / 2, i % 2);
+        m_deviceControlChildCheckboxes[objectName] = cb;
+    }
+    layout->addLayout(grid);
+    scrollLayout->addWidget(group);
+}
+
 void FeatureSwitchWidget::setupButtonVisibilityUI(QVBoxLayout *scrollLayout)
 {
+    setupDeviceControlChildVisibilityUI(scrollLayout);
+
     m_modbusButtonGroup = new QGroupBox(QStringLiteral("Modbus 按键：显示与寄存器"));
     QVBoxLayout *modbusLayout = new QVBoxLayout(m_modbusButtonGroup);
     modbusLayout->addWidget(makeHintLabel(
@@ -1599,6 +1641,9 @@ void FeatureSwitchWidget::refreshButtonVisibilityList()
     for (int i = 0; i < buttons.size(); ++i) {
         const MainWindow::ControllableButtonInfo &info = buttons.at(i);
         if (shouldSkipControllable(info)) {
+            continue;
+        }
+        if (isDeviceControlChildButton(info.objectName)) {
             continue;
         }
         if (!hasModbusOperation(info) && isConsoleNoiseControl(mainWindow, info.objectName)) {
@@ -1922,6 +1967,9 @@ void FeatureSwitchWidget::loadButtonVisibilityState()
             it->visible->setChecked(settings.value(it.key(), true).toBool());
         }
     }
+    for (auto it = m_deviceControlChildCheckboxes.begin(); it != m_deviceControlChildCheckboxes.end(); ++it) {
+        it.value()->setChecked(settings.value(it.key(), true).toBool());
+    }
     for (auto it = m_otherVisibilityCheckboxes.begin(); it != m_otherVisibilityCheckboxes.end(); ++it) {
         it.value()->setChecked(settings.value(it.key(), true).toBool());
     }
@@ -1984,6 +2032,9 @@ void FeatureSwitchWidget::saveButtonVisibilityState()
         if (it->visible) {
             settings.setValue(it.key(), it->visible->isChecked());
         }
+    }
+    for (auto it = m_deviceControlChildCheckboxes.begin(); it != m_deviceControlChildCheckboxes.end(); ++it) {
+        settings.setValue(it.key(), it.value()->isChecked());
     }
     for (auto it = m_otherVisibilityCheckboxes.begin(); it != m_otherVisibilityCheckboxes.end(); ++it) {
         settings.setValue(it.key(), it.value()->isChecked());

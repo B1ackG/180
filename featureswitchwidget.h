@@ -59,6 +59,7 @@ private:
     void setupInclinometerThresholdUI(QVBoxLayout *scrollLayout);
     void setupPlaneHeightOffsetUI(QVBoxLayout *scrollLayout);
     void setupButtonVisibilityUI(QVBoxLayout *scrollLayout);
+    void setupDeviceControlChildVisibilityUI(QVBoxLayout *scrollLayout);
     void refreshButtonVisibilityList();
     void loadNetworkState();
     bool saveNetworkState();
@@ -155,6 +156,7 @@ private:
     QLineEdit *m_editPlaneHeightOffset = nullptr;
 
     QMap<QString, ModbusButtonEdits> m_modbusButtonEdits;
+    QMap<QString, QCheckBox*> m_deviceControlChildCheckboxes;
     QMap<QString, QCheckBox*> m_otherVisibilityCheckboxes;
 
     QGroupBox *m_modbusButtonGroup = nullptr;
