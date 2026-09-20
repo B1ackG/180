@@ -12105,10 +12105,12 @@ void MainWindow::updateAlarmDisplay()
         } else {
             alarmMessage = "底盘触发急停，请解除急停。";
         }
+        bool hasSecondLayerSource = false;
         if (robotEmergency) {
             const QStringList teachLines = robotArmTeachPendantEstopFromRegister150(
                 m_mainRegister150Shadow);
             if (!teachLines.isEmpty()) {
+                hasSecondLayerSource = true;
                 alarmMessage += QLatin1Char('\n');
                 alarmMessage += teachLines.join(QLatin1Char('\n'));
             }
@@ -12117,11 +12119,13 @@ void MainWindow::updateAlarmDisplay()
             const QStringList sources = agvChassisEstopSourcesFromRegister150(
                 m_agvRegisterShadow.value(150, 0));
             if (!sources.isEmpty()) {
+                hasSecondLayerSource = true;
                 alarmMessage += QLatin1Char('\n');
                 alarmMessage += sources.join(QLatin1Char('\n'));
             }
         }
-        showAlarm(alarmMessage, "#ff5555", false);
+        // 第一层已触发但第二层来源位全 0：提供与主页 TBtn_RemoveWarning 相同的清除入口。
+        showAlarm(alarmMessage, "#ff5555", !hasSecondLayerSource);
     } else {
         // 没有报警时隐藏窗口
         // 只有在没有转向切换报警时才隐藏
