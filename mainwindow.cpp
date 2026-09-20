@@ -310,6 +310,8 @@ bool isScreenMotionEnableGatedWidget(const QWidget *widget)
 
 constexpr int kAgvParkOutTriggerLengthRegStart = 5014;
 constexpr int kMainCurrentLoadWeightReg = 123;
+constexpr int kMainWeightOverloadLimitReg = 5004;
+constexpr int kMainWeightLockLimitReg = 5005;
 constexpr int kMainColumnRetractLimitReg = 5007;
 constexpr int kMainArmRetractLimitReg = 5008;
 constexpr int kSixAxisPoseReg = 615;
@@ -799,6 +801,35 @@ void MainWindow::applyWeightThresholdRuntimeSettings()
         }
         m_weightLockLimitValidator->setRange(0, 1000000);
     }
+
+    applyWeightCardThresholdDisplay();
+}
+
+void MainWindow::syncWeightThresholdEditsFromCache()
+{
+    const auto fillEdit = [](QLineEdit *edit, int address) {
+        if (!edit || edit->hasFocus() || !g_registerCache.contains(address)) {
+            return;
+        }
+        const QString text = QString::number(static_cast<int>(g_registerCache.value(address)));
+        if (edit->text() == text) {
+            return;
+        }
+        const QSignalBlocker blocker(edit);
+        edit->setText(text);
+    };
+
+    fillEdit(m_weightOverloadLimitEdit, kMainWeightOverloadLimitReg);
+    fillEdit(m_weightLockLimitEdit, kMainWeightLockLimitReg);
+    applyWeightCardThresholdDisplay();
+}
+
+void MainWindow::refreshWeightThresholdEditsFromDevice()
+{
+    syncWeightThresholdEditsFromCache();
+    if (MainDeviceModbusApi::isReady(m_modbusManager)) {
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainWeightOverloadLimitReg, 2);
+    }
 }
 
 bool MainWindow::writeAgvHoldingRegisterBlock(int startAddress, const QVector<quint16> &words)
@@ -1256,6 +1287,28 @@ void MainWindow::applyInclinometerDisplayRuntimeSettings()
     if (m_inclinometerYQml && m_inclinometerYQml->rootObject()) {
         m_inclinometerYQml->rootObject()->setProperty("thresholdText", formatThreshold(ty));
     }
+}
+
+void MainWindow::applyWeightCardThresholdDisplay()
+{
+    if (!(m_weightCardQml && m_weightCardQml->rootObject())) {
+        return;
+    }
+
+    bool ok = false;
+    int threshold = 0;
+    if (m_weightOverloadLimitEdit) {
+        threshold = m_weightOverloadLimitEdit->text().trimmed().toInt(&ok);
+    }
+    if (!ok && g_registerCache.contains(kMainWeightOverloadLimitReg)) {
+        threshold = static_cast<int>(g_registerCache.value(kMainWeightOverloadLimitReg));
+        ok = true;
+    }
+
+    const QString text = ok
+        ? QStringLiteral("阈值：%1KG").arg(threshold)
+        : QString();
+    m_weightCardQml->rootObject()->setProperty("thresholdText", text);
 }
 
 void MainWindow::applyPlaneHeightOffsetRuntimeSettings()
@@ -1912,6 +1965,9 @@ void MainWindow::setupRecordAndPermissionConnections()
             ui->StackedWidget->setCurrentWidget(ui->page_Permission);
         }
         setExclusiveNavButtonChecked(ui->TBtn_PermissionPage);
+        if (m_currentUserRole == UserRole::Admin) {
+            refreshWeightThresholdEditsFromDevice();
+        }
     });
 
     connect(m_recorder, &OperationRecorder::recordAdded, this, [this](const OperationRecord &record) {
@@ -2795,6 +2851,10 @@ void MainWindow::initWeightCard()
                     for (const auto &err : errs) {
                         qWarning() << "WeightCard QML error:" << err.toString();
                     }
+                    return;
+                }
+                if (status == QQuickWidget::Ready) {
+                    applyWeightCardThresholdDisplay();
                 }
             }, Qt::UniqueConnection);
     m_weightCardQml->setSource(QUrl(QStringLiteral("qrc:/WeightCard.qml")));
@@ -2804,7 +2864,9 @@ void MainWindow::initWeightCard()
         root->setProperty("unit", QStringLiteral("KG"));
         root->setProperty("weightValue", 0.0);
         root->setProperty("dataValid", false);
+        root->setProperty("thresholdText", QString());
     }
+    applyWeightCardThresholdDisplay();
 
     auto *layout = new QVBoxLayout(host);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -4016,6 +4078,11 @@ void MainWindow::setupAdminPasswordPage()
     adminPage->setStyleSheet(style);
 
     applyWeightThresholdRuntimeSettings();
+    syncWeightThresholdEditsFromCache();
+
+    connect(weightOverloadLimitEdit, &QLineEdit::textChanged, this, [this](const QString &) {
+        applyWeightCardThresholdDisplay();
+    });
 
     connect(weightOverloadLimitEdit, &QLineEdit::editingFinished, this,
             [this, weightOverloadLimitEdit, weightLockLimitEdit]() {
@@ -4023,9 +4090,10 @@ void MainWindow::setupAdminPasswordPage()
         const QPair<int, int> overloadLim = weightOverloadLimitRangeFromSettings();
         int value = weightOverloadLimitEdit->text().trimmed().toInt(&ok);
         const auto restoreOverload = [weightOverloadLimitEdit]() {
-            if (g_registerCache.contains(5004)) {
+            if (g_registerCache.contains(kMainWeightOverloadLimitReg)) {
                 const QSignalBlocker blocker(weightOverloadLimitEdit);
-                weightOverloadLimitEdit->setText(QString::number(g_registerCache.value(5004)));
+                weightOverloadLimitEdit->setText(
+                    QString::number(g_registerCache.value(kMainWeightOverloadLimitReg)));
             }
         };
         if (!ok) {
@@ -4043,8 +4111,8 @@ void MainWindow::setupAdminPasswordPage()
         }
         bool lockOk = false;
         int lockValue = weightLockLimitEdit->text().trimmed().toInt(&lockOk);
-        if (!lockOk && g_registerCache.contains(5005)) {
-            lockValue = static_cast<int>(g_registerCache.value(5005));
+        if (!lockOk && g_registerCache.contains(kMainWeightLockLimitReg)) {
+            lockValue = static_cast<int>(g_registerCache.value(kMainWeightLockLimitReg));
             lockOk = true;
         }
         if (lockOk && value >= lockValue) {
@@ -4052,7 +4120,8 @@ void MainWindow::setupAdminPasswordPage()
             showToast(QStringLiteral("负载超限阈值必须小于负载超重阈值"), ToastKind::Warning);
             return;
         }
-        writeToMainDevice(5004, value);
+        writeToMainDevice(kMainWeightOverloadLimitReg, value);
+        applyWeightCardThresholdDisplay();
         if (m_recorder) {
             OperationRecord record;
             record.timestamp = QDateTime::currentDateTime();
@@ -4061,10 +4130,14 @@ void MainWindow::setupAdminPasswordPage()
             record.controlType = QStringLiteral("AdminConfig");
             record.operation = QStringLiteral("write_register");
             record.oldValue = QString();
-            record.newValue = QStringLiteral("已向主控寄存器5004写入%1").arg(value);
+            record.newValue = QStringLiteral("已向主控寄存器%1写入%2")
+                                  .arg(kMainWeightOverloadLimitReg)
+                                  .arg(value);
             m_recorder->addRecord(record);
         }
-        showNotification(QStringLiteral("负载超限阈值已写入主控5004: %1").arg(value));
+        showNotification(QStringLiteral("负载超限阈值已写入主控%1: %2")
+                             .arg(kMainWeightOverloadLimitReg)
+                             .arg(value));
     });
 
     connect(weightLockLimitEdit, &QLineEdit::editingFinished, this,
@@ -4073,9 +4146,10 @@ void MainWindow::setupAdminPasswordPage()
         const QPair<int, int> lockLim = weightLockLimitRangeFromSettings();
         int value = weightLockLimitEdit->text().trimmed().toInt(&ok);
         const auto restoreLock = [weightLockLimitEdit]() {
-            if (g_registerCache.contains(5005)) {
+            if (g_registerCache.contains(kMainWeightLockLimitReg)) {
                 const QSignalBlocker blocker(weightLockLimitEdit);
-                weightLockLimitEdit->setText(QString::number(g_registerCache.value(5005)));
+                weightLockLimitEdit->setText(
+                    QString::number(g_registerCache.value(kMainWeightLockLimitReg)));
             }
         };
         if (!ok) {
@@ -4093,8 +4167,8 @@ void MainWindow::setupAdminPasswordPage()
         }
         bool overloadOk = false;
         int overloadValue = weightOverloadLimitEdit->text().trimmed().toInt(&overloadOk);
-        if (!overloadOk && g_registerCache.contains(5004)) {
-            overloadValue = static_cast<int>(g_registerCache.value(5004));
+        if (!overloadOk && g_registerCache.contains(kMainWeightOverloadLimitReg)) {
+            overloadValue = static_cast<int>(g_registerCache.value(kMainWeightOverloadLimitReg));
             overloadOk = true;
         }
         if (overloadOk && value <= overloadValue) {
@@ -4102,7 +4176,7 @@ void MainWindow::setupAdminPasswordPage()
             showToast(QStringLiteral("负载超限阈值必须小于负载超重阈值"), ToastKind::Warning);
             return;
         }
-        writeToMainDevice(5005, value);
+        writeToMainDevice(kMainWeightLockLimitReg, value);
         if (m_recorder) {
             OperationRecord record;
             record.timestamp = QDateTime::currentDateTime();
@@ -4111,10 +4185,14 @@ void MainWindow::setupAdminPasswordPage()
             record.controlType = QStringLiteral("AdminConfig");
             record.operation = QStringLiteral("write_register");
             record.oldValue = QString();
-            record.newValue = QStringLiteral("已向主控寄存器5005写入%1").arg(value);
+            record.newValue = QStringLiteral("已向主控寄存器%1写入%2")
+                                  .arg(kMainWeightLockLimitReg)
+                                  .arg(value);
             m_recorder->addRecord(record);
         }
-        showNotification(QStringLiteral("负载超重阈值已写入主控5005: %1").arg(value));
+        showNotification(QStringLiteral("负载超重阈值已写入主控%1: %2")
+                             .arg(kMainWeightLockLimitReg)
+                             .arg(value));
     });
 
     // 连接登录按钮
@@ -4183,6 +4261,9 @@ void MainWindow::setupAdminPasswordPage()
             logoutButton->setVisible(true);
             featureButton->setVisible(m_currentUserRole == UserRole::Manufacturer);
             weightThresholdSection->setVisible(m_currentUserRole == UserRole::Admin);
+            if (m_currentUserRole == UserRole::Admin) {
+                refreshWeightThresholdEditsFromDevice();
+            }
 
             updateStatusBarTime();
             showNotification(QString("%1 登录成功").arg(roleName));
@@ -6462,16 +6543,24 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         applyRobotSpeedUiFromRegister130(value);
     }
 
-    if (allowMainUiStateSync && address == 5004 && m_weightOverloadLimitEdit) {
-        const QPair<int, int> lim = weightOverloadLimitRangeFromSettings();
-        const QSignalBlocker blocker(m_weightOverloadLimitEdit);
-        m_weightOverloadLimitEdit->setText(QString::number(qBound(lim.first, static_cast<int>(value), lim.second)));
+    if (address == kMainWeightOverloadLimitReg) {
+        if (allowMainUiStateSync && m_weightOverloadLimitEdit && !m_weightOverloadLimitEdit->hasFocus()) {
+            const QString text = QString::number(static_cast<int>(value));
+            if (m_weightOverloadLimitEdit->text() != text) {
+                const QSignalBlocker blocker(m_weightOverloadLimitEdit);
+                m_weightOverloadLimitEdit->setText(text);
+            }
+        }
+        applyWeightCardThresholdDisplay();
     }
 
-    if (allowMainUiStateSync && address == 5005 && m_weightLockLimitEdit) {
-        const QPair<int, int> lim = weightLockLimitRangeFromSettings();
-        const QSignalBlocker blocker(m_weightLockLimitEdit);
-        m_weightLockLimitEdit->setText(QString::number(qBound(lim.first, static_cast<int>(value), lim.second)));
+    if (allowMainUiStateSync && address == kMainWeightLockLimitReg && m_weightLockLimitEdit
+        && !m_weightLockLimitEdit->hasFocus()) {
+        const QString text = QString::number(static_cast<int>(value));
+        if (m_weightLockLimitEdit->text() != text) {
+            const QSignalBlocker blocker(m_weightLockLimitEdit);
+            m_weightLockLimitEdit->setText(text);
+        }
     }
 
     if (address == kMainColumnRetractLimitReg || address == kMainArmRetractLimitReg) {
@@ -7124,7 +7213,7 @@ void MainWindow::readMainControlSyncRegisters()
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainCurrentLoadWeightReg, 1);
 
     // 管理员负载阈值：5004 负载超限、5005 负载超重
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 5004, 2);
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainWeightOverloadLimitReg, 2);
 
     // 底盘收回门槛：5007 立柱、5008 臂
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainColumnRetractLimitReg, 2);

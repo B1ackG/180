@@ -6,6 +6,7 @@ Item {
     property bool dataValid: false
     property string title: "当前负载"
     property string unit: "KG"
+    property string thresholdText: ""
 
     implicitWidth: 120
     implicitHeight: 80
@@ -85,7 +86,7 @@ Item {
         anchors.leftMargin: 8
         anchors.rightMargin: 8
         anchors.topMargin: 4
-        anchors.bottomMargin: 8
+        anchors.bottomMargin: root.thresholdText.length > 0 ? 18 : 8
         radius: 8
         border.width: 1
         border.color: "#5AB4DC46"
@@ -119,5 +120,18 @@ Item {
                 renderType: Text.NativeRendering
             }
         }
+    }
+
+    Text {
+        id: thresholdLabel
+        visible: root.thresholdText.length > 0
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 4
+        text: root.thresholdText
+        color: "#6FB8D8"
+        font.family: "Noto Sans CJK SC"
+        font.pixelSize: 9
+        renderType: Text.NativeRendering
     }
 }

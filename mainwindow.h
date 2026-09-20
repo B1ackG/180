@@ -406,6 +406,10 @@ public:
     void applyParkOutTriggerLengthRuntimeSettings();
     /** @brief 按功能控制台配置更新管理员负载阈值输入范围 */
     void applyWeightThresholdRuntimeSettings();
+    /** @brief 将缓存中的 5004/5005 填入管理员负载阈值输入框（无缓存时不填默认 0） */
+    void syncWeightThresholdEditsFromCache();
+    /** @brief 打开管理员界面时回读 5004/5005 并刷新输入框 */
+    void refreshWeightThresholdEditsFromDevice();
     /** @brief 按功能控制台范围夹取并写入立柱/臂收回门槛（5007/5008） */
     void commitChassisRetractThresholdWrites();
     /** @brief 连续写 AGV 保持寄存器并更新 m_agvRegisterShadow */
@@ -1122,6 +1126,8 @@ public:
 
     /** @brief 从 config.ini 刷新首页倾角卡片上的阈值说明文字 */
     void applyInclinometerDisplayRuntimeSettings();
+    /** @brief 按负载超限阈值刷新首页重量卡片阈值文字 */
+    void applyWeightCardThresholdDisplay();
 
     /** @brief 从 config.ini 加载平面高度偏移量，并刷新辅助显示 */
     void applyPlaneHeightOffsetRuntimeSettings();
