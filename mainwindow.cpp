@@ -47,6 +47,7 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <QTimer>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QGridLayout>
 #include <QFrame>
 #include <QStackedWidget>
 #include <QLabel>
@@ -59,8 +60,6 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <cerrno>
 #include <cstring>
 #include <QSocketNotifier>
-#include <QScrollArea>
-#include <QFrame>
 #include <QLocale>
 #include <QIntValidator>
 #include <QDoubleValidator>
@@ -4017,6 +4016,17 @@ void MainWindow::setupAdminPasswordPage()
     }
 
     QWidget *contentHost = adminPage->findChild<QWidget*>("permissionContentHost");
+
+    if (!adminPage->layout()) {
+        auto *pageLayout = new QVBoxLayout(adminPage);
+        pageLayout->setContentsMargins(24, 8, 24, 8);
+        pageLayout->setSpacing(0);
+        if (contentHost) {
+            contentHost->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+            pageLayout->addWidget(contentHost);
+        }
+    }
+
     QWidget *targetParent = contentHost ? contentHost : adminPage;
 
     // 隐藏权限页中非宿主控件，避免与动态内容重叠
@@ -4045,7 +4055,9 @@ void MainWindow::setupAdminPasswordPage()
     QWidget *container = new QWidget(targetParent);
     container->setObjectName("adminContainer");
     QVBoxLayout *containerLayout = new QVBoxLayout(container);
-    containerLayout->setAlignment(Qt::AlignCenter);
+    containerLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
+    containerLayout->setContentsMargins(28, 16, 28, 16);
+    containerLayout->setSpacing(8);
 
     // 标题
     QLabel *titleLabel = new QLabel("请先选择权限", container);
@@ -4055,6 +4067,7 @@ void MainWindow::setupAdminPasswordPage()
     // 角色选择下拉框
     QComboBox *roleComboBox = new QComboBox(container);
     roleComboBox->setObjectName("roleComboBox");
+    roleComboBox->setMaximumWidth(420);
     roleComboBox->addItem("操作员 (Operator)", QVariant::fromValue(static_cast<int>(UserRole::Operator)));
     roleComboBox->addItem("工程师 (Engineer)", QVariant::fromValue(static_cast<int>(UserRole::Engineer)));
     roleComboBox->addItem("管理员 (Admin)", QVariant::fromValue(static_cast<int>(UserRole::Admin)));
@@ -4067,6 +4080,7 @@ void MainWindow::setupAdminPasswordPage()
     passwordEdit->setEchoMode(QLineEdit::Password);
     passwordEdit->setPlaceholderText("请输入密码");
     passwordEdit->setAlignment(Qt::AlignCenter);
+    passwordEdit->setMaximumWidth(420);
 
     // 密码提示
     QLabel *hintLabel = new QLabel("工程师: 456 | 管理员: 123 | 厂家: 8888", container);
@@ -4076,6 +4090,7 @@ void MainWindow::setupAdminPasswordPage()
     // 登录按钮
     QPushButton *loginButton = new QPushButton("登录", container);
     loginButton->setObjectName("loginButton");
+    loginButton->setMaximumWidth(280);
 
     // 功能开关管理按钮 (仅厂家)
     QPushButton *featureButton = new QPushButton("功能开关管理", container);
@@ -4084,96 +4099,96 @@ void MainWindow::setupAdminPasswordPage()
         "background-color: #55007f; color: #ffaa00; font-weight: bold; border: 2px solid #ffaa00;"
     );
     featureButton->setVisible(false);
+    featureButton->setMaximumWidth(280);
 
     // 注销按钮
     QPushButton *logoutButton = new QPushButton("注销 (返回操作员)", container);
     logoutButton->setObjectName("logoutButton");
     logoutButton->setVisible(false); // 默认隐藏，登录后显示
+    logoutButton->setMaximumWidth(360);
 
     // 负载阈值配置（管理员登录后可见）
     QWidget *weightThresholdSection = new QWidget(container);
     weightThresholdSection->setObjectName(QStringLiteral("weightThresholdSection"));
-    QVBoxLayout *weightMainLayout = new QVBoxLayout(weightThresholdSection);
-    weightMainLayout->setContentsMargins(0, 0, 0, 0);
-    weightMainLayout->setSpacing(10);
+    auto *weightGrid = new QGridLayout(weightThresholdSection);
+    weightGrid->setContentsMargins(0, 4, 0, 4);
+    weightGrid->setHorizontalSpacing(28);
+    weightGrid->setVerticalSpacing(8);
 
     const QString weightLabelStyle = QStringLiteral(
         "color: #00ffff; font-family: 'Microsoft YaHei UI'; font-size: 14px;");
     const QString weightEditStyle = QStringLiteral(
         "QLineEdit { background: rgba(0, 0, 0, 100); border: 1px solid #00c8ff;"
-        " color: #ffaa00; border-radius: 4px; padding: 6px 10px; min-width: 200px; }");
+        " color: #ffaa00; border-radius: 4px; padding: 6px 10px; min-width: 180px; }");
 
-    QLabel *overloadLimitLabel = new QLabel(QStringLiteral("负载超限阈值"), weightThresholdSection);
-    overloadLimitLabel->setStyleSheet(weightLabelStyle);
-    QLabel *overloadRangeLabel = new QLabel(weightThresholdSection);
-    overloadRangeLabel->setObjectName(QStringLiteral("weightOverloadLimitRangeLabel"));
-    overloadRangeLabel->setAlignment(Qt::AlignCenter);
-    overloadRangeLabel->setStyleSheet(QStringLiteral(
-        "color: #88aacc; font-family: 'Microsoft YaHei UI'; font-size: 12px;"));
-    m_weightOverloadLimitRangeLabel = overloadRangeLabel;
-    QLineEdit *weightOverloadLimitEdit = new QLineEdit(weightThresholdSection);
-    weightOverloadLimitEdit->setObjectName(QStringLiteral("weightOverloadLimitEdit"));
-    weightOverloadLimitEdit->setAlignment(Qt::AlignCenter);
-    weightOverloadLimitEdit->setStyleSheet(weightEditStyle);
-    m_weightOverloadLimitEdit = weightOverloadLimitEdit;
+    const auto makeThresholdField = [&](const QString &titleText,
+                                        const QString &rangeObjectName,
+                                        const QString &editObjectName,
+                                        QLabel **rangeOut,
+                                        QLineEdit **editOut) {
+        auto *box = new QWidget(weightThresholdSection);
+        auto *lay = new QVBoxLayout(box);
+        lay->setContentsMargins(4, 2, 4, 2);
+        lay->setSpacing(4);
 
-    QLabel *lockLimitLabel = new QLabel(QStringLiteral("负载超重阈值"), weightThresholdSection);
-    lockLimitLabel->setStyleSheet(weightLabelStyle);
-    QLabel *lockRangeLabel = new QLabel(weightThresholdSection);
-    lockRangeLabel->setObjectName(QStringLiteral("weightLockLimitRangeLabel"));
-    lockRangeLabel->setAlignment(Qt::AlignCenter);
-    lockRangeLabel->setStyleSheet(QStringLiteral(
-        "color: #88aacc; font-family: 'Microsoft YaHei UI'; font-size: 12px;"));
-    m_weightLockLimitRangeLabel = lockRangeLabel;
-    QLineEdit *weightLockLimitEdit = new QLineEdit(weightThresholdSection);
-    weightLockLimitEdit->setObjectName(QStringLiteral("weightLockLimitEdit"));
-    weightLockLimitEdit->setAlignment(Qt::AlignCenter);
-    weightLockLimitEdit->setStyleSheet(weightEditStyle);
-    m_weightLockLimitEdit = weightLockLimitEdit;
+        auto *title = new QLabel(titleText, box);
+        title->setAlignment(Qt::AlignCenter);
+        title->setStyleSheet(weightLabelStyle);
 
-    QLabel *inclinometerAlarmLabel = new QLabel(QStringLiteral("倾角报警阈值"), weightThresholdSection);
-    inclinometerAlarmLabel->setStyleSheet(weightLabelStyle);
-    QLabel *inclinometerAlarmRangeLabel = new QLabel(weightThresholdSection);
-    inclinometerAlarmRangeLabel->setObjectName(QStringLiteral("inclinometerAlarmLimitRangeLabel"));
-    inclinometerAlarmRangeLabel->setAlignment(Qt::AlignCenter);
-    inclinometerAlarmRangeLabel->setStyleSheet(QStringLiteral(
-        "color: #88aacc; font-family: 'Microsoft YaHei UI'; font-size: 12px;"));
-    m_inclinometerAlarmLimitRangeLabel = inclinometerAlarmRangeLabel;
-    QLineEdit *inclinometerAlarmLimitEdit = new QLineEdit(weightThresholdSection);
-    inclinometerAlarmLimitEdit->setObjectName(QStringLiteral("inclinometerAlarmLimitEdit"));
-    inclinometerAlarmLimitEdit->setAlignment(Qt::AlignCenter);
-    inclinometerAlarmLimitEdit->setStyleSheet(weightEditStyle);
-    m_inclinometerAlarmLimitEdit = inclinometerAlarmLimitEdit;
+        auto *range = new QLabel(box);
+        range->setObjectName(rangeObjectName);
+        range->setAlignment(Qt::AlignCenter);
+        range->setStyleSheet(QStringLiteral(
+            "color: #88aacc; font-family: 'Microsoft YaHei UI'; font-size: 12px;"));
+        *rangeOut = range;
 
-    QLabel *inclinometerLockLabel = new QLabel(QStringLiteral("倾角锁定阈值"), weightThresholdSection);
-    inclinometerLockLabel->setStyleSheet(weightLabelStyle);
-    QLabel *inclinometerLockRangeLabel = new QLabel(weightThresholdSection);
-    inclinometerLockRangeLabel->setObjectName(QStringLiteral("inclinometerLockLimitRangeLabel"));
-    inclinometerLockRangeLabel->setAlignment(Qt::AlignCenter);
-    inclinometerLockRangeLabel->setStyleSheet(QStringLiteral(
-        "color: #88aacc; font-family: 'Microsoft YaHei UI'; font-size: 12px;"));
-    m_inclinometerLockLimitRangeLabel = inclinometerLockRangeLabel;
-    QLineEdit *inclinometerLockLimitEdit = new QLineEdit(weightThresholdSection);
-    inclinometerLockLimitEdit->setObjectName(QStringLiteral("inclinometerLockLimitEdit"));
-    inclinometerLockLimitEdit->setAlignment(Qt::AlignCenter);
-    inclinometerLockLimitEdit->setStyleSheet(weightEditStyle);
-    m_inclinometerLockLimitEdit = inclinometerLockLimitEdit;
+        auto *edit = new QLineEdit(box);
+        edit->setObjectName(editObjectName);
+        edit->setAlignment(Qt::AlignCenter);
+        edit->setStyleSheet(weightEditStyle);
+        *editOut = edit;
 
-    weightMainLayout->addWidget(overloadLimitLabel);
-    weightMainLayout->addWidget(overloadRangeLabel);
-    weightMainLayout->addWidget(weightOverloadLimitEdit);
-    weightMainLayout->addSpacing(8);
-    weightMainLayout->addWidget(lockLimitLabel);
-    weightMainLayout->addWidget(lockRangeLabel);
-    weightMainLayout->addWidget(weightLockLimitEdit);
-    weightMainLayout->addSpacing(8);
-    weightMainLayout->addWidget(inclinometerAlarmLabel);
-    weightMainLayout->addWidget(inclinometerAlarmRangeLabel);
-    weightMainLayout->addWidget(inclinometerAlarmLimitEdit);
-    weightMainLayout->addSpacing(8);
-    weightMainLayout->addWidget(inclinometerLockLabel);
-    weightMainLayout->addWidget(inclinometerLockRangeLabel);
-    weightMainLayout->addWidget(inclinometerLockLimitEdit);
+        lay->addWidget(title);
+        lay->addWidget(range);
+        lay->addWidget(edit);
+        return box;
+    };
+
+    weightGrid->addWidget(
+        makeThresholdField(QStringLiteral("负载超限阈值"),
+                           QStringLiteral("weightOverloadLimitRangeLabel"),
+                           QStringLiteral("weightOverloadLimitEdit"),
+                           &m_weightOverloadLimitRangeLabel,
+                           &m_weightOverloadLimitEdit),
+        0, 0);
+    weightGrid->addWidget(
+        makeThresholdField(QStringLiteral("负载超重阈值"),
+                           QStringLiteral("weightLockLimitRangeLabel"),
+                           QStringLiteral("weightLockLimitEdit"),
+                           &m_weightLockLimitRangeLabel,
+                           &m_weightLockLimitEdit),
+        0, 1);
+    weightGrid->addWidget(
+        makeThresholdField(QStringLiteral("倾角报警阈值"),
+                           QStringLiteral("inclinometerAlarmLimitRangeLabel"),
+                           QStringLiteral("inclinometerAlarmLimitEdit"),
+                           &m_inclinometerAlarmLimitRangeLabel,
+                           &m_inclinometerAlarmLimitEdit),
+        1, 0);
+    weightGrid->addWidget(
+        makeThresholdField(QStringLiteral("倾角锁定阈值"),
+                           QStringLiteral("inclinometerLockLimitRangeLabel"),
+                           QStringLiteral("inclinometerLockLimitEdit"),
+                           &m_inclinometerLockLimitRangeLabel,
+                           &m_inclinometerLockLimitEdit),
+        1, 1);
+    QLineEdit *weightOverloadLimitEdit = m_weightOverloadLimitEdit;
+    QLineEdit *weightLockLimitEdit = m_weightLockLimitEdit;
+    QLineEdit *inclinometerAlarmLimitEdit = m_inclinometerAlarmLimitEdit;
+    QLineEdit *inclinometerLockLimitEdit = m_inclinometerLockLimitEdit;
+    weightGrid->setColumnStretch(0, 1);
+    weightGrid->setColumnStretch(1, 1);
+    weightThresholdSection->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     weightThresholdSection->setVisible(false);
 
     // 错误提示
@@ -4183,43 +4198,26 @@ void MainWindow::setupAdminPasswordPage()
     errorLabel->setVisible(false);
 
     // 添加控件到容器
-    containerLayout->addStretch(2);
     containerLayout->addWidget(titleLabel);
-    containerLayout->addSpacing(30);
+    containerLayout->addSpacing(12);
     containerLayout->addWidget(roleComboBox);
-    containerLayout->addSpacing(15);
+    containerLayout->addSpacing(8);
     containerLayout->addWidget(passwordEdit);
-    containerLayout->addSpacing(15);
+    containerLayout->addSpacing(8);
     containerLayout->addWidget(hintLabel);
-    containerLayout->addSpacing(30);
+    containerLayout->addSpacing(12);
     containerLayout->addWidget(loginButton);
     containerLayout->addWidget(featureButton);
-    containerLayout->addWidget(weightThresholdSection); // 管理员登录后可见
+    containerLayout->addWidget(weightThresholdSection);
     containerLayout->addWidget(logoutButton);
-    containerLayout->addSpacing(15);
+    containerLayout->addSpacing(8);
     containerLayout->addWidget(errorLabel);
-    containerLayout->addStretch(3);
+    containerLayout->addStretch(1);
 
-    // 设置容器大小和居中
-    container->setFixedWidth(480);
-    container->setMinimumHeight(560);
-
-    QScrollArea *scroll = new QScrollArea(targetParent);
-    scroll->setWidgetResizable(true);
-    scroll->setFrameShape(QFrame::NoFrame);
-    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    scroll->setStyleSheet(QStringLiteral(
-        "QScrollArea { background: transparent; border: none; }"));
-
-    QWidget *scrollHost = new QWidget(scroll);
-    scrollHost->setStyleSheet(QStringLiteral("background: transparent;"));
-    QHBoxLayout *centerLayout = new QHBoxLayout(scrollHost);
-    centerLayout->setContentsMargins(0, 8, 0, 8);
-    centerLayout->addStretch();
-    centerLayout->addWidget(container);
-    centerLayout->addStretch();
-    scroll->setWidget(scrollHost);
-    mainLayout->addWidget(scroll);
+    container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    container->setMinimumWidth(720);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->addWidget(container);
 
     // 设置样式
     QString style = QString(
@@ -4232,7 +4230,7 @@ void MainWindow::setupAdminPasswordPage()
         "        stop:1 rgba(40, 20, 60, 200));"
         "    border: 2px solid #00c8ff;"
         "    border-radius: 15px;"
-        "    padding: 30px;"
+        "    padding: 16px;"
         "}"
         "#adminTitle {"
         "    font-family: 'Microsoft YaHei UI';"
