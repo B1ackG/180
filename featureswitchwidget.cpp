@@ -1100,6 +1100,10 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
                      QStringLiteral("负载超限阈值"));
     addOtherLimitRow(QStringLiteral("weight_lock_limit"),
                      QStringLiteral("负载超重阈值"));
+    addOtherLimitRow(QStringLiteral("inclinometer_alarm_limit"),
+                     QStringLiteral("倾角报警阈值"));
+    addOtherLimitRow(QStringLiteral("inclinometer_lock_limit"),
+                     QStringLiteral("倾角锁定阈值"));
 
     const auto addChassisRetractRow = [&](const QString &key,
                                           const QString &labelText,
@@ -2283,6 +2287,8 @@ void FeatureSwitchWidget::loadSliderLimitState()
         {"agv_park_out_trigger_length", qMakePair(100.0, 1100.0)},
         {"weight_overload_limit", qMakePair(0.0, 350.0)},
         {"weight_lock_limit", qMakePair(0.0, 450.0)},
+        {"inclinometer_alarm_limit", qMakePair(0.01, 15.0)},
+        {"inclinometer_lock_limit", qMakePair(0.01, 15.0)},
         {"column_retract_limit", qMakePair(0.0, 2000.0)},
         {"arm_extend_retract_limit", qMakePair(0.0, 2000.0)}
     };

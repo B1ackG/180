@@ -59,7 +59,11 @@ Q_LOGGING_CATEGORY(lcMainWindow, "app.mainwindow")
 #include <cerrno>
 #include <cstring>
 #include <QSocketNotifier>
+#include <QScrollArea>
+#include <QFrame>
+#include <QLocale>
 #include <QIntValidator>
+#include <QDoubleValidator>
 #include <QLineEdit>
 #include <QTextEdit>
 #include <QVector>
@@ -312,6 +316,11 @@ constexpr int kAgvParkOutTriggerLengthRegStart = 5014;
 constexpr int kMainCurrentLoadWeightReg = 123;
 constexpr int kMainWeightOverloadLimitReg = 5004;
 constexpr int kMainWeightLockLimitReg = 5005;
+constexpr int kMainInclinometerAlarmLimitReg = 5027;
+constexpr int kMainInclinometerLockLimitReg = 5028;
+constexpr int kInclinometerThresholdScale = 100;
+constexpr qreal kInclinometerAlarmThresholdDefaultDeg = 0.8;
+constexpr qreal kInclinometerLockThresholdDefaultDeg = 1.0;
 constexpr int kMainColumnRetractLimitReg = 5007;
 constexpr int kMainArmRetractLimitReg = 5008;
 constexpr int kSixAxisPoseReg = 615;
@@ -474,6 +483,60 @@ QPair<int, int> weightLockLimitRangeFromSettings()
         qSwap(lo, hi);
     }
     return {lo, hi};
+}
+
+QPair<double, double> inclinometerLimitRangeFromSettings(const QString &minKey,
+                                                         const QString &maxKey,
+                                                         double defaultMin,
+                                                         double defaultMax)
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("SliderLabelLimits"));
+    double lo = settings.value(minKey, defaultMin).toDouble();
+    double hi = settings.value(maxKey, defaultMax).toDouble();
+    settings.endGroup();
+    if (hi < lo) {
+        qSwap(lo, hi);
+    }
+    lo = qBound(0.01, lo, 90.0);
+    hi = qBound(0.01, hi, 90.0);
+    if (lo > hi) {
+        qSwap(lo, hi);
+    }
+    return {lo, hi};
+}
+
+QPair<double, double> inclinometerAlarmLimitRangeFromSettings()
+{
+    return inclinometerLimitRangeFromSettings(
+        QStringLiteral("inclinometer_alarm_limit_min"),
+        QStringLiteral("inclinometer_alarm_limit_max"),
+        0.01,
+        15.0);
+}
+
+QPair<double, double> inclinometerLockLimitRangeFromSettings()
+{
+    return inclinometerLimitRangeFromSettings(
+        QStringLiteral("inclinometer_lock_limit_min"),
+        QStringLiteral("inclinometer_lock_limit_max"),
+        0.01,
+        15.0);
+}
+
+qreal inclinometerRegisterToDeg(quint16 raw)
+{
+    return static_cast<qreal>(static_cast<int>(raw)) / static_cast<qreal>(kInclinometerThresholdScale);
+}
+
+int inclinometerDegToRegister(qreal deg)
+{
+    return qBound(0, qRound(deg * kInclinometerThresholdScale), 65535);
+}
+
+QString inclinometerDegEditText(qreal deg)
+{
+    return QString::number(deg, 'f', 2);
 }
 } // namespace
 
@@ -803,6 +866,86 @@ void MainWindow::applyWeightThresholdRuntimeSettings()
     }
 
     applyWeightCardThresholdDisplay();
+}
+
+void MainWindow::applyInclinometerThresholdRuntimeSettings()
+{
+    const QPair<double, double> alarmLim = inclinometerAlarmLimitRangeFromSettings();
+    const QPair<double, double> lockLim = inclinometerLockLimitRangeFromSettings();
+
+    if (m_inclinometerAlarmLimitRangeLabel) {
+        m_inclinometerAlarmLimitRangeLabel->setText(
+            QStringLiteral("可输入范围：%1 ~ %2")
+                .arg(alarmLim.first, 0, 'f', 2)
+                .arg(alarmLim.second, 0, 'f', 2));
+    }
+    if (m_inclinometerLockLimitRangeLabel) {
+        m_inclinometerLockLimitRangeLabel->setText(
+            QStringLiteral("可输入范围：%1 ~ %2")
+                .arg(lockLim.first, 0, 'f', 2)
+                .arg(lockLim.second, 0, 'f', 2));
+    }
+
+    const auto setupValidator = [](QDoubleValidator **validator, QLineEdit *edit, QObject *parent) {
+        if (!edit) {
+            return;
+        }
+        if (!*validator) {
+            *validator = new QDoubleValidator(parent);
+            (*validator)->setNotation(QDoubleValidator::StandardNotation);
+            (*validator)->setDecimals(2);
+            (*validator)->setLocale(QLocale::c());
+            edit->setValidator(*validator);
+        }
+        (*validator)->setRange(0.0, 90.0);
+    };
+    setupValidator(&m_inclinometerAlarmLimitValidator, m_inclinometerAlarmLimitEdit, this);
+    setupValidator(&m_inclinometerLockLimitValidator, m_inclinometerLockLimitEdit, this);
+    applyInclinometerDisplayRuntimeSettings();
+}
+
+void MainWindow::syncInclinometerThresholdEditsFromCache()
+{
+    const auto fillEdit = [](QLineEdit *edit, int address) {
+        if (!edit || edit->hasFocus() || !g_registerCache.contains(address)) {
+            return;
+        }
+        const QString text = inclinometerDegEditText(inclinometerRegisterToDeg(g_registerCache.value(address)));
+        if (edit->text() == text) {
+            return;
+        }
+        const QSignalBlocker blocker(edit);
+        edit->setText(text);
+    };
+
+    fillEdit(m_inclinometerAlarmLimitEdit, kMainInclinometerAlarmLimitReg);
+    fillEdit(m_inclinometerLockLimitEdit, kMainInclinometerLockLimitReg);
+    applyInclinometerTripThresholdsFromSources();
+    applyInclinometerDisplayRuntimeSettings();
+}
+
+void MainWindow::refreshInclinometerThresholdEditsFromDevice()
+{
+    syncInclinometerThresholdEditsFromCache();
+    if (MainDeviceModbusApi::isReady(m_modbusManager)) {
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainInclinometerAlarmLimitReg, 2);
+    }
+}
+
+void MainWindow::applyInclinometerTripThresholdsFromSources()
+{
+    if (g_registerCache.contains(kMainInclinometerAlarmLimitReg)) {
+        m_inclinometerAlarmThresholdDeg =
+            inclinometerRegisterToDeg(g_registerCache.value(kMainInclinometerAlarmLimitReg));
+    } else {
+        m_inclinometerAlarmThresholdDeg = kInclinometerAlarmThresholdDefaultDeg;
+    }
+    if (g_registerCache.contains(kMainInclinometerLockLimitReg)) {
+        m_inclinometerLockThresholdDeg =
+            inclinometerRegisterToDeg(g_registerCache.value(kMainInclinometerLockLimitReg));
+    } else {
+        m_inclinometerLockThresholdDeg = kInclinometerLockThresholdDefaultDeg;
+    }
 }
 
 void MainWindow::syncWeightThresholdEditsFromCache()
@@ -1272,21 +1415,37 @@ void MainWindow::applyModbusAccessSwitches()
 
 void MainWindow::applyInclinometerDisplayRuntimeSettings()
 {
-    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
-    settings.beginGroup(QStringLiteral("Inclinometer"));
-    const double tx = qBound(0.01, settings.value(QStringLiteral("display_threshold_x_deg"), 1.0).toDouble(), 90.0);
-    const double ty = qBound(0.01, settings.value(QStringLiteral("display_threshold_y_deg"), 1.0).toDouble(), 90.0);
-    settings.endGroup();
+    bool ok = false;
+    double alarmDeg = 0.0;
+    if (m_inclinometerAlarmLimitEdit) {
+        alarmDeg = m_inclinometerAlarmLimitEdit->text().trimmed().toDouble(&ok);
+    }
+    if (!ok && g_registerCache.contains(kMainInclinometerAlarmLimitReg)) {
+        alarmDeg = inclinometerRegisterToDeg(g_registerCache.value(kMainInclinometerAlarmLimitReg));
+        ok = true;
+    }
 
-    const auto formatThreshold = [](double deg) {
-        return QStringLiteral("阈值：%1°").arg(deg, 0, 'f', 2);
-    };
+    QString xText;
+    QString yText;
+    if (ok) {
+        const QString text = QStringLiteral("阈值：%1°").arg(alarmDeg, 0, 'f', 2);
+        xText = text;
+        yText = text;
+    } else {
+        QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+        settings.beginGroup(QStringLiteral("Inclinometer"));
+        const double tx = qBound(0.01, settings.value(QStringLiteral("display_threshold_x_deg"), 1.0).toDouble(), 90.0);
+        const double ty = qBound(0.01, settings.value(QStringLiteral("display_threshold_y_deg"), 1.0).toDouble(), 90.0);
+        settings.endGroup();
+        xText = QStringLiteral("阈值：%1°").arg(tx, 0, 'f', 2);
+        yText = QStringLiteral("阈值：%1°").arg(ty, 0, 'f', 2);
+    }
 
     if (m_inclinometerXQml && m_inclinometerXQml->rootObject()) {
-        m_inclinometerXQml->rootObject()->setProperty("thresholdText", formatThreshold(tx));
+        m_inclinometerXQml->rootObject()->setProperty("thresholdText", xText);
     }
     if (m_inclinometerYQml && m_inclinometerYQml->rootObject()) {
-        m_inclinometerYQml->rootObject()->setProperty("thresholdText", formatThreshold(ty));
+        m_inclinometerYQml->rootObject()->setProperty("thresholdText", yText);
     }
 }
 
@@ -2017,6 +2176,7 @@ void MainWindow::setupRecordAndPermissionConnections()
         setExclusiveNavButtonChecked(ui->TBtn_PermissionPage);
         if (m_currentUserRole == UserRole::Admin) {
             refreshWeightThresholdEditsFromDevice();
+            refreshInclinometerThresholdEditsFromDevice();
         }
     });
 
@@ -3018,15 +3178,15 @@ void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
 }
 
 namespace {
-bool isInclinometerTiltRiskWarningDegree(qreal degree)
+bool isInclinometerTiltRiskWarningDegree(qreal degree, qreal alarmDeg, qreal lockDeg)
 {
     const qreal absDeg = qAbs(degree);
-    return absDeg > 0.8 && absDeg <= 1.0;
+    return absDeg > alarmDeg && absDeg <= lockDeg;
 }
 
-bool isInclinometerTiltLockDegree(qreal degree)
+bool isInclinometerTiltLockDegree(qreal degree, qreal lockDeg)
 {
-    return qAbs(degree) > 1.0;
+    return qAbs(degree) > lockDeg;
 }
 
 void positionFloatingPopupCenter(QWidget *widget)
@@ -3047,19 +3207,21 @@ void positionFloatingPopupCenter(QWidget *widget)
 
 void MainWindow::refreshInclinometerTiltPresentation()
 {
-    const bool inLockZone = isInclinometerTiltLockDegree(m_inclinometerXDegree)
-                         || isInclinometerTiltLockDegree(m_inclinometerYDegree);
+    const qreal alarmDeg = m_inclinometerAlarmThresholdDeg;
+    const qreal lockDeg = m_inclinometerLockThresholdDeg;
+    const bool inLockZone = isInclinometerTiltLockDegree(m_inclinometerXDegree, lockDeg)
+                         || isInclinometerTiltLockDegree(m_inclinometerYDegree, lockDeg);
     const bool inWarnZone = !inLockZone
-                         && (isInclinometerTiltRiskWarningDegree(m_inclinometerXDegree)
-                             || isInclinometerTiltRiskWarningDegree(m_inclinometerYDegree));
+                         && (isInclinometerTiltRiskWarningDegree(m_inclinometerXDegree, alarmDeg, lockDeg)
+                             || isInclinometerTiltRiskWarningDegree(m_inclinometerYDegree, alarmDeg, lockDeg));
 
-    const auto applyInclinometerHostStyle = [](QWidget *host, qreal degree) {
+    const auto applyInclinometerHostStyle = [alarmDeg, lockDeg](QWidget *host, qreal degree) {
         if (!host) {
             return;
         }
-        if (isInclinometerTiltLockDegree(degree)) {
+        if (isInclinometerTiltLockDegree(degree, lockDeg)) {
             host->setStyleSheet(inclinometerHostAlarmStyleSheet());
-        } else if (isInclinometerTiltRiskWarningDegree(degree)) {
+        } else if (isInclinometerTiltRiskWarningDegree(degree, alarmDeg, lockDeg)) {
             host->setStyleSheet(inclinometerHostWarningStyleSheet());
         } else {
             host->setStyleSheet(inclinometerHostNormalStyleSheet());
@@ -3969,6 +4131,34 @@ void MainWindow::setupAdminPasswordPage()
     weightLockLimitEdit->setStyleSheet(weightEditStyle);
     m_weightLockLimitEdit = weightLockLimitEdit;
 
+    QLabel *inclinometerAlarmLabel = new QLabel(QStringLiteral("倾角报警阈值"), weightThresholdSection);
+    inclinometerAlarmLabel->setStyleSheet(weightLabelStyle);
+    QLabel *inclinometerAlarmRangeLabel = new QLabel(weightThresholdSection);
+    inclinometerAlarmRangeLabel->setObjectName(QStringLiteral("inclinometerAlarmLimitRangeLabel"));
+    inclinometerAlarmRangeLabel->setAlignment(Qt::AlignCenter);
+    inclinometerAlarmRangeLabel->setStyleSheet(QStringLiteral(
+        "color: #88aacc; font-family: 'Microsoft YaHei UI'; font-size: 12px;"));
+    m_inclinometerAlarmLimitRangeLabel = inclinometerAlarmRangeLabel;
+    QLineEdit *inclinometerAlarmLimitEdit = new QLineEdit(weightThresholdSection);
+    inclinometerAlarmLimitEdit->setObjectName(QStringLiteral("inclinometerAlarmLimitEdit"));
+    inclinometerAlarmLimitEdit->setAlignment(Qt::AlignCenter);
+    inclinometerAlarmLimitEdit->setStyleSheet(weightEditStyle);
+    m_inclinometerAlarmLimitEdit = inclinometerAlarmLimitEdit;
+
+    QLabel *inclinometerLockLabel = new QLabel(QStringLiteral("倾角锁定阈值"), weightThresholdSection);
+    inclinometerLockLabel->setStyleSheet(weightLabelStyle);
+    QLabel *inclinometerLockRangeLabel = new QLabel(weightThresholdSection);
+    inclinometerLockRangeLabel->setObjectName(QStringLiteral("inclinometerLockLimitRangeLabel"));
+    inclinometerLockRangeLabel->setAlignment(Qt::AlignCenter);
+    inclinometerLockRangeLabel->setStyleSheet(QStringLiteral(
+        "color: #88aacc; font-family: 'Microsoft YaHei UI'; font-size: 12px;"));
+    m_inclinometerLockLimitRangeLabel = inclinometerLockRangeLabel;
+    QLineEdit *inclinometerLockLimitEdit = new QLineEdit(weightThresholdSection);
+    inclinometerLockLimitEdit->setObjectName(QStringLiteral("inclinometerLockLimitEdit"));
+    inclinometerLockLimitEdit->setAlignment(Qt::AlignCenter);
+    inclinometerLockLimitEdit->setStyleSheet(weightEditStyle);
+    m_inclinometerLockLimitEdit = inclinometerLockLimitEdit;
+
     weightMainLayout->addWidget(overloadLimitLabel);
     weightMainLayout->addWidget(overloadRangeLabel);
     weightMainLayout->addWidget(weightOverloadLimitEdit);
@@ -3976,6 +4166,14 @@ void MainWindow::setupAdminPasswordPage()
     weightMainLayout->addWidget(lockLimitLabel);
     weightMainLayout->addWidget(lockRangeLabel);
     weightMainLayout->addWidget(weightLockLimitEdit);
+    weightMainLayout->addSpacing(8);
+    weightMainLayout->addWidget(inclinometerAlarmLabel);
+    weightMainLayout->addWidget(inclinometerAlarmRangeLabel);
+    weightMainLayout->addWidget(inclinometerAlarmLimitEdit);
+    weightMainLayout->addSpacing(8);
+    weightMainLayout->addWidget(inclinometerLockLabel);
+    weightMainLayout->addWidget(inclinometerLockRangeLabel);
+    weightMainLayout->addWidget(inclinometerLockLimitEdit);
     weightThresholdSection->setVisible(false);
 
     // 错误提示
@@ -4003,15 +4201,25 @@ void MainWindow::setupAdminPasswordPage()
     containerLayout->addStretch(3);
 
     // 设置容器大小和居中
-    container->setFixedSize(480, 560);
+    container->setFixedWidth(480);
+    container->setMinimumHeight(560);
 
-    // 添加容器到主布局
-    QHBoxLayout *centerLayout = new QHBoxLayout();
+    QScrollArea *scroll = new QScrollArea(targetParent);
+    scroll->setWidgetResizable(true);
+    scroll->setFrameShape(QFrame::NoFrame);
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scroll->setStyleSheet(QStringLiteral(
+        "QScrollArea { background: transparent; border: none; }"));
+
+    QWidget *scrollHost = new QWidget(scroll);
+    scrollHost->setStyleSheet(QStringLiteral("background: transparent;"));
+    QHBoxLayout *centerLayout = new QHBoxLayout(scrollHost);
+    centerLayout->setContentsMargins(0, 8, 0, 8);
     centerLayout->addStretch();
     centerLayout->addWidget(container);
     centerLayout->addStretch();
-
-    mainLayout->addLayout(centerLayout);
+    scroll->setWidget(scrollHost);
+    mainLayout->addWidget(scroll);
 
     // 设置样式
     QString style = QString(
@@ -4128,7 +4336,9 @@ void MainWindow::setupAdminPasswordPage()
     adminPage->setStyleSheet(style);
 
     applyWeightThresholdRuntimeSettings();
+    applyInclinometerThresholdRuntimeSettings();
     syncWeightThresholdEditsFromCache();
+    syncInclinometerThresholdEditsFromCache();
 
     connect(weightOverloadLimitEdit, &QLineEdit::textChanged, this, [this](const QString &) {
         applyWeightCardThresholdDisplay();
@@ -4245,6 +4455,133 @@ void MainWindow::setupAdminPasswordPage()
                              .arg(value));
     });
 
+    connect(inclinometerAlarmLimitEdit, &QLineEdit::textChanged, this, [this](const QString &) {
+        applyInclinometerDisplayRuntimeSettings();
+    });
+
+    connect(inclinometerAlarmLimitEdit, &QLineEdit::editingFinished, this,
+            [this, inclinometerAlarmLimitEdit, inclinometerLockLimitEdit]() {
+        bool ok = false;
+        const QPair<double, double> alarmLim = inclinometerAlarmLimitRangeFromSettings();
+        const qreal value = inclinometerAlarmLimitEdit->text().trimmed().toDouble(&ok);
+        const auto restoreAlarm = [inclinometerAlarmLimitEdit]() {
+            if (g_registerCache.contains(kMainInclinometerAlarmLimitReg)) {
+                const QSignalBlocker blocker(inclinometerAlarmLimitEdit);
+                inclinometerAlarmLimitEdit->setText(
+                    inclinometerDegEditText(
+                        inclinometerRegisterToDeg(g_registerCache.value(kMainInclinometerAlarmLimitReg))));
+            }
+        };
+        if (!ok) {
+            restoreAlarm();
+            showToast(QStringLiteral("倾角报警阈值无效，请输入数字"), ToastKind::Warning);
+            return;
+        }
+        if (value < alarmLim.first || value > alarmLim.second) {
+            restoreAlarm();
+            showToast(QStringLiteral("倾角报警阈值超出可输入范围（%1 ~ %2）")
+                          .arg(alarmLim.first, 0, 'f', 2)
+                          .arg(alarmLim.second, 0, 'f', 2),
+                      ToastKind::Warning);
+            return;
+        }
+        bool lockOk = false;
+        qreal lockValue = inclinometerLockLimitEdit->text().trimmed().toDouble(&lockOk);
+        if (!lockOk && g_registerCache.contains(kMainInclinometerLockLimitReg)) {
+            lockValue = inclinometerRegisterToDeg(g_registerCache.value(kMainInclinometerLockLimitReg));
+            lockOk = true;
+        }
+        if (lockOk && value >= lockValue) {
+            restoreAlarm();
+            showToast(QStringLiteral("倾角报警阈值必须小于倾角锁定阈值"), ToastKind::Warning);
+            return;
+        }
+        const int raw = inclinometerDegToRegister(value);
+        writeToMainDevice(kMainInclinometerAlarmLimitReg, raw);
+        g_registerCache[kMainInclinometerAlarmLimitReg] = static_cast<quint16>(raw);
+        applyInclinometerTripThresholdsFromSources();
+        applyInclinometerDisplayRuntimeSettings();
+        refreshInclinometerTiltPresentation();
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = QStringLiteral("权限验证");
+            record.controlName = QStringLiteral("倾角报警阈值");
+            record.controlType = QStringLiteral("AdminConfig");
+            record.operation = QStringLiteral("write_register");
+            record.oldValue = QString();
+            record.newValue = QStringLiteral("已向主控寄存器%1写入%2（%3°）")
+                                  .arg(kMainInclinometerAlarmLimitReg)
+                                  .arg(raw)
+                                  .arg(value, 0, 'f', 2);
+            m_recorder->addRecord(record);
+        }
+        showNotification(QStringLiteral("倾角报警阈值已写入主控%1: %2°")
+                             .arg(kMainInclinometerAlarmLimitReg)
+                             .arg(value, 0, 'f', 2));
+    });
+
+    connect(inclinometerLockLimitEdit, &QLineEdit::editingFinished, this,
+            [this, inclinometerAlarmLimitEdit, inclinometerLockLimitEdit]() {
+        bool ok = false;
+        const QPair<double, double> lockLim = inclinometerLockLimitRangeFromSettings();
+        const qreal value = inclinometerLockLimitEdit->text().trimmed().toDouble(&ok);
+        const auto restoreLock = [inclinometerLockLimitEdit]() {
+            if (g_registerCache.contains(kMainInclinometerLockLimitReg)) {
+                const QSignalBlocker blocker(inclinometerLockLimitEdit);
+                inclinometerLockLimitEdit->setText(
+                    inclinometerDegEditText(
+                        inclinometerRegisterToDeg(g_registerCache.value(kMainInclinometerLockLimitReg))));
+            }
+        };
+        if (!ok) {
+            restoreLock();
+            showToast(QStringLiteral("倾角锁定阈值无效，请输入数字"), ToastKind::Warning);
+            return;
+        }
+        if (value < lockLim.first || value > lockLim.second) {
+            restoreLock();
+            showToast(QStringLiteral("倾角锁定阈值超出可输入范围（%1 ~ %2）")
+                          .arg(lockLim.first, 0, 'f', 2)
+                          .arg(lockLim.second, 0, 'f', 2),
+                      ToastKind::Warning);
+            return;
+        }
+        bool alarmOk = false;
+        qreal alarmValue = inclinometerAlarmLimitEdit->text().trimmed().toDouble(&alarmOk);
+        if (!alarmOk && g_registerCache.contains(kMainInclinometerAlarmLimitReg)) {
+            alarmValue = inclinometerRegisterToDeg(g_registerCache.value(kMainInclinometerAlarmLimitReg));
+            alarmOk = true;
+        }
+        if (alarmOk && value <= alarmValue) {
+            restoreLock();
+            showToast(QStringLiteral("倾角报警阈值必须小于倾角锁定阈值"), ToastKind::Warning);
+            return;
+        }
+        const int raw = inclinometerDegToRegister(value);
+        writeToMainDevice(kMainInclinometerLockLimitReg, raw);
+        g_registerCache[kMainInclinometerLockLimitReg] = static_cast<quint16>(raw);
+        applyInclinometerTripThresholdsFromSources();
+        refreshInclinometerTiltPresentation();
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = QStringLiteral("权限验证");
+            record.controlName = QStringLiteral("倾角锁定阈值");
+            record.controlType = QStringLiteral("AdminConfig");
+            record.operation = QStringLiteral("write_register");
+            record.oldValue = QString();
+            record.newValue = QStringLiteral("已向主控寄存器%1写入%2（%3°）")
+                                  .arg(kMainInclinometerLockLimitReg)
+                                  .arg(raw)
+                                  .arg(value, 0, 'f', 2);
+            m_recorder->addRecord(record);
+        }
+        showNotification(QStringLiteral("倾角锁定阈值已写入主控%1: %2°")
+                             .arg(kMainInclinometerLockLimitReg)
+                             .arg(value, 0, 'f', 2));
+    });
+
     // 连接登录按钮
     connect(loginButton, &QPushButton::clicked, this, [this, roleComboBox, passwordEdit, errorLabel, titleLabel, loginButton, logoutButton, hintLabel, featureButton, weightThresholdSection]() {
         QString password = passwordEdit->text();
@@ -4313,6 +4650,7 @@ void MainWindow::setupAdminPasswordPage()
             weightThresholdSection->setVisible(m_currentUserRole == UserRole::Admin);
             if (m_currentUserRole == UserRole::Admin) {
                 refreshWeightThresholdEditsFromDevice();
+                refreshInclinometerThresholdEditsFromDevice();
             }
 
             updateStatusBarTime();
@@ -4390,6 +4728,7 @@ void MainWindow::setupAdminPasswordPage()
                     applySliderEditRuntimeSettings();
                     applyParkOutTriggerLengthRuntimeSettings();
                     applyWeightThresholdRuntimeSettings();
+                    applyInclinometerThresholdRuntimeSettings();
                     applyInclinometerDisplayRuntimeSettings();
                     applyPlaneHeightOffsetRuntimeSettings();
                     applyButtonVisibilityRuntimeSettings();
@@ -6613,6 +6952,22 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         }
     }
 
+    if (address == kMainInclinometerAlarmLimitReg || address == kMainInclinometerLockLimitReg) {
+        QLineEdit *edit = (address == kMainInclinometerAlarmLimitReg)
+            ? m_inclinometerAlarmLimitEdit
+            : m_inclinometerLockLimitEdit;
+        if (allowMainUiStateSync && edit && !edit->hasFocus()) {
+            const QString text = inclinometerDegEditText(inclinometerRegisterToDeg(value));
+            if (edit->text() != text) {
+                const QSignalBlocker blocker(edit);
+                edit->setText(text);
+            }
+        }
+        applyInclinometerTripThresholdsFromSources();
+        applyInclinometerDisplayRuntimeSettings();
+        refreshInclinometerTiltPresentation();
+    }
+
     if (address == kMainColumnRetractLimitReg || address == kMainArmRetractLimitReg) {
         if (m_featureSwitchWidget) {
             m_featureSwitchWidget->setChassisRetractCurrentValue(address, static_cast<int>(value));
@@ -7264,6 +7619,9 @@ void MainWindow::readMainControlSyncRegisters()
 
     // 管理员负载阈值：5004 负载超限、5005 负载超重
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainWeightOverloadLimitReg, 2);
+
+    // 管理员倾角阈值：5027 倾角报警、5028 倾角锁定（寄存器值÷100 为度）
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainInclinometerAlarmLimitReg, 2);
 
     // 底盘收回门槛：5007 立柱、5008 臂
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainColumnRetractLimitReg, 2);

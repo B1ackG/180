@@ -54,6 +54,7 @@ class VirtualMatrixKeyPanel;
 #include <QVBoxLayout>
 
 class QIntValidator;
+class QDoubleValidator;
 class QResizeEvent;
 
 enum class StepMotionStopKind { RobotJoint, SixAxis, Agv };
@@ -352,11 +353,11 @@ public:
     void hideParkingLegAbnormalDialog();
     /** @brief 按 bit7 与驻车切换状态更新支腿异常弹窗显隐（与切换提示窗/绕车检查窗互斥） */
     void updateParkingLegAbnormalDialogVisibility();
-    /** @brief 显示倾覆风险提示窗（倾角 0.8°~1°） */
+    /** @brief 显示倾覆风险提示窗（倾角报警阈值与锁定阈值之间） */
     void showInclinometerTiltRiskDialog();
     /** @brief 隐藏倾覆风险提示窗 */
     void hideInclinometerTiltRiskDialog();
-    /** @brief 显示高倾覆风险锁定（倾角 >1°：Toast + 管理员密码窗） */
+    /** @brief 显示高倾覆风险锁定（倾角大于锁定阈值：Toast + 管理员密码窗） */
     void showInclinometerTiltLockDialog();
     /** @brief 隐藏高倾覆风险锁定密码窗与 Toast */
     void hideInclinometerTiltLockDialog();
@@ -410,6 +411,14 @@ public:
     void syncWeightThresholdEditsFromCache();
     /** @brief 打开管理员界面时回读 5004/5005 并刷新输入框 */
     void refreshWeightThresholdEditsFromDevice();
+    /** @brief 按功能控制台配置更新管理员倾角阈值输入范围 */
+    void applyInclinometerThresholdRuntimeSettings();
+    /** @brief 将缓存中的 5027/5028 填入管理员倾角阈值输入框（寄存器值÷100 为度） */
+    void syncInclinometerThresholdEditsFromCache();
+    /** @brief 打开管理员界面时回读 5027/5028 并刷新输入框 */
+    void refreshInclinometerThresholdEditsFromDevice();
+    /** @brief 按 5027/5028 更新倾角报警/锁定判定阈值 */
+    void applyInclinometerTripThresholdsFromSources();
     /** @brief 按功能控制台范围夹取并写入立柱/臂收回门槛（5007/5008） */
     void commitChassisRetractThresholdWrites();
     /** @brief 连续写 AGV 保持寄存器并更新 m_agvRegisterShadow */
@@ -878,6 +887,8 @@ private:
     QIntValidator *m_parkOutTriggerLengthValidator = nullptr;
     QIntValidator *m_weightOverloadLimitValidator = nullptr;
     QIntValidator *m_weightLockLimitValidator = nullptr;
+    QDoubleValidator *m_inclinometerAlarmLimitValidator = nullptr;
+    QDoubleValidator *m_inclinometerLockLimitValidator = nullptr;
     bool m_mainRegister150Valid = false;
     quint16 m_mainRegister150Shadow = 0;
     bool m_mainInitializationComplete = false;
@@ -1033,6 +1044,12 @@ private:
     QLineEdit *m_weightLockLimitEdit = nullptr;
     QLabel *m_weightOverloadLimitRangeLabel = nullptr;
     QLabel *m_weightLockLimitRangeLabel = nullptr;
+    QLineEdit *m_inclinometerAlarmLimitEdit = nullptr;
+    QLineEdit *m_inclinometerLockLimitEdit = nullptr;
+    QLabel *m_inclinometerAlarmLimitRangeLabel = nullptr;
+    QLabel *m_inclinometerLockLimitRangeLabel = nullptr;
+    qreal m_inclinometerAlarmThresholdDeg = 0.8;
+    qreal m_inclinometerLockThresholdDeg = 1.0;
     QToolButton *m_controlModeBtn = nullptr;
     QToolButton *m_enableBtn = nullptr;
 
@@ -1124,7 +1141,7 @@ public:
     /** @brief 从 config.ini 应用 TechSliderEdit 显示/输入/数值范围与可见性 */
     void applySliderEditRuntimeSettings();
 
-    /** @brief 从 config.ini 刷新首页倾角卡片上的阈值说明文字 */
+    /** @brief 按倾角报警阈值（5027）刷新首页倾角卡片上的阈值说明文字 */
     void applyInclinometerDisplayRuntimeSettings();
     /** @brief 按负载超限阈值刷新首页重量卡片阈值文字 */
     void applyWeightCardThresholdDisplay();
