@@ -929,7 +929,6 @@ void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
         {QStringLiteral("模式同步起始地址"), &m_editMainControlSyncStart},
         {QStringLiteral("模式同步数量"), &m_editMainControlSyncCount},
         {QStringLiteral("重连间隔"), &m_editMainReconnect},
-        {QStringLiteral("示教写权限设备号"), &m_editTeachingWriteDeviceId},
     });
 
     addPollGrid(QStringLiteral("AGV"), {
@@ -968,9 +967,28 @@ void FeatureSwitchWidget::setupPollingUI(QVBoxLayout *scrollLayout)
     wirePollRange(m_editMainReconnect, 500, 120000, 5000);
     wirePollRange(m_editAgvPoll, 50, 60000, 200);
     wirePollRange(m_editAgvReconnect, 500, 120000, 5000);
-    wirePollRange(m_editTeachingWriteDeviceId, 0, 255, 0);
 
     scrollLayout->addWidget(pollGroup);
+
+    QGroupBox *teachGroup = new QGroupBox(QStringLiteral("多台示教器切换"));
+    auto *teachLayout = new QVBoxLayout(teachGroup);
+    auto *teachRow = new QHBoxLayout();
+    auto *teachLbl = new QLabel(QStringLiteral("示教写权限设备号"), teachGroup);
+    m_editTeachingWriteDeviceId = new QLineEdit(teachGroup);
+    m_editTeachingWriteDeviceId->setMinimumWidth(88);
+    m_editTeachingWriteDeviceId->setMaximumWidth(140);
+    m_editTeachingWriteDeviceId->setValidator(new QIntValidator(0, 255, teachGroup));
+    m_editTeachingWriteDeviceId->installEventFilter(this);
+    auto *teachHint = makeHintLabel(QStringLiteral("0为下示教器，1为上示教器"), teachGroup);
+    teachHint->setWordWrap(false);
+    teachRow->addWidget(teachLbl);
+    teachRow->addWidget(m_editTeachingWriteDeviceId);
+    teachRow->addWidget(teachHint);
+    teachRow->addStretch();
+    teachLayout->addLayout(teachRow);
+    scrollLayout->addWidget(teachGroup);
+
+    wirePollRange(m_editTeachingWriteDeviceId, 0, 255, 0);
 }
 
 void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
