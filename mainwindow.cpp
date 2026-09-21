@@ -1244,7 +1244,8 @@ void MainWindow::applyPermissionPageLoginState()
     setVisibleByName(QStringLiteral("featureButton"), loggedIn && isManufacturer);
     setVisibleByName(QStringLiteral("roleComboBox"), !loggedIn);
     setVisibleByName(QStringLiteral("passwordEdit"), !loggedIn);
-    setVisibleByName(QStringLiteral("passwordHint"), !loggedIn);
+    setVisibleByName(QStringLiteral("passwordHint"),
+                     !loggedIn && isFeatureEnabled("permission_system", "permission.password_hint"));
 
     if (!loggedIn) {
         applyPermissionLoginFormForSelectedRole();
@@ -1305,7 +1306,8 @@ void MainWindow::applyPermissionLoginFormForSelectedRole()
         }
     }
     if (hintLabel) {
-        hintLabel->setVisible(!isOperator);
+        hintLabel->setVisible(
+            !isOperator && isFeatureEnabled("permission_system", "permission.password_hint"));
     }
     if (loginButton) {
         loginButton->setText(isOperator ? QStringLiteral("进入") : QStringLiteral("登录"));
@@ -4062,6 +4064,7 @@ void MainWindow::setupAdminPasswordPage()
     containerLayout->setAlignment(Qt::AlignHCenter | Qt::AlignTop);
     containerLayout->setContentsMargins(28, 16, 28, 16);
     containerLayout->setSpacing(8);
+    const auto centerRow = Qt::AlignHCenter;
 
     // 标题
     QLabel *titleLabel = new QLabel("请先选择权限", container);
@@ -4071,12 +4074,12 @@ void MainWindow::setupAdminPasswordPage()
     // 角色选择下拉框
     QComboBox *roleComboBox = new QComboBox(container);
     roleComboBox->setObjectName("roleComboBox");
-    roleComboBox->setMaximumWidth(420);
+    roleComboBox->setFixedWidth(420);
+    roleComboBox->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     roleComboBox->addItem("操作员 (Operator)", QVariant::fromValue(static_cast<int>(UserRole::Operator)));
     roleComboBox->addItem("工程师 (Engineer)", QVariant::fromValue(static_cast<int>(UserRole::Engineer)));
     roleComboBox->addItem("管理员 (Admin)", QVariant::fromValue(static_cast<int>(UserRole::Admin)));
     roleComboBox->addItem("厂家 (Manufacturer)", QVariant::fromValue(static_cast<int>(UserRole::Manufacturer)));
-    // QComboBox 没有 setAlignment 方法，移除该行
 
     // 密码输入框
     QLineEdit *passwordEdit = new QLineEdit(container);
@@ -4084,7 +4087,8 @@ void MainWindow::setupAdminPasswordPage()
     passwordEdit->setEchoMode(QLineEdit::Password);
     passwordEdit->setPlaceholderText("请输入密码");
     passwordEdit->setAlignment(Qt::AlignCenter);
-    passwordEdit->setMaximumWidth(420);
+    passwordEdit->setFixedWidth(420);
+    passwordEdit->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     // 密码提示
     QLabel *hintLabel = new QLabel("工程师: 456 | 管理员: 123 | 厂家: 8888", container);
@@ -4094,7 +4098,8 @@ void MainWindow::setupAdminPasswordPage()
     // 登录按钮
     QPushButton *loginButton = new QPushButton("登录", container);
     loginButton->setObjectName("loginButton");
-    loginButton->setMaximumWidth(280);
+    loginButton->setFixedWidth(280);
+    loginButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     // 功能开关管理按钮 (仅厂家)
     QPushButton *featureButton = new QPushButton("功能开关管理", container);
@@ -4103,13 +4108,15 @@ void MainWindow::setupAdminPasswordPage()
         "background-color: #55007f; color: #ffaa00; font-weight: bold; border: 2px solid #ffaa00;"
     );
     featureButton->setVisible(false);
-    featureButton->setMaximumWidth(280);
+    featureButton->setFixedWidth(280);
+    featureButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     // 注销按钮
     QPushButton *logoutButton = new QPushButton("注销 (返回操作员)", container);
     logoutButton->setObjectName("logoutButton");
     logoutButton->setVisible(false); // 默认隐藏，登录后显示
-    logoutButton->setMaximumWidth(360);
+    logoutButton->setFixedWidth(360);
+    logoutButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     // 负载阈值配置（管理员登录后可见）
     QWidget *weightThresholdSection = new QWidget(container);
@@ -4123,7 +4130,7 @@ void MainWindow::setupAdminPasswordPage()
         "color: #00ffff; font-family: 'Microsoft YaHei UI'; font-size: 14px;");
     const QString weightEditStyle = QStringLiteral(
         "QLineEdit { background: rgba(0, 0, 0, 100); border: 1px solid #00c8ff;"
-        " color: #ffaa00; border-radius: 4px; padding: 6px 10px; min-width: 180px; }");
+        " color: #ffaa00; border-radius: 4px; padding: 6px 10px; }");
 
     const auto makeThresholdField = [&](const QString &titleText,
                                         const QString &rangeObjectName,
@@ -4150,6 +4157,8 @@ void MainWindow::setupAdminPasswordPage()
         edit->setObjectName(editObjectName);
         edit->setAlignment(Qt::AlignCenter);
         edit->setStyleSheet(weightEditStyle);
+        edit->setFixedWidth(220);
+        edit->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         *editOut = edit;
 
         lay->addWidget(title);
@@ -4164,35 +4173,34 @@ void MainWindow::setupAdminPasswordPage()
                            QStringLiteral("weightOverloadLimitEdit"),
                            &m_weightOverloadLimitRangeLabel,
                            &m_weightOverloadLimitEdit),
-        0, 0);
+        0, 0, Qt::AlignHCenter);
     weightGrid->addWidget(
         makeThresholdField(QStringLiteral("负载超重阈值"),
                            QStringLiteral("weightLockLimitRangeLabel"),
                            QStringLiteral("weightLockLimitEdit"),
                            &m_weightLockLimitRangeLabel,
                            &m_weightLockLimitEdit),
-        0, 1);
+        0, 1, Qt::AlignHCenter);
     weightGrid->addWidget(
         makeThresholdField(QStringLiteral("倾角报警阈值"),
                            QStringLiteral("inclinometerAlarmLimitRangeLabel"),
                            QStringLiteral("inclinometerAlarmLimitEdit"),
                            &m_inclinometerAlarmLimitRangeLabel,
                            &m_inclinometerAlarmLimitEdit),
-        1, 0);
+        1, 0, Qt::AlignHCenter);
     weightGrid->addWidget(
         makeThresholdField(QStringLiteral("倾角锁定阈值"),
                            QStringLiteral("inclinometerLockLimitRangeLabel"),
                            QStringLiteral("inclinometerLockLimitEdit"),
                            &m_inclinometerLockLimitRangeLabel,
                            &m_inclinometerLockLimitEdit),
-        1, 1);
+        1, 1, Qt::AlignHCenter);
     QLineEdit *weightOverloadLimitEdit = m_weightOverloadLimitEdit;
     QLineEdit *weightLockLimitEdit = m_weightLockLimitEdit;
     QLineEdit *inclinometerAlarmLimitEdit = m_inclinometerAlarmLimitEdit;
     QLineEdit *inclinometerLockLimitEdit = m_inclinometerLockLimitEdit;
-    weightGrid->setColumnStretch(0, 1);
-    weightGrid->setColumnStretch(1, 1);
-    weightThresholdSection->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    weightGrid->setAlignment(Qt::AlignHCenter);
+    weightThresholdSection->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     weightThresholdSection->setVisible(false);
 
     // 错误提示
@@ -4202,26 +4210,32 @@ void MainWindow::setupAdminPasswordPage()
     errorLabel->setVisible(false);
 
     // 添加控件到容器
-    containerLayout->addWidget(titleLabel);
+    containerLayout->addStretch(1);
+    containerLayout->addWidget(titleLabel, 0, centerRow);
     containerLayout->addSpacing(12);
-    containerLayout->addWidget(roleComboBox);
+    containerLayout->addWidget(roleComboBox, 0, centerRow);
     containerLayout->addSpacing(8);
-    containerLayout->addWidget(passwordEdit);
+    containerLayout->addWidget(passwordEdit, 0, centerRow);
     containerLayout->addSpacing(8);
-    containerLayout->addWidget(hintLabel);
+    containerLayout->addWidget(hintLabel, 0, centerRow);
     containerLayout->addSpacing(12);
-    containerLayout->addWidget(loginButton);
-    containerLayout->addWidget(featureButton);
-    containerLayout->addWidget(weightThresholdSection);
-    containerLayout->addWidget(logoutButton);
+    containerLayout->addWidget(loginButton, 0, centerRow);
+    containerLayout->addWidget(featureButton, 0, centerRow);
+    containerLayout->addWidget(weightThresholdSection, 0, centerRow);
+    containerLayout->addWidget(logoutButton, 0, centerRow);
     containerLayout->addSpacing(8);
-    containerLayout->addWidget(errorLabel);
+    containerLayout->addWidget(errorLabel, 0, centerRow);
     containerLayout->addStretch(1);
 
-    container->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    container->setMinimumWidth(720);
+    container->setFixedWidth(780);
+    container->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     mainLayout->setContentsMargins(0, 0, 0, 0);
-    mainLayout->addWidget(container);
+    QHBoxLayout *centerLayout = new QHBoxLayout();
+    centerLayout->setContentsMargins(0, 0, 0, 0);
+    centerLayout->addStretch();
+    centerLayout->addWidget(container);
+    centerLayout->addStretch();
+    mainLayout->addLayout(centerLayout);
 
     // 设置样式
     QString style = QString(

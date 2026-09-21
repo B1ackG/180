@@ -592,6 +592,7 @@ void FeatureSwitchWidget::setupUI()
         {QStringLiteral("ui.animations"), QStringLiteral("界面动画")},
         {QStringLiteral("ui.virtual_keyboard"), QStringLiteral("虚拟键盘")},
         {QStringLiteral("permission.admin_login"), QStringLiteral("管理员登录")},
+        {QStringLiteral("permission.password_hint"), QStringLiteral("权限页密码提示")},
         {QStringLiteral("records.filter_export"), QStringLiteral("记录筛选与导出")},
         {QStringLiteral("tcp.send_all"), QStringLiteral("TCP 全量发送")},
         {QStringLiteral("tcp.local_simulator"), QStringLiteral("本机 TCP 模拟器 (127.0.0.1)")},

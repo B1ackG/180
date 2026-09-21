@@ -57,6 +57,7 @@ void FeatureSwitchManager::initializeFeatureSets()
         "ui.virtual_keyboard",
 
         "permission.admin_login",
+        "permission.password_hint",
 
         "records.filter_export",
 
