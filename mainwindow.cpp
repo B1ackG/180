@@ -317,7 +317,7 @@ constexpr int kMainWeightOverloadLimitReg = 5004;
 constexpr int kMainWeightLockLimitReg = 5005;
 constexpr int kMainInclinometerAlarmLimitReg = 5027;
 constexpr int kMainInclinometerLockLimitReg = 5028;
-constexpr int kInclinometerThresholdScale = 100;
+constexpr int kInclinometerThresholdScale = 100; // 与 widget_Inclinometer_X 一致：寄存器值 ÷ 100 = 度
 constexpr qreal kInclinometerAlarmThresholdDefaultDeg = 0.8;
 constexpr qreal kInclinometerLockThresholdDefaultDeg = 1.0;
 constexpr int kMainColumnRetractLimitReg = 5007;
@@ -525,12 +525,16 @@ QPair<double, double> inclinometerLockLimitRangeFromSettings()
 
 qreal inclinometerRegisterToDeg(quint16 raw)
 {
-    return static_cast<qreal>(static_cast<int>(raw)) / static_cast<qreal>(kInclinometerThresholdScale);
+    // 与 MainWindow::updateInclinometerValue / widget_Inclinometer_X 相同：有符号原值 ÷ 100
+    const qint16 signedRaw = static_cast<qint16>(raw);
+    return static_cast<qreal>(signedRaw) / static_cast<qreal>(kInclinometerThresholdScale);
 }
 
 int inclinometerDegToRegister(qreal deg)
 {
-    return qBound(0, qRound(deg * kInclinometerThresholdScale), 65535);
+    // 输入 1° → 写入 100
+    const int raw = qRound(deg * static_cast<qreal>(kInclinometerThresholdScale));
+    return qBound(0, raw, 32767);
 }
 
 QString inclinometerDegEditText(qreal deg)
@@ -892,11 +896,12 @@ void MainWindow::applyInclinometerThresholdRuntimeSettings()
         if (!*validator) {
             *validator = new QDoubleValidator(parent);
             (*validator)->setNotation(QDoubleValidator::StandardNotation);
-            (*validator)->setDecimals(2);
             (*validator)->setLocale(QLocale::c());
             edit->setValidator(*validator);
         }
-        (*validator)->setRange(0.0, 90.0);
+        // setRange 默认 decimals=0，必须后设 2 位小数，否则 0.1 会被判非法、editingFinished 不发、无法写入。
+        (*validator)->setRange(0.0, 1000000.0);
+        (*validator)->setDecimals(2);
     };
     setupValidator(&m_inclinometerAlarmLimitValidator, m_inclinometerAlarmLimitEdit, this);
     setupValidator(&m_inclinometerLockLimitValidator, m_inclinometerLockLimitEdit, this);
@@ -3161,8 +3166,7 @@ void MainWindow::updateInclinometerValue(bool isXAxis, quint16 rawValue)
         return;
     }
 
-    const qint16 signedRaw = static_cast<qint16>(rawValue);
-    const qreal degree = static_cast<qreal>(signedRaw) / 100.0;
+    const qreal degree = inclinometerRegisterToDeg(rawValue);
     QQuickItem *root = target->rootObject();
     if (!qFuzzyCompare(root->property("tiltValue").toReal() + 1.0, degree + 1.0)) {
         root->setProperty("tiltValue", degree);
@@ -4508,15 +4512,16 @@ void MainWindow::setupAdminPasswordPage()
             record.controlType = QStringLiteral("AdminConfig");
             record.operation = QStringLiteral("write_register");
             record.oldValue = QString();
-            record.newValue = QStringLiteral("已向主控寄存器%1写入%2（%3°）")
+            record.newValue = QStringLiteral("输入%1°，向主控寄存器%2写入%3")
+                                  .arg(value, 0, 'f', 2)
                                   .arg(kMainInclinometerAlarmLimitReg)
-                                  .arg(raw)
-                                  .arg(value, 0, 'f', 2);
+                                  .arg(raw);
             m_recorder->addRecord(record);
         }
-        showNotification(QStringLiteral("倾角报警阈值已写入主控%1: %2°")
+        showNotification(QStringLiteral("倾角报警阈值 %1° 已写入主控%2，寄存器值 %3")
+                             .arg(value, 0, 'f', 2)
                              .arg(kMainInclinometerAlarmLimitReg)
-                             .arg(value, 0, 'f', 2));
+                             .arg(raw));
     });
 
     connect(inclinometerLockLimitEdit, &QLineEdit::editingFinished, this,
@@ -4569,15 +4574,16 @@ void MainWindow::setupAdminPasswordPage()
             record.controlType = QStringLiteral("AdminConfig");
             record.operation = QStringLiteral("write_register");
             record.oldValue = QString();
-            record.newValue = QStringLiteral("已向主控寄存器%1写入%2（%3°）")
+            record.newValue = QStringLiteral("输入%1°，向主控寄存器%2写入%3")
+                                  .arg(value, 0, 'f', 2)
                                   .arg(kMainInclinometerLockLimitReg)
-                                  .arg(raw)
-                                  .arg(value, 0, 'f', 2);
+                                  .arg(raw);
             m_recorder->addRecord(record);
         }
-        showNotification(QStringLiteral("倾角锁定阈值已写入主控%1: %2°")
+        showNotification(QStringLiteral("倾角锁定阈值 %1° 已写入主控%2，寄存器值 %3")
+                             .arg(value, 0, 'f', 2)
                              .arg(kMainInclinometerLockLimitReg)
-                             .arg(value, 0, 'f', 2));
+                             .arg(raw));
     });
 
     // 连接登录按钮

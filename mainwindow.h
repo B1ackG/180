@@ -413,7 +413,7 @@ public:
     void refreshWeightThresholdEditsFromDevice();
     /** @brief 按功能控制台配置更新管理员倾角阈值输入范围 */
     void applyInclinometerThresholdRuntimeSettings();
-    /** @brief 将缓存中的 5027/5028 填入管理员倾角阈值输入框（寄存器值÷100 为度） */
+    /** @brief 将缓存中的 5027/5028 填入管理员倾角阈值输入框（与倾角卡片相同：寄存器÷100=度） */
     void syncInclinometerThresholdEditsFromCache();
     /** @brief 打开管理员界面时回读 5027/5028 并刷新输入框 */
     void refreshInclinometerThresholdEditsFromDevice();
