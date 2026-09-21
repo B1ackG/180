@@ -324,6 +324,8 @@ public:
     void updateSixAxisPoseActionButtons();
     /** @brief 六轴显示值均约为 0（73~84 已齐）；数据不全时返回 false */
     bool areSixAxisPoseValuesAllZero();
+    /** @brief 步进模式使能按下时，将当前页到位位写成 0（机械臂 150.bit11 / 底盘 AGV 51.bit9 / 六自由度 87.bit0） */
+    void clearCurrentViewStepDoneBitOnEnablePress();
     /** @brief 步进触发后弹出等待窗；到位边沿关窗，松开使能也可关窗 */
     void beginStepMotionWait(StepMotionWaitKind kind, const QString &message = QString());
     /** @brief 显示步进运动提示窗（样式同底盘切换） */

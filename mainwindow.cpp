@@ -5907,9 +5907,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             };
 
             QTimer::singleShot(20, this, stagedWrite601);
-            QTimer::singleShot(70, this, stagedWrite601);
             QTimer::singleShot(120, this, stagedWrite615);
-            QTimer::singleShot(180, this, stagedWrite615);
 
             qCDebug(lcMainWindow) << "六轴步进外部按键○" << keyNumber
                                   << "-> 614=" << axisIndex
@@ -6140,8 +6138,6 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             };
 
             QTimer::singleShot(35, this, stagedWrite514);
-            QTimer::singleShot(90, this, stagedWrite514);
-            QTimer::singleShot(150, this, stagedWrite514);
 
             qCDebug(lcMainWindow) << "page_Robot (步进) 按键○" << keyNumber
                                   << "目标500=" << targetCode
@@ -11091,6 +11087,7 @@ void MainWindow::onEnableButtonPressedStepMode()
     qCDebug(lcMainWindow) << "步进模式下使能按钮按下";
 
     m_pendingStepMotionStops.clear();
+    clearCurrentViewStepDoneBitOnEnablePress();
 
     // 需求变更：步进模式下使能按钮不再触发514或步进值写入，改由外部按键触发。
 
@@ -13133,6 +13130,69 @@ void MainWindow::updateSixAxisPoseActionButtons()
 {
     applyPoseActionButtonStyle(m_techBtnBalanceSixAxies, !m_sixAxisLevelingBlocked151Bit2);
     applyPoseActionButtonStyle(m_techBtnResetSixAxies, !areSixAxisPoseValuesAllZero());
+}
+
+void MainWindow::clearCurrentViewStepDoneBitOnEnablePress()
+{
+    if (isChassisViewActive()) {
+        writeAGVRegisterBits(kAgvStepDoneReg,
+                             { qMakePair(kAgvStepDoneBit, false) },
+                             QStringLiteral("步进使能按下：AGV 51.bit9=0"));
+        if (m_stepMotionWaitKind == StepMotionWaitKind::Agv) {
+            m_stepMotionWaitSawZero = true;
+        }
+        return;
+    }
+
+    int address = -1;
+    int bit = -1;
+    StepMotionWaitKind waitKind = StepMotionWaitKind::None;
+    if (isSixAxisViewActive()) {
+        address = kMainSixAxisStepDoneReg;
+        bit = kMainSixAxisStepDoneBit;
+        waitKind = StepMotionWaitKind::SixAxis;
+    } else if (isRobotAxisViewActive()) {
+        address = kMainRobotStepDoneReg;
+        bit = kMainRobotStepDoneBit;
+        waitKind = StepMotionWaitKind::RobotJoint;
+    } else {
+        return;
+    }
+
+    if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
+        qWarning() << "步进使能按下：主控未连接，无法清到位位" << address << "bit" << bit;
+        return;
+    }
+
+    quint16 cur = 0;
+    bool haveCur = m_modbusManager->readSingleRegister(address, cur);
+    if (!haveCur) {
+        if (address == kMainRobotStepDoneReg && m_mainRegister150Valid) {
+            cur = m_mainRegister150Shadow;
+            haveCur = true;
+        } else if (g_registerCache.contains(address)) {
+            cur = g_registerCache.value(address);
+            haveCur = true;
+        }
+    }
+    if (!haveCur) {
+        qWarning() << "步进使能按下：读取主控" << address << "失败，放弃清位";
+        return;
+    }
+
+    const quint16 next = static_cast<quint16>(cur & ~(static_cast<quint16>(1u) << bit));
+    if (next != cur) {
+        writeToMainDevice(address, static_cast<int>(next));
+        g_registerCache[address] = next;
+        if (address == kMainRobotStepDoneReg) {
+            m_mainRegister150Shadow = next;
+        }
+    }
+    if (m_stepMotionWaitKind == waitKind) {
+        m_stepMotionWaitSawZero = true;
+    }
+    qCDebug(lcMainWindow) << "步进使能按下：主控" << address << "bit" << bit
+                          << "原值" << cur << "写入" << next;
 }
 
 void MainWindow::beginStepMotionWait(StepMotionWaitKind kind, const QString &message)
