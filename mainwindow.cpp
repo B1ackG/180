@@ -5831,7 +5831,6 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 if (m_sixAxisActiveKey == keyNumber) {
                     m_sixAxisActiveKey = -1;
                 }
-                ++m_sixAxisExternalWriteSeq;
 
                 QLineEdit *sixStepValueEdit = findChild<QLineEdit*>("lineEdit_SixAxies_StepValue");
                 if (sixStepValueEdit) {
@@ -5868,51 +5867,36 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             const float stepValueFloat = static_cast<float>(rawStepValue);
             m_sixAxisExternalKeyPressed[keyNumber] = true;
             m_sixAxisActiveKey = keyNumber;
-            const quint64 seq = ++m_sixAxisExternalWriteSeq;
+            ++m_sixAxisExternalWriteSeq;
 
             writeToMainDevice(614, axisIndex);
 
-            auto stagedWrite601 = [this, seq, keyNumber, stepValueFloat]() {
-                if (seq != m_sixAxisExternalWriteSeq) {
-                    return;
+            const auto regs = floatToRegistersCDAB(stepValueFloat);
+            QVector<quint16> values;
+            values.reserve(2);
+            values << regs[0] << regs[1];
+            bool wrote601 = MainDeviceModbusApi::writeRegisters(m_modbusManager, 601, values);
+            if (!wrote601) {
+                wrote601 = MainDeviceModbusApi::writeRegister(m_modbusManager, 601, static_cast<int>(regs[0]))
+                    && MainDeviceModbusApi::writeRegister(m_modbusManager, 602, static_cast<int>(regs[1]));
+            }
+            if (!wrote601) {
+                qWarning() << "六轴步进外部按键○" << keyNumber
+                           << "601/602 写入失败，已跳过 615";
+            } else {
+                bool wrote615 = MainDeviceModbusApi::writeRegister(m_modbusManager, 615, 1);
+                if (!wrote615) {
+                    wrote615 = MainDeviceModbusApi::writeRegister(m_modbusManager, 615, 1);
                 }
-                if (m_sixAxisActiveKey != keyNumber) {
-                    return;
+                if (!wrote615) {
+                    qWarning() << "六轴步进外部按键○" << keyNumber << "615 写入失败";
                 }
-                if (!m_sixAxisExternalKeyPressed.value(keyNumber, false)) {
-                    return;
-                }
-
-                const auto regs = floatToRegistersCDAB(stepValueFloat);
-                QVector<quint16> values;
-                values.reserve(2);
-                values << regs[0] << regs[1];
-                if (!MainDeviceModbusApi::writeRegisters(m_modbusManager, 601, values)) {
-                    writeToMainDevice(601, static_cast<int>(regs[0]));
-                    writeToMainDevice(602, static_cast<int>(regs[1]));
-                }
-            };
-
-            auto stagedWrite615 = [this, seq, keyNumber]() {
-                if (seq != m_sixAxisExternalWriteSeq) {
-                    return;
-                }
-                if (m_sixAxisActiveKey != keyNumber) {
-                    return;
-                }
-                if (!m_sixAxisExternalKeyPressed.value(keyNumber, false)) {
-                    return;
-                }
-                writeToMainDevice(615, 1);
-            };
-
-            QTimer::singleShot(20, this, stagedWrite601);
-            QTimer::singleShot(120, this, stagedWrite615);
+            }
 
             qCDebug(lcMainWindow) << "六轴步进外部按键○" << keyNumber
                                   << "-> 614=" << axisIndex
                                   << "601~602(float CDAB)=" << stepValueFloat
-                                  << "615=1";
+                                  << (wrote601 ? "615=1" : "615跳过");
 
             QString targetName = selectedTargetText;
             if (targetName.isEmpty()) {
