@@ -1046,9 +1046,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                <property name="checkable">
                 <bool>true</bool>
                </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
               </widget>
              </item>
              <item row="0" column="2">

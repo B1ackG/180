@@ -315,15 +315,21 @@ constexpr int kAgvParkOutTriggerLengthRegStart = 5014;
 constexpr int kMainCurrentLoadWeightReg = 123;
 constexpr int kMainWeightOverloadLimitReg = 5004;
 constexpr int kMainWeightLockLimitReg = 5005;
+constexpr int kMainHeightLockChassisLimitReg = 5006;
+constexpr int kMainLengthLockChassisLimitReg = 5007;
 constexpr int kMainInclinometerAlarmLimitReg = 5027;
 constexpr int kMainInclinometerLockLimitReg = 5028;
 constexpr int kInclinometerThresholdScale = 100; // 与 widget_Inclinometer_X 一致：寄存器值 ÷ 100 = 度
 constexpr qreal kInclinometerAlarmThresholdDefaultDeg = 0.8;
 constexpr qreal kInclinometerLockThresholdDefaultDeg = 1.0;
-constexpr int kMainColumnRetractLimitReg = 5007;
-constexpr int kMainArmRetractLimitReg = 5008;
 constexpr int kSixAxisPoseReg = 615;
-constexpr int kChassisRetractLimitDefaultMm = 200;
+constexpr int kMainRobotStepDoneReg = 150;
+constexpr int kMainRobotStepDoneBit = 11;
+constexpr int kMainSixAxisStepDoneReg = 87;
+constexpr int kMainSixAxisStepDoneBit = 0;
+constexpr int kAgvStepDoneReg = 51;
+constexpr int kAgvStepDoneBit = 9;
+constexpr int kHeightLengthLockDefaultMm = 1000;
 constexpr int kLegGear1Mm = 400;
 constexpr int kLegGear2Mm = 750;
 constexpr int kLegGearFullMm = 1100;
@@ -472,6 +478,24 @@ QPair<int, int> weightLockLimitRangeFromSettings()
     settings.beginGroup(QStringLiteral("SliderLabelLimits"));
     int lo = qRound(settings.value(QStringLiteral("weight_lock_limit_min"), 0).toDouble());
     int hi = qRound(settings.value(QStringLiteral("weight_lock_limit_max"), 450).toDouble());
+    settings.endGroup();
+    if (hi < lo) {
+        qSwap(lo, hi);
+    }
+    lo = qBound(0, lo, 1000000);
+    hi = qBound(0, hi, 1000000);
+    if (lo > hi) {
+        qSwap(lo, hi);
+    }
+    return {lo, hi};
+}
+
+QPair<int, int> heightLengthLockLimitRangeFromSettings(const QString &key)
+{
+    QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+    settings.beginGroup(QStringLiteral("SliderLabelLimits"));
+    int lo = qRound(settings.value(key + QStringLiteral("_min"), 0).toDouble());
+    int hi = qRound(settings.value(key + QStringLiteral("_max"), 2000).toDouble());
     settings.endGroup();
     if (hi < lo) {
         qSwap(lo, hi);
@@ -871,6 +895,37 @@ void MainWindow::applyWeightThresholdRuntimeSettings()
     applyWeightCardThresholdDisplay();
 }
 
+void MainWindow::applyHeightLengthThresholdRuntimeSettings()
+{
+    const QPair<int, int> heightLim =
+        heightLengthLockLimitRangeFromSettings(QStringLiteral("height_lock_chassis_limit"));
+    const QPair<int, int> lengthLim =
+        heightLengthLockLimitRangeFromSettings(QStringLiteral("length_lock_chassis_limit"));
+
+    if (m_heightLockChassisLimitRangeLabel) {
+        m_heightLockChassisLimitRangeLabel->setText(
+            QStringLiteral("可输入范围：%1 ~ %2").arg(heightLim.first).arg(heightLim.second));
+    }
+    if (m_lengthLockChassisLimitRangeLabel) {
+        m_lengthLockChassisLimitRangeLabel->setText(
+            QStringLiteral("可输入范围：%1 ~ %2").arg(lengthLim.first).arg(lengthLim.second));
+    }
+    if (m_heightLockChassisLimitEdit) {
+        if (!m_heightLockChassisLimitValidator) {
+            m_heightLockChassisLimitValidator = new QIntValidator(this);
+            m_heightLockChassisLimitEdit->setValidator(m_heightLockChassisLimitValidator);
+        }
+        m_heightLockChassisLimitValidator->setRange(0, 1000000);
+    }
+    if (m_lengthLockChassisLimitEdit) {
+        if (!m_lengthLockChassisLimitValidator) {
+            m_lengthLockChassisLimitValidator = new QIntValidator(this);
+            m_lengthLockChassisLimitEdit->setValidator(m_lengthLockChassisLimitValidator);
+        }
+        m_lengthLockChassisLimitValidator->setRange(0, 1000000);
+    }
+}
+
 void MainWindow::applyInclinometerThresholdRuntimeSettings()
 {
     const QPair<double, double> alarmLim = inclinometerAlarmLimitRangeFromSettings();
@@ -976,6 +1031,32 @@ void MainWindow::refreshWeightThresholdEditsFromDevice()
     syncWeightThresholdEditsFromCache();
     if (MainDeviceModbusApi::isReady(m_modbusManager)) {
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainWeightOverloadLimitReg, 2);
+    }
+}
+
+void MainWindow::syncHeightLengthThresholdEditsFromCache()
+{
+    const auto fillEdit = [](QLineEdit *edit, int address) {
+        if (!edit || edit->hasFocus() || !g_registerCache.contains(address)) {
+            return;
+        }
+        const QString text = QString::number(static_cast<int>(g_registerCache.value(address)));
+        if (edit->text() != text) {
+            const QSignalBlocker blocker(edit);
+            edit->setText(text);
+        }
+    };
+    fillEdit(m_heightLockChassisLimitEdit, kMainHeightLockChassisLimitReg);
+    fillEdit(m_lengthLockChassisLimitEdit, kMainLengthLockChassisLimitReg);
+}
+
+void MainWindow::refreshHeightLengthThresholdEditsFromDevice()
+{
+    syncHeightLengthThresholdEditsFromCache();
+    if (MainDeviceModbusApi::isReady(m_modbusManager)) {
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager,
+                                                  kMainHeightLockChassisLimitReg,
+                                                  2);
     }
 }
 
@@ -2041,6 +2122,9 @@ void MainWindow::showChassisView()
     setExclusiveNavButtonChecked(ui ? ui->TBtn_ChassisControl : nullptr);
     syncStepModeUiByCurrentPage();
     updateStepTargetButtonsState();
+    if (!m_stepModeUnknown && m_stepModeEnabled) {
+        clearAgvStepPadSelection();
+    }
 }
 
 void MainWindow::showSixAxisView()
@@ -2182,6 +2266,7 @@ void MainWindow::setupRecordAndPermissionConnections()
         setExclusiveNavButtonChecked(ui->TBtn_PermissionPage);
         if (m_currentUserRole == UserRole::Admin) {
             refreshWeightThresholdEditsFromDevice();
+            refreshHeightLengthThresholdEditsFromDevice();
             refreshInclinometerThresholdEditsFromDevice();
         }
     });
@@ -4195,10 +4280,26 @@ void MainWindow::setupAdminPasswordPage()
                            &m_inclinometerLockLimitRangeLabel,
                            &m_inclinometerLockLimitEdit),
         1, 1, Qt::AlignHCenter);
+    weightGrid->addWidget(
+        makeThresholdField(QStringLiteral("高度锁定底盘阈值"),
+                           QStringLiteral("heightLockChassisLimitRangeLabel"),
+                           QStringLiteral("heightLockChassisLimitEdit"),
+                           &m_heightLockChassisLimitRangeLabel,
+                           &m_heightLockChassisLimitEdit),
+        2, 0, Qt::AlignHCenter);
+    weightGrid->addWidget(
+        makeThresholdField(QStringLiteral("长度锁定底盘阈值"),
+                           QStringLiteral("lengthLockChassisLimitRangeLabel"),
+                           QStringLiteral("lengthLockChassisLimitEdit"),
+                           &m_lengthLockChassisLimitRangeLabel,
+                           &m_lengthLockChassisLimitEdit),
+        2, 1, Qt::AlignHCenter);
     QLineEdit *weightOverloadLimitEdit = m_weightOverloadLimitEdit;
     QLineEdit *weightLockLimitEdit = m_weightLockLimitEdit;
     QLineEdit *inclinometerAlarmLimitEdit = m_inclinometerAlarmLimitEdit;
     QLineEdit *inclinometerLockLimitEdit = m_inclinometerLockLimitEdit;
+    QLineEdit *heightLockChassisLimitEdit = m_heightLockChassisLimitEdit;
+    QLineEdit *lengthLockChassisLimitEdit = m_lengthLockChassisLimitEdit;
     weightGrid->setAlignment(Qt::AlignHCenter);
     weightThresholdSection->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     weightThresholdSection->setVisible(false);
@@ -4352,8 +4453,10 @@ void MainWindow::setupAdminPasswordPage()
     adminPage->setStyleSheet(style);
 
     applyWeightThresholdRuntimeSettings();
+    applyHeightLengthThresholdRuntimeSettings();
     applyInclinometerThresholdRuntimeSettings();
     syncWeightThresholdEditsFromCache();
+    syncHeightLengthThresholdEditsFromCache();
     syncInclinometerThresholdEditsFromCache();
 
     connect(weightOverloadLimitEdit, &QLineEdit::textChanged, this, [this](const QString &) {
@@ -4470,6 +4573,55 @@ void MainWindow::setupAdminPasswordPage()
                              .arg(kMainWeightLockLimitReg)
                              .arg(value));
     });
+
+    const auto connectHeightLengthLimit =
+        [this](QLineEdit *edit, int address, const QString &name, const QString &settingsKey) {
+        connect(edit, &QLineEdit::editingFinished, this,
+                [this, edit, address, name, settingsKey]() {
+            bool ok = false;
+            const QPair<int, int> lim = heightLengthLockLimitRangeFromSettings(settingsKey);
+            const int value = edit->text().trimmed().toInt(&ok);
+            const auto restore = [edit, address]() {
+                if (g_registerCache.contains(address)) {
+                    const QSignalBlocker blocker(edit);
+                    edit->setText(QString::number(g_registerCache.value(address)));
+                }
+            };
+            if (!ok) {
+                restore();
+                showToast(QStringLiteral("%1无效，请输入整数").arg(name), ToastKind::Warning);
+                return;
+            }
+            if (value < lim.first || value > lim.second) {
+                restore();
+                showToast(QStringLiteral("%1超出可输入范围（%2 ~ %3）")
+                              .arg(name).arg(lim.first).arg(lim.second),
+                          ToastKind::Warning);
+                return;
+            }
+            writeToMainDevice(address, value);
+            if (m_recorder) {
+                OperationRecord record;
+                record.timestamp = QDateTime::currentDateTime();
+                record.pageName = QStringLiteral("权限验证");
+                record.controlName = name;
+                record.controlType = QStringLiteral("AdminConfig");
+                record.operation = QStringLiteral("write_register");
+                record.oldValue = QString();
+                record.newValue = QStringLiteral("已向主控寄存器%1写入%2").arg(address).arg(value);
+                m_recorder->addRecord(record);
+            }
+            showNotification(QStringLiteral("%1已写入主控%2: %3").arg(name).arg(address).arg(value));
+        });
+    };
+    connectHeightLengthLimit(heightLockChassisLimitEdit,
+                             kMainHeightLockChassisLimitReg,
+                             QStringLiteral("高度锁定底盘阈值"),
+                             QStringLiteral("height_lock_chassis_limit"));
+    connectHeightLengthLimit(lengthLockChassisLimitEdit,
+                             kMainLengthLockChassisLimitReg,
+                             QStringLiteral("长度锁定底盘阈值"),
+                             QStringLiteral("length_lock_chassis_limit"));
 
     connect(inclinometerAlarmLimitEdit, &QLineEdit::textChanged, this, [this](const QString &) {
         applyInclinometerDisplayRuntimeSettings();
@@ -4668,6 +4820,7 @@ void MainWindow::setupAdminPasswordPage()
             weightThresholdSection->setVisible(m_currentUserRole == UserRole::Admin);
             if (m_currentUserRole == UserRole::Admin) {
                 refreshWeightThresholdEditsFromDevice();
+                refreshHeightLengthThresholdEditsFromDevice();
                 refreshInclinometerThresholdEditsFromDevice();
             }
 
@@ -4746,6 +4899,7 @@ void MainWindow::setupAdminPasswordPage()
                     applySliderEditRuntimeSettings();
                     applyParkOutTriggerLengthRuntimeSettings();
                     applyWeightThresholdRuntimeSettings();
+                    applyHeightLengthThresholdRuntimeSettings();
                     applyInclinometerThresholdRuntimeSettings();
                     applyInclinometerDisplayRuntimeSettings();
                     applyPlaneHeightOffsetRuntimeSettings();
@@ -4759,32 +4913,10 @@ void MainWindow::setupAdminPasswordPage()
                         hideLegOpenPathCheckDialog();
                     }
                 });
-                connect(m_featureSwitchWidget, &FeatureSwitchWidget::mainDeviceRegisterWriteRequested,
-                        this, [this](int address, int value) {
-                    writeToMainDevice(address, value);
-                    OperationRecord record;
-                    record.timestamp = QDateTime::currentDateTime();
-                    record.pageName = QStringLiteral("功能控制台");
-                    record.controlName = (address == kMainColumnRetractLimitReg)
-                        ? QStringLiteral("立柱收回门槛")
-                        : QStringLiteral("臂伸出收回门槛");
-                    record.controlType = QStringLiteral("FeatureConsole");
-                    record.operation = QStringLiteral("write_register");
-                    record.oldValue = QString();
-                    record.newValue = QStringLiteral("已向主控寄存器%1写入%2").arg(address).arg(value);
-                    if (m_recorder) {
-                        m_recorder->addRecord(record);
-                    }
-                    showNotification(QStringLiteral("%1已写入主控%2: %3")
-                                         .arg(record.controlName)
-                                         .arg(address)
-                                         .arg(value));
-                });
             }
             m_featureSwitchWidget->show();
             m_featureSwitchWidget->raise();
             m_featureSwitchWidget->activateWindow();
-            syncChassisRetractThresholdEditsToConsole();
         }
     });
 }
@@ -4957,8 +5089,6 @@ void MainWindow::dismissOperationHintToasts()
     dismissToastByMessage(QStringLiteral("未选择关节运动，将自动选择关节运动"));
     dismissToastByMessage(ModbusWriteGate::teachingGateUserDialogMessage());
     dismissToastByMessage(kWirelessModeWarningText);
-    dismissToastByMessage(QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。"));
-    dismissToastByMessage(QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。"));
 }
 
 void MainWindow::ensureToastHost()
@@ -5511,12 +5641,52 @@ QString MainWindow::robotInterlockHintMessage() const
 {
     const quint16 status150 = m_mainRegister150Shadow;
     if (((status150 >> 1) & 0x01) == 1) {
-        return QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。");
+        const int threshold = g_registerCache.contains(kMainHeightLockChassisLimitReg)
+            ? static_cast<int>(g_registerCache.value(kMainHeightLockChassisLimitReg))
+            : kHeightLengthLockDefaultMm;
+        return QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至%1mm以内。")
+            .arg(threshold);
     }
     if (((status150 >> 2) & 0x01) == 1) {
-        return QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。");
+        const int threshold = g_registerCache.contains(kMainLengthLockChassisLimitReg)
+            ? static_cast<int>(g_registerCache.value(kMainLengthLockChassisLimitReg))
+            : kHeightLengthLockDefaultMm;
+        return QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至%1mm以内。")
+            .arg(threshold);
     }
     return QString();
+}
+
+bool MainWindow::blockIfHeightLengthInterlock()
+{
+    if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
+    }
+    const QString hint = robotInterlockHintMessage();
+    if (hint.isEmpty()) {
+        return false;
+    }
+    showRobotInterlockModalDialog(hint);
+    return true;
+}
+
+void MainWindow::restoreAgvAngleEditFromShadow()
+{
+    if (!m_editAGV_Angle) {
+        return;
+    }
+    double revertValue = 0;
+    if (m_agvRegisterShadow.contains(154)) {
+        revertValue = qBound(m_editAGV_Angle->minimum(),
+                             static_cast<double>(static_cast<qint16>(m_agvRegisterShadow.value(154))),
+                             m_editAGV_Angle->maximum());
+    } else if (m_agvRegisterShadow.contains(4)) {
+        revertValue = qBound(m_editAGV_Angle->minimum(),
+                             static_cast<double>(static_cast<qint16>(m_agvRegisterShadow.value(4))),
+                             m_editAGV_Angle->maximum());
+    }
+    const QSignalBlocker blocker(m_editAGV_Angle);
+    m_editAGV_Angle->setValue(revertValue);
 }
 
 // 在 handleMatrixKeyAction 函数中修改 ○1 按键的处理
@@ -5762,7 +5932,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
             recordStepMoveAction(targetName, currentValue, QString::number(stepValueFloat, 'f', 3), true);
             markStepMotionPendingStop(StepMotionStopKind::SixAxis, targetName, keyNumber);
-            showStepMotionWaitDialog(QStringLiteral("正在步进运动"));
+            beginStepMotionWait(StepMotionWaitKind::SixAxis);
             ui->statusBar->showMessage(
                 QString("步进触发：按键○%1，目标%2，步进值%3")
                     .arg(keyNumber)
@@ -5988,7 +6158,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             recordStepMoveAction(targetName, currentValue,
                                  QString::number(stepValue, 'f', 3), true);
             markStepMotionPendingStop(StepMotionStopKind::RobotJoint, targetName);
-            showStepMotionWaitDialog(QStringLiteral("正在步进运动"));
+            beginStepMotionWait(StepMotionWaitKind::RobotJoint);
             ui->statusBar->showMessage(
                 QString("步进触发：按键○%1，目标%2，步进值%3")
                     .arg(keyNumber)
@@ -6135,15 +6305,8 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
 
     maybeShowZeroSpeedHintForHomePageExternalKey(keyNumber, pressed);
 
-    if (pressed) {
-        if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
-            MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
-        }
-        const QString interlockHint = robotInterlockHintMessage();
-        if (!interlockHint.isEmpty()) {
-            showRobotOperationHintDialog(interlockHint);
-            return;
-        }
+    if (pressed && blockIfHeightLengthInterlock()) {
+        return;
     }
 
     if (pressed && !m_stepModeEnabled && !m_isJointMode) {
@@ -6170,7 +6333,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
             writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
             appendAgvExternalKeyRecord(keyNumber, pressed);
             markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
-            showStepMotionWaitDialog(QStringLiteral("正在步进运动"));
+            beginStepMotionWait(StepMotionWaitKind::Agv);
             m_robotExternalKeyPressed[keyNumber] = true;
             return;
         }
@@ -6189,7 +6352,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
         appendAgvExternalKeyRecord(keyNumber, pressed, m_agvStepDistanceEdit->text().trimmed());
         markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
-        showStepMotionWaitDialog(QStringLiteral("正在步进运动"));
+        beginStepMotionWait(StepMotionWaitKind::Agv);
         m_robotExternalKeyPressed[keyNumber] = true;
         return;
     }
@@ -6986,14 +7149,25 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         refreshInclinometerTiltPresentation();
     }
 
-    if (address == kMainColumnRetractLimitReg || address == kMainArmRetractLimitReg) {
-        if (m_featureSwitchWidget) {
-            m_featureSwitchWidget->setChassisRetractCurrentValue(address, static_cast<int>(value));
+    if (address == kMainHeightLockChassisLimitReg || address == kMainLengthLockChassisLimitReg) {
+        QLineEdit *edit = (address == kMainHeightLockChassisLimitReg)
+            ? m_heightLockChassisLimitEdit
+            : m_lengthLockChassisLimitEdit;
+        if (allowMainUiStateSync && edit && !edit->hasFocus()) {
+            const QString text = QString::number(static_cast<int>(value));
+            if (edit->text() != text) {
+                const QSignalBlocker blocker(edit);
+                edit->setText(text);
+            }
         }
     }
 
     if (address == kSixAxisPoseReg) {
         checkSixAxisPoseWaitCompletion(address, value);
+    }
+
+    if (address == kMainRobotStepDoneReg || address == kMainSixAxisStepDoneReg) {
+        checkStepMotionWaitCompletion(address, value);
     }
 
     if (address == 134) {
@@ -7641,11 +7815,27 @@ void MainWindow::readMainControlSyncRegisters()
     // 管理员倾角阈值：5027 倾角报警、5028 倾角锁定（寄存器值÷100 为度）
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainInclinometerAlarmLimitReg, 2);
 
-    // 底盘收回门槛：5007 立柱、5008 臂
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainColumnRetractLimitReg, 2);
+    // 高度/长度锁定底盘阈值：5006 高度、5007 长度
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainHeightLockChassisLimitReg, 2);
 
     // 六自由度姿态回零/调平状态：615 bit1 / bit2
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kSixAxisPoseReg, 1);
+
+    // 机械臂步进到位：150.bit11 0→1 关窗
+    if (m_stepMotionWaitKind == StepMotionWaitKind::RobotJoint) {
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainRobotStepDoneReg, 1);
+    }
+
+    // 六自由度步进到位：87.bit0 0→1 关窗
+    if (m_stepMotionWaitKind == StepMotionWaitKind::SixAxis) {
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainSixAxisStepDoneReg, 1);
+    }
+
+    // 底盘步进到位：AGV 51.bit9 0→1 关窗
+    if (m_stepMotionWaitKind == StepMotionWaitKind::Agv
+        && m_agvModbusManager && m_agvModbusManager->isConnected()) {
+        m_agvModbusManager->readMultipleRegisters(kAgvStepDoneReg, 1);
+    }
 
     // 当前运动目标轴：500（1~4=J1~J4，5=六自由度），供限位 Toast 文案使用
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 500, 1);
@@ -7994,6 +8184,7 @@ void MainWindow::setupAGVModbus()
                 }
 
                 if (address == 51) {
+                    checkStepMotionWaitCompletion(address, value);
                     const bool bit5 = (((value >> 5) & 0x01) == 1);
 
                     if (bit5 != m_agvChassisEmergency51Bit5Flag) {
@@ -8931,7 +9122,7 @@ void MainWindow::processEnableButton(bool enabled)
 {
     if (!enabled) {
         releaseHeldExternalKeysOnEnableRelease();
-        hideStepMotionWaitDialog();
+        finishStepMotionWait(true);
         interruptEnableGatedWaitPopupsOnEnableRelease();
     }
 
@@ -9963,12 +10154,7 @@ void MainWindow::onAGVParkBtnClicked()
         return;
     }
 
-    if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
-        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
-    }
-    const QString interlockHint = robotInterlockHintMessage();
-    if (!interlockHint.isEmpty()) {
-        showRobotOperationHintDialog(interlockHint);
+    if (blockIfHeightLengthInterlock()) {
         return;
     }
 
@@ -10012,38 +10198,16 @@ void MainWindow::onAGVAngleChanged(double value)
         return;
     }
     if (rejectIfEnableNotHeld()) {
-        if (m_editAGV_Angle) {
-            double revertValue = 0;
-            if (m_agvRegisterShadow.contains(154)) {
-                revertValue = qBound(m_editAGV_Angle->minimum(),
-                                     static_cast<double>(m_agvRegisterShadow.value(154)),
-                                     m_editAGV_Angle->maximum());
-            } else if (m_agvRegisterShadow.contains(4)) {
-                revertValue = qBound(m_editAGV_Angle->minimum(),
-                                     static_cast<double>(static_cast<qint16>(m_agvRegisterShadow.value(4))),
-                                     m_editAGV_Angle->maximum());
-            }
-            const QSignalBlocker blocker(m_editAGV_Angle);
-            m_editAGV_Angle->setValue(revertValue);
-        }
+        restoreAgvAngleEditFromShadow();
+        return;
+    }
+    if (blockIfHeightLengthInterlock()) {
+        restoreAgvAngleEditFromShadow();
         return;
     }
     if (isRobotWeightLockGateActive()) {
         blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：底盘当前角度调整已无效"));
-        if (m_editAGV_Angle) {
-            double revertValue = 0;
-            if (m_agvRegisterShadow.contains(154)) {
-                revertValue = qBound(m_editAGV_Angle->minimum(),
-                                     static_cast<double>(m_agvRegisterShadow.value(154)),
-                                     m_editAGV_Angle->maximum());
-            } else if (m_agvRegisterShadow.contains(4)) {
-                revertValue = qBound(m_editAGV_Angle->minimum(),
-                                     static_cast<double>(static_cast<qint16>(m_agvRegisterShadow.value(4))),
-                                     m_editAGV_Angle->maximum());
-            }
-            const QSignalBlocker blocker(m_editAGV_Angle);
-            m_editAGV_Angle->setValue(revertValue);
-        }
+        restoreAgvAngleEditFromShadow();
         return;
     }
 
@@ -10079,15 +10243,8 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
 
     maybeShowZeroSpeedHintForHomePageExternalKey(keyNumber, pressed);
 
-    if (pressed) {
-        if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
-            MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
-        }
-        const QString interlockHint = robotInterlockHintMessage();
-        if (!interlockHint.isEmpty()) {
-            showRobotOperationHintDialog(interlockHint);
-            return;
-        }
+    if (pressed && blockIfHeightLengthInterlock()) {
+        return;
     }
 
     if (pressed && !m_stepModeEnabled && !m_isJointMode) {
@@ -10114,7 +10271,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
             writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
             appendAgvExternalKeyRecord(keyNumber, pressed);
             markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
-            showStepMotionWaitDialog(QStringLiteral("正在步进运动"));
+            beginStepMotionWait(StepMotionWaitKind::Agv);
             m_robotExternalKeyPressed[keyNumber] = true;
             return;
         }
@@ -10132,7 +10289,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
         appendAgvExternalKeyRecord(keyNumber, pressed, m_agvStepDistanceEdit->text().trimmed());
         markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
-        showStepMotionWaitDialog(QStringLiteral("正在步进运动"));
+        beginStepMotionWait(StepMotionWaitKind::Agv);
         m_robotExternalKeyPressed[keyNumber] = true;
         return;
     }
@@ -10263,12 +10420,7 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         return;
     }
 
-    if (!m_mainRegister150Valid && MainDeviceModbusApi::isReady(m_modbusManager)) {
-        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
-    }
-    const QString interlockHint = robotInterlockHintMessage();
-    if (!interlockHint.isEmpty()) {
-        showRobotOperationHintDialog(interlockHint);
+    if (blockIfHeightLengthInterlock()) {
         if (m_steeringModeSelector) {
             const QSignalBlocker blocker(m_steeringModeSelector);
             m_steeringModeSelector->setCurrentMode(m_lastSteeringMode);
@@ -10996,6 +11148,12 @@ void MainWindow::onEnableButtonReleasedStepMode()
 
     // 步进模式下使能按钮释放：不写514；机械臂 lineEdit_StepValue / 底盘 lineEdit_AGVStep_Distance 清空见 maybeClearFirstPageStepValueIfAllExternalKeysReleased。
 
+    if (m_skipStepReleaseHistory) {
+        m_skipStepReleaseHistory = false;
+        ui->statusBar->showMessage(QStringLiteral("步进模式：步进运动被打断"), 2000);
+        return;
+    }
+
     const bool hadPendingStepStops = !m_pendingStepMotionStops.isEmpty();
     flushPendingStepMotionStopsOnEnableRelease();
 
@@ -11212,12 +11370,19 @@ void MainWindow::updateChassisParameterPage()
     } else if (ui->page_AGV_Parameter) {
         targetPage = ui->page_AGV_Parameter;
     }
-    if (!targetPage || ui->stackedWidget_Parameter->currentWidget() == targetPage) {
+    if (!targetPage) {
         return;
     }
-
-    ui->stackedWidget_Parameter->setCurrentWidget(targetPage);
-    ui->stackedWidget_Parameter->raise();
+    const bool switchedToStepPad = (isStepMode
+                                    && targetPage == ui->page_AGVStep_Parameter
+                                    && ui->stackedWidget_Parameter->currentWidget() != targetPage);
+    if (ui->stackedWidget_Parameter->currentWidget() != targetPage) {
+        ui->stackedWidget_Parameter->setCurrentWidget(targetPage);
+        ui->stackedWidget_Parameter->raise();
+    }
+    if (switchedToStepPad) {
+        clearAgvStepPadSelection();
+    }
 }
 
 void MainWindow::setupAGVStepPad()
@@ -11245,18 +11410,12 @@ void MainWindow::setupAGVStepPad()
                 QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
                 this, [this](QAbstractButton *btn) {
                     if (rejectIfEnableNotHeld()) {
-                        QAbstractButton *restore = m_agvStepPadLastSelection;
-                        if (!restore && m_agvStepDirectionGroup) {
-                            const QList<QAbstractButton*> buttons = m_agvStepDirectionGroup->buttons();
-                            for (QAbstractButton *existing : buttons) {
-                                if (existing && existing->objectName() == QStringLiteral("techBtn_AGVStep_Up")) {
-                                    restore = existing;
-                                    break;
-                                }
-                            }
+                        if (m_agvStepPadLastSelection) {
+                            applyAgvStepPadAxisSelection(m_agvStepPadLastSelection);
+                            updateAGVStepPadVisuals();
+                        } else {
+                            clearAgvStepPadSelection();
                         }
-                        applyAgvStepPadAxisSelection(restore);
-                        updateAGVStepPadVisuals();
                         return;
                     }
                     applyAgvStepPadAxisSelection(btn);
@@ -11320,18 +11479,7 @@ void MainWindow::setupAGVStepPad()
         ++buttonId;
     }
 
-    QAbstractButton *initial = nullptr;
-    for (QAbstractButton *btn : m_agvStepDirectionGroup->buttons()) {
-        if (btn->isChecked()) {
-            initial = btn;
-            break;
-        }
-    }
-    if (!initial) {
-        initial = page->findChild<QAbstractButton*>(QStringLiteral("techBtn_AGVStep_Up"));
-    }
-    applyAgvStepPadAxisSelection(initial);
-    updateAGVStepPadVisuals();
+    clearAgvStepPadSelection();
 
     if (!m_agvStepDistanceEdit) {
         m_agvStepDistanceEdit = page->findChild<QLineEdit*>(QStringLiteral("lineEdit_AGVStep_Distance"));
@@ -11360,6 +11508,24 @@ void MainWindow::setupAGVStepPad()
             });
         }
     }
+}
+
+void MainWindow::clearAgvStepPadSelection()
+{
+    if (!m_agvStepDirectionGroup) {
+        return;
+    }
+
+    const QSignalBlocker groupBlocker(m_agvStepDirectionGroup);
+    for (QAbstractButton *btn : m_agvStepDirectionGroup->buttons()) {
+        if (!btn) {
+            continue;
+        }
+        const QSignalBlocker btnBlocker(btn);
+        btn->setChecked(false);
+    }
+    m_agvStepPadLastSelection = nullptr;
+    updateAGVStepPadVisuals();
 }
 
 void MainWindow::applyAgvStepPadAxisSelection(QAbstractButton *clicked)
@@ -11430,6 +11596,10 @@ void MainWindow::updateAGVStepPadVisuals()
 
 void MainWindow::applyAgvChassisAngle(double angleDeg)
 {
+    if (blockIfHeightLengthInterlock()) {
+        restoreAgvAngleEditFromShadow();
+        return;
+    }
     if (isRobotWeightLockGateActive()) {
         blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：底盘当前角度调整已无效"));
         return;
@@ -12965,6 +13135,124 @@ void MainWindow::updateSixAxisPoseActionButtons()
     applyPoseActionButtonStyle(m_techBtnResetSixAxies, !areSixAxisPoseValuesAllZero());
 }
 
+void MainWindow::beginStepMotionWait(StepMotionWaitKind kind, const QString &message)
+{
+    if (kind == StepMotionWaitKind::None) {
+        return;
+    }
+
+    m_stepMotionWaitKind = kind;
+    m_stepMotionWaitSawZero = false;
+    m_skipStepReleaseHistory = false;
+
+    auto doneBitSet = [](quint16 value, int bit) {
+        return (((value >> bit) & 0x01) == 1);
+    };
+
+    if (kind == StepMotionWaitKind::RobotJoint) {
+        if (g_registerCache.contains(kMainRobotStepDoneReg)
+            && !doneBitSet(g_registerCache.value(kMainRobotStepDoneReg), kMainRobotStepDoneBit)) {
+            m_stepMotionWaitSawZero = true;
+        }
+        if (MainDeviceModbusApi::isReady(m_modbusManager)) {
+            MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainRobotStepDoneReg, 1);
+        }
+    } else if (kind == StepMotionWaitKind::SixAxis) {
+        if (g_registerCache.contains(kMainSixAxisStepDoneReg)
+            && !doneBitSet(g_registerCache.value(kMainSixAxisStepDoneReg), kMainSixAxisStepDoneBit)) {
+            m_stepMotionWaitSawZero = true;
+        }
+        if (MainDeviceModbusApi::isReady(m_modbusManager)) {
+            MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainSixAxisStepDoneReg, 1);
+        }
+    } else if (kind == StepMotionWaitKind::Agv) {
+        if (m_agvRegisterShadow.contains(kAgvStepDoneReg)
+            && !doneBitSet(m_agvRegisterShadow.value(kAgvStepDoneReg), kAgvStepDoneBit)) {
+            m_stepMotionWaitSawZero = true;
+        }
+        if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
+            m_agvModbusManager->readMultipleRegisters(kAgvStepDoneReg, 1);
+        }
+    }
+
+    showStepMotionWaitDialog(message.isEmpty() ? QStringLiteral("正在步进运动") : message);
+}
+
+void MainWindow::checkStepMotionWaitCompletion(int address, quint16 value)
+{
+    int bit = -1;
+    if (m_stepMotionWaitKind == StepMotionWaitKind::RobotJoint
+        && address == kMainRobotStepDoneReg) {
+        bit = kMainRobotStepDoneBit;
+    } else if (m_stepMotionWaitKind == StepMotionWaitKind::SixAxis
+               && address == kMainSixAxisStepDoneReg) {
+        bit = kMainSixAxisStepDoneBit;
+    } else if (m_stepMotionWaitKind == StepMotionWaitKind::Agv
+               && address == kAgvStepDoneReg) {
+        bit = kAgvStepDoneBit;
+    } else {
+        return;
+    }
+
+    const bool bitSet = (((value >> bit) & 0x01) == 1);
+    if (!bitSet) {
+        m_stepMotionWaitSawZero = true;
+        return;
+    }
+    if (!m_stepMotionWaitSawZero) {
+        return;
+    }
+
+    finishStepMotionWait(false);
+}
+
+void MainWindow::finishStepMotionWait(bool interruptedByEnable)
+{
+    const StepMotionWaitKind waitKind = m_stepMotionWaitKind;
+    const QVector<PendingStepMotionStop> pendingStops = m_pendingStepMotionStops;
+    const bool hadWait = (waitKind != StepMotionWaitKind::None)
+        || (m_stepMotionWaitDialog && m_stepMotionWaitDialog->isVisible())
+        || !pendingStops.isEmpty();
+    hideStepMotionWaitDialog();
+    if (!hadWait) {
+        return;
+    }
+
+    if (!interruptedByEnable) {
+        flushPendingStepMotionStopsOnEnableRelease();
+        return;
+    }
+
+    m_pendingStepMotionStops.clear();
+    m_skipStepReleaseHistory = true;
+    if (!m_recorder) {
+        return;
+    }
+
+    QString motionName;
+    if (!pendingStops.isEmpty() && !pendingStops.first().targetName.trimmed().isEmpty()) {
+        motionName = pendingStops.first().targetName.trimmed();
+    } else if (waitKind == StepMotionWaitKind::RobotJoint) {
+        motionName = QStringLiteral("机械臂");
+    } else if (waitKind == StepMotionWaitKind::SixAxis) {
+        motionName = QStringLiteral("六自由度");
+    } else if (waitKind == StepMotionWaitKind::Agv) {
+        motionName = QStringLiteral("底盘");
+    } else {
+        motionName = QStringLiteral("步进");
+    }
+
+    OperationRecord record;
+    record.timestamp = QDateTime::currentDateTime();
+    record.pageName = getCurrentPageName();
+    record.controlName = motionName;
+    record.controlType = QStringLiteral("StepMove");
+    record.operation = QStringLiteral("step_interrupted");
+    record.oldValue = QString();
+    record.newValue = QStringLiteral("%1步进运动被打断").arg(motionName);
+    m_recorder->addRecord(record);
+}
+
 void MainWindow::showStepMotionWaitDialog(const QString &message)
 {
     if (!userPopupsAllowed()) {
@@ -13013,6 +13301,8 @@ void MainWindow::showStepMotionWaitDialog(const QString &message)
 
 void MainWindow::hideStepMotionWaitDialog()
 {
+    m_stepMotionWaitKind = StepMotionWaitKind::None;
+    m_stepMotionWaitSawZero = false;
     if (m_stepMotionWaitDialog && m_stepMotionWaitDialog->isVisible()) {
         m_stepMotionWaitDialog->hide();
     }
@@ -13119,34 +13409,6 @@ void MainWindow::releaseHeldExternalKeysOnEnableRelease()
     }
     for (int keyNumber : keys) {
         handleMatrixKeyAction(keyNumber, false);
-    }
-}
-
-void MainWindow::syncChassisRetractThresholdEditsToConsole()
-{
-    if (!m_featureSwitchWidget) {
-        return;
-    }
-    if (g_registerCache.contains(kMainColumnRetractLimitReg)) {
-        m_featureSwitchWidget->setChassisRetractCurrentValue(
-            kMainColumnRetractLimitReg, static_cast<int>(g_registerCache.value(kMainColumnRetractLimitReg)));
-    } else {
-        m_featureSwitchWidget->setChassisRetractCurrentValue(
-            kMainColumnRetractLimitReg, kChassisRetractLimitDefaultMm);
-    }
-    if (g_registerCache.contains(kMainArmRetractLimitReg)) {
-        m_featureSwitchWidget->setChassisRetractCurrentValue(
-            kMainArmRetractLimitReg, static_cast<int>(g_registerCache.value(kMainArmRetractLimitReg)));
-    } else {
-        m_featureSwitchWidget->setChassisRetractCurrentValue(
-            kMainArmRetractLimitReg, kChassisRetractLimitDefaultMm);
-    }
-}
-
-void MainWindow::commitChassisRetractThresholdWrites()
-{
-    if (m_featureSwitchWidget) {
-        m_featureSwitchWidget->commitChassisRetractThresholdWrites();
     }
 }
 
@@ -14203,15 +14465,6 @@ void MainWindow::hideInclinometerTiltLockDialog()
 
 void MainWindow::showRobotOperationHintDialog(const QString &message)
 {
-    static const QString kHeightInterlockText =
-        QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。");
-    static const QString kLengthInterlockText =
-        QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。");
-    if (message == kHeightInterlockText || message == kLengthInterlockText) {
-        showRobotInterlockModalDialog(message);
-        return;
-    }
-
     if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
@@ -14232,8 +14485,6 @@ void MainWindow::hideRobotOperationHintDialog()
     if (m_robotInterlockDialog && m_robotInterlockDialog->isVisible()) {
         m_robotInterlockDialog->done(QDialog::Rejected);
     }
-    dismissToastByMessage(QStringLiteral("重心偏高安全风险警告！！！请将立柱高度调整至1000mm以内。"));
-    dismissToastByMessage(QStringLiteral("高倾覆风险报警！！！请将伸缩臂长度调整至1000mm以内。"));
 }
 
 void MainWindow::showRobotInterlockModalDialog(const QString &message)

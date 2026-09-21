@@ -1123,102 +1123,10 @@ void FeatureSwitchWidget::setupSliderLimitUI(QVBoxLayout *scrollLayout)
                      QStringLiteral("倾角报警阈值"));
     addOtherLimitRow(QStringLiteral("inclinometer_lock_limit"),
                      QStringLiteral("倾角锁定阈值"));
-
-    const auto addChassisRetractRow = [&](const QString &key,
-                                          const QString &labelText,
-                                          int address,
-                                          QLineEdit **valueEdit) {
-        QHBoxLayout *row = new QHBoxLayout();
-        QLabel *lbl = new QLabel(labelText);
-        lbl->setMinimumWidth(220);
-        row->addWidget(lbl);
-
-        *valueEdit = new QLineEdit();
-        (*valueEdit)->setPlaceholderText(QStringLiteral("当前值"));
-        (*valueEdit)->setFixedWidth(80);
-        (*valueEdit)->setAlignment(Qt::AlignCenter);
-        (*valueEdit)->setValidator(new QIntValidator(-1000000, 1000000, *valueEdit));
-        (*valueEdit)->installEventFilter(this);
-        row->addWidget(*valueEdit);
-
-        QLineEdit *minEdit = new QLineEdit();
-        minEdit->setPlaceholderText(QStringLiteral("Min"));
-        minEdit->setFixedWidth(80);
-        minEdit->installEventFilter(this);
-
-        QLineEdit *maxEdit = new QLineEdit();
-        maxEdit->setPlaceholderText(QStringLiteral("Max"));
-        maxEdit->setFixedWidth(80);
-        maxEdit->installEventFilter(this);
-
-        row->addWidget(new QLabel(QStringLiteral("范围")));
-        row->addWidget(minEdit);
-        row->addWidget(new QLabel(QStringLiteral("~")));
-        row->addWidget(maxEdit);
-        row->addStretch();
-        otherLayout->addLayout(row);
-        m_limitEdits[key] = {minEdit, maxEdit};
-
-        connect(*valueEdit, &QLineEdit::editingFinished, this, [this, key, address, valueEdit]() {
-            if (!valueEdit || !*valueEdit) {
-                return;
-            }
-            const FeatureSwitchWidget::LimitEdits lim = m_limitEdits.value(key);
-            int lo = 0;
-            int hi = 2000;
-            if (lim.minEdit) {
-                bool ok = false;
-                const int parsed = lim.minEdit->text().trimmed().toInt(&ok);
-                if (ok) {
-                    lo = parsed;
-                }
-            }
-            if (lim.maxEdit) {
-                bool ok = false;
-                const int parsed = lim.maxEdit->text().trimmed().toInt(&ok);
-                if (ok) {
-                    hi = parsed;
-                }
-            }
-            if (hi < lo) {
-                qSwap(lo, hi);
-            }
-            bool ok = false;
-            const int value = (*valueEdit)->text().trimmed().toInt(&ok);
-            if (!ok) {
-                restoreLineEditText(*valueEdit, lastValidEditText(*valueEdit, QStringLiteral("200")));
-                toastInvalidNumber(this, QStringLiteral("请输入整数"));
-                return;
-            }
-            if (value < lo || value > hi) {
-                restoreLineEditText(*valueEdit, lastValidEditText(*valueEdit, QStringLiteral("200")));
-                toastInputOutOfRange(this, lo, hi);
-                return;
-            }
-            rememberValidEditText(*valueEdit, QString::number(value));
-            emit mainDeviceRegisterWriteRequested(address, value);
-        });
-    };
-
-    addChassisRetractRow(QStringLiteral("column_retract_limit"),
-                         QStringLiteral("立柱收回门槛(5007)"),
-                         5007,
-                         &m_editColumnRetractLimit);
-    addChassisRetractRow(QStringLiteral("arm_extend_retract_limit"),
-                         QStringLiteral("臂伸出收回门槛(5008)"),
-                         5008,
-                         &m_editArmRetractLimit);
-
-    if (m_editColumnRetractLimit) {
-        m_editColumnRetractLimit->setObjectName(QStringLiteral("columnRetractLimitEdit"));
-        m_editColumnRetractLimit->setText(QStringLiteral("200"));
-        rememberValidEditText(m_editColumnRetractLimit, QStringLiteral("200"));
-    }
-    if (m_editArmRetractLimit) {
-        m_editArmRetractLimit->setObjectName(QStringLiteral("armRetractLimitEdit"));
-        m_editArmRetractLimit->setText(QStringLiteral("200"));
-        rememberValidEditText(m_editArmRetractLimit, QStringLiteral("200"));
-    }
+    addOtherLimitRow(QStringLiteral("height_lock_chassis_limit"),
+                     QStringLiteral("高度锁定底盘阈值"));
+    addOtherLimitRow(QStringLiteral("length_lock_chassis_limit"),
+                     QStringLiteral("长度锁定底盘阈值"));
 
     scrollLayout->addWidget(otherGroup);
 }
@@ -1883,9 +1791,6 @@ void FeatureSwitchWidget::showEvent(QShowEvent *event)
     refreshButtonVisibilityList();
     loadButtonVisibilityState();
     loadTechSliderEditState();
-    if (auto *mainWindow = qobject_cast<MainWindow*>(parentWidget())) {
-        mainWindow->syncChassisRetractThresholdEditsToConsole();
-    }
 }
 
 void FeatureSwitchWidget::loadInclinometerThresholdState()
@@ -2308,8 +2213,8 @@ void FeatureSwitchWidget::loadSliderLimitState()
         {"weight_lock_limit", qMakePair(0.0, 450.0)},
         {"inclinometer_alarm_limit", qMakePair(0.01, 15.0)},
         {"inclinometer_lock_limit", qMakePair(0.01, 15.0)},
-        {"column_retract_limit", qMakePair(0.0, 2000.0)},
-        {"arm_extend_retract_limit", qMakePair(0.0, 2000.0)}
+        {"height_lock_chassis_limit", qMakePair(0.0, 2000.0)},
+        {"length_lock_chassis_limit", qMakePair(0.0, 2000.0)}
     };
 
     QSettings settings("config.ini", QSettings::IniFormat);
@@ -2392,8 +2297,6 @@ void FeatureSwitchWidget::onApply()
 
     saveButtonVisibilityState();
 
-    commitChassisRetractThresholdWrites();
-
     emit runtimeSettingsChanged();
 
     this->hide(); // 立即生效后隐藏界面
@@ -2417,93 +2320,4 @@ void FeatureSwitchWidget::onToggleAll(bool checked)
 {
     for (auto cb : m_bigCheckboxes) cb->setChecked(checked);
     for (auto cb : m_smallCheckboxes) cb->setChecked(checked);
-}
-
-void FeatureSwitchWidget::setChassisRetractCurrentValue(int address, int value)
-{
-    QLineEdit *edit = nullptr;
-    QString key;
-    if (address == 5007) {
-        edit = m_editColumnRetractLimit;
-        key = QStringLiteral("column_retract_limit");
-    } else if (address == 5008) {
-        edit = m_editArmRetractLimit;
-        key = QStringLiteral("arm_extend_retract_limit");
-    }
-    if (!edit) {
-        return;
-    }
-
-    int lo = 0;
-    int hi = 2000;
-    const LimitEdits lim = m_limitEdits.value(key);
-    if (lim.minEdit) {
-        bool ok = false;
-        const int parsed = lim.minEdit->text().trimmed().toInt(&ok);
-        if (ok) {
-            lo = parsed;
-        }
-    }
-    if (lim.maxEdit) {
-        bool ok = false;
-        const int parsed = lim.maxEdit->text().trimmed().toInt(&ok);
-        if (ok) {
-            hi = parsed;
-        }
-    }
-    if (hi < lo) {
-        qSwap(lo, hi);
-    }
-
-    const QSignalBlocker blocker(edit);
-    edit->setText(QString::number(value));
-    if (value >= lo && value <= hi) {
-        rememberValidEditText(edit, QString::number(value));
-    }
-}
-
-void FeatureSwitchWidget::commitChassisRetractThresholdWrites()
-{
-    const auto commitEdit = [this](QLineEdit *edit, const QString &key, int address) {
-        if (!edit) {
-            return;
-        }
-        int lo = 0;
-        int hi = 2000;
-        const LimitEdits lim = m_limitEdits.value(key);
-        if (lim.minEdit) {
-            bool ok = false;
-            const int parsed = lim.minEdit->text().trimmed().toInt(&ok);
-            if (ok) {
-                lo = parsed;
-            }
-        }
-        if (lim.maxEdit) {
-            bool ok = false;
-            const int parsed = lim.maxEdit->text().trimmed().toInt(&ok);
-            if (ok) {
-                hi = parsed;
-            }
-        }
-        if (hi < lo) {
-            qSwap(lo, hi);
-        }
-        bool ok = false;
-        const int value = edit->text().trimmed().toInt(&ok);
-        if (!ok) {
-            restoreLineEditText(edit, lastValidEditText(edit, QStringLiteral("200")));
-            toastInvalidNumber(this, QStringLiteral("请输入整数"));
-            return;
-        }
-        if (value < lo || value > hi) {
-            restoreLineEditText(edit, lastValidEditText(edit, QStringLiteral("200")));
-            toastInputOutOfRange(this, lo, hi);
-            return;
-        }
-        rememberValidEditText(edit, QString::number(value));
-        emit mainDeviceRegisterWriteRequested(address, value);
-    };
-
-    commitEdit(m_editColumnRetractLimit, QStringLiteral("column_retract_limit"), 5007);
-    commitEdit(m_editArmRetractLimit, QStringLiteral("arm_extend_retract_limit"), 5008);
 }

@@ -204,8 +204,6 @@ void MappingConfig::initDefaultMappings()
         m_controlNameMap["TBtn_AGV_Backward"] = "AGV 后退按钮";
         m_controlNameMap["techBtn_resetSixAxies"] = "姿态回零";
         m_controlNameMap["techBtn_balanceSixAxies"] = "姿态调平";
-        m_controlNameMap["columnRetractLimitEdit"] = "立柱收回门槛";
-        m_controlNameMap["armRetractLimitEdit"] = "臂伸出收回门槛";
         m_controlNameMap["techBtn_AGV_OA"] = "AGV OA 按钮";
         m_controlNameMap["techBtn_AGV_Park"] = "支腿展出状态选择";
         m_controlNameMap["techBtn_AGV_驻车"] = "AGV 支腿按钮";

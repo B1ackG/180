@@ -58,6 +58,7 @@ class QDoubleValidator;
 class QResizeEvent;
 
 enum class StepMotionStopKind { RobotJoint, SixAxis, Agv };
+enum class StepMotionWaitKind : quint8 { None, RobotJoint, SixAxis, Agv };
 
 struct PendingStepMotionStop {
     StepMotionStopKind kind = StepMotionStopKind::RobotJoint;
@@ -323,14 +324,18 @@ public:
     void updateSixAxisPoseActionButtons();
     /** @brief 六轴显示值均约为 0（73~84 已齐）；数据不全时返回 false */
     bool areSixAxisPoseValuesAllZero();
-    /** @brief 显示步进运动提示窗（样式同底盘切换；松开使能即关，不等待到位信号） */
+    /** @brief 步进触发后弹出等待窗；到位边沿关窗，松开使能也可关窗 */
+    void beginStepMotionWait(StepMotionWaitKind kind, const QString &message = QString());
+    /** @brief 显示步进运动提示窗（样式同底盘切换） */
     void showStepMotionWaitDialog(const QString &message);
-    /** @brief 隐藏步进运动提示窗 */
+    /** @brief 隐藏步进运动提示窗并清除等待态 */
     void hideStepMotionWaitDialog();
+    /** @brief 结束步进等待：到位关窗写步进结束，使能松开关窗写「步进运动被打断」 */
+    void finishStepMotionWait(bool interruptedByEnable);
+    /** @brief 按到位寄存器 0→1 边沿关闭步进等待窗 */
+    void checkStepMotionWaitCompletion(int address, quint16 value);
     /** @brief 使能松开时关闭“等信号关窗”的运动等待弹窗（步进除外）并记中断 */
     void interruptEnableGatedWaitPopupsOnEnableRelease();
-    /** @brief 将缓存中的 5007/5008 同步到功能控制台当前值框 */
-    void syncChassisRetractThresholdEditsToConsole();
     /** @brief 支腿打开前：绕车干涉检查弹窗（30 秒倒计时后可确认） */
     void showLegOpenPathCheckDialog(int legLengthMm = -1);
     /** @brief 隐藏支腿打开绕车检查弹窗并停止倒计时 */
@@ -411,6 +416,12 @@ public:
     void syncWeightThresholdEditsFromCache();
     /** @brief 打开管理员界面时回读 5004/5005 并刷新输入框 */
     void refreshWeightThresholdEditsFromDevice();
+    /** @brief 按功能控制台配置更新管理员高度/长度锁定底盘阈值输入范围 */
+    void applyHeightLengthThresholdRuntimeSettings();
+    /** @brief 将缓存中的 5006/5007 填入管理员高度/长度锁定底盘阈值输入框 */
+    void syncHeightLengthThresholdEditsFromCache();
+    /** @brief 打开管理员界面时回读 5006/5007 并刷新输入框 */
+    void refreshHeightLengthThresholdEditsFromDevice();
     /** @brief 按功能控制台配置更新管理员倾角阈值输入范围 */
     void applyInclinometerThresholdRuntimeSettings();
     /** @brief 将缓存中的 5027/5028 填入管理员倾角阈值输入框（与倾角卡片相同：寄存器÷100=度） */
@@ -419,8 +430,6 @@ public:
     void refreshInclinometerThresholdEditsFromDevice();
     /** @brief 按 5027/5028 更新倾角报警/锁定判定阈值 */
     void applyInclinometerTripThresholdsFromSources();
-    /** @brief 按功能控制台范围夹取并写入立柱/臂收回门槛（5007/5008） */
-    void commitChassisRetractThresholdWrites();
     /** @brief 连续写 AGV 保持寄存器并更新 m_agvRegisterShadow */
     bool writeAgvHoldingRegisterBlock(int startAddress, const QVector<quint16> &words);
     
@@ -481,6 +490,8 @@ public:
     void setupAGVStepPad();
     /** @brief 按对轴规则勾选步进九键盘（上/下、左/右、对角），刷新外观 */
     void applyAgvStepPadAxisSelection(QAbstractButton *clicked);
+    /** @brief 清空步进九键盘选中态，需用户重新选择方向 */
+    void clearAgvStepPadSelection();
     /** @brief 刷新底盘步进九键盘选中态外观 */
     void updateAGVStepPadVisuals();
     /** @brief 步进九键盘：切到底盘模式，到位后写角度 */
@@ -816,6 +827,10 @@ private:
     qint64 m_sixAxisPoseWaitBeginMs = 0;
     QDialog *m_stepMotionWaitDialog = nullptr;
     QLabel *m_stepMotionWaitLabel = nullptr;
+    StepMotionWaitKind m_stepMotionWaitKind = StepMotionWaitKind::None;
+    bool m_stepMotionWaitSawZero = false;
+    /** @brief 松开使能已按「步进运动被打断」记过历史，避免再写步进结束 */
+    bool m_skipStepReleaseHistory = false;
     /** @brief 支腿打开前绕车干涉检查弹窗 */
     QDialog *m_legOpenPathCheckDialog = nullptr;
     QLabel *m_legOpenPathCheckMessageLabel = nullptr;
@@ -887,6 +902,8 @@ private:
     QIntValidator *m_parkOutTriggerLengthValidator = nullptr;
     QIntValidator *m_weightOverloadLimitValidator = nullptr;
     QIntValidator *m_weightLockLimitValidator = nullptr;
+    QIntValidator *m_heightLockChassisLimitValidator = nullptr;
+    QIntValidator *m_lengthLockChassisLimitValidator = nullptr;
     QDoubleValidator *m_inclinometerAlarmLimitValidator = nullptr;
     QDoubleValidator *m_inclinometerLockLimitValidator = nullptr;
     bool m_mainRegister150Valid = false;
@@ -1044,6 +1061,10 @@ private:
     QLineEdit *m_weightLockLimitEdit = nullptr;
     QLabel *m_weightOverloadLimitRangeLabel = nullptr;
     QLabel *m_weightLockLimitRangeLabel = nullptr;
+    QLineEdit *m_heightLockChassisLimitEdit = nullptr;
+    QLineEdit *m_lengthLockChassisLimitEdit = nullptr;
+    QLabel *m_heightLockChassisLimitRangeLabel = nullptr;
+    QLabel *m_lengthLockChassisLimitRangeLabel = nullptr;
     QLineEdit *m_inclinometerAlarmLimitEdit = nullptr;
     QLineEdit *m_inclinometerLockLimitEdit = nullptr;
     QLabel *m_inclinometerAlarmLimitRangeLabel = nullptr;
@@ -1400,6 +1421,10 @@ private:
     void handleAGVKey2Action(int keyNumber, bool pressed);
     /** @brief 检查 ○9/○10、转向切换、驻车按钮用的高度/长度互锁提示语（空表示无互锁） */
     QString robotInterlockHintMessage() const;
+    /** @brief 高度/长度互锁有效时显示模态提示并返回 true */
+    bool blockIfHeightLengthInterlock();
+    /** @brief 将底盘角度控件恢复为最近回读值 */
+    void restoreAgvAngleEditFromShadow();
 
     /** @brief 获取当前转向模式文本（用于记录） */
     QString currentSteeringModeText() const;
