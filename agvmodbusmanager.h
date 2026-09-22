@@ -25,6 +25,7 @@
 #include <QDateTime>
 #include <QSet>
 #include <QLibrary>
+#include <atomic>
 
 /*位变量（BOOL）：
 
@@ -161,7 +162,7 @@ public:
      * 如何使用: 在不稳定网络环境下启用以保持连接可用性。
      * 如何修改: 可实现指数退避等更复杂的重连策略。
      */
-    void setAutoReconnect(bool enable, int interval = 5000);
+    void setAutoReconnect(bool enable, int interval = 1000);
 
     // 批量读取寄存器
     /**
@@ -304,7 +305,7 @@ private:
     bool m_lastHeartbeatState = false;
     QDateTime m_lastHeartbeatTime;
 
-    bool m_connectedState = false;
+    mutable std::atomic<bool> m_connectedState{false};
     QSet<int> m_disconnectedWriteWarnedAddresses;
     QString m_lastSocketError;
     bool m_writesEnabled = true; // 控制是否允许向AGV写入；默认开启，避免正常控制被静默拦截

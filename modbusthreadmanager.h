@@ -18,6 +18,9 @@
 #include <QObject>
 #include <QThread>
 #include <QMap>
+#include <QMutex>
+#include <QSet>
+#include <atomic>
 #include "modbustcpclient.h"
 
     class TechSliderEdit;  // 前向声明
@@ -162,7 +165,7 @@ public:
      * @param enable true 启用
      * @param interval 重连间隔（毫秒），默认为 5000ms
      */
-    void setAutoReconnect(bool enable, int interval = 5000);
+    void setAutoReconnect(bool enable, int interval = 1000);
 
     // 寄存器读写操作
     /**
@@ -234,7 +237,12 @@ private slots:
     void onSliderLabelDestroyed(QObject *obj);
 
 private:
+    bool queueReadRequest(int functionCode, int startAddress, int count);
+
     ModbusTCPClient *m_modbusClient;
+    mutable std::atomic<bool> m_connectedFlag{false};
+    QMutex m_pendingReadsMutex;
+    QSet<quint64> m_pendingReads;
 
     // TechSliderEdit 映射表
     QMap<int, TechSliderEdit*> m_addressToSlider;

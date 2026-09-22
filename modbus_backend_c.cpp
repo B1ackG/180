@@ -18,6 +18,7 @@
  */
 
 #include <cerrno>
+#include <climits>
 #include <cstdlib>
 #include <mutex>
 #include <string>
@@ -34,6 +35,9 @@ namespace {
 /* 【检查】用：一次最多读/写多少个寄存器（协议上限），先挡荒唐参数 */
 constexpr int kMaxRegistersPerRead = 125;
 constexpr int kMaxRegistersPerWrite = 123;
+constexpr int kDefaultResponseTimeoutMs = 500;
+constexpr int kMinResponseTimeoutMs = 100;
+constexpr int kMaxResponseTimeoutMs = 60000;
 
 /*
  * 【会话】用的小盒子 Backend
@@ -48,6 +52,55 @@ struct Backend {
     int slaveId = 1;
     std::mutex mu;
 };
+
+bool isValidRange(int startAddr, int count)
+{
+    return startAddr >= 0
+        && startAddr <= 65535
+        && count > 0
+        && count <= 65536 - startAddr;
+}
+
+int responseTimeoutMs()
+{
+    const char *value = std::getenv("MODBUS_RESPONSE_TIMEOUT_MS");
+    if (!value || !*value) {
+        return kDefaultResponseTimeoutMs;
+    }
+
+    errno = 0;
+    char *end = nullptr;
+    const long parsed = std::strtol(value, &end, 10);
+    if (errno != 0 || end == value || *end != '\0' || parsed < kMinResponseTimeoutMs
+        || parsed > kMaxResponseTimeoutMs || parsed > INT_MAX) {
+        return kDefaultResponseTimeoutMs;
+    }
+    return static_cast<int>(parsed);
+}
+
+void closeContext(Backend *backend)
+{
+    if (!backend || !backend->ctx) {
+        return;
+    }
+    modbus_close(backend->ctx);
+    modbus_free(backend->ctx);
+    backend->ctx = nullptr;
+}
+
+bool isModbusException(int errorCode)
+{
+    return errorCode >= EMBXILFUN && errorCode <= EMBXGTAR;
+}
+
+template <typename Result>
+Result disconnectOnFailure(Backend *backend, Result result, Result failure)
+{
+    if (result == failure && !isModbusException(errno)) {
+        closeContext(backend);
+    }
+    return result;
+}
 
 } // namespace
 
@@ -75,10 +128,9 @@ void modbus_backend_destroy(void *handle)
     }
 
     /* 【接线】若连过：调用 .a 的 close/free，真正释放官方资源 */
-    if (b->ctx) {
-        modbus_close(b->ctx); /* → 进 libmodbus.a */
-        modbus_free(b->ctx);  /* → 进 libmodbus.a */
-        b->ctx = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(b->mu);
+        closeContext(b);
     }
 
     delete b; /* 扔掉我们的盒子 */
@@ -93,7 +145,9 @@ int modbus_backend_connect(void *handle, const char *host, int port, int slave_i
     auto *b = static_cast<Backend *>(handle);
 
     /* 【检查】盒子、IP、端口是否像样 */
-    if (!b || !host || port <= 0 || port > 65535) {
+    if (!b || !host || !*host || port <= 0 || port > 65535
+        || slave_id < 0 || slave_id > 247) {
+        errno = EINVAL;
         return 0; /* 失败；下面成功返回 1 */
     }
 
@@ -101,11 +155,7 @@ int modbus_backend_connect(void *handle, const char *host, int port, int slave_i
     std::lock_guard<std::mutex> lock(b->mu);
 
     /* 若以前连过：先【接线】拆掉旧的，再新建（重连） */
-    if (b->ctx) {
-        modbus_close(b->ctx); /* → .a */
-        modbus_free(b->ctx);  /* → .a */
-        b->ctx = nullptr;
-    }
+    closeContext(b);
 
     /* -------- 以下整段都是【接线】：真正干活的全是 modbus_xxx（.a 里） -------- */
 
@@ -116,7 +166,7 @@ int modbus_backend_connect(void *handle, const char *host, int port, int slave_i
     }
 
     /* 2) 设置从站号 */
-    b->slaveId = slave_id <= 0 ? 1 : slave_id;
+    b->slaveId = slave_id;
     if (modbus_set_slave(b->ctx, b->slaveId) != 0) { /* → .a */
         modbus_free(b->ctx); /* → .a */
         b->ctx = nullptr;
@@ -125,24 +175,14 @@ int modbus_backend_connect(void *handle, const char *host, int port, int slave_i
 
     /* 3) 设置「等多久算超时」（默认 1 秒；可用环境变量改）—— 仍是调 .a */
     timeval responseTimeout {};
-    responseTimeout.tv_sec = 1;
-    responseTimeout.tv_usec = 0;
-    {
-        const char *timeoutEnv = std::getenv("MODBUS_RESPONSE_TIMEOUT_MS");
-        if (timeoutEnv && *timeoutEnv) {
-            const int timeoutMs = std::atoi(timeoutEnv);
-            if (timeoutMs >= 200) {
-                responseTimeout.tv_sec = timeoutMs / 1000;
-                responseTimeout.tv_usec = (timeoutMs % 1000) * 1000;
-            }
-        }
-    }
+    const int timeoutMs = responseTimeoutMs();
+    responseTimeout.tv_sec = timeoutMs / 1000;
+    responseTimeout.tv_usec = (timeoutMs % 1000) * 1000;
     modbus_set_response_timeout(b->ctx, responseTimeout.tv_sec, responseTimeout.tv_usec); /* → .a */
 
     /* 4) 真正 TCP 连接；粘包等细节从这里开始由 .a 内部处理 */
     if (modbus_connect(b->ctx) != 0) { /* → .a ：这里才算连上 PLC */
-        modbus_free(b->ctx);
-        b->ctx = nullptr;
+        closeContext(b);
         return 0;
     }
 
@@ -173,11 +213,7 @@ void modbus_backend_disconnect(void *handle)
     std::lock_guard<std::mutex> lock(b->mu);
 
     /* 【接线】 */
-    if (b->ctx) {
-        modbus_close(b->ctx); /* → .a */
-        modbus_free(b->ctx);  /* → .a */
-        b->ctx = nullptr;
-    }
+    closeContext(b);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -209,7 +245,9 @@ int modbus_backend_read_holding_registers(void *handle, int start_addr, int coun
     auto *b = static_cast<Backend *>(handle);
 
     /* 【检查】盒子、输出缓冲、数量是否合法 */
-    if (!b || !out_values || count <= 0 || out_capacity < count || count > kMaxRegistersPerRead) {
+    if (!b || !out_values || !isValidRange(start_addr, count)
+        || out_capacity < count || count > kMaxRegistersPerRead) {
+        errno = EINVAL;
         return -1;
     }
 
@@ -225,7 +263,8 @@ int modbus_backend_read_holding_registers(void *handle, int start_addr, int coun
     if (modbus_set_slave(b->ctx, b->slaveId) != 0) { /* → .a */
         return -1;
     }
-    return modbus_read_registers(b->ctx, start_addr, count, out_values); /* → .a ★核心 */
+    return disconnectOnFailure(
+        b, modbus_read_registers(b->ctx, start_addr, count, out_values), -1); /* → .a ★核心 */
     /* 粘包半包、MBAP、重试等：都在这一行调用进去的 .a 代码里，不在本文件 */
 }
 
@@ -238,7 +277,9 @@ int modbus_backend_read_input_registers(void *handle, int start_addr, int count,
     auto *b = static_cast<Backend *>(handle);
 
     /* 【检查】 */
-    if (!b || !out_values || count <= 0 || out_capacity < count || count > kMaxRegistersPerRead) {
+    if (!b || !out_values || !isValidRange(start_addr, count)
+        || out_capacity < count || count > kMaxRegistersPerRead) {
+        errno = EINVAL;
         return -1;
     }
 
@@ -254,7 +295,8 @@ int modbus_backend_read_input_registers(void *handle, int start_addr, int count,
     if (modbus_set_slave(b->ctx, b->slaveId) != 0) { /* → .a */
         return -1;
     }
-    return modbus_read_input_registers(b->ctx, start_addr, count, out_values); /* → .a ★ */
+    return disconnectOnFailure(
+        b, modbus_read_input_registers(b->ctx, start_addr, count, out_values), -1); /* → .a ★ */
 }
 
 /* -------------------------------------------------------------------------- */
@@ -265,7 +307,8 @@ int modbus_backend_write_single_register(void *handle, int addr, uint16_t value)
     auto *b = static_cast<Backend *>(handle);
 
     /* 【检查】 */
-    if (!b) {
+    if (!b || !isValidRange(addr, 1)) {
+        errno = EINVAL;
         return 0;
     }
 
@@ -282,7 +325,14 @@ int modbus_backend_write_single_register(void *handle, int addr, uint16_t value)
         return 0;
     }
     /* ★核心：真正写寄存器在 .a；外壳只把「成功/失败」收成 1/0 */
-    return modbus_write_register(b->ctx, addr, value) == 1 ? 1 : 0; /* → .a */
+    const int rc = modbus_write_register(b->ctx, addr, value); /* → .a */
+    if (rc != 1 && !isModbusException(errno)) {
+        closeContext(b);
+    }
+    if (rc != 1) {
+        return 0;
+    }
+    return 1;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -294,7 +344,9 @@ int modbus_backend_write_multiple_registers(void *handle, int start_addr,
     auto *b = static_cast<Backend *>(handle);
 
     /* 【检查】 */
-    if (!b || !values || count <= 0 || count > kMaxRegistersPerWrite) {
+    if (!b || !values || !isValidRange(start_addr, count)
+        || count > kMaxRegistersPerWrite) {
+        errno = EINVAL;
         return 0;
     }
 
@@ -310,7 +362,14 @@ int modbus_backend_write_multiple_registers(void *handle, int start_addr,
     if (modbus_set_slave(b->ctx, b->slaveId) != 0) { /* → .a */
         return 0;
     }
-    return modbus_write_registers(b->ctx, start_addr, count, values) == count ? 1 : 0; /* → .a ★ */
+    const int rc = modbus_write_registers(b->ctx, start_addr, count, values); /* → .a ★ */
+    if (rc != count && !isModbusException(errno)) {
+        closeContext(b);
+    }
+    if (rc != count) {
+        return 0;
+    }
+    return 1;
 }
 
 } // extern "C"

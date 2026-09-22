@@ -628,9 +628,9 @@ void MainWindow::loadPollingRuntimeSettings()
     m_mainDeviceStatusCount = settings.value("main_device_status_count", 85).toInt();
     m_mainControlSyncStart = settings.value("main_control_sync_start", 125).toInt();
     m_mainControlSyncCount = settings.value("main_control_sync_count", 6).toInt();
-    m_mainReconnectIntervalMs = settings.value("main_reconnect_ms", 5000).toInt();
+    m_mainReconnectIntervalMs = settings.value("main_reconnect_ms", 1000).toInt();
     m_agvPollIntervalMs = settings.value("agv_poll_ms", 200).toInt();
-    m_agvReconnectIntervalMs = settings.value("agv_reconnect_ms", 5000).toInt();
+    m_agvReconnectIntervalMs = settings.value("agv_reconnect_ms", 1000).toInt();
 
     settings.endGroup();
 
@@ -6733,8 +6733,9 @@ void MainWindow::onModbusConnected()
     qCDebug(lcMainWindow) << "Modbus连接成功，启动交互任务...";
     MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Connected);
 
-    if (!m_runtimeBaselineReady && m_modbusManager
+    if (!m_runtimeBaselineAttempted && m_modbusManager
         && isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
+        m_runtimeBaselineAttempted = true;
         quint16 persistedLow = 0;
         quint16 persistedHigh = 0;
         const bool lowOk = m_modbusManager->readSingleRegister(kRuntimePersistRegister, persistedLow);
@@ -6754,6 +6755,19 @@ void MainWindow::onModbusConnected()
                                     << "失败，暂不写入运行时间";
         }
     }
+
+    if (m_mainModbusStartupDone) {
+        // 重连只恢复状态同步；不要重复执行开机写和创建整套启动重试定时器。
+        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 125, 2);
+        if (m_interlockingSyncTimer) {
+            m_interlockingSyncTimer->setInterval(qMax(50, m_mainUiPollIntervalMs));
+            m_interlockingSyncTimer->start();
+        }
+        refreshInterlockingButtonText();
+        MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Connected);
+        return;
+    }
+    m_mainModbusStartupDone = true;
 
     // 立即启动原本推迟的数据读取子系统
     if (isFeatureEnabled("startup_checks", "startup.write_registers")) {
@@ -7789,22 +7803,17 @@ void MainWindow::readMainControlSyncRegisters()
     // 当前负载重量：192.168.1.13 的 123 寄存器
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainCurrentLoadWeightReg, 1);
 
-    // 管理员负载阈值：5004 负载超限、5005 负载超重
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainWeightOverloadLimitReg, 2);
+    // 管理员负载与底盘锁定阈值连续位于 5004~5007，合并为一次事务。
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainWeightOverloadLimitReg, 4);
 
     // 管理员倾角阈值：5027 倾角报警、5028 倾角锁定（寄存器值÷100 为度）
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainInclinometerAlarmLimitReg, 2);
 
-    // 高度/长度锁定底盘阈值：5006 高度、5007 长度
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainHeightLockChassisLimitReg, 2);
-
     // 六自由度姿态回零/调平状态：615 bit1 / bit2
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kSixAxisPoseReg, 1);
 
-    // 机械臂步进到位：150.bit11 0→1 关窗
-    if (m_stepMotionWaitKind == StepMotionWaitKind::RobotJoint) {
-        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainRobotStepDoneReg, 1);
-    }
+    // 150~151 均为高频状态，合并读取，避免按状态重复排队。
+    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainRobotStepDoneReg, 2);
 
     // 六自由度步进到位：87.bit0 0→1 关窗
     if (m_stepMotionWaitKind == StepMotionWaitKind::SixAxis) {
@@ -7819,9 +7828,6 @@ void MainWindow::readMainControlSyncRegisters()
 
     // 当前运动目标轴：500（1~4=J1~J4，5=六自由度），供限位 Toast 文案使用
     MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 500, 1);
-
-    // 卷样机钢缆到位：151.bit0/bit1；姿态调平门控：151.bit2；吊重-支腿-伸缩臂联锁：151.bit3~7
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 151, 1);
 
     syncSpareButtonNamesFromRegisters();
 }
