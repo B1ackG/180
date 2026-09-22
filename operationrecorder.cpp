@@ -49,7 +49,8 @@ OperationRecorder::OperationRecorder(QObject *parent)
 
     // 初始化重连定时器
     m_reconnectTimer = new QTimer(this);
-    m_reconnectTimer->setInterval(5000); // 5秒重连间隔
+    m_reconnectTimer->setSingleShot(true);
+    m_reconnectTimer->setInterval(kTcpReconnectIntervalMs);
     connect(m_reconnectTimer, &QTimer::timeout, this, &OperationRecorder::onReconnectTimeout);
 }
 
@@ -294,14 +295,17 @@ void OperationRecorder::setTcpServer(const QString &ip, quint16 port)
 {
     ensureAllowedHost(ip);
     loadSecuritySettings();
+    const bool endpointChanged = (m_tcpServerIp != ip) || (m_tcpServerPort != port);
     m_tcpServerIp = ip;
     m_tcpServerPort = port;
 
-    // 如果已经连接，需要重新连接
-    if (m_tcpSocket && m_tcpSocket->state() == QAbstractSocket::ConnectedState) {
-        disconnectTcpSocket();
-        connectTcpSocket();
+    if (!endpointChanged || !m_tcpEnabled || !m_tcpSocket) {
+        return;
     }
+    if (m_tcpSocket->state() != QAbstractSocket::UnconnectedState) {
+        m_tcpSocket->abort();
+    }
+    connectTcpSocket();
 }
 
 void OperationRecorder::sendAllRecordsToServer()
@@ -431,9 +435,7 @@ void OperationRecorder::connectTcpSocket()
         qWarning() << "连接日志服务器超时:" << m_tcpServerIp << ":" << m_tcpServerPort;
         m_tcpSocket->abort();
         emit tcpTransmissionError(QStringLiteral("连接日志服务器超时"));
-        if (m_tcpEnabled && m_reconnectTimer && !m_reconnectTimer->isActive()) {
-            m_reconnectTimer->start();
-        }
+        scheduleReconnect();
     });
 }
 
@@ -474,10 +476,7 @@ void OperationRecorder::onTcpDisconnected()
     qDebug() << "TCP服务器连接断开";
     emit tcpConnectionStatusChanged(false);
 
-    // 如果TCP传输已启用，启动重连定时器
-    if (m_tcpEnabled) {
-        m_reconnectTimer->start();
-    }
+    scheduleReconnect();
 }
 
 void OperationRecorder::onTcpError(QAbstractSocket::SocketError socketError)
@@ -496,15 +495,24 @@ void OperationRecorder::onTcpError(QAbstractSocket::SocketError socketError)
         qDebug() << "TCP连接错误(节流):" << error;
     }
 
-    // 如果TCP传输已启用，启动重连定时器
-    if (m_tcpEnabled && !m_reconnectTimer->isActive()) {
-        m_reconnectTimer->start();
-    }
+    scheduleReconnect();
 }
 
 void OperationRecorder::onTcpDataWritten(qint64 bytes)
 {
     qDebug() << "已发送" << bytes << "字节到TCP服务器";
+}
+
+void OperationRecorder::scheduleReconnect()
+{
+    if (!m_tcpEnabled || !m_tcpSocket || !m_reconnectTimer || m_reconnectTimer->isActive()) {
+        return;
+    }
+    const auto state = m_tcpSocket->state();
+    if (state == QAbstractSocket::ConnectingState || state == QAbstractSocket::ConnectedState) {
+        return;
+    }
+    m_reconnectTimer->start();
 }
 
 void OperationRecorder::onReconnectTimeout()

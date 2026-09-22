@@ -10757,10 +10757,8 @@ void MainWindow::enableTcpTransmission(bool enabled)
     m_tcpTransmissionEnabled = enabled;
 
     if (m_recorder) {
-        m_recorder->enableTcpTransmission(enabled);
-
-        // 设置服务器地址
         m_recorder->setTcpServer(m_tcpServerHost, WIN7_PORT);
+        m_recorder->enableTcpTransmission(enabled);
 
         if (enabled) {
             qCDebug(lcMainWindow) << "启用TCP传输，服务器:" << m_tcpServerHost << ":" << WIN7_PORT;
