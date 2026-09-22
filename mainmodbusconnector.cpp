@@ -30,7 +30,8 @@ bool MainModbusConnector::connectAndConfigure(ModbusThreadManager *manager,
         return false;
     }
 
+    const bool connected = manager->connectToDevice(endpoint.host, endpoint.port);
     manager->setPollInterval(pollIntervalMs);
     manager->setAutoReconnect(true, reconnectIntervalMs);
-    return manager->connectToDevice(endpoint.host, endpoint.port);
+    return connected;
 }

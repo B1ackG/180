@@ -215,7 +215,7 @@ public:
      * @param interval 重连间隔（毫秒），默认 5000
      * @note 可扩展为指数退避策略以避免持续重连。
      */
-    void setAutoReconnect(bool enable, int interval = 1000);
+    void setAutoReconnect(bool enable, int interval = 5000);
 
     /**
      * 使用示例:

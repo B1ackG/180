@@ -24,7 +24,7 @@ ModbusTCPClient::ModbusTCPClient(QObject *parent)
     , m_port(502)  // Modbus TCP默认端口
     , m_slaveId(1)
     , m_autoReconnect(false)
-    , m_reconnectInterval(1000)
+    , m_reconnectInterval(5000)
     , m_reconnectTimer(nullptr)
     , m_polling(false)
     , m_pollInterval(1000)  // 默认1秒轮询
@@ -84,16 +84,17 @@ bool ModbusTCPClient::ensureDynamicBackendLoaded()
                                   m_lastDynamicBackendError)
         || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_read_holding_registers",
                                   m_backendReadHolding, m_lastDynamicBackendError)
-        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_read_input_registers",
-                                  m_backendReadInput, m_lastDynamicBackendError)
         || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_write_single_register",
-                                  m_backendWriteSingle, m_lastDynamicBackendError)
-        || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_write_multiple_registers",
-                                  m_backendWriteMultiple, m_lastDynamicBackendError)) {
+                                  m_backendWriteSingle, m_lastDynamicBackendError)) {
         qWarning() << m_lastDynamicBackendError;
         unloadDynamicBackend();
         return false;
     }
+
+    m_backendReadInput = reinterpret_cast<MbReadRegistersFn>(
+        m_dynamicBackendLibrary.resolve("modbus_backend_read_input_registers"));
+    m_backendWriteMultiple = reinterpret_cast<MbWriteMultipleFn>(
+        m_dynamicBackendLibrary.resolve("modbus_backend_write_multiple_registers"));
 
     m_dynamicBackendHandle = m_backendCreate ? m_backendCreate() : nullptr;
     if (!m_dynamicBackendHandle) {
@@ -236,7 +237,7 @@ void ModbusTCPClient::tryReconnect()
 void ModbusTCPClient::setAutoReconnect(bool enable, int interval)
 {
     m_autoReconnect = enable;
-    m_reconnectInterval = qBound(100, interval, 120000);
+    m_reconnectInterval = interval;
 
     if (!enable) {
         m_reconnectTimer->stop();
@@ -263,7 +264,7 @@ bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 function
     if (functionCode == 0x03) {
         readFn = m_backendReadHolding;
     } else if (functionCode == 0x04) {
-        readFn = m_backendReadInput;
+        readFn = m_backendReadInput ? m_backendReadInput : m_backendReadHolding;
     }
     if (!readFn || !m_dynamicBackendHandle) {
         qWarning() << "[Modbus动态库读失败] 未找到读取函数";
@@ -281,12 +282,7 @@ bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 function
                                    .arg(startAddress)
                                    .arg(count);
         qWarning() << "[Modbus动态库读失败] 地址:" << startAddress << "数量:" << count;
-        if (!m_backendIsConnected || !m_dynamicBackendHandle
-            || m_backendIsConnected(m_dynamicBackendHandle) == 0) {
-            handleCommunicationFailure(reason);
-        } else {
-            emit errorOccurred(reason);
-        }
+        handleCommunicationFailure(reason);
         return false;
     }
 
@@ -312,12 +308,7 @@ bool ModbusTCPClient::writeSingleRegister(int address, quint16 value)
     if (!ok) {
         qWarning() << "[Modbus动态库写失败] 地址:" << address << "值:" << value;
         const QString reason = QStringLiteral("动态库写入失败 address=%1").arg(address);
-        if (!m_backendIsConnected || !m_dynamicBackendHandle
-            || m_backendIsConnected(m_dynamicBackendHandle) == 0) {
-            handleCommunicationFailure(reason);
-        } else {
-            emit errorOccurred(reason);
-        }
+        handleCommunicationFailure(reason);
     }
     return ok;
 }
@@ -328,26 +319,25 @@ bool ModbusTCPClient::writeMultipleRegisters(int startAddress, const QVector<qui
         return false;
     }
 
-    if (!m_backendWriteMultiple || !m_dynamicBackendHandle) {
-        qWarning() << "[Modbus动态库批量写失败] 未找到批量写函数";
-        return false;
-    }
-    const bool ok = m_backendWriteMultiple(m_dynamicBackendHandle,
-                                           startAddress,
-                                           values.constData(),
-                                           values.size()) != 0;
-    if (!ok) {
-        const QString reason = QStringLiteral("动态库批量写入失败 start=%1 count=%2")
-                                   .arg(startAddress)
-                                   .arg(values.size());
-        if (!m_backendIsConnected || !m_dynamicBackendHandle
-            || m_backendIsConnected(m_dynamicBackendHandle) == 0) {
+    if (m_backendWriteMultiple && m_dynamicBackendHandle) {
+        const bool ok = m_backendWriteMultiple(m_dynamicBackendHandle,
+                                               startAddress,
+                                               values.constData(),
+                                               values.size()) != 0;
+        if (!ok) {
+            const QString reason = QStringLiteral("动态库批量写入失败 start=%1 count=%2")
+                                       .arg(startAddress)
+                                       .arg(values.size());
             handleCommunicationFailure(reason);
-        } else {
-            emit errorOccurred(reason);
+        }
+        return ok;
+    }
+    for (int i = 0; i < values.size(); ++i) {
+        if (!writeSingleRegister(startAddress + i, values.at(i))) {
+            return false;
         }
     }
-    return ok;
+    return true;
 }
 
 bool ModbusTCPClient::readHoldingRegisterSync(int address, quint16 &value)
@@ -383,12 +373,7 @@ bool ModbusTCPClient::readHoldingRegistersSync(int startAddress, int count, QVec
                                    .arg(startAddress)
                                    .arg(count);
         qWarning() << "[Modbus动态库读失败] 地址:" << startAddress << "数量:" << count;
-        if (!m_backendIsConnected || !m_dynamicBackendHandle
-            || m_backendIsConnected(m_dynamicBackendHandle) == 0) {
-            handleCommunicationFailure(reason);
-        } else {
-            emit errorOccurred(reason);
-        }
+        handleCommunicationFailure(reason);
         values.clear();
         return false;
     }
@@ -430,9 +415,9 @@ void ModbusTCPClient::clearPollList()
 
 void ModbusTCPClient::setPollInterval(int ms)
 {
-    m_pollInterval = qBound(50, ms, 60000);
+    m_pollInterval = ms;
     if (m_pollTimer->isActive()) {
-        m_pollTimer->setInterval(m_pollInterval);
+        m_pollTimer->setInterval(ms);
     }
 }
 

@@ -49,16 +49,6 @@ ModbusThreadManager::ModbusThreadManager(QObject *parent)
             this, &ModbusThreadManager::disconnected);
     connect(m_modbusClient, &ModbusTCPClient::errorOccurred,
             this, &ModbusThreadManager::errorOccurred);
-    connect(m_modbusClient, &ModbusTCPClient::connected, this, [this]() {
-        m_connectedFlag.store(true, std::memory_order_release);
-    });
-    connect(m_modbusClient, &ModbusTCPClient::disconnected, this, [this]() {
-        m_connectedFlag.store(false, std::memory_order_release);
-    });
-    connect(m_modbusClient, &ModbusTCPClient::errorOccurred, this, [this](const QString &) {
-        m_connectedFlag.store(m_modbusClient && m_modbusClient->isConnected(),
-                              std::memory_order_release);
-    });
     connect(m_modbusClient, &ModbusTCPClient::registerValueChanged,
             this, &ModbusThreadManager::onRegisterValueChanged);
 
@@ -77,9 +67,11 @@ ModbusThreadManager::~ModbusThreadManager()
 bool ModbusThreadManager::connectToDevice(const QString &host, quint16 port, int slaveId)
 {
     if (QThread::currentThread() != thread()) {
-        return QMetaObject::invokeMethod(this, [this, host, port, slaveId]() {
-            connectToDevice(host, port, slaveId);
-        }, Qt::QueuedConnection);
+        bool ok = false;
+        QMetaObject::invokeMethod(this, [this, host, port, slaveId, &ok]() {
+            ok = connectToDevice(host, port, slaveId);
+        }, Qt::BlockingQueuedConnection);
+        return ok;
     }
 
     if (!m_modbusClient) {
@@ -109,12 +101,14 @@ void ModbusThreadManager::disconnectFromDevice()
 bool ModbusThreadManager::isConnected() const
 {
     if (QThread::currentThread() != thread()) {
-        return m_connectedFlag.load(std::memory_order_acquire);
+        bool connected = false;
+        QMetaObject::invokeMethod(const_cast<ModbusThreadManager *>(this), [this, &connected]() {
+            connected = m_modbusClient ? m_modbusClient->isConnected() : false;
+        }, Qt::BlockingQueuedConnection);
+        return connected;
     }
 
-    const bool connected = m_modbusClient ? m_modbusClient->isConnected() : false;
-    m_connectedFlag.store(connected, std::memory_order_release);
-    return connected;
+    return m_modbusClient ? m_modbusClient->isConnected() : false;
 }
 
 void ModbusThreadManager::registerSlider(TechSliderEdit *slider, int address)
@@ -406,13 +400,11 @@ void ModbusThreadManager::readMultipleRegisters(int startAddress, int count)
 bool ModbusThreadManager::writeSingleRegister(int address, quint16 value)
 {
     if (QThread::currentThread() != thread()) {
-        if (!m_connectedFlag.load(std::memory_order_acquire)) {
-            emit writeOperationComplete(false, QStringLiteral("Modbus未连接"));
-            return false;
-        }
-        return QMetaObject::invokeMethod(this, [this, address, value]() {
-            writeSingleRegister(address, value);
-        }, Qt::QueuedConnection);
+        bool ok = false;
+        QMetaObject::invokeMethod(this, [this, address, value, &ok]() {
+            ok = writeSingleRegister(address, value);
+        }, Qt::BlockingQueuedConnection);
+        return ok;
     }
 
     if (!m_modbusClient || !m_modbusClient->isConnected()) {
@@ -439,13 +431,11 @@ bool ModbusThreadManager::writeSingleRegister(int address, quint16 value)
 bool ModbusThreadManager::writeMultipleRegisters(int startAddress, const QVector<quint16> &values)
 {
     if (QThread::currentThread() != thread()) {
-        if (!m_connectedFlag.load(std::memory_order_acquire) || values.isEmpty()) {
-            emit writeOperationComplete(false, QStringLiteral("Modbus未连接或写入值为空"));
-            return false;
-        }
-        return QMetaObject::invokeMethod(this, [this, startAddress, values]() {
-            writeMultipleRegisters(startAddress, values);
-        }, Qt::QueuedConnection);
+        bool ok = false;
+        QMetaObject::invokeMethod(this, [this, startAddress, values, &ok]() {
+            ok = writeMultipleRegisters(startAddress, values);
+        }, Qt::BlockingQueuedConnection);
+        return ok;
     }
 
     if (!m_modbusClient || !m_modbusClient->isConnected()) {
@@ -483,7 +473,11 @@ bool ModbusThreadManager::writeMultipleRegisters(int startAddress, const QVector
 bool ModbusThreadManager::readHoldingRegisters(int startAddress, int count)
 {
     if (QThread::currentThread() != thread()) {
-        return queueReadRequest(0x03, startAddress, count);
+        bool ok = false;
+        QMetaObject::invokeMethod(this, [this, startAddress, count, &ok]() {
+            ok = readHoldingRegisters(startAddress, count);
+        }, Qt::BlockingQueuedConnection);
+        return ok;
     }
 
     if (!m_modbusClient || !m_modbusClient->isConnected()) {
@@ -514,7 +508,11 @@ bool ModbusThreadManager::readHoldingRegistersSync(int startAddress, int count, 
 bool ModbusThreadManager::readInputRegisters(int startAddress, int count)
 {
     if (QThread::currentThread() != thread()) {
-        return queueReadRequest(0x04, startAddress, count);
+        bool ok = false;
+        QMetaObject::invokeMethod(this, [this, startAddress, count, &ok]() {
+            ok = readInputRegisters(startAddress, count);
+        }, Qt::BlockingQueuedConnection);
+        return ok;
     }
 
     if (!m_modbusClient || !m_modbusClient->isConnected()) {
@@ -522,43 +520,6 @@ bool ModbusThreadManager::readInputRegisters(int startAddress, int count)
         return false;
     }
     return m_modbusClient->readInputRegisters(startAddress, count);
-}
-
-bool ModbusThreadManager::queueReadRequest(int functionCode, int startAddress, int count)
-{
-    if (!m_connectedFlag.load(std::memory_order_acquire)
-        || startAddress < 0 || startAddress > 65535
-        || count <= 0 || count > 125
-        || count > 65536 - startAddress) {
-        return false;
-    }
-
-    const quint64 key = (static_cast<quint64>(functionCode & 0xff) << 32)
-        | (static_cast<quint64>(startAddress & 0xffff) << 16)
-        | static_cast<quint64>(count & 0xffff);
-    {
-        QMutexLocker locker(&m_pendingReadsMutex);
-        if (m_pendingReads.contains(key)) {
-            return true;
-        }
-        m_pendingReads.insert(key);
-    }
-
-    const bool queued = QMetaObject::invokeMethod(this, [this, functionCode, startAddress, count, key]() {
-        if (functionCode == 0x03) {
-            readHoldingRegisters(startAddress, count);
-        } else {
-            readInputRegisters(startAddress, count);
-        }
-        QMutexLocker locker(&m_pendingReadsMutex);
-        m_pendingReads.remove(key);
-    }, Qt::QueuedConnection);
-
-    if (!queued) {
-        QMutexLocker locker(&m_pendingReadsMutex);
-        m_pendingReads.remove(key);
-    }
-    return queued;
 }
 
 void ModbusThreadManager::readMultipleHoldingRegisters(int startAddress, int count)

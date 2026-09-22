@@ -939,7 +939,6 @@ private:
     bool m_stepModeUnknown = true;
     bool m_isJointMode = true;
     bool m_moveModeUnknown = false;
-    bool m_mainModbusStartupDone = false;
     QHash<int, bool> m_robotExternalKeyPressed;
     quint64 m_robotExternalWriteSeq = 0;
     int m_robotActiveKey = -1;
@@ -981,7 +980,6 @@ private:
     qint64 m_persistedTotalRuntimeSec = 0;
     qint64 m_lastSavedTotalRuntimeSec = -1;
     bool m_runtimeBaselineReady = false;
-    bool m_runtimeBaselineAttempted = false;
     QTimer *m_historyRuntimeUpdateTimer = nullptr;
     QQuickWidget *m_robotTotalPowerQml = nullptr;  // 使用 QML 版本总功率卡片
     QQuickWidget *m_inclinometerXQml = nullptr;  // QML 版本 X 轴倾角卡片
