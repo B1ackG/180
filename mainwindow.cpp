@@ -6571,10 +6571,48 @@ void MainWindow::refreshInterlockingButtonText()
         ui->TBtn_Interlocking->setText(QStringLiteral("--"));
         return;
     }
+    if (m_pendingInterlockWriteValue >= 0) {
+        const qint64 age = QDateTime::currentMSecsSinceEpoch() - m_pendingInterlockWriteMs;
+        if (static_cast<int>(v) != m_pendingInterlockWriteValue && age >= 0 && age < 1500) {
+            return;
+        }
+        m_pendingInterlockWriteValue = -1;
+    }
     ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(true, v);
     ui->TBtn_Interlocking->setText(static_cast<int>(v) == upperValue
                                       ? QStringLiteral("上方示教器")
                                       : QStringLiteral("下方示教器"));
+    noteTeachPendantInterlockValue(v);
+}
+
+void MainWindow::noteTeachPendantInterlockValue(quint16 registerValue)
+{
+    const bool localActive = registerValue == ModbusWriteGate::configuredTeachingDeviceId();
+    const bool switchedBackToLocal =
+        m_teachPendantOwnershipKnown && m_teachPendantOwnedByOther && localActive;
+    m_teachPendantOwnershipKnown = true;
+    m_teachPendantOwnedByOther = !localActive;
+    if (switchedBackToLocal) {
+        openPermissionPage();
+    }
+}
+
+void MainWindow::openPermissionPage()
+{
+    if (!ui || !ui->StackedWidget || !ui->page_Permission) {
+        return;
+    }
+    const bool alreadyThere = ui->StackedWidget->currentWidget() == ui->page_Permission;
+    ui->StackedWidget->setCurrentWidget(ui->page_Permission);
+    setExclusiveNavButtonChecked(ui->TBtn_PermissionPage);
+    if (m_currentUserRole == UserRole::Admin) {
+        refreshWeightThresholdEditsFromDevice();
+        refreshHeightLengthThresholdEditsFromDevice();
+        refreshInclinometerThresholdEditsFromDevice();
+    }
+    if (!alreadyThere) {
+        showNotification(QStringLiteral("已切换回当前示教器"));
+    }
 }
 
 void MainWindow::applyMoveModeUiFromRegister126(quint16 value)
@@ -6651,7 +6689,7 @@ void MainWindow::on_TBtn_Interlocking_clicked()
     const QString lower = QStringLiteral("下方示教器");
 
     QString label = ui->TBtn_Interlocking->text();
-    if (label != upper && label != lower) {
+    if (!m_teachPendantOwnershipKnown || (label != upper && label != lower)) {
         refreshInterlockingButtonText();
         label = ui->TBtn_Interlocking->text();
         if (label != upper && label != lower) {
@@ -6682,6 +6720,10 @@ void MainWindow::on_TBtn_Interlocking_clicked()
         return;
     }
     ui->TBtn_Interlocking->setText(nextLabel);
+    m_pendingInterlockWriteValue = static_cast<int>(valueToWrite);
+    m_pendingInterlockWriteMs = QDateTime::currentMSecsSinceEpoch();
+    ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(true, valueToWrite);
+    noteTeachPendantInterlockValue(valueToWrite);
 
     applyCachedMainControlSyncRegistersToUi();
     QTimer::singleShot(0, this, [this]() {

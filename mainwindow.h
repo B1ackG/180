@@ -889,6 +889,13 @@ private:
     QTimer *m_modbusReadTimer;
     QTimer *m_mainControlSyncTimer;
     QTimer *m_interlockingSyncTimer = nullptr;
+    /** @brief 是否已采样过示教互锁寄存器，避免开机首次读数误跳权限页 */
+    bool m_teachPendantOwnershipKnown = false;
+    /** @brief 上次互锁值不属于本机示教器 */
+    bool m_teachPendantOwnedByOther = false;
+    /** @brief 本机刚写入的互锁值；短时间内忽略与之不符的轮询 */
+    int m_pendingInterlockWriteValue = -1;
+    qint64 m_pendingInterlockWriteMs = 0;
     QMap<QPair<int, int>, QPair<quint16, quint16>> m_floatRegisters;
     QVector<TechSliderLabel*> m_floatLabels;
 
@@ -1083,6 +1090,10 @@ private:
     void setupInterlockingTeachingButton();
     /** @brief 根据主控 8192 同步联锁按钮文案 */
     void refreshInterlockingButtonText();
+    /** @brief 记录示教互锁归属；从其他示教器切回本机时打开权限页 */
+    void noteTeachPendantInterlockValue(quint16 registerValue);
+    /** @brief 打开权限页并同步导航选中状态 */
+    void openPermissionPage();
 
     /** @brief 将寄存器 126 反映到运动模式按钮与状态栏 */
     void applyMoveModeUiFromRegister126(quint16 value);
