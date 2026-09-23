@@ -258,7 +258,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
     </string>
         </property>
         <property name="text">
-         <string>辅助装配系统</string>
+         <string>辅助装配系统test</string>
         </property>
        </widget>
       </item>
