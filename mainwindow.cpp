@@ -9961,7 +9961,7 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
     }
 
     if (m_controlMode != WIRED_MODE) {
-        ui->statusBar->showMessage("当前为无线控制，驻车功能仅在有线控制模式下生效", 3000);
+        showWirelessModeWarningDialog();
         qWarning() << "驻车请求被拒绝：当前不是有线控制模式";
         return;
     }
@@ -10158,7 +10158,7 @@ void MainWindow::onAGVParkBtnClicked()
     }
 
     if (m_controlMode != WIRED_MODE) {
-        ui->statusBar->showMessage("当前为无线控制，驻车功能仅在有线控制模式下生效", 3000);
+        showWirelessModeWarningDialog();
         qWarning() << "驻车请求被拒绝：当前不是有线控制模式";
         return;
     }
@@ -10221,6 +10221,12 @@ void MainWindow::onAGVAngleChanged(double value)
     }
     if (rejectIfEnableNotHeld()) {
         restoreAgvAngleEditFromShadow();
+        return;
+    }
+    if (m_controlMode != WIRED_MODE) {
+        restoreAgvAngleEditFromShadow();
+        showWirelessModeWarningDialog();
+        qWarning() << "底盘角度请求被拒绝：当前不是有线控制模式";
         return;
     }
     if (blockIfHeightLengthInterlock()) {
@@ -10439,6 +10445,23 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
             const QSignalBlocker blocker(m_steeringModeSelector);
             m_steeringModeSelector->setCurrentMode(m_lastSteeringMode);
         }
+        return;
+    }
+
+    if (m_controlMode != WIRED_MODE) {
+        if (m_steeringModeSelector) {
+            const QSignalBlocker blocker(m_steeringModeSelector);
+            m_steeringModeSelector->setCurrentMode(m_lastSteeringMode);
+        }
+        QLabel *steeringLabel = ui && ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarSteeringLabel") : nullptr;
+        if (steeringLabel && m_steeringModeSelector) {
+            steeringLabel->setText(QStringLiteral("转向:%1").arg(m_steeringModeSelector->modeText(m_lastSteeringMode)));
+            steeringLabel->setStyleSheet(QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
+        }
+        m_pendingAgvStepSteer = false;
+        m_pendingAgvStepReadyBit = -1;
+        showWirelessModeWarningDialog();
+        qWarning() << "底盘转向模式请求被拒绝：当前不是有线控制模式";
         return;
     }
 
@@ -11439,6 +11462,17 @@ void MainWindow::setupAGVStepPad()
                         }
                         return;
                     }
+                    if (m_controlMode != WIRED_MODE) {
+                        if (m_agvStepPadLastSelection) {
+                            applyAgvStepPadAxisSelection(m_agvStepPadLastSelection);
+                            updateAGVStepPadVisuals();
+                        } else {
+                            clearAgvStepPadSelection();
+                        }
+                        showWirelessModeWarningDialog();
+                        qWarning() << "底盘步进转向/角度请求被拒绝：当前不是有线控制模式";
+                        return;
+                    }
                     applyAgvStepPadAxisSelection(btn);
                     updateAGVStepPadVisuals();
 
@@ -11617,6 +11651,14 @@ void MainWindow::updateAGVStepPadVisuals()
 
 void MainWindow::applyAgvChassisAngle(double angleDeg)
 {
+    if (m_controlMode != WIRED_MODE) {
+        restoreAgvAngleEditFromShadow();
+        m_pendingAgvStepSteer = false;
+        m_pendingAgvStepReadyBit = -1;
+        showWirelessModeWarningDialog();
+        qWarning() << "底盘角度请求被拒绝：当前不是有线控制模式";
+        return;
+    }
     if (blockIfHeightLengthInterlock()) {
         restoreAgvAngleEditFromShadow();
         return;
@@ -11651,6 +11693,14 @@ void MainWindow::maybeApplyPendingAgvStepAngle(quint16 reg50)
 
 void MainWindow::requestAgvStepSteerThenAngle(SteeringMode mode, int readyBit, double angleDeg)
 {
+    if (m_controlMode != WIRED_MODE) {
+        m_pendingAgvStepSteer = false;
+        m_pendingAgvStepReadyBit = -1;
+        showWirelessModeWarningDialog();
+        qWarning() << "底盘步进转向/角度请求被拒绝：当前不是有线控制模式";
+        return;
+    }
+
     m_pendingAgvStepSteer = true;
     m_pendingAgvStepMode = mode;
     m_pendingAgvStepReadyBit = readyBit;
