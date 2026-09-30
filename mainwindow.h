@@ -679,6 +679,10 @@ private slots:
     void onModbusDisconnected();
     /** @brief Modbus 错误回调 */
     void onModbusError(const QString &error);
+    /** @brief 主控未连接：历史只记一次，Toast 持续到重新连上 */
+    void noteMainLinkDown();
+    /** @brief AGV 未连接：历史只记一次，Toast 持续到重新连上 */
+    void noteAgvLinkDown();
     /** @brief Modbus 寄存器值变化回调 */
     void onModbusRegisterValueChanged(int address, quint16 value);
 
@@ -935,6 +939,8 @@ private:
     QString m_lastTcpErrorNotification;
     qint64 m_lastTcpErrorNotificationMs = 0;
     QSet<int> m_agvDisconnectedWarnedAddresses;
+    bool m_mainLinkDownNoted = false;
+    bool m_agvLinkDownNoted = false;
 
     // ----- 机器人状态控制 -----
     UserRole m_currentUserRole = UserRole::Operator;

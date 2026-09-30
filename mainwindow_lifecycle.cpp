@@ -278,6 +278,12 @@ void MainWindow::syncActiveUserPopups()
 
     refreshInclinometerTiltPresentation();
     updateParkingLegAbnormalDialogVisibility();
+    if (m_mainLinkDownNoted) {
+        noteMainLinkDown();
+    }
+    if (m_agvLinkDownNoted) {
+        noteAgvLinkDown();
+    }
 }
 
 void MainWindow::initializePageNames()

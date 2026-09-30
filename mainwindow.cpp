@@ -6854,9 +6854,9 @@ void MainWindow::onModbusConnected()
             OperationRecord timeoutRecord;
             timeoutRecord.timestamp = QDateTime::currentDateTime();
             timeoutRecord.pageName = "系统启动";
-            timeoutRecord.controlName = "startup_mode_reader";
+            timeoutRecord.controlName = QStringLiteral("开机模式读取");
             timeoutRecord.controlType = "MainModbus";
-            timeoutRecord.operation = "startup_mode_read_timeout";
+            timeoutRecord.operation = QStringLiteral("开机模式读取超时");
             timeoutRecord.oldValue = "等待读取125/126";
             timeoutRecord.newValue = QString("20秒超时，步进=%1，运动=%2")
                                          .arg(ui && ui->TBtn_Stepmove ? ui->TBtn_Stepmove->text() : "未知")
@@ -6876,6 +6876,8 @@ void MainWindow::onModbusConnected()
         enableTcpTransmission(true);
     }
 
+    m_mainLinkDownNoted = false;
+    dismissToastByMessage(QStringLiteral("主控制器未连接"));
     MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Connected);
 }
 
@@ -6891,7 +6893,7 @@ void MainWindow::onModbusDisconnected()
         ui->TBtn_Interlocking->setText(QStringLiteral("--"));
     }
     MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Disconnected);
-    MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Disconnected);
+    noteMainLinkDown();
 }
 
 // Modbus错误槽函数
@@ -6899,7 +6901,65 @@ void MainWindow::onModbusError(const QString &error)
 {
     qCDebug(lcMainWindow) << "Modbus错误:" << error;
     MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Error, error);
-    MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Error, error);
+    noteMainLinkDown();
+}
+
+void MainWindow::noteMainLinkDown()
+{
+    if (!m_mainLinkDownNoted) {
+        m_mainLinkDownNoted = true;
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = QStringLiteral("系统");
+            record.controlName = QStringLiteral("Modbus连接");
+            record.controlType = QStringLiteral("ModbusTCP");
+            record.operation = QStringLiteral("error");
+            record.oldValue = QString();
+            record.newValue = QStringLiteral("主控制器连接失败");
+            m_recorder->addRecord(record);
+        }
+    }
+
+    const QString toastText = QStringLiteral("主控制器未连接");
+    for (int i = 0; i < m_toasts.size(); ++i) {
+        if (m_toasts.at(i).message == toastText) {
+            return;
+        }
+    }
+    if (m_lastToastMessage == toastText) {
+        m_lastToastMessage.clear();
+    }
+    showToast(toastText, ToastKind::Warning, 0, nullptr, false);
+}
+
+void MainWindow::noteAgvLinkDown()
+{
+    if (!m_agvLinkDownNoted) {
+        m_agvLinkDownNoted = true;
+        if (m_recorder) {
+            OperationRecord record;
+            record.timestamp = QDateTime::currentDateTime();
+            record.pageName = QStringLiteral("AGV控制");
+            record.controlName = QStringLiteral("AGV Modbus连接");
+            record.controlType = QStringLiteral("ModbusTCP");
+            record.operation = QStringLiteral("error");
+            record.oldValue = QString();
+            record.newValue = QStringLiteral("AGV连接失败");
+            m_recorder->addRecord(record);
+        }
+    }
+
+    const QString toastText = QStringLiteral("AGV未连接");
+    for (int i = 0; i < m_toasts.size(); ++i) {
+        if (m_toasts.at(i).message == toastText) {
+            return;
+        }
+    }
+    if (m_lastToastMessage == toastText) {
+        m_lastToastMessage.clear();
+    }
+    showToast(toastText, ToastKind::Warning, 0, nullptr, false);
 }
 // 速度选择
 void MainWindow::initSpeedModeSelector()
@@ -6952,12 +7012,18 @@ void MainWindow::initSpeedModeSelector()
                 // 记录操作
                 OperationRecord record;
                 record.timestamp = QDateTime::currentDateTime();
-                record.pageName = "当前页面";  // 根据实际情况设置
-                record.controlName = "speedModeSelector";
+                QString modeText = QStringLiteral("未知");
+                switch (mode) {
+                case MODE_LOW: modeText = QStringLiteral("低速"); break;
+                case MODE_MEDIUM: modeText = QStringLiteral("中速"); break;
+                case MODE_HIGH: modeText = QStringLiteral("高速"); break;
+                }
+                record.pageName = "当前页面";
+                record.controlName = QStringLiteral("速度模式");
                 record.controlType = "SpeedModeSelector";
                 record.operation = "mode_changed";
-                record.oldValue = "";  // 可以记录旧模式
-                record.newValue = QString("模式%1").arg(mode);
+                record.oldValue = "";
+                record.newValue = QStringLiteral("已切换至%1模式").arg(modeText);
                 m_recorder->addRecord(record);
             });
 }
@@ -8432,6 +8498,8 @@ void MainWindow::setupAGVUI()
 void MainWindow::onAGVModbusConnected()
 {
     qCDebug(lcMainWindow) << "AGV Modbus连接成功";
+    m_agvLinkDownNoted = false;
+    dismissToastByMessage(QStringLiteral("AGV未连接"));
     m_agvDisconnectedWarnedAddresses.clear();
     ui->statusBar->showMessage("AGV Modbus已连接", 3000);
 
@@ -8494,16 +8562,7 @@ void MainWindow::onAGVModbusDisconnected()
         m_agvFaultsLabel->setText("连接断开");
     }
 
-    // 记录断开事件
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = "AGV控制";
-    record.controlName = "AGV Modbus连接";
-    record.controlType = "ModbusTCP";
-    record.operation = "disconnected";
-    record.oldValue = "";
-    record.newValue = "连接断开";
-    m_recorder->addRecord(record);
+    noteAgvLinkDown();
 }
 
 /**
@@ -8524,16 +8583,7 @@ void MainWindow::onAGVModbusError(const QString &error)
         agvIndicator->setToolTip(QString("AGV Modbus错误: %1").arg(error));
     }
 
-    // 记录错误事件
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = "AGV控制";
-    record.controlName = "AGV Modbus连接";
-    record.controlType = "ModbusTCP";
-    record.operation = "error";
-    record.oldValue = "";
-    record.newValue = error;
-    m_recorder->addRecord(record);
+    noteAgvLinkDown();
 }
 
 void MainWindow::onAGVBitVariableChanged(int address, int bitPos, bool value)
@@ -10596,7 +10646,7 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
                 m_agvModbusManager->readMultipleRegisters(50, 1);
             }
 
-            QTimer::singleShot(300, this, [this, expectedBit]() {
+            QTimer::singleShot(300, this, [this]() {
                 const bool hasStatusWord = m_agvRegisterShadow.contains(50);
                 const quint16 regValue = hasStatusWord ? m_agvRegisterShadow.value(50) : static_cast<quint16>(0xFFFF);
                 QString currentModeText;
@@ -10625,9 +10675,9 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
                 timeoutRecord.controlName = "steeringModeSelector";
                 timeoutRecord.controlType = "SteeringModeSelector";
                 timeoutRecord.operation = "steering_switch_timeout";
-                timeoutRecord.oldValue = QString("等待bit%1").arg(expectedBit);
+                timeoutRecord.oldValue = QString();
                 if (hasStatusWord) {
-                    timeoutRecord.newValue = QString("20秒超时，当前在%1（读值:%2）").arg(currentModeText).arg(regValue);
+                    timeoutRecord.newValue = QString("20秒超时，当前在%1").arg(currentModeText);
                 } else {
                     timeoutRecord.newValue = "20秒超时，当前模式读取失败";
                 }
@@ -12236,6 +12286,19 @@ void MainWindow::clearStepMoveRegisters()
     qCDebug(lcMainWindow) << "已清空步进寄存器(502-505)和输入框内容";
 }
 
+namespace {
+QString historySixAxisLabel(const QString &jointName)
+{
+    if (jointName == QLatin1String("RX")) return QStringLiteral("轴1");
+    if (jointName == QLatin1String("RY")) return QStringLiteral("轴2");
+    if (jointName == QLatin1String("RZ")) return QStringLiteral("轴3");
+    if (jointName == QLatin1String("X")) return QStringLiteral("轴4");
+    if (jointName == QLatin1String("Y")) return QStringLiteral("轴5");
+    if (jointName == QLatin1String("Z")) return QStringLiteral("轴6");
+    return jointName;
+}
+} // namespace
+
 // 记录步进动作开始
 void MainWindow::recordStepMoveAction(const QString &jointName, double currentValue, const QString &stepValue, bool start)
 {
@@ -12243,15 +12306,16 @@ void MainWindow::recordStepMoveAction(const QString &jointName, double currentVa
     OperationRecord record;
     record.timestamp = QDateTime::currentDateTime();
     record.pageName = getCurrentPageName();
+    const QString axisLabel = historySixAxisLabel(jointName);
     QString msg;
     if (jointName == "RX" || jointName == "RY" || jointName == "RZ") {
         msg = QString("%1当前角度为%2，步进%3°")
-                  .arg(jointName)
+                  .arg(axisLabel)
                   .arg(currentValue, 0, 'f', 3)
                   .arg(stepValue);
     } else if (jointName == "X" || jointName == "Y" || jointName == "Z") {
-        msg = QString("%1轴当前位置为%2，步进%3mm")
-                  .arg(jointName)
+        msg = QString("%1当前位置为%2，步进%3mm")
+                  .arg(axisLabel)
                   .arg(currentValue, 0, 'f', 3)
                   .arg(stepValue);
     } else if (jointName.contains("J1") || jointName.contains("立柱旋转")) {
@@ -12297,8 +12361,11 @@ void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue
 {
     OperationRecord record;
     record.timestamp = QDateTime::currentDateTime();
+    const QString axisLabel = historySixAxisLabel(jointName);
     record.pageName = getCurrentPageName();
-    record.controlName = "StepMove_" + jointName;
+    record.controlName = (axisLabel == jointName)
+                             ? QStringLiteral("StepMove_") + jointName
+                             : axisLabel;
     record.controlType = "StepMove";
     record.operation = "step_move_end";
     record.oldValue = "";
@@ -12314,13 +12381,20 @@ void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue
             msg = QString("运动停止，当前末端组件角度为%1°").arg(currentValue, 0, 'f', 1);
         } else if (jointName.contains("AGV") || jointName.contains("底盘")) {
             msg = QString("运动停止，当前底盘速度为%1").arg(currentValue, 0, 'f', 1);
+        } else if (axisLabel != jointName) {
+            const bool rotation = (jointName == QLatin1String("RX")
+                                   || jointName == QLatin1String("RY")
+                                   || jointName == QLatin1String("RZ"));
+            msg = rotation
+                      ? QString("运动停止，当前%1角度为%2°").arg(axisLabel).arg(currentValue, 0, 'f', 1)
+                      : QString("运动停止，当前%1位置为%2mm").arg(axisLabel).arg(currentValue, 0, 'f', 1);
         } else {
             const QString valueLabel = jointName.contains("角度") ? "角度"
                                          : jointName.contains("高度") ? "高度"
                                          : jointName.contains("长度") ? "长度"
                                          : "值";
             msg = QString("运动停止，当前%1%2为%3")
-                      .arg(jointName)
+                      .arg(axisLabel)
                       .arg(valueLabel)
                       .arg(currentValue, 0, 'f', 1);
         }
@@ -12332,9 +12406,16 @@ void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue
         msg = QString("伸缩臂当前长度为%1mm，步进结束").arg(currentValue, 0, 'f', 1);
     } else if (jointName.contains("J4") || jointName.contains("末端组件")) {
         msg = QString("末端组件当前角度为%1°，步进结束").arg(currentValue, 0, 'f', 1);
+    } else if (axisLabel != jointName) {
+        const bool rotation = (jointName == QLatin1String("RX")
+                               || jointName == QLatin1String("RY")
+                               || jointName == QLatin1String("RZ"));
+        msg = rotation
+                  ? QString("%1当前角度为%2°，步进结束").arg(axisLabel).arg(currentValue, 0, 'f', 1)
+                  : QString("%1当前位置为%2mm，步进结束").arg(axisLabel).arg(currentValue, 0, 'f', 1);
     } else {
         msg = QString("%1当前%2为%3，步进结束")
-                  .arg(jointName)
+                  .arg(axisLabel)
                   .arg(jointName.contains("角度") ? "角度" :
                            jointName.contains("高度") ? "高度" : "长度")
                   .arg(currentValue, 0, 'f', 1);
@@ -13037,7 +13118,7 @@ void MainWindow::beginSixAxisPoseWait(int bitIndex, const QString &actionName)
         record.controlType = QStringLiteral("SixAxisPose");
         record.operation = QStringLiteral("pose_wait_start");
         record.oldValue = QString();
-        record.newValue = QStringLiteral("已写入主控615 bit%1=1，等待该位清零").arg(bitIndex);
+        record.newValue = QString();
         m_recorder->addRecord(record);
     }
 
@@ -14513,7 +14594,7 @@ void MainWindow::showInclinometerTiltLockDialog()
                 record.controlType = QStringLiteral("提示窗口");
                 record.operation = QStringLiteral("用户确认");
                 record.oldValue = kInclinometerTiltLockDialogText;
-                record.newValue = QStringLiteral("管理员密码验证通过，AGV 寄存器1 bit3=1，锁定提示改为 Toast 持续显示");
+                record.newValue = QStringLiteral("管理员密码验证通过，锁定提示改为持续显示");
                 m_recorder->addRecord(record);
             }
 
@@ -15385,7 +15466,7 @@ void MainWindow::onRobotWeightLockConfirmClicked()
         record.controlType = QStringLiteral("提示窗口");
         record.operation = QStringLiteral("用户确认");
         record.oldValue = QString();
-        record.newValue = QStringLiteral("用户确认超重锁定提示，Toast 持续显示至解除");
+        record.newValue = QStringLiteral("用户确认超重锁定提示，提示持续显示至解除");
         m_recorder->addRecord(record);
     }
     m_robotWeightLockUserAckedWhileActive = true;

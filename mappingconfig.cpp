@@ -6,13 +6,117 @@
 
 namespace {
 
-/** 去掉「向某寄存器写入某值」类技术描述，仅保留面向用户的操作文案。 */
+/** 主控/AGV 动态库连不上时，历史只留设备名，不留 host/port/slave。未命中返回空串。 */
+QString dynamicLibraryConnectFailureText(const QString &s)
+{
+    const bool aboutLibrary = s.contains(QStringLiteral("动态库"))
+        || s.contains(QStringLiteral("backend"), Qt::CaseInsensitive);
+    if (!aboutLibrary) {
+        return QString();
+    }
+    const bool connectFailure = s.contains(QStringLiteral("连接失败"))
+        || s.contains(QStringLiteral("未加载"))
+        || (s.contains(QStringLiteral("加载")) && s.contains(QStringLiteral("失败")))
+        || s.contains(QStringLiteral("句柄失败"));
+    if (!connectFailure) {
+        return QString();
+    }
+    if (s.contains(QStringLiteral("AGV"), Qt::CaseInsensitive)) {
+        return QStringLiteral("AGV连接失败");
+    }
+    return QStringLiteral("主控制器连接失败");
+}
+
+void scrubCommunicationBitText(QString &t)
+{
+    static const QRegularExpression reWriteThenWaitClear(
+        QStringLiteral(R"(已写入.+等待该位清零)"));
+    t.replace(reWriteThenWaitClear, QStringLiteral("等待清零"));
+
+    static const QRegularExpression reWaitBitClear(
+        QStringLiteral(R"(等待\s*(?:主控|AGV)?\s*\d*\s*\.?\s*bit\s*\d+\s*=\s*0)"),
+        QRegularExpression::CaseInsensitiveOption);
+    t.replace(reWaitBitClear, QStringLiteral("等待清零"));
+
+    static const QRegularExpression reBitCleared(
+        QStringLiteral(R"((?:主控|AGV)?\s*\d+\s*bit\s*\d+\s*已清零)"),
+        QRegularExpression::CaseInsensitiveOption);
+    t.replace(reBitCleared, QStringLiteral("已清零"));
+
+    t.replace(QStringLiteral("该位清零"), QStringLiteral("清零"));
+
+    static const QRegularExpression reRegBit(
+        QStringLiteral(R"((?:主控|AGV)?\s*寄存器\s*\d+\s*bit\s*\d+\s*(?:=\s*\d+)?)"),
+        QRegularExpression::CaseInsensitiveOption);
+    t.remove(reRegBit);
+
+    static const QRegularExpression reRegWei(QStringLiteral(R"(寄存器\s*\d+\s*位\s*\d+)"));
+    t.remove(reRegWei);
+
+    static const QRegularExpression reDotBit(
+        QStringLiteral(R"(\d+\s*\.\s*bit\s*\d+\s*(?:=\s*\d+)?)"),
+        QRegularExpression::CaseInsensitiveOption);
+    t.remove(reDotBit);
+
+    static const QRegularExpression reParenBit(
+        QStringLiteral(R"([（(]\s*bit\s*\d+\s*(?:=\s*\d+)?\s*[）)])"),
+        QRegularExpression::CaseInsensitiveOption);
+    t.remove(reParenBit);
+
+    static const QRegularExpression reBitToken(
+        QStringLiteral(R"(bit\s*\d+\s*(?:=\s*\d+)?)"),
+        QRegularExpression::CaseInsensitiveOption);
+    t.remove(reBitToken);
+
+    // 「档位1」里的「位」不是通讯位。
+    static const QRegularExpression reWeiNum(QStringLiteral(R"((?<!档)位\s*\d+)"));
+    t.remove(reWeiNum);
+
+    static const QRegularExpression reCommParam(
+        QStringLiteral(R"(\b(?:address|host|port|slave|count|start)\s*=\s*\S+)"),
+        QRegularExpression::CaseInsensitiveOption);
+    t.remove(reCommParam);
+}
+
+QString tidyScrubbedHistoryText(QString t)
+{
+    static const QRegularExpression reEmptyParen(QStringLiteral(R"([（(]\s*[）)])"));
+    t.remove(reEmptyParen);
+
+    static const QRegularExpression reMultiSpace(QStringLiteral(R"(\s{2,})"));
+    t.replace(reMultiSpace, QStringLiteral(" "));
+
+    static const QRegularExpression reCommaGap(QStringLiteral(R"(\s*[，,]\s*)"));
+    t.replace(reCommaGap, QStringLiteral("，"));
+
+    static const QRegularExpression reMultiComma(QStringLiteral(R"(，{2,})"));
+    t.replace(reMultiComma, QStringLiteral("，"));
+
+    static const QRegularExpression reEdgePunct(QStringLiteral(R"(^[，,、:：;\s]+|[，,、:：;\s]+$)"));
+    t.remove(reEdgePunct);
+    t = t.trimmed();
+
+    static const QRegularExpression reOnlyPunct(
+        QStringLiteral(R"(^[\s,，、:：;；.。!！?？\-—（）()]+$)"));
+    if (t.isEmpty() || reOnlyPunct.match(t).hasMatch()) {
+        return QString();
+    }
+    return t;
+}
+
+/** 去掉「向某寄存器写入某值」、动态库连接参数和具体通讯位，仅保留面向用户的操作文案。 */
 QString scrubOperationHistoryRegisterWriteText(QString s)
 {
     const QString trimmed = s.trimmed();
     if (trimmed.isEmpty()) {
         return QString();
     }
+
+    const QString connectFailure = dynamicLibraryConnectFailureText(trimmed);
+    if (!connectFailure.isEmpty()) {
+        return connectFailure;
+    }
+
     QString t = trimmed;
 
     static const QRegularExpression reWholeLineWriteAddr(
@@ -61,28 +165,8 @@ QString scrubOperationHistoryRegisterWriteText(QString s)
     static const QRegularExpression reMainRegNum(QStringLiteral(R"(主控寄存器\s*\d+)"));
     t.replace(reMainRegNum, QStringLiteral("主控"));
 
-    t = t.trimmed();
-    while (t.endsWith(QLatin1Char('：')) || t.endsWith(QLatin1Char(':')) || t.endsWith(QLatin1Char(','))
-           || t.endsWith(QLatin1Char('，'))) {
-        t.chop(1);
-        t = t.trimmed();
-    }
-    return t;
-}
-
-bool historyTextLooksLikeRegisterWriteDetail(const QString &s)
-{
-    if (s.contains(QStringLiteral("寄存器"))) {
-        return true;
-    }
-    if (s.contains(QStringLiteral("写入地址"))) {
-        return true;
-    }
-    if (s.contains(QStringLiteral("批量写入"))) {
-        return true;
-    }
-    static const QRegularExpression reAddrWrite(QStringLiteral(R"(地址\s*\d+\s*写入)"));
-    return reAddrWrite.match(s).hasMatch();
+    scrubCommunicationBitText(t);
+    return tidyScrubbedHistoryText(t);
 }
 
 QVariant scrubHistoryValueVariant(const QVariant &v)
@@ -182,6 +266,14 @@ void MappingConfig::initDefaultMappings()
         m_controlNameMap["StepMove_升降组件(J2)"] = "升降组件";
         m_controlNameMap["StepMove_伸缩臂(J3)"] = "伸缩臂";
         m_controlNameMap["StepMove_柔顺组件(J4)"] = "柔顺组件";
+        m_controlNameMap["StepMove_RX"] = "轴1";
+        m_controlNameMap["StepMove_RY"] = "轴2";
+        m_controlNameMap["StepMove_RZ"] = "轴3";
+        m_controlNameMap["StepMove_X"] = "轴4";
+        m_controlNameMap["StepMove_Y"] = "轴5";
+        m_controlNameMap["StepMove_Z"] = "轴6";
+        m_controlNameMap["startup_mode_reader"] = "开机模式读取";
+        m_controlNameMap["speedModeSelector"] = "速度模式";
 
         // 主导航与切换按钮
         m_controlNameMap["Btn_SwitchHorizontalSupport"] = "切换到水平支撑";
@@ -278,6 +370,10 @@ void MappingConfig::initDefaultMappings()
     m_operationMap["pose_wait_start"] = "姿态等待开始";
     m_operationMap["pose_wait_done"] = "姿态等待完成";
     m_operationMap["pose_wait_timeout"] = "姿态等待超时";
+    m_operationMap["steering_switch_timeout"] = "转向切换超时";
+    m_operationMap["write_register"] = "写入设定";
+    m_operationMap["step_interrupted"] = "步进被打断";
+    m_operationMap["startup_mode_read_timeout"] = "开机模式读取超时";
     m_operationMap["enable_release_abort"] = "使能松开中断";
     m_operationMap["external_motion_start"] = "外部运动触发";
     m_operationMap["external_motion_stop"] = "外部运动停止";
@@ -564,19 +660,11 @@ void MappingConfig::normalizeOperationRecord(OperationRecord &record) const
         record.operation = "IGNORE_LOG"; 
     }
 
-    // 5. 历史列表：去掉「写某寄存器某值」等技术尾巴，保留用户操作描述
+    // 5. 历史列表：去掉写寄存器、动态库连接参数和具体通讯位，保留用户操作描述
     record.oldValue = scrubHistoryValueVariant(record.oldValue);
     record.newValue = scrubHistoryValueVariant(record.newValue);
-    if (historyTextLooksLikeRegisterWriteDetail(record.operation)) {
-        const QString op = scrubOperationHistoryRegisterWriteText(record.operation);
-        record.operation = op.trimmed().isEmpty() ? QString() : op;
-    }
-    if (historyTextLooksLikeRegisterWriteDetail(record.controlName)) {
-        const QString cn = scrubOperationHistoryRegisterWriteText(record.controlName);
-        if (!cn.trimmed().isEmpty()) {
-            record.controlName = cn;
-        }
-    }
+    record.operation = scrubOperationHistoryRegisterWriteText(record.operation);
+    record.controlName = scrubOperationHistoryRegisterWriteText(record.controlName);
 
     // 按钮 UI 可能为换行显示（如「立柱\n旋转」），历史列表始终单行。
     auto flattenLine = [](QString s) {
