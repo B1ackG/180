@@ -8556,11 +8556,6 @@ void MainWindow::onAGVModbusConnected()
             m_agvModbusManager->readMultipleRegisters(153, 2);
         });
     }
-
-    const bool hostEstop = isFeatureEnabled("alarm_system", "alarm.emergency_stop")
-        && (m_robotArmEmergency150Flag || m_agvChassisEmergency51Bit5Flag);
-    m_agvHostEstopCommandSynced = false;
-    syncAgvHostEmergencyStopCommand(hostEstop);
 }
 
 /**
@@ -8571,7 +8566,6 @@ void MainWindow::onAGVModbusConnected()
 void MainWindow::onAGVModbusDisconnected()
 {
     qCDebug(lcMainWindow) << "AGV Modbus连接断开";
-    m_agvHostEstopCommandSynced = false;
     ui->statusBar->showMessage("AGV Modbus连接断开", 3000);
 
     // 更新状态栏指示器
@@ -9405,37 +9399,6 @@ bool MainWindow::writeAGVRegisterBits(int address,
                    << "目标值:" << newValue;
     }
     return ok;
-}
-
-void MainWindow::syncAgvHostEmergencyStopCommand(bool emergencyActive)
-{
-    const bool bit6Normal = !emergencyActive;
-    if (m_agvHostEstopCommandSynced && m_agvHostEstopCommandBit6Normal == bit6Normal) {
-        return;
-    }
-    if (!m_agvModbusManager || !m_agvModbusManager->isConnected()) {
-        return;
-    }
-
-    ModbusThreadManager *gateMgr = m_modbusManager ? m_modbusManager : ModbusThreadManager::instance();
-    if (!ModbusWriteGate::verifyWriteAllowed(gateMgr)) {
-        return;
-    }
-
-    const bool ok = writeAGVRegisterBits(0,
-                                         { qMakePair(6, bit6Normal) },
-                                         emergencyActive ? QStringLiteral("急停命令HR0.6=0")
-                                                         : QStringLiteral("急停恢复HR0.6=1"),
-                                         true);
-    if (ok) {
-        m_agvHostEstopCommandSynced = true;
-        m_agvHostEstopCommandBit6Normal = bit6Normal;
-        qCDebug(lcMainWindow) << "AGV HR0.6 急停命令已写入:" << (bit6Normal ? 1 : 0)
-                              << (emergencyActive ? "(急停)" : "(正常)");
-    } else {
-        m_agvHostEstopCommandSynced = false;
-        qWarning() << "AGV HR0.6 急停命令写入失败，目标bit6=" << (bit6Normal ? 1 : 0);
-    }
 }
 
 void MainWindow::writeToMainDevice(int address, int value)
@@ -12695,9 +12658,6 @@ void MainWindow::checkAlarmConditions()
         }
         m_emergencyStopAlarm = newEstopState;
     }
-
-    // ods %MX0.6：1=正常，0=急停。命令源与报警一致：主控150 + AGV 51.bit5
-    syncAgvHostEmergencyStopCommand(newEstopState);
 
     // 2. 统一更新显示
     updateAlarmDisplay();
