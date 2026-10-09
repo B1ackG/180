@@ -308,7 +308,9 @@ bool isScreenMotionEnableGatedWidget(const QWidget *widget)
     return name == QStringLiteral("techBtn_resetSixAxies")
         || name == QStringLiteral("techBtn_balanceSixAxies")
         || name.startsWith(QStringLiteral("techBtn_AGVStep_"))
-        || name == QStringLiteral("SEdit_AGV_Angle");
+        || name == QStringLiteral("SEdit_AGV_Angle")
+        || name == QStringLiteral("SEdit_AGV_MoveSpeed")
+        || name == QStringLiteral("TBtn_ControlMode");
 }
 
 constexpr int kAgvParkOutTriggerLengthRegStart = 5014;
@@ -3818,6 +3820,9 @@ void MainWindow::connectRecordSignals()
         // 记录点击事件
         connect(toolButton, &QToolButton::clicked,
                 this, [this, toolButton]() {
+                    if (!isExternalKeyEnableHeld() && isScreenMotionEnableGatedWidget(toolButton)) {
+                        return;
+                    }
                     // 获取按钮所在页面
                     QString pageName = getControlPageName(toolButton);
 
@@ -5687,6 +5692,25 @@ void MainWindow::restoreAgvAngleEditFromShadow()
     }
     const QSignalBlocker blocker(m_editAGV_Angle);
     m_editAGV_Angle->setValue(revertValue);
+}
+
+void MainWindow::restoreAgvMoveSpeedEditFromShadow()
+{
+    if (!m_editAGV_MoveSpeed) {
+        return;
+    }
+    double revertValue = 0;
+    if (m_agvRegisterShadow.contains(153)) {
+        revertValue = qBound(m_editAGV_MoveSpeed->minimum(),
+                             static_cast<double>(m_agvRegisterShadow.value(153)),
+                             m_editAGV_MoveSpeed->maximum());
+    } else if (m_agvRegisterShadow.contains(3)) {
+        revertValue = qBound(m_editAGV_MoveSpeed->minimum(),
+                             static_cast<double>(m_agvRegisterShadow.value(3)),
+                             m_editAGV_MoveSpeed->maximum());
+    }
+    const QSignalBlocker blocker(m_editAGV_MoveSpeed);
+    m_editAGV_MoveSpeed->setValue(revertValue);
 }
 
 // 在 handleMatrixKeyAction 函数中修改 ○1 按键的处理
@@ -9439,6 +9463,9 @@ void MainWindow::onControlModeClicked()
         showNotification("控制模式切换功能已关闭");
         return;
     }
+    if (rejectIfEnableNotHeld()) {
+        return;
+    }
     if (isRobotWeightLockGateActive()) {
         blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：控制模式切换已无效"));
         return;
@@ -10252,6 +10279,10 @@ void MainWindow::onAGVParkBtnClicked()
 void MainWindow::onAGVMoveSpeedChanged(double value)
 {
     if (!isFeatureEnabled("motion_control", "motion.agv_speed_control")) {
+        return;
+    }
+    if (rejectIfEnableNotHeld()) {
+        restoreAgvMoveSpeedEditFromShadow();
         return;
     }
 

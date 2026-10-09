@@ -8,25 +8,20 @@
 #include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QHideEvent>
-#include <QPointer>
 #include <QPushButton>
 #include <QScreen>
 #include <QTimer>
 #include <QVBoxLayout>
 
-namespace {
-QPointer<VirtualMatrixKeyPanel> g_virtualMatrixKeyPanel;
-}
-
 VirtualMatrixKeyPanel::VirtualMatrixKeyPanel(QWidget *hostWindow)
     : QWidget(nullptr)
     , m_host(hostWindow)
 {
-    g_virtualMatrixKeyPanel = this;
     setObjectName(QStringLiteral("virtualMatrixKeyPanel"));
     setWindowTitle(QStringLiteral("虚拟外部按键"));
     setWindowFlags(Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint
                    | Qt::WindowDoesNotAcceptFocus);
+    setAttribute(Qt::WA_GroupLeader, true);
     setAttribute(Qt::WA_StyledBackground, true);
     setAttribute(Qt::WA_ShowWithoutActivating, true);
     setAttribute(Qt::WA_QuitOnClose, false);
@@ -82,26 +77,12 @@ VirtualMatrixKeyPanel::VirtualMatrixKeyPanel(QWidget *hostWindow)
 
 VirtualMatrixKeyPanel::~VirtualMatrixKeyPanel()
 {
-    if (g_virtualMatrixKeyPanel == this) {
-        g_virtualMatrixKeyPanel.clear();
-    }
     if (qApp) {
         qApp->removeEventFilter(this);
     }
     if (m_host) {
         m_host->removeEventFilter(this);
     }
-}
-
-bool VirtualMatrixKeyPanel::shouldReceiveDuringModal(QObject *receiver, QEvent *event)
-{
-    if (!g_virtualMatrixKeyPanel || !g_virtualMatrixKeyPanel->isVisible()) {
-        return false;
-    }
-    if (!QApplication::activeModalWidget()) {
-        return false;
-    }
-    return isPointerEvent(event) && g_virtualMatrixKeyPanel->isPanelWidget(receiver);
 }
 
 void VirtualMatrixKeyPanel::buildUi()
@@ -223,37 +204,6 @@ void VirtualMatrixKeyPanel::hideEvent(QHideEvent *event)
 {
     releaseAllHeldInputs();
     QWidget::hideEvent(event);
-}
-
-bool VirtualMatrixKeyPanel::isPanelWidget(QObject *obj) const
-{
-    auto *widget = qobject_cast<QWidget *>(obj);
-    return widget && (widget == this || isAncestorOf(widget));
-}
-
-bool VirtualMatrixKeyPanel::isPointerEvent(const QEvent *event)
-{
-    if (!event) {
-        return false;
-    }
-    switch (event->type()) {
-    case QEvent::MouseButtonPress:
-    case QEvent::MouseButtonRelease:
-    case QEvent::MouseButtonDblClick:
-    case QEvent::MouseMove:
-    case QEvent::HoverEnter:
-    case QEvent::HoverLeave:
-    case QEvent::HoverMove:
-    case QEvent::Enter:
-    case QEvent::Leave:
-    case QEvent::Wheel:
-    case QEvent::TouchBegin:
-    case QEvent::TouchUpdate:
-    case QEvent::TouchEnd:
-        return true;
-    default:
-        return false;
-    }
 }
 
 bool VirtualMatrixKeyPanel::eventFilter(QObject *watched, QEvent *event)

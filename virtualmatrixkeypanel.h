@@ -8,13 +8,14 @@
 #include <QSet>
 #include <QWidget>
 
-class QEvent;
 class QPushButton;
 
 /**
  * @brief 本机 Debug 用的虚拟外部按键条：独立置顶窗口，贴在主窗口右侧。
  *
- * 不作为主窗口子控件，避免被 ApplicationModal 弹窗挡住或吃掉鼠标。
+ * 不挂到主窗口下面，避免跟主界面一起被模态窗盖住。
+ * 窗口带 Qt::WA_GroupLeader：ApplicationModal 只挡住普通顶层窗口，
+ * 这个属性让 QWidgetWindow 的 qt_try_modal 继续把鼠标交给按键。
  * ○1～○14 与使能键均为点按切换：点一下进入按下，再点一下进入松开。
  * 示教器 Release 不编译此控件。
  */
@@ -32,9 +33,6 @@ public:
     /** 贴到宿主窗口右缘；宿主移动/缩放时跟随。 */
     void relayoutToHost();
 
-    /** ApplicationModal 会在 QApplication::notify 里丢掉其它窗口的鼠标；Debug 下对虚拟按键放行。 */
-    static bool shouldReceiveDuringModal(QObject *receiver, QEvent *event);
-
 signals:
     void matrixKeyChanged(int keyNumber, bool pressed);
     void enableButtonChanged(bool enabled);
@@ -50,8 +48,6 @@ private:
     void onKeyToggled(int keyNumber, bool pressed);
     void onEnableToggled(bool enabled);
     void onToggleClicked();
-    bool isPanelWidget(QObject *obj) const;
-    static bool isPointerEvent(const QEvent *event);
 
     static constexpr int kCollapsedWidth = 28;
     static constexpr int kExpandedWidth = 120;

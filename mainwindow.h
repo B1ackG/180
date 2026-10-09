@@ -1444,6 +1444,8 @@ private:
     bool blockIfHeightLengthInterlock();
     /** @brief 将底盘角度控件恢复为最近回读值 */
     void restoreAgvAngleEditFromShadow();
+    /** @brief 将底盘速度控件恢复为最近回读值 */
+    void restoreAgvMoveSpeedEditFromShadow();
 
     /** @brief 获取当前转向模式文本（用于记录） */
     QString currentSteeringModeText() const;
