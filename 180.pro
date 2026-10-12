@@ -74,6 +74,7 @@ HEADERS += \
     matrixkeythreadmanager.h \
     modbustcpclient.h \
     modbusthreadmanager.h \
+    modbusasync.h \
     modbusstringregisters.h \
     modbuswritegate.h \
     modbusvariables.h \

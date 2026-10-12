@@ -3,6 +3,9 @@
 #include "featureswitchmanager.h"
 #include "modbusthreadmanager.h"
 
+#include <QPair>
+#include <QVector>
+
 namespace {
 bool mainModbusReadEnabled()
 {
@@ -93,6 +96,12 @@ bool MainDeviceModbusApi::readHoldingRegistersSync(ModbusThreadManager *manager,
                                                    QString *errorMessage)
 {
     values.clear();
+    if (!mainModbusReadEnabled()) {
+        if (errorMessage) {
+            *errorMessage = QStringLiteral("Main Modbus 读功能已关闭");
+        }
+        return false;
+    }
     if (!isReady(manager)) {
         if (errorMessage) {
             *errorMessage = QStringLiteral("主Modbus未连接");
@@ -120,4 +129,18 @@ bool MainDeviceModbusApi::readAndDebugAddress(ModbusThreadManager *manager,
     }
     manager->readAndDebugAddress(address);
     return true;
+}
+
+void MainDeviceModbusApi::requestReads(ModbusThreadManager *manager,
+                                       quint64 id,
+                                       quint64 generation,
+                                       const QVector<QPair<int, int>> &ranges)
+{
+    if (!manager || ranges.isEmpty()) {
+        return;
+    }
+    if (!mainModbusReadEnabled() || !isReady(manager)) {
+        return;
+    }
+    manager->requestReadRanges(id, generation, ranges);
 }

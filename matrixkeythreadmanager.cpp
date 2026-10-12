@@ -25,9 +25,9 @@ bool MatrixKeyThreadManager::start(const QString &device)
 
     try {
         // 创建工作线程
-        m_workerThread = new QThread(this);
+        m_workerThread = new QThread();
 
-        // 创建监控器对象（在堆上分配）
+        // 创建监控器对象（在堆上分配，无 parent，才能迁入工作线程）
         m_monitor = new MatrixKeyMonitor(device);
 
         // 将监控器移动到工作线程
@@ -40,12 +40,12 @@ bool MatrixKeyThreadManager::start(const QString &device)
         connect(m_monitor, &MatrixKeyMonitor::keyPressed,
                 this, &MatrixKeyThreadManager::keyPressed, Qt::QueuedConnection);
 
-        // 连接错误信号
+        // 连接错误信号。保留 keyPressed(-1) 作为既有错误通知，不改上层语义。
         connect(m_monitor, &MatrixKeyMonitor::errorOccurred,
                 this, [this](const QString &error) {
                     qWarning() << "键盘监控错误:" << error;
-                    emit keyPressed(-1, false); // 发送错误信号
-                });
+                    emit keyPressed(-1, false);
+                }, Qt::QueuedConnection);
 
         // 启动线程
         m_workerThread->start();
@@ -64,37 +64,36 @@ void MatrixKeyThreadManager::stop()
 {
     qDebug() << "正在停止键盘管理器...";
 
-    if (m_workerThread && m_workerThread->isRunning()) {
-        // 请求监控器停止
-        if (m_monitor) {
-            QMetaObject::invokeMethod(m_monitor, "stopMonitoring", Qt::BlockingQueuedConnection);
-        }
-
-        // 退出线程循环
-        m_workerThread->quit();
-
-        // 等待线程结束（最多2秒）
-        if (!m_workerThread->wait(2000)) {
-            qWarning() << "线程未在2秒内退出，发起中断并再次等待";
-            m_workerThread->requestInterruption();
-            m_workerThread->quit();
-            if (!m_workerThread->wait(1000)) {
-                qWarning() << "线程仍未退出，执行最后手段 terminate";
-                m_workerThread->terminate();
-                m_workerThread->wait(1000);
-            }
-        }
+    QThread *thread = m_workerThread;
+    MatrixKeyMonitor *monitor = m_monitor;
+    if (!thread && !monitor) {
+        return;
     }
 
-    // 清理资源
-    if (m_monitor) {
-        delete m_monitor;
+    if (thread && thread->isRunning() && monitor) {
+        const bool invoked = QMetaObject::invokeMethod(monitor, [monitor]() {
+            monitor->stopMonitoring();
+            monitor->deleteLater();
+        }, Qt::BlockingQueuedConnection);
+        if (!invoked) {
+            qWarning() << "矩阵键监控器无法在所属线程停止";
+        }
+        m_monitor = nullptr;
+        thread->quit();
+        if (!thread->wait(3000)) {
+            qWarning() << "矩阵键线程未在 3 秒内退出，保留线程对象，禁止 terminate";
+            return;
+        }
+    } else if (monitor && monitor->thread() == QThread::currentThread()) {
+        monitor->stopMonitoring();
+        delete monitor;
         m_monitor = nullptr;
     }
 
-    if (m_workerThread) {
-        delete m_workerThread;
+    if (thread && !thread->isRunning()) {
+        delete thread;
         m_workerThread = nullptr;
+        m_monitor = nullptr;
     }
 
     qDebug() << "键盘管理器已停止";

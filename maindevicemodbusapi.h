@@ -2,6 +2,7 @@
 #define MAINDEVICEMODBUSAPI_H
 
 #include <QString>
+#include <QPair>
 #include <QtGlobal>
 #include <QVector>
 
@@ -84,6 +85,11 @@ public:
     static bool readAndDebugAddress(ModbusThreadManager *manager,
                                     int address,
                                     QString *errorMessage = nullptr);
+
+    static void requestReads(ModbusThreadManager *manager,
+                             quint64 id,
+                             quint64 generation,
+                             const QVector<QPair<int, int>> &ranges);
 };
 
 #endif // MAINDEVICEMODBUSAPI_H

@@ -40,6 +40,12 @@ AGVModbusManager::AGVModbusManager(QObject *parent)
     m_reconnectTimer->setSingleShot(true);
     connect(m_reconnectTimer, &QTimer::timeout, this, &AGVModbusManager::tryReconnect);
 
+    m_gateTimer = new QTimer(this);
+    m_gateTimer->setSingleShot(true);
+    connect(m_gateTimer, &QTimer::timeout, this, &AGVModbusManager::onGateTimeout);
+    connect(ModbusThreadManager::instance(), &ModbusThreadManager::agvGateDecision,
+            this, &AGVModbusManager::onAgvGateDecision, Qt::QueuedConnection);
+
     qDebug() << "AGV Modbus管理器已创建";
 }
 
@@ -80,7 +86,10 @@ void AGVModbusManager::stopWorkerThread()
 
     if (m_networkThread->isRunning()) {
         m_networkThread->quit();
-        m_networkThread->wait();
+        if (!m_networkThread->wait(3000)) {
+            qWarning() << "AGV 线程未在 3 秒内退出，保留 QThread，禁止 terminate";
+            return;
+        }
     }
 
     delete m_networkThread;
@@ -210,6 +219,8 @@ bool AGVModbusManager::connectToDevice(const QString &host, quint16 port)
                                     static_cast<int>(port),
                                     1);
     m_connectedState = (rc != 0);
+    m_connectedCached.store(m_connectedState);
+    m_sessionGeneration.fetch_add(1);
     if (m_connectedState) {
         m_lastSocketError.clear();
         m_disconnectedWriteWarnedAddresses.clear();
@@ -251,6 +262,8 @@ void AGVModbusManager::disconnectFromDevice()
     }
 
     m_connectedState = false;
+    m_connectedCached.store(false);
+    m_sessionGeneration.fetch_add(1);
     if (m_backendDisconnect && m_dynamicBackendHandle) {
         m_backendDisconnect(m_dynamicBackendHandle);
     }
@@ -260,29 +273,20 @@ void AGVModbusManager::disconnectFromDevice()
 bool AGVModbusManager::isConnected() const
 {
     if (QThread::currentThread() != thread()) {
-        bool connected = false;
-        QMetaObject::invokeMethod(const_cast<AGVModbusManager *>(this), [this, &connected]() {
-            if (!m_connectedState) {
-                connected = false;
-                return;
-            }
-            if (m_backendIsConnected && m_dynamicBackendHandle) {
-                connected = (m_backendIsConnected(m_dynamicBackendHandle) != 0);
-            } else {
-                connected = m_connectedState;
-            }
-        }, Qt::BlockingQueuedConnection);
-        return connected;
+        return m_connectedCached.load();
     }
 
     if (!m_connectedState) {
+        m_connectedCached.store(false);
         return false;
     }
 
+    bool connected = false;
     if (m_backendIsConnected && m_dynamicBackendHandle) {
-        return m_backendIsConnected(m_dynamicBackendHandle) != 0;
+        connected = (m_backendIsConnected(m_dynamicBackendHandle) != 0);
     }
-    return false;
+    m_connectedCached.store(connected);
+    return connected;
 }
 
 void AGVModbusManager::handleCommunicationFailure(const QString &reason)
@@ -292,6 +296,8 @@ void AGVModbusManager::handleCommunicationFailure(const QString &reason)
         QMutexLocker locker(&m_mutex);
         if (m_connectedState) {
             m_connectedState = false;
+            m_connectedCached.store(false);
+            m_sessionGeneration.fetch_add(1);
             if (m_pollTimer && m_pollTimer->isActive()) {
                 m_pollTimer->stop();
             }
@@ -466,6 +472,11 @@ void AGVModbusManager::readMultipleRegisters(int startAddress, int count)
 bool AGVModbusManager::readHoldingRegistersSync(int startAddress, int count, QVector<quint16> &values)
 {
     if (QThread::currentThread() != thread()) {
+        if (qApp && QThread::currentThread() == qApp->thread()) {
+            qWarning() << "拒绝在 GUI 线程同步读取 AGV 寄存器" << startAddress;
+            values.clear();
+            return false;
+        }
         bool ok = false;
         QMetaObject::invokeMethod(this, [this, startAddress, count, &values, &ok]() {
             ok = readHoldingRegistersSync(startAddress, count, values);
@@ -809,19 +820,136 @@ void AGVModbusManager::updateFaultCodesDisplay()
 }
 
 // 添加写入函数
-bool AGVModbusManager::writeSingleRegister(int address, quint16 value)
+bool AGVModbusManager::submitWrite(QueuedWrite command)
+{
+    command.id = m_nextWriteId.fetch_add(1);
+    if (QThread::currentThread() != thread()) {
+        QMetaObject::invokeMethod(this, [this, command]() {
+            m_writeQueue.append(command);
+            pumpWriteQueue();
+        }, Qt::QueuedConnection);
+        return true;
+    }
+    m_writeQueue.append(command);
+    pumpWriteQueue();
+    return true;
+}
+
+void AGVModbusManager::pumpWriteQueue()
 {
     if (QThread::currentThread() != thread()) {
-        bool ok = false;
-        QMetaObject::invokeMethod(this, [this, address, value, &ok]() {
-            ok = writeSingleRegister(address, value);
-        }, Qt::BlockingQueuedConnection);
-        return ok;
+        qWarning() << "AGV 写队列必须在工作线程推进";
+        return;
+    }
+    if (m_waitingGate) {
+        return;
     }
 
-    // 如果全局禁用了写操作，则直接阻止并返回失败（用于故障排查）
+    while (!m_writeQueue.isEmpty()) {
+        m_activeWrite = m_writeQueue.takeFirst();
+        const quint16 reported = m_activeWrite.values.value(0);
+        if (!m_writesEnabled || !isConnected()) {
+            emit writeCompleted(m_activeWrite.start, reported, false);
+            continue;
+        }
+        m_waitingGate = true;
+        m_gateCommandId = m_activeWrite.id;
+        if (m_gateTimer) {
+            m_gateTimer->start(1500);
+        }
+        ModbusThreadManager *main = ModbusThreadManager::instance();
+        const quint64 commandId = m_activeWrite.id;
+        QMetaObject::invokeMethod(main, [main, commandId]() {
+            main->authorizeAgvWrite(commandId);
+        }, Qt::QueuedConnection);
+        return;
+    }
+}
+
+void AGVModbusManager::onAgvGateDecision(quint64 commandId, bool allowed)
+{
+    if (!m_waitingGate || commandId != m_gateCommandId) {
+        return;
+    }
+    m_waitingGate = false;
+    if (m_gateTimer) {
+        m_gateTimer->stop();
+    }
+    if (!allowed) {
+        emit teachingWriteGateDenied();
+        emit writeCompleted(m_activeWrite.start, m_activeWrite.values.value(0), false);
+    } else {
+        performAuthorizedWrite(m_activeWrite);
+    }
+    pumpWriteQueue();
+}
+
+void AGVModbusManager::onGateTimeout()
+{
+    if (!m_waitingGate) {
+        return;
+    }
+    qWarning() << "AGV 写授权超时，已拒绝写入，命令" << m_gateCommandId;
+    m_waitingGate = false;
+    emit errorOccurred(QStringLiteral("AGV写授权超时，已拒绝写入"));
+    emit writeCompleted(m_activeWrite.start, m_activeWrite.values.value(0), false);
+    pumpWriteQueue();
+}
+
+void AGVModbusManager::performAuthorizedWrite(const QueuedWrite &command)
+{
+    if (command.bitUpdate) {
+        QVector<quint16> current;
+        if (!readHoldingRegistersSync(command.start, 1, current) || current.isEmpty()) {
+            emit writeCompleted(command.start, 0, false);
+            return;
+        }
+        quint16 next = current.first();
+        for (const QPair<int, bool> &bitUpdate : command.bits) {
+            const int bit = bitUpdate.first;
+            if (bit < 0 || bit > 15) {
+                emit writeCompleted(command.start, next, false);
+                return;
+            }
+            if (bitUpdate.second) {
+                next = static_cast<quint16>(next | (static_cast<quint16>(1u) << bit));
+            } else {
+                next = static_cast<quint16>(next & ~(static_cast<quint16>(1u) << bit));
+            }
+        }
+        if (next == current.first()) {
+            emit writeCompleted(command.start, next, true);
+            return;
+        }
+        writeSingleRaw(command.start, next);
+        return;
+    }
+
+    if (command.values.size() == 1) {
+        writeSingleRaw(command.start, command.values.at(0));
+        return;
+    }
+    writeMultipleRaw(command.start, command.values);
+}
+
+bool AGVModbusManager::writeSingleRegister(int address, quint16 value)
+{
+    QueuedWrite command;
+    command.start = address;
+    command.values = {value};
+    return submitWrite(command);
+}
+
+bool AGVModbusManager::writeSingleRaw(int address, quint16 value)
+{
+    if (QThread::currentThread() != thread()) {
+        qWarning() << "AGV 原始写只能在工作线程执行";
+        return false;
+    }
+
     if (!m_writesEnabled) {
         qWarning() << "AGV 写操作已被禁用，忽略写入请求 地址:" << address << "值:" << value;
+        emit writeCompleted(address, value, false);
         return false;
     }
 
@@ -830,17 +958,11 @@ bool AGVModbusManager::writeSingleRegister(int address, quint16 value)
             qWarning() << "AGV Modbus未连接，无法写入地址" << address;
             m_disconnectedWriteWarnedAddresses.insert(address);
         }
+        emit writeCompleted(address, value, false);
         return false;
     }
 
     m_disconnectedWriteWarnedAddresses.remove(address);
-
-    if (!ModbusWriteGate::allowAgvWrite(ModbusThreadManager::instance())) {
-        qWarning() << ModbusWriteGate::deniedReason() << "(AGV地址" << address << ")";
-        emit teachingWriteGateDenied();
-        emit writeCompleted(address, value, false);
-        return false;
-    }
 
     if (!m_backendWriteSingle || !m_dynamicBackendHandle) {
         qWarning() << "AGV动态库写失败: 未找到单写函数";
@@ -860,14 +982,24 @@ bool AGVModbusManager::writeSingleRegister(int address, quint16 value)
 
 bool AGVModbusManager::writeMultipleRegisters(int startAddress, const QVector<quint16> &values)
 {
-    if (QThread::currentThread() != thread()) {
-        bool ok = false;
-        QMetaObject::invokeMethod(this, [this, startAddress, values, &ok]() {
-            ok = writeMultipleRegisters(startAddress, values);
-        }, Qt::BlockingQueuedConnection);
-        return ok;
-    }
+    QueuedWrite command;
+    command.start = startAddress;
+    command.values = values;
+    return submitWrite(command);
+}
 
+bool AGVModbusManager::queueRegisterBitUpdates(int address, const QList<QPair<int, bool>> &bitUpdates)
+{
+    QueuedWrite command;
+    command.start = address;
+    command.bitUpdate = true;
+    command.bits = bitUpdates;
+    command.values = {0};
+    return submitWrite(command);
+}
+
+bool AGVModbusManager::writeMultipleRaw(int startAddress, const QVector<quint16> &values)
+{
     if (!m_writesEnabled) {
         qWarning() << "AGV 写操作已被禁用，忽略批量写入 起始地址:" << startAddress << "字数:" << values.size();
         return false;
@@ -883,30 +1015,72 @@ bool AGVModbusManager::writeMultipleRegisters(int startAddress, const QVector<qu
         return false;
     }
 
-    if (!ModbusWriteGate::allowAgvWrite(ModbusThreadManager::instance())) {
-        qWarning() << ModbusWriteGate::deniedReason() << "(AGV批量写起始" << startAddress << ")";
-        emit teachingWriteGateDenied();
-        return false;
-    }
-
     if (m_backendWriteMultiple && m_dynamicBackendHandle) {
         const int rc = m_backendWriteMultiple(m_dynamicBackendHandle,
                                               startAddress,
                                               values.constData(),
                                               static_cast<int>(values.size()));
         if (rc) {
+            for (int i = 0; i < values.size(); ++i) {
+                emit writeCompleted(startAddress + i, values.at(i), true);
+            }
             return true;
         }
         qWarning() << "AGV 动态库批量写失败，尝试按单寄存器依次写入 起始:" << startAddress;
     }
 
     for (int i = 0; i < values.size(); ++i) {
-        if (!writeSingleRegister(startAddress + i, values.at(i))) {
+        if (!writeSingleRaw(startAddress + i, values.at(i))) {
             qWarning() << "AGV 批量写退化失败 地址:" << (startAddress + i);
             return false;
         }
     }
     return true;
+}
+
+void AGVModbusManager::requestRead(const ModbusReadRequest &request)
+{
+    if (QThread::currentThread() != thread()) {
+        QMetaObject::invokeMethod(this, [this, request]() {
+            requestRead(request);
+        }, Qt::QueuedConnection);
+        return;
+    }
+
+    ModbusResult result;
+    result.id = request.id;
+    result.start = request.start;
+    result.generation = request.generation;
+    const quint64 session = m_sessionGeneration.load();
+    if (request.generation != 0 && request.generation != session) {
+        result.ok = false;
+        result.error = ModbusAsyncError::StaleGeneration;
+        emit readFinished(result);
+        return;
+    }
+
+    QVector<quint16> values;
+    const bool ok = readHoldingRegistersSync(request.start, request.count, values);
+    if (m_sessionGeneration.load() != session) {
+        result.ok = false;
+        result.error = ModbusAsyncError::StaleGeneration;
+        emit readFinished(result);
+        return;
+    }
+    result.ok = ok;
+    result.error = ok ? ModbusAsyncError::None : ModbusAsyncError::IoFailed;
+    result.values = values;
+    emit readFinished(result);
+}
+
+quint64 AGVModbusManager::sessionGeneration() const
+{
+    return m_sessionGeneration.load();
+}
+
+bool AGVModbusManager::workerThreadRunning() const
+{
+    return m_networkThread && m_networkThread->isRunning();
 }
 
 void AGVModbusManager::setWritesEnabled(bool enabled)

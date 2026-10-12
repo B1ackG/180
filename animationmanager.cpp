@@ -33,15 +33,33 @@ AnimationManager::AnimationManager(QObject* parent)
 
 void AnimationManager::registerWidget(QObject* widget)
 {
-    if (!m_widgets.contains(widget)) {
-        m_widgets.append(widget);
-        qDebug() << "控件注册到动画管理器：" << widget->objectName();
+    if (!widget) {
+        return;
     }
+    for (const QPointer<QObject> &existing : m_widgets) {
+        if (existing == widget) {
+            return;
+        }
+    }
+    m_widgets.append(widget);
+    connect(widget, &QObject::destroyed, this, [this]() {
+        pruneWidgets();
+    });
+    qDebug() << "控件注册到动画管理器：" << widget->objectName();
 }
 
 void AnimationManager::unregisterWidget(QObject* widget)
 {
-    m_widgets.removeOne(widget);
+    for (int i = m_widgets.size() - 1; i >= 0; --i) {
+        if (m_widgets.at(i) == widget || m_widgets.at(i).isNull()) {
+            m_widgets.removeAt(i);
+        }
+    }
+}
+
+void AnimationManager::pruneWidgets()
+{
+    unregisterWidget(nullptr);
 }
 
 void AnimationManager::setAnimationFPS(int fps)
@@ -58,9 +76,11 @@ void AnimationManager::setAnimationFPS(int fps)
 
 void AnimationManager::updateAllAnimations()
 {
-    // 这里是关键！每次定时器触发，更新所有控件
-    for (QObject* widget : m_widgets) {
-        // 发送一个信号，告诉控件该更新动画了
-        QMetaObject::invokeMethod(widget, "updateAnimation");
+    pruneWidgets();
+    for (const QPointer<QObject> &widget : m_widgets) {
+        if (!widget) {
+            continue;
+        }
+        QMetaObject::invokeMethod(widget.data(), "updateAnimation");
     }
 }

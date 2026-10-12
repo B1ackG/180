@@ -6,7 +6,7 @@
 #include <QRandomGenerator>
 #include <QDebug>
 #include <cmath>
-#include <QKeyEvent>
+#include <QPointer>
 
 TechVirtualKeyboard::TechVirtualKeyboard(QWidget *parent)
     : QWidget{parent}
@@ -437,10 +437,10 @@ void TechVirtualKeyboard::applyButtonPressEffect(QPushButton *button)
 
     button->setStyleSheet(pressedStyle);
 
-    // 使用定时器恢复原始样式
-    QTimer::singleShot(100, this, [button, originalStyle]() {
-        if (button) {
-            button->setStyleSheet(originalStyle);
+    QPointer<QPushButton> safeButton(button);
+    QTimer::singleShot(100, this, [safeButton, originalStyle]() {
+        if (safeButton) {
+            safeButton->setStyleSheet(originalStyle);
         }
     });
 }

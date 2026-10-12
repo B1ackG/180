@@ -25,6 +25,8 @@
 #include <QDateTime>
 #include <QSet>
 #include <QLibrary>
+#include <atomic>
+#include "modbusasync.h"
 
 /*位变量（BOOL）：
 
@@ -208,6 +210,10 @@ public:
      * 如何使用: 传入起始地址与 16 位字序列；若动态库支持则一次写入，否则退化为多次单寄存器写。
      */
     bool writeMultipleRegisters(int startAddress, const QVector<quint16> &values);
+    bool queueRegisterBitUpdates(int address, const QList<QPair<int, bool>> &bitUpdates);
+    void requestRead(const ModbusReadRequest &request);
+    quint64 sessionGeneration() const;
+    bool workerThreadRunning() const;
 
 signals:
     // 状态信号
@@ -236,11 +242,14 @@ signals:
 
     /** 因示教端写门禁导致 AGV 写被拒绝（用于 UI 弹窗提示） */
     void teachingWriteGateDenied();
+    void readFinished(const ModbusResult &result);
 
 
 private slots:
     void pollRegisters();
     void tryReconnect();
+    void onAgvGateDecision(quint64 commandId, bool allowed);
+    void onGateTimeout();
 
 private:
     void handleCommunicationFailure(const QString &reason);
@@ -273,6 +282,27 @@ private:
 private:
     QThread *m_networkThread;
     QMutex m_mutex;
+    mutable std::atomic<bool> m_connectedCached{false};
+    std::atomic<quint64> m_sessionGeneration{1};
+    std::atomic<quint64> m_nextWriteId{1};
+
+    struct QueuedWrite {
+        quint64 id = 0;
+        int start = 0;
+        QVector<quint16> values;
+        bool bitUpdate = false;
+        QList<QPair<int, bool>> bits;
+    };
+    QList<QueuedWrite> m_writeQueue;
+    QueuedWrite m_activeWrite;
+    bool m_waitingGate = false;
+    quint64 m_gateCommandId = 0;
+    QTimer *m_gateTimer = nullptr;
+    bool submitWrite(QueuedWrite command);
+    void pumpWriteQueue();
+    void performAuthorizedWrite(const QueuedWrite &command);
+    bool writeSingleRaw(int address, quint16 value);
+    bool writeMultipleRaw(int startAddress, const QVector<quint16> &values);
 
     QString m_host;
     quint16 m_port;

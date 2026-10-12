@@ -18,7 +18,13 @@
 #include <QObject>
 #include <QThread>
 #include <QMap>
+#include <QHash>
+#include <QPair>
+#include <QPointer>
+#include <QVector>
+#include <atomic>
 #include "modbustcpclient.h"
+#include "modbusasync.h"
 
     class TechSliderEdit;  // 前向声明
 class TechSliderLabel; // 前向声明
@@ -213,6 +219,20 @@ public:
      */
     bool writeMultipleRegisters(int startAddress, const QVector<quint16> &values);
 
+    static constexpr int kRobotExternalWriteChannel = 1;
+    static constexpr int kSixAxisExternalWriteChannel = 2;
+
+    quint64 connectionGeneration() const;
+
+    void requestRead(const ModbusReadRequest &request);
+    void requestReadRanges(quint64 id, quint64 generation, const QVector<QPair<int, int>> &ranges);
+    void requestWrite(const ModbusWriteCommand &command);
+    void requestWriteChain(quint64 id, const QVector<ModbusWriteCommand> &steps);
+    void requestDelayedWrite(int channel, quint64 generation, int address, quint16 value, int delayMs);
+    void setWriteGeneration(int channel, quint64 generation);
+    void queueMaskedWrite(quint64 id, int address, quint16 orMask, quint16 andMask);
+    void authorizeAgvWrite(quint64 commandId);
+
 signals:
     void connected();
     void disconnected();
@@ -220,6 +240,10 @@ signals:
     void registerValueChanged(int address, quint16 value);
     void registerWritten(int address, quint16 value);  // 新增：寄存器写入信号
     void writeOperationComplete(bool success, const QString &message);  // 新增：写入操作完成信号
+    void readFinished(const ModbusResult &result);
+    void writeFinished(const ModbusResult &result);
+    void maskedWriteFinished(quint64 id, int address, bool ok, quint16 value);
+    void agvGateDecision(quint64 commandId, bool allowed);
 
 private:
     explicit ModbusThreadManager(QObject *parent = nullptr);
@@ -235,13 +259,16 @@ private slots:
 
 private:
     ModbusTCPClient *m_modbusClient;
+    mutable std::atomic<bool> m_connectedCached{false};
+    std::atomic<quint64> m_connectionGeneration{1};
+    QHash<int, quint64> m_writeGeneration;
 
-    // TechSliderEdit 映射表
-    QMap<int, TechSliderEdit*> m_addressToSlider;
+    // TechSliderEdit 映射表。worker 不通过这些指针调用控件。
+    QMap<int, QPointer<TechSliderEdit>> m_addressToSlider;
     QMap<TechSliderEdit*, int> m_sliderToAddress;
 
     // TechSliderLabel 映射表
-    QMap<int, TechSliderLabel*> m_addressToSliderLabel;
+    QMap<int, QPointer<TechSliderLabel>> m_addressToSliderLabel;
     QMap<TechSliderLabel*, int> m_sliderLabelToAddress;
 };
 

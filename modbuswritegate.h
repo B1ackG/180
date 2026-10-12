@@ -36,6 +36,10 @@ bool allowMainDeviceMultipleWrite(int startAddress, int registerCount);
 bool allowAgvWrite(ModbusThreadManager *main);
 
 /** 判断是否为主控写入失败信号中的「示教写门禁」文案（用于弹窗提示） */
+bool cachedWriteAllowed();
+
+bool hasInterlockSnapshot();
+
 bool messageIndicatesTeachingGateDenied(const QString &message);
 
 /** 门禁弹窗展示给用户的固定提示语 */

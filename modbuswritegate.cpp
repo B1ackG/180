@@ -131,4 +131,14 @@ bool shouldAppendOperationHistoryRecord()
     return s_interlock8192Value == configuredTeachingDeviceId();
 }
 
+bool hasInterlockSnapshot()
+{
+    return s_interlock8192ReadOk;
+}
+
+bool cachedWriteAllowed()
+{
+    return s_interlock8192ReadOk && s_interlock8192Value == configuredTeachingDeviceId();
+}
+
 } // namespace ModbusWriteGate

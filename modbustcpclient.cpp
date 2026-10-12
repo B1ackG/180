@@ -154,6 +154,7 @@ bool ModbusTCPClient::connectToServer(const QString &host, quint16 port, int sla
                                     static_cast<int>(port),
                                     slaveId);
     m_connectedState = (rc != 0);
+    ++m_sessionGeneration;
     if (m_connectedState) {
         emit connected();
         if (m_autoReconnect) {
@@ -182,6 +183,7 @@ void ModbusTCPClient::disconnectFromServer()
     stopPolling();
     m_reconnectTimer->stop();
     m_connectedState = false;
+    ++m_sessionGeneration;
 
     if (m_backendDisconnect && m_dynamicBackendHandle) {
         m_backendDisconnect(m_dynamicBackendHandle);
@@ -207,6 +209,7 @@ void ModbusTCPClient::handleCommunicationFailure(const QString &reason)
         QMutexLocker locker(&m_mutex);
         if (m_connectedState) {
             m_connectedState = false;
+            ++m_sessionGeneration;
             if (m_backendDisconnect && m_dynamicBackendHandle) {
                 m_backendDisconnect(m_dynamicBackendHandle);
             }
@@ -259,6 +262,7 @@ bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 function
     if (!isConnected() || count <= 0 || count > 125) {
         return false;
     }
+    m_activeReadSession = m_sessionGeneration;
 
     MbReadRegistersFn readFn = nullptr;
     if (functionCode == 0x03) {
@@ -277,6 +281,9 @@ bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 function
                                  count,
                                  values.data(),
                                  values.size());
+    if (m_activeReadSession != m_sessionGeneration) {
+        return false;
+    }
     if (readCount <= 0) {
         const QString reason = QStringLiteral("动态库读取失败 address=%1 count=%2")
                                    .arg(startAddress)
@@ -356,6 +363,7 @@ bool ModbusTCPClient::readHoldingRegistersSync(int startAddress, int count, QVec
     if (!isConnected() || count <= 0 || count > 125) {
         return false;
     }
+    m_activeReadSession = m_sessionGeneration;
 
     if (!m_backendReadHolding || !m_dynamicBackendHandle) {
         qWarning() << "[Modbus动态库读失败] 未找到读取函数";
@@ -368,6 +376,10 @@ bool ModbusTCPClient::readHoldingRegistersSync(int startAddress, int count, QVec
                                                count,
                                                values.data(),
                                                values.size());
+    if (m_activeReadSession != m_sessionGeneration) {
+        values.clear();
+        return false;
+    }
     if (readCount <= 0) {
         const QString reason = QStringLiteral("动态库同步读取失败 address=%1 count=%2")
                                    .arg(startAddress)
@@ -479,6 +491,9 @@ void ModbusTCPClient::pollRegisters()
 
 void ModbusTCPClient::updateRegisterValue(int address, quint16 value)
 {
+    if (m_activeReadSession != 0 && m_activeReadSession != m_sessionGeneration) {
+        return;
+    }
     bool changed = true;
     QString registerName;
 

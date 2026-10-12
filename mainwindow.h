@@ -51,6 +51,7 @@ class VirtualMatrixKeyPanel;
 #include <QCheckBox>
 #include <QGroupBox>
 #include <QVector>
+#include <QHash>
 #include <QVBoxLayout>
 
 class QIntValidator;
@@ -952,6 +953,22 @@ private:
     QHash<int, bool> m_sixAxisExternalKeyPressed;
     quint64 m_sixAxisExternalWriteSeq = 0;
     int m_sixAxisActiveKey = -1;
+    struct SpareNameReadToken {
+        QString objectName;
+        int stateIndex = 1;
+    };
+    struct MaskedPoseWait {
+        int bitIndex = 0;
+        QString actionName;
+    };
+    quint64 m_nextAsyncId = 1;
+    quint64 m_interlockReadId = 0;
+    quint64 m_runtimeReadId = 0;
+    quint64 m_pendingInterlockWriteId = 0;
+    quint64 m_sync527WriteId = 0;
+    int m_spareNamePollTick = 0;
+    QHash<quint64, SpareNameReadToken> m_spareNameReads;
+    QHash<quint64, MaskedPoseWait> m_maskedPoseWaits;
     QVector<PendingStepMotionStop> m_pendingStepMotionStops;
 
     // ----- 通信轮询与重连参数（可持久化） -----
@@ -1090,6 +1107,12 @@ private:
     void setupInterlockingTeachingButton();
     /** @brief 根据主控 8192 同步联锁按钮文案 */
     void refreshInterlockingButtonText();
+    void applyInterlockRegisterValue(quint16 value);
+    void onAsyncReadFinished(const ModbusResult &result);
+    void onAsyncWriteFinished(const ModbusResult &result);
+    void onMainMaskedWriteFinished(quint64 id, int address, bool ok, quint16 value);
+    void queueSpareButtonNameReads();
+    void queueMainWrite(int address, quint16 value);
     /** @brief 记录示教互锁归属；从其他示教器切回本机时打开权限页 */
     void noteTeachPendantInterlockValue(quint16 registerValue);
     /** @brief 打开权限页并同步导航选中状态 */

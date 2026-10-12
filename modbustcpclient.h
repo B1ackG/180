@@ -320,6 +320,8 @@ private:
     QList<int> m_pollList;
 
     bool m_connectedState = false; // 追踪连接状态
+    quint64 m_sessionGeneration = 1;
+    quint64 m_activeReadSession = 0;
 };
 
 #endif // MODBUSTCPCLIENT_H

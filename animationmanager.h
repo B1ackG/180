@@ -16,6 +16,7 @@
 #include <QObject>
 #include <QTimer>
 #include <QList>
+#include <QPointer>
 #include <QApplication>
 
 class AnimationManager : public QObject
@@ -81,7 +82,8 @@ private:
 
     static AnimationManager* m_instance;
     QTimer m_mainTimer;               // 主定时器
-    QList<QObject*> m_widgets;        // 注册的控件列表
+    QList<QPointer<QObject>> m_widgets;        // 注册的控件列表
+    void pruneWidgets();
 };
 
 #endif // ANIMATIONMANAGER_H

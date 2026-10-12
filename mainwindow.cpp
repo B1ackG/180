@@ -2225,7 +2225,7 @@ void MainWindow::setupRecordAndPermissionConnections()
     m_isJointMode = true;
     ui->TBtn_MoveMode->setText("关节运动");
 
-    connect(ui->TBtn_MoveMode, &QPushButton::clicked, [=]() {
+    connect(ui->TBtn_MoveMode, &QPushButton::clicked, this, [=]() {
         m_moveModeUnknown = false;
         m_isJointMode = !m_isJointMode;
 
@@ -2261,7 +2261,7 @@ void MainWindow::setupRecordAndPermissionConnections()
         updateFunctionSwitchVisuals();
         updateStepTargetButtonsState();
     });
-    connect(ui->TBtn_PermissionPage, &QPushButton::clicked, [this]() {
+    connect(ui->TBtn_PermissionPage, &QPushButton::clicked, this, [this]() {
         if (ui->page_Permission) {
             ui->StackedWidget->setCurrentWidget(ui->page_Permission);
         }
@@ -2398,19 +2398,15 @@ void MainWindow::setupControlConnections()
                 showNotification(QStringLiteral("主控 Modbus 未连接"));
                 return;
             }
-            quint16 cur = 0;
-            if (!m_modbusManager->readSingleRegister(addr, cur)) {
-                qWarning() << "[" << logTag << "] 同步读取寄存器失败, addr=" << addr;
-                showNotification(QStringLiteral("读取%1寄存器失败").arg(logTag));
-                return;
-            }
-            const quint16 next = static_cast<quint16>(cur | (static_cast<quint16>(1u) << bitIndex));
-            writeToMainDevice(addr, next);
-            qCDebug(lcMainWindow) << "[" << logTag << "]" << addr << ": 原值" << cur
-                                  << "→ 写入" << next << "(bit" << bitIndex << "=1)";
-            if (addr == kSixAxisPoseReg && (bitIndex == 1 || bitIndex == 2)) {
-                beginSixAxisPoseWait(bitIndex, logTag);
-            }
+            const quint64 id = ++m_nextAsyncId;
+            MaskedPoseWait wait;
+            wait.bitIndex = bitIndex;
+            wait.actionName = logTag;
+            m_maskedPoseWaits.insert(id, wait);
+            m_modbusManager->queueMaskedWrite(id,
+                                             addr,
+                                             static_cast<quint16>(1u << bitIndex),
+                                             0xFFFF);
         });
     };
     connectSixAxisPoseBitButton(QStringLiteral("techBtn_resetSixAxies"), 1);
@@ -5899,28 +5895,20 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             QVector<quint16> values;
             values.reserve(2);
             values << regs[0] << regs[1];
-            bool wrote601 = MainDeviceModbusApi::writeRegisters(m_modbusManager, 601, values);
-            if (!wrote601) {
-                wrote601 = MainDeviceModbusApi::writeRegister(m_modbusManager, 601, static_cast<int>(regs[0]))
-                    && MainDeviceModbusApi::writeRegister(m_modbusManager, 602, static_cast<int>(regs[1]));
-            }
-            if (!wrote601) {
-                qWarning() << "六轴步进外部按键○" << keyNumber
-                           << "601/602 写入失败，已跳过 615";
-            } else {
-                bool wrote615 = MainDeviceModbusApi::writeRegister(m_modbusManager, 615, 1);
-                if (!wrote615) {
-                    wrote615 = MainDeviceModbusApi::writeRegister(m_modbusManager, 615, 1);
-                }
-                if (!wrote615) {
-                    qWarning() << "六轴步进外部按键○" << keyNumber << "615 写入失败";
-                }
+            if (m_modbusManager) {
+                ModbusWriteCommand stepCommand;
+                stepCommand.start = 601;
+                stepCommand.values = values;
+                ModbusWriteCommand triggerCommand;
+                triggerCommand.start = 615;
+                triggerCommand.values = {1};
+                m_modbusManager->requestWriteChain(++m_nextAsyncId, {stepCommand, triggerCommand});
             }
 
             qCDebug(lcMainWindow) << "六轴步进外部按键○" << keyNumber
                                   << "-> 614=" << axisIndex
                                   << "601~602(float CDAB)=" << stepValueFloat
-                                  << (wrote601 ? "615=1" : "615跳过");
+                                  << "615 已排队，601/602 失败时跳过";
 
             QString targetName = selectedTargetText;
             if (targetName.isEmpty()) {
@@ -6134,18 +6122,19 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
             m_robotExternalKeyPressed[keyNumber] = true;
             const quint64 seq = ++m_robotExternalWriteSeq;
+            if (m_modbusManager) {
+                m_modbusManager->setWriteGeneration(ModbusThreadManager::kRobotExternalWriteChannel, seq);
+            }
 
             writeToMainDevice(500, targetCode);
             writeStepValueDoubleToMainDevice(stepValue);
-
-            auto stagedWrite514 = [this, seq]() {
-                if (seq != m_robotExternalWriteSeq) {
-                    return;
-                }
-                writeToMainDevice(514, 1);
-            };
-
-            QTimer::singleShot(35, this, stagedWrite514);
+            if (m_modbusManager) {
+                m_modbusManager->requestDelayedWrite(ModbusThreadManager::kRobotExternalWriteChannel,
+                                                    seq,
+                                                    514,
+                                                    1,
+                                                    35);
+            }
 
             qCDebug(lcMainWindow) << "page_Robot (步进) 按键○" << keyNumber
                                   << "目标500=" << targetCode
@@ -6182,24 +6171,23 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             m_robotExternalKeyPressed[keyNumber] = true;
             m_robotActiveKey = keyNumber;
             const quint64 seq = ++m_robotExternalWriteSeq;
+            if (m_modbusManager) {
+                m_modbusManager->setWriteGeneration(ModbusThreadManager::kRobotExternalWriteChannel, seq);
+            }
 
             writeToMainDevice(500, value500);
-
-            auto stagedWrite514 = [this, keyNumber, value514, seq]() {
-                if (seq != m_robotExternalWriteSeq) {
-                    return;
-                }
-                if (m_robotActiveKey != keyNumber) {
-                    return;
-                }
-                if (!m_robotExternalKeyPressed.value(keyNumber, false)) {
-                    return;
-                }
-                writeToMainDevice(514, value514);
-            };
-
-            QTimer::singleShot(25, this, stagedWrite514);
-            QTimer::singleShot(90, this, stagedWrite514);
+            if (m_modbusManager) {
+                m_modbusManager->requestDelayedWrite(ModbusThreadManager::kRobotExternalWriteChannel,
+                                                    seq,
+                                                    514,
+                                                    static_cast<quint16>(value514),
+                                                    25);
+                m_modbusManager->requestDelayedWrite(ModbusThreadManager::kRobotExternalWriteChannel,
+                                                    seq,
+                                                    514,
+                                                    static_cast<quint16>(value514),
+                                                    90);
+            }
         } else {
             value500 = -1;
             value514 = 0;
@@ -6208,6 +6196,10 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 m_robotActiveKey = -1;
             }
             ++m_robotExternalWriteSeq;
+            if (m_modbusManager) {
+                m_modbusManager->setWriteGeneration(ModbusThreadManager::kRobotExternalWriteChannel,
+                                                   m_robotExternalWriteSeq);
+            }
             writeToMainDevice(514, 0);
         }
 
@@ -6511,14 +6503,20 @@ void MainWindow::setupModbusManager()
 
     // 连接信号到槽函数
     connect(m_modbusManager, &ModbusThreadManager::connected,
-            this, &MainWindow::onModbusConnected);
+            this, &MainWindow::onModbusConnected, Qt::QueuedConnection);
     connect(m_modbusManager, &ModbusThreadManager::disconnected,
-            this, &MainWindow::onModbusDisconnected);
+            this, &MainWindow::onModbusDisconnected, Qt::QueuedConnection);
     connect(m_modbusManager, &ModbusThreadManager::errorOccurred,
-            this, &MainWindow::onModbusError);
+            this, &MainWindow::onModbusError, Qt::QueuedConnection);
     connect(m_modbusManager, &ModbusThreadManager::registerValueChanged,
             this, &MainWindow::onModbusRegisterValueChanged,
             Qt::QueuedConnection);
+    connect(m_modbusManager, &ModbusThreadManager::readFinished,
+            this, &MainWindow::onAsyncReadFinished, Qt::QueuedConnection);
+    connect(m_modbusManager, &ModbusThreadManager::writeFinished,
+            this, &MainWindow::onAsyncWriteFinished, Qt::QueuedConnection);
+    connect(m_modbusManager, &ModbusThreadManager::maskedWriteFinished,
+            this, &MainWindow::onMainMaskedWriteFinished, Qt::QueuedConnection);
 
     connect(m_modbusManager, &ModbusThreadManager::writeOperationComplete,
             this,
@@ -6583,30 +6581,232 @@ void MainWindow::refreshInterlockingButtonText()
         ui->TBtn_Interlocking->setText(QStringLiteral("--"));
         return;
     }
-    quint16 v = 0;
+    if (m_interlockReadId != 0) {
+        return;
+    }
     const ButtonModbusMapping::Binding binding = buttonModbusBinding(QStringLiteral("TBtn_Interlocking"));
     const ModbusRegisterSpec spec = !binding.reads.isEmpty()
         ? binding.reads.first()
         : (!binding.writes.isEmpty() ? binding.writes.first() : ModbusRegisterSpec{});
     const int addr = ButtonModbusMapping::addressOr(spec, ModbusWriteGate::interlockRegisterAddress());
-    const int upperValue = ButtonModbusMapping::stateValueOr(spec, 1, 1);
-    if (!mgr->readSingleRegister(addr, v)) {
-        ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(false, 0);
-        ui->TBtn_Interlocking->setText(QStringLiteral("--"));
+    ModbusReadRequest request;
+    request.id = ++m_nextAsyncId;
+    request.start = addr;
+    request.count = 1;
+    request.generation = mgr->connectionGeneration();
+    m_interlockReadId = request.id;
+    mgr->requestRead(request);
+}
+
+void MainWindow::applyInterlockRegisterValue(quint16 value)
+{
+    if (!ui || !ui->TBtn_Interlocking) {
         return;
     }
+    const ButtonModbusMapping::Binding binding = buttonModbusBinding(QStringLiteral("TBtn_Interlocking"));
+    const ModbusRegisterSpec spec = !binding.reads.isEmpty()
+        ? binding.reads.first()
+        : (!binding.writes.isEmpty() ? binding.writes.first() : ModbusRegisterSpec{});
+    const int upperValue = ButtonModbusMapping::stateValueOr(spec, 1, 1);
     if (m_pendingInterlockWriteValue >= 0) {
         const qint64 age = QDateTime::currentMSecsSinceEpoch() - m_pendingInterlockWriteMs;
-        if (static_cast<int>(v) != m_pendingInterlockWriteValue && age >= 0 && age < 1500) {
+        if (static_cast<int>(value) != m_pendingInterlockWriteValue && age >= 0 && age < 1500) {
             return;
         }
         m_pendingInterlockWriteValue = -1;
     }
-    ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(true, v);
-    ui->TBtn_Interlocking->setText(static_cast<int>(v) == upperValue
+    ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(true, value);
+    ui->TBtn_Interlocking->setText(static_cast<int>(value) == upperValue
                                       ? QStringLiteral("上方示教器")
                                       : QStringLiteral("下方示教器"));
-    noteTeachPendantInterlockValue(v);
+    noteTeachPendantInterlockValue(value);
+}
+
+void MainWindow::queueMainWrite(int address, quint16 value)
+{
+    if (!m_modbusManager) {
+        return;
+    }
+    ModbusWriteCommand command;
+    command.id = ++m_nextAsyncId;
+    command.start = address;
+    command.values = {value};
+    m_modbusManager->requestWrite(command);
+}
+
+void MainWindow::onAsyncReadFinished(const ModbusResult &result)
+{
+    if (result.id != 0 && result.id == m_interlockReadId) {
+        m_interlockReadId = 0;
+        if (!result.ok || result.values.isEmpty() || result.error == ModbusAsyncError::StaleGeneration) {
+            ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(false, 0);
+            if (ui && ui->TBtn_Interlocking) {
+                ui->TBtn_Interlocking->setText(QStringLiteral("--"));
+            }
+            return;
+        }
+        applyInterlockRegisterValue(result.values.first());
+        return;
+    }
+
+    if (result.id != 0 && result.id == m_runtimeReadId) {
+        m_runtimeReadId = 0;
+        if (!result.ok || result.values.size() < 2 || result.error == ModbusAsyncError::StaleGeneration) {
+            qCWarning(lcMainWindow) << "读取主控寄存器" << kRuntimePersistRegister
+                                    << "~" << kRuntimePersistRegisterHi
+                                    << "失败，暂不写入运行时间";
+            return;
+        }
+        const quint32 packed = (static_cast<quint32>(result.values.at(1)) << 16) | result.values.at(0);
+        m_persistedTotalRuntimeSec = static_cast<qint64>(packed);
+        m_lastSavedTotalRuntimeSec = m_persistedTotalRuntimeSec;
+        m_runtimeBaselineReady = true;
+        updateHistoryListRuntimeDisplay();
+        qCDebug(lcMainWindow) << "已从主控寄存器" << kRuntimePersistRegister
+                              << "~" << kRuntimePersistRegisterHi
+                              << "加载总运行时间(秒):" << m_persistedTotalRuntimeSec;
+        return;
+    }
+
+    if (!m_spareNameReads.contains(result.id)) {
+        return;
+    }
+    const SpareNameReadToken token = m_spareNameReads.take(result.id);
+    TechPushButton *btn = nullptr;
+    if (m_techBtnSpare1 && m_techBtnSpare1->objectName() == token.objectName) {
+        btn = m_techBtnSpare1;
+    } else if (m_techBtnSpare2 && m_techBtnSpare2->objectName() == token.objectName) {
+        btn = m_techBtnSpare2;
+    }
+    if (btn && result.ok && result.values.size() >= kModbusUtf8StringRegisterCount
+        && result.error != ModbusAsyncError::StaleGeneration) {
+        const QString decoded = decodeUtf8FromRegisters(result.values);
+        if (!decoded.isEmpty()) {
+            if (token.stateIndex == 1) {
+                btn->setProperty("spareFirstText", decoded);
+            } else if (token.stateIndex == 2) {
+                btn->setProperty("spareSecondText", decoded);
+            }
+        }
+    }
+    if (m_spareNameReads.isEmpty()) {
+        const auto finalize = [](TechPushButton *button) {
+            if (!button) {
+                return;
+            }
+            const QString first = button->property("spareFirstText").toString();
+            if (button->property("spareSecondText").toString().isEmpty()) {
+                button->setProperty("spareSecondText", first + QStringLiteral(" (第二态)"));
+            }
+        };
+        finalize(m_techBtnSpare1);
+        finalize(m_techBtnSpare2);
+        applySpareButtonRuntimeSettings();
+    }
+}
+
+void MainWindow::onAsyncWriteFinished(const ModbusResult &result)
+{
+    if (result.id != 0 && result.id == m_pendingInterlockWriteId && !result.ok) {
+        m_pendingInterlockWriteId = 0;
+        showNotification(QStringLiteral("写入联锁寄存器失败"));
+    }
+}
+
+void MainWindow::onMainMaskedWriteFinished(quint64 id, int address, bool ok, quint16 value)
+{
+    if (m_maskedPoseWaits.contains(id)) {
+        const MaskedPoseWait wait = m_maskedPoseWaits.take(id);
+        if (!ok) {
+            showNotification(QStringLiteral("读取%1寄存器失败").arg(wait.actionName));
+            return;
+        }
+        g_registerCache[address] = value;
+        if (address == kSixAxisPoseReg && (wait.bitIndex == 1 || wait.bitIndex == 2)) {
+            beginSixAxisPoseWait(wait.bitIndex, wait.actionName);
+        }
+        return;
+    }
+
+    if (id != 0 && id == m_sync527WriteId) {
+        m_sync527WriteId = 0;
+        if (!ok) {
+            qWarning() << "[主副轴同步] 读取寄存器527失败";
+            showNotification(QStringLiteral("读取寄存器527失败"));
+            return;
+        }
+        g_registerCache[address] = value;
+        qCDebug(lcMainWindow) << "[主副轴同步] 527 读改写完成，值" << value;
+        return;
+    }
+
+    if (!ok) {
+        qWarning() << "主控读改写失败，地址" << address;
+        return;
+    }
+    g_registerCache[address] = value;
+    if (address == kMainRobotStepDoneReg) {
+        m_mainRegister150Shadow = value;
+        m_mainRegister150Valid = true;
+    }
+    checkStepMotionWaitCompletion(address, value);
+}
+
+void MainWindow::queueSpareButtonNameReads()
+{
+    if (m_spareButtonNameBindings.isEmpty() || !m_spareNameReads.isEmpty()) {
+        return;
+    }
+
+    const auto prepare = [this](TechPushButton *btn) {
+        if (!btn || !m_spareButtonNameBindings.contains(btn->objectName())) {
+            return;
+        }
+        const QString objectName = btn->objectName();
+        const QString defaultFirst = m_spareButtonDefaultFirstText.value(
+            objectName,
+            MappingConfig::instance()->mapControlName(objectName));
+        btn->setProperty("spareFirstText", defaultFirst);
+        btn->setProperty("spareSecondText", QString());
+    };
+    prepare(m_techBtnSpare1);
+    prepare(m_techBtnSpare2);
+
+    const auto enqueue = [this](TechPushButton *btn, int stateIndex, const SpareButtonNameRegisterSpec &spec) {
+        if (!btn || !spec.isConfigured()) {
+            return;
+        }
+        ModbusReadRequest request;
+        request.id = ++m_nextAsyncId;
+        request.start = spec.startAddress;
+        request.count = kModbusUtf8StringRegisterCount;
+        SpareNameReadToken token;
+        token.objectName = btn->objectName();
+        token.stateIndex = stateIndex;
+        if (spec.device == QStringLiteral("主控") && m_modbusManager) {
+            request.generation = m_modbusManager->connectionGeneration();
+            m_spareNameReads.insert(request.id, token);
+            m_modbusManager->requestRead(request);
+        } else if (spec.device == QStringLiteral("AGV") && m_agvModbusManager) {
+            request.generation = m_agvModbusManager->sessionGeneration();
+            m_spareNameReads.insert(request.id, token);
+            m_agvModbusManager->requestRead(request);
+        }
+    };
+
+    const auto enqueueButton = [&](TechPushButton *btn) {
+        if (!btn || !m_spareButtonNameBindings.contains(btn->objectName())) {
+            return;
+        }
+        const SpareButtonNameRegisterBinding binding = m_spareButtonNameBindings.value(btn->objectName());
+        enqueue(btn, 1, binding.state1);
+        enqueue(btn, 2, binding.state2);
+    };
+    enqueueButton(m_techBtnSpare1);
+    enqueueButton(m_techBtnSpare2);
+    if (m_spareNameReads.isEmpty()) {
+        applySpareButtonRuntimeSettings();
+    }
 }
 
 void MainWindow::noteTeachPendantInterlockValue(quint16 registerValue)
@@ -6715,11 +6915,8 @@ void MainWindow::on_TBtn_Interlocking_clicked()
     QString label = ui->TBtn_Interlocking->text();
     if (!m_teachPendantOwnershipKnown || (label != upper && label != lower)) {
         refreshInterlockingButtonText();
-        label = ui->TBtn_Interlocking->text();
-        if (label != upper && label != lower) {
-            showNotification(QStringLiteral("无法读取示教器状态，请稍后再试"));
-            return;
-        }
+        showNotification(QStringLiteral("无法读取示教器状态，请稍后再试"));
+        return;
     }
 
     const ButtonModbusMapping::Binding binding = buttonModbusBinding(QStringLiteral("TBtn_Interlocking"));
@@ -6739,10 +6936,12 @@ void MainWindow::on_TBtn_Interlocking_clicked()
         nextLabel = upper;
     }
 
-    if (!MainDeviceModbusApi::writeRegister(mgr, addr, static_cast<int>(valueToWrite))) {
-        showNotification(QStringLiteral("写入联锁寄存器失败"));
-        return;
-    }
+    ModbusWriteCommand command;
+    command.id = ++m_nextAsyncId;
+    command.start = addr;
+    command.values = {valueToWrite};
+    m_pendingInterlockWriteId = command.id;
+    mgr->requestWrite(command);
     ui->TBtn_Interlocking->setText(nextLabel);
     m_pendingInterlockWriteValue = static_cast<int>(valueToWrite);
     m_pendingInterlockWriteMs = QDateTime::currentMSecsSinceEpoch();
@@ -6799,27 +6998,16 @@ void MainWindow::onModbusConnected()
     qCDebug(lcMainWindow) << "Modbus连接成功，启动交互任务...";
     MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Connected);
 
-    if (!m_runtimeBaselineReady && m_modbusManager
-        && isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
-        quint16 persistedLow = 0;
-        quint16 persistedHigh = 0;
-        const bool lowOk = m_modbusManager->readSingleRegister(kRuntimePersistRegister, persistedLow);
-        const bool highOk = m_modbusManager->readSingleRegister(kRuntimePersistRegisterHi, persistedHigh);
-        if (lowOk && highOk) {
-            const quint32 packed = (static_cast<quint32>(persistedHigh) << 16) | persistedLow;
-            m_persistedTotalRuntimeSec = static_cast<qint64>(packed);
-            m_lastSavedTotalRuntimeSec = m_persistedTotalRuntimeSec;
-            m_runtimeBaselineReady = true;
-            updateHistoryListRuntimeDisplay();
-            qCDebug(lcMainWindow) << "已从主控寄存器" << kRuntimePersistRegister
-                                  << "~" << kRuntimePersistRegisterHi
-                                  << "加载总运行时间(秒):" << m_persistedTotalRuntimeSec;
-        } else {
-            qCWarning(lcMainWindow) << "读取主控寄存器" << kRuntimePersistRegister
-                                    << "~" << kRuntimePersistRegisterHi
-                                    << "失败，暂不写入运行时间";
+        if (!m_runtimeBaselineReady && m_modbusManager
+            && isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
+            ModbusReadRequest request;
+            request.id = ++m_nextAsyncId;
+            request.start = kRuntimePersistRegister;
+            request.count = 2;
+            request.generation = m_modbusManager->connectionGeneration();
+            m_runtimeReadId = request.id;
+            m_modbusManager->requestRead(request);
         }
-    }
 
     // 立即启动原本推迟的数据读取子系统
     if (isFeatureEnabled("startup_checks", "startup.write_registers")) {
@@ -7886,19 +8074,18 @@ void MainWindow::readAllFloatRegisters()
         //            << "数量" << m_mainDeviceStatusCount;
     }
 
-    // 设备状态组（默认 192.168.1.13 的 0~84）独立轮询。
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager,
-                                              m_mainDeviceStatusStart,
-                                              m_mainDeviceStatusCount);
+    QVector<QPair<int, int>> ranges;
+    ranges.append(qMakePair(m_mainDeviceStatusStart, m_mainDeviceStatusCount));
 
-    // 兼容旧配置：若当前轮询组未覆盖 73~84，则补读一次该区间，确保 SixAxies 数据可用。
     const int statusEnd = m_mainDeviceStatusStart + m_mainDeviceStatusCount - 1;
     const bool coversSixAxisRange = (m_mainDeviceStatusStart <= 73) && (statusEnd >= 84);
     if (!coversSixAxisRange) {
-        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 73, 12);
+        ranges.append(qMakePair(73, 12));
     }
-
-    // 设备状态组由本函数独立负责；控制同步组由 readMainControlSyncRegisters 负责。
+    MainDeviceModbusApi::requestReads(m_modbusManager,
+                                      ++m_nextAsyncId,
+                                      m_modbusManager->connectionGeneration(),
+                                      ranges);
 }
 
 void MainWindow::readMainControlSyncRegisters()
@@ -7907,55 +8094,37 @@ void MainWindow::readMainControlSyncRegisters()
         return;
     }
 
-    // 控制同步组（默认 125~130）：点动/步进、运动模式、机器人速度同步位。
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager,
-                                              m_mainControlSyncStart,
-                                              m_mainControlSyncCount);
-
-    // 第四页步进/点动状态同步：读取192.168.1.13设备的600寄存器（1=点动，2=步进）。
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 600, 1);
-
-    // 机器人总功率：192.168.1.13 的 134 寄存器
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 134, 1);
-
-    // 当前负载重量：192.168.1.13 的 123 寄存器
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainCurrentLoadWeightReg, 1);
-
-    // 管理员负载阈值：5004 负载超限、5005 负载超重
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainWeightOverloadLimitReg, 2);
-
-    // 管理员倾角阈值：5027 倾角报警、5028 倾角锁定（寄存器值÷100 为度）
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainInclinometerAlarmLimitReg, 2);
-
-    // 高度/长度锁定底盘阈值：5006 高度、5007 长度
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainHeightLockChassisLimitReg, 2);
-
-    // 六自由度姿态回零/调平状态：615 bit1 / bit2
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kSixAxisPoseReg, 1);
-
-    // 机械臂步进到位：150.bit11 0→1 关窗
+    QVector<QPair<int, int>> ranges;
+    ranges.append(qMakePair(m_mainControlSyncStart, m_mainControlSyncCount));
+    ranges.append(qMakePair(600, 1));
+    ranges.append(qMakePair(134, 1));
+    ranges.append(qMakePair(kMainCurrentLoadWeightReg, 1));
+    ranges.append(qMakePair(kMainWeightOverloadLimitReg, 2));
+    ranges.append(qMakePair(kMainInclinometerAlarmLimitReg, 2));
+    ranges.append(qMakePair(kMainHeightLockChassisLimitReg, 2));
+    ranges.append(qMakePair(kSixAxisPoseReg, 1));
     if (m_stepMotionWaitKind == StepMotionWaitKind::RobotJoint) {
-        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainRobotStepDoneReg, 1);
+        ranges.append(qMakePair(kMainRobotStepDoneReg, 1));
     }
-
-    // 六自由度步进到位：87.bit0 0→1 关窗
     if (m_stepMotionWaitKind == StepMotionWaitKind::SixAxis) {
-        MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, kMainSixAxisStepDoneReg, 1);
+        ranges.append(qMakePair(kMainSixAxisStepDoneReg, 1));
     }
+    ranges.append(qMakePair(500, 1));
+    ranges.append(qMakePair(151, 1));
+    MainDeviceModbusApi::requestReads(m_modbusManager,
+                                      ++m_nextAsyncId,
+                                      m_modbusManager->connectionGeneration(),
+                                      ranges);
 
-    // 底盘步进到位：AGV 51.bit9 0→1 关窗
     if (m_stepMotionWaitKind == StepMotionWaitKind::Agv
         && m_agvModbusManager && m_agvModbusManager->isConnected()) {
         m_agvModbusManager->readMultipleRegisters(kAgvStepDoneReg, 1);
     }
 
-    // 当前运动目标轴：500（1~4=J1~J4，5=六自由度），供限位 Toast 文案使用
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 500, 1);
-
-    // 卷样机钢缆到位：151.bit0/bit1；姿态调平门控：151.bit2；吊重-支腿-伸缩臂联锁：151.bit3~7
-    MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 151, 1);
-
-    syncSpareButtonNamesFromRegisters();
+    if (++m_spareNamePollTick >= 10) {
+        m_spareNamePollTick = 0;
+        queueSpareButtonNameReads();
+    }
 }
 // 配置所有TechSliderLabel的参数
 void MainWindow::setupSliderLabelConfigs()
@@ -8188,27 +8357,35 @@ void MainWindow::setupAGVModbus()
 
     // 连接信号槽
     connect(m_agvModbusManager, &AGVModbusManager::connected,
-            this, &MainWindow::onAGVModbusConnected);
+            this, &MainWindow::onAGVModbusConnected, Qt::QueuedConnection);
     connect(m_agvModbusManager, &AGVModbusManager::disconnected,
-            this, &MainWindow::onAGVModbusDisconnected);
+            this, &MainWindow::onAGVModbusDisconnected, Qt::QueuedConnection);
     connect(m_agvModbusManager, &AGVModbusManager::errorOccurred,
-            this, &MainWindow::onAGVModbusError);
+            this, &MainWindow::onAGVModbusError, Qt::QueuedConnection);
     connect(m_agvModbusManager, &AGVModbusManager::bitVariableChanged,
-            this, &MainWindow::onAGVBitVariableChanged);
+            this, &MainWindow::onAGVBitVariableChanged, Qt::QueuedConnection);
     connect(m_agvModbusManager, &AGVModbusManager::wordVariableChanged,
-            this, &MainWindow::onAGVWordVariableChanged);
+            this, &MainWindow::onAGVWordVariableChanged, Qt::QueuedConnection);
     connect(m_agvModbusManager, &AGVModbusManager::updateFaultsLabel,
-            this, &MainWindow::onAGVUpdateFaultsLabel);
+            this, &MainWindow::onAGVUpdateFaultsLabel, Qt::QueuedConnection);
     connect(m_agvModbusManager, &AGVModbusManager::updateProgressBar,
-            this, &MainWindow::onAGVUpdateProgressBar);
+            this, &MainWindow::onAGVUpdateProgressBar, Qt::QueuedConnection);
     connect(m_agvModbusManager, &AGVModbusManager::updateStatusLabel,
-            this, &MainWindow::onAGVUpdateStatusLabel);
+            this, &MainWindow::onAGVUpdateStatusLabel, Qt::QueuedConnection);
     connect(m_agvModbusManager, &AGVModbusManager::addFaultCodeToList,
-            this, &MainWindow::onAGVAddFaultCodeToList);
+            this, &MainWindow::onAGVAddFaultCodeToList, Qt::QueuedConnection);
     connect(m_agvModbusManager, &AGVModbusManager::clearFaultCodes,
-            this, &MainWindow::onAGVClearFaultCodes);
+            this, &MainWindow::onAGVClearFaultCodes, Qt::QueuedConnection);
     connect(m_agvModbusManager, &AGVModbusManager::heartbeatReceived,
-            this, &MainWindow::onAGVHeartbeatReceived);
+            this, &MainWindow::onAGVHeartbeatReceived, Qt::QueuedConnection);
+    connect(m_agvModbusManager, &AGVModbusManager::readFinished,
+            this, &MainWindow::onAsyncReadFinished, Qt::QueuedConnection);
+    connect(m_agvModbusManager, &AGVModbusManager::writeCompleted,
+            this, [this](int address, quint16 value, bool success) {
+                if (success) {
+                    m_agvRegisterShadow[address] = value;
+                }
+            }, Qt::QueuedConnection);
 
     connect(m_agvModbusManager, &AGVModbusManager::teachingWriteGateDenied,
             this, &MainWindow::showTeachingWriteGateDeniedDialog,
@@ -8884,8 +9061,8 @@ void MainWindow::setupEnableButton()
 
     qCDebug(lcMainWindow) << "使能按钮设备打开成功，文件描述符:" << m_enableButtonFd;
 
-    // 使用成员指针托管线程与 worker 生命周期，便于析构阶段可靠停止
-    m_enableButtonThread = new QThread(this);
+    // 线程不挂到窗口上，避免窗口析构时删除仍在运行的 QThread。
+    m_enableButtonThread = new QThread();
     m_enableButtonWorker = new EnableButtonWorker(m_enableButtonFd);
     m_enableButtonWorker->moveToThread(m_enableButtonThread);
 
@@ -8896,14 +9073,6 @@ void MainWindow::setupEnableButton()
             this, &MainWindow::onEnableButtonStateChanged, Qt::QueuedConnection);
     connect(m_enableButtonWorker, &EnableButtonWorker::errorOccurred,
             this, &MainWindow::onEnableButtonError, Qt::QueuedConnection);
-
-    // 线程结束时清理
-    connect(m_enableButtonThread, &QThread::finished,
-            m_enableButtonWorker, &EnableButtonWorker::deleteLater);
-    connect(m_enableButtonThread, &QThread::finished,
-            this, [this]() { m_enableButtonWorker = nullptr; });
-    connect(m_enableButtonThread, &QThread::finished,
-            this, [this]() { m_enableButtonThread = nullptr; });
 
     // 启动线程
     m_enableButtonThread->start();
@@ -9315,10 +9484,9 @@ bool MainWindow::writeToAGVDevice(int address, int value, bool bypassWirelessWar
         qCDebug(lcMainWindow) << "[AGV] 写入地址:" << address << "值:" << value;
     }
 
-    // 转换负数为无符号数（如果需要）
     quint16 writeValue;
     if (value < 0) {
-        writeValue = static_cast<quint16>(65536 + value);  // 负数转换为补码
+        writeValue = static_cast<quint16>(65536 + value);
         if (isFeatureEnabled("modbus_agv", "modbus_agv.write_logs")) {
             qCDebug(lcMainWindow) << "[AGV] 负数转换:" << value << "->" << writeValue;
         }
@@ -9326,15 +9494,7 @@ bool MainWindow::writeToAGVDevice(int address, int value, bool bypassWirelessWar
         writeValue = static_cast<quint16>(value);
     }
 
-    // 执行写入
-    bool writeSuccess = m_agvModbusManager->writeSingleRegister(address, writeValue);
-
-    if (!writeSuccess) {
-        qWarning() << "[AGV] 写入请求发送失败 - 地址:" << address;
-        return false;
-    }
-    m_agvRegisterShadow[address] = writeValue;
-    return true;
+    return m_agvModbusManager->writeSingleRegister(address, writeValue);
 }
 
 bool MainWindow::writeAGVRegisterBits(int address,
@@ -9365,40 +9525,15 @@ bool MainWindow::writeAGVRegisterBits(int address,
         return false;
     }
 
-    quint16 baseValue = m_agvRegisterShadow.value(address, 0);
-    quint16 newValue = baseValue;
-
-    for (const auto &bitUpdate : bitUpdates) {
-        const int bit = bitUpdate.first;
-        const bool set = bitUpdate.second;
-        if (bit < 0 || bit > 15) {
-            qWarning() << "[AGV按位写入] 非法位索引:" << bit;
-            return false;
-        }
-
-        if (set) {
-            newValue = static_cast<quint16>(newValue | (static_cast<quint16>(1u) << bit));
-        } else {
-            newValue = static_cast<quint16>(newValue & ~(static_cast<quint16>(1u) << bit));
-        }
+    if (!m_agvModbusManager) {
+        return false;
     }
-
-    bool ok = m_agvModbusManager && m_agvModbusManager->writeSingleRegister(address, newValue);
-    if (ok) {
-        m_agvRegisterShadow[address] = newValue;
-        if (isFeatureEnabled("modbus_agv", "modbus_agv.write_logs")) {
-            qCDebug(lcMainWindow) << "[AGV按位写入]" << (scene.isEmpty() ? QString("场景未命名") : scene)
-                                  << "地址:" << address
-                                  << "基值:" << baseValue
-                                  << "新值:" << newValue;
-        }
-    } else {
+    const bool queued = m_agvModbusManager->queueRegisterBitUpdates(address, bitUpdates);
+    if (!queued) {
         qWarning() << "[AGV按位写入失败]" << (scene.isEmpty() ? QString("场景未命名") : scene)
-                   << "地址:" << address
-                   << "基值:" << baseValue
-                   << "目标值:" << newValue;
+                   << "地址:" << address;
     }
-    return ok;
+    return queued;
 }
 
 void MainWindow::writeToMainDevice(int address, int value)
@@ -9418,7 +9553,7 @@ void MainWindow::writeToMainDevice(int address, int value)
                  << "值:" << value;
     }
 
-    MainDeviceModbusApi::writeRegister(m_modbusManager, address, value);
+    queueMainWrite(address, static_cast<quint16>(value));
 }
 void MainWindow::onControlModeClicked()
 {
@@ -9727,51 +9862,7 @@ bool MainWindow::readModbusUtf8StringRegisters(const QString &device,
 
 void MainWindow::syncSpareButtonNamesFromRegisters()
 {
-    if (m_spareButtonNameBindings.isEmpty()) {
-        return;
-    }
-
-    const auto syncOne = [this](TechPushButton *btn) {
-        if (!btn) {
-            return;
-        }
-        const QString objectName = btn->objectName();
-        if (!m_spareButtonNameBindings.contains(objectName)) {
-            return;
-        }
-
-        const SpareButtonNameRegisterBinding binding = m_spareButtonNameBindings.value(objectName);
-        const QString defaultFirst = m_spareButtonDefaultFirstText.value(
-            objectName,
-            MappingConfig::instance()->mapControlName(objectName));
-
-        QString firstText = defaultFirst;
-        if (binding.state1.isConfigured()) {
-            QString decoded;
-            if (readModbusUtf8StringRegisters(binding.state1.device, binding.state1.startAddress, decoded)
-                && !decoded.isEmpty()) {
-                firstText = decoded;
-            }
-        }
-        btn->setProperty("spareFirstText", firstText);
-
-        QString secondText;
-        if (binding.state2.isConfigured()) {
-            QString decoded;
-            if (readModbusUtf8StringRegisters(binding.state2.device, binding.state2.startAddress, decoded)
-                && !decoded.isEmpty()) {
-                secondText = decoded;
-            }
-        }
-        if (secondText.isEmpty()) {
-            secondText = firstText + QStringLiteral(" (第二态)");
-        }
-        btn->setProperty("spareSecondText", secondText);
-    };
-
-    syncOne(m_techBtnSpare1);
-    syncOne(m_techBtnSpare2);
-    applySpareButtonRuntimeSettings();
+    queueSpareButtonNameReads();
 }
 
 void MainWindow::executeSpareButtonConfiguredWrites(const QString &buttonObjectName, int stateIndex)
@@ -9819,17 +9910,13 @@ void MainWindow::executeConfiguredRegisterWrites(const QList<ModbusRegisterSpec>
                 if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
                     continue;
                 }
-                quint16 cur = 0;
-                if (!m_modbusManager->readSingleRegister(address, cur)) {
-                    continue;
-                }
-                quint16 next = cur;
-                if (valueInt != 0) {
-                    next = static_cast<quint16>(next | (static_cast<quint16>(1u) << bitIndex));
-                } else {
-                    next = static_cast<quint16>(next & ~(static_cast<quint16>(1u) << bitIndex));
-                }
-                writeToMainDevice(address, next);
+                const quint16 orMask = valueInt != 0
+                    ? static_cast<quint16>(1u << bitIndex)
+                    : 0;
+                const quint16 andMask = valueInt != 0
+                    ? static_cast<quint16>(0xFFFF)
+                    : static_cast<quint16>(~(static_cast<quint16>(1u) << bitIndex));
+                m_modbusManager->queueMaskedWrite(++m_nextAsyncId, address, orMask, andMask);
             } else if (hasValue) {
                 writeToMainDevice(address, valueInt);
             }
@@ -10932,19 +11019,33 @@ void MainWindow::applyNetworkRuntimeSettings()
 
     if (isFeatureEnabled("tcp_transmission", "tcp.remote_simulator")) {
         const QString &simHost = m_remoteSimulatorHost;
+        ++m_robotExternalWriteSeq;
+        ++m_sixAxisExternalWriteSeq;
         if (m_modbusManager) {
-            m_modbusManager->disconnectFromDevice();
-            MainModbusConnector::connectAndConfigure(
-                m_modbusManager,
-                MainModbusEndpoint{simHost, 5020},
-                m_mainModbusPollIntervalMs,
-                m_mainReconnectIntervalMs);
-            qCDebug(lcMainWindow) << "[MainModbus] 已切换模拟器并重新连接:" << simHost << ":5020";
+            m_modbusManager->setWriteGeneration(ModbusThreadManager::kRobotExternalWriteChannel,
+                                               m_robotExternalWriteSeq);
+            m_modbusManager->setWriteGeneration(ModbusThreadManager::kSixAxisExternalWriteChannel,
+                                               m_sixAxisExternalWriteSeq);
+            ModbusThreadManager *manager = m_modbusManager;
+            const QString host = simHost;
+            const int pollInterval = m_mainModbusPollIntervalMs;
+            const int reconnectInterval = m_mainReconnectIntervalMs;
+            QMetaObject::invokeMethod(manager, [manager, host, pollInterval, reconnectInterval]() {
+                manager->disconnectFromDevice();
+                manager->connectToDevice(host, 5020);
+                manager->setPollInterval(pollInterval);
+                manager->setAutoReconnect(true, reconnectInterval);
+            }, Qt::QueuedConnection);
+            qCDebug(lcMainWindow) << "[MainModbus] 已排队切换模拟器并重新连接:" << simHost << ":5020";
         }
         if (m_agvModbusManager) {
-            m_agvModbusManager->disconnectFromDevice();
-            m_agvModbusManager->connectToDevice(simHost, 5021);
-            qCDebug(lcMainWindow) << "[AGVModbus] 已切换模拟器并重新连接:" << simHost << ":5021";
+            AGVModbusManager *agv = m_agvModbusManager;
+            const QString host = simHost;
+            QMetaObject::invokeMethod(agv, [agv, host]() {
+                agv->disconnectFromDevice();
+                agv->connectToDevice(host, 5021);
+            }, Qt::QueuedConnection);
+            qCDebug(lcMainWindow) << "[AGVModbus] 已排队切换模拟器并重新连接:" << simHost << ":5021";
         }
     } else {
         qCDebug(lcMainWindow) << "当前未启用远程模拟器模式，模拟器 IP 将在下次切换模式时生效";
@@ -12198,13 +12299,13 @@ void MainWindow::writeStepValueDoubleToMainDevice(double value)
     values.reserve(4);
     values << regs[0] << regs[1] << regs[2] << regs[3];
 
-    const bool batchOk = MainDeviceModbusApi::writeRegisters(m_modbusManager, 502, values);
-    if (!batchOk) {
-        // 兼容回退：若批量写失败，则保持原有逐寄存器写行为。
-        writeToMainDevice(502, static_cast<int>(regs[0]));
-        writeToMainDevice(503, static_cast<int>(regs[1]));
-        writeToMainDevice(504, static_cast<int>(regs[2]));
-        writeToMainDevice(505, static_cast<int>(regs[3]));
+    const bool batchOk = m_modbusManager != nullptr;
+    if (batchOk) {
+        ModbusWriteCommand command;
+        command.id = ++m_nextAsyncId;
+        command.start = 502;
+        command.values = values;
+        m_modbusManager->requestWrite(command);
     }
 
     qCDebug(lcMainWindow) << "步进值(double, GH EF CD AB)写入502~505:" << value
@@ -13292,15 +13393,12 @@ void MainWindow::clearCurrentViewStepDoneBitOnEnablePress()
 
     int address = -1;
     int bit = -1;
-    StepMotionWaitKind waitKind = StepMotionWaitKind::None;
     if (isSixAxisViewActive()) {
         address = kMainSixAxisStepDoneReg;
         bit = kMainSixAxisStepDoneBit;
-        waitKind = StepMotionWaitKind::SixAxis;
     } else if (isRobotAxisViewActive()) {
         address = kMainRobotStepDoneReg;
         bit = kMainRobotStepDoneBit;
-        waitKind = StepMotionWaitKind::RobotJoint;
     } else {
         return;
     }
@@ -13310,35 +13408,9 @@ void MainWindow::clearCurrentViewStepDoneBitOnEnablePress()
         return;
     }
 
-    quint16 cur = 0;
-    bool haveCur = m_modbusManager->readSingleRegister(address, cur);
-    if (!haveCur) {
-        if (address == kMainRobotStepDoneReg && m_mainRegister150Valid) {
-            cur = m_mainRegister150Shadow;
-            haveCur = true;
-        } else if (g_registerCache.contains(address)) {
-            cur = g_registerCache.value(address);
-            haveCur = true;
-        }
-    }
-    if (!haveCur) {
-        qWarning() << "步进使能按下：读取主控" << address << "失败，放弃清位";
-        return;
-    }
-
-    const quint16 next = static_cast<quint16>(cur & ~(static_cast<quint16>(1u) << bit));
-    if (next != cur) {
-        writeToMainDevice(address, static_cast<int>(next));
-        g_registerCache[address] = next;
-        if (address == kMainRobotStepDoneReg) {
-            m_mainRegister150Shadow = next;
-        }
-    }
-    if (m_stepMotionWaitKind == waitKind) {
-        m_stepMotionWaitSawZero = true;
-    }
-    qCDebug(lcMainWindow) << "步进使能按下：主控" << address << "bit" << bit
-                          << "原值" << cur << "写入" << next;
+    const quint16 andMask = static_cast<quint16>(~(static_cast<quint16>(1u) << bit));
+    m_modbusManager->queueMaskedWrite(++m_nextAsyncId, address, 0, andMask);
+    qCDebug(lcMainWindow) << "步进使能按下：已排队清除主控" << address << "bit" << bit;
 }
 
 void MainWindow::beginStepMotionWait(StepMotionWaitKind kind, const QString &message)
@@ -15166,12 +15238,11 @@ void MainWindow::hideTeachingWriteGateDeniedDialog()
 
 bool MainWindow::verifyTeachingWriteGateOrShowDialog()
 {
-    ModbusThreadManager *mgr = m_modbusManager ? m_modbusManager : ModbusThreadManager::instance();
-    if (ModbusWriteGate::verifyWriteAllowed(mgr)) {
-        return true;
+    if (ModbusWriteGate::hasInterlockSnapshot() && !ModbusWriteGate::cachedWriteAllowed()) {
+        showTeachingWriteGateDeniedDialog();
+        return false;
     }
-    showTeachingWriteGateDeniedDialog();
-    return false;
+    return true;
 }
 
 void MainWindow::showWirelessModeWarningDialog()
@@ -15597,16 +15668,8 @@ void MainWindow::onRobotAxisSyncStartClicked()
         return;
     }
     writeToMainDevice(290, 1);
-    quint16 cur527 = 0;
-    if (!m_modbusManager->readSingleRegister(527, cur527)) {
-        qWarning() << "[主副轴同步] 读取寄存器527失败";
-        showNotification(QStringLiteral("读取寄存器527失败"));
-        return;
-    }
-    constexpr int kBit = 5;
-    const quint16 next527 = static_cast<quint16>(cur527 | (static_cast<quint16>(1u) << kBit));
-    writeToMainDevice(527, next527);
-    qCDebug(lcMainWindow) << "[主副轴同步] 527: 原值" << cur527 << "→ 写入" << next527 << "(bit" << kBit << "=1)";
+    m_sync527WriteId = ++m_nextAsyncId;
+    m_modbusManager->queueMaskedWrite(m_sync527WriteId, 527, static_cast<quint16>(1u << 5), 0xFFFF);
     if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();

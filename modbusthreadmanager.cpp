@@ -6,6 +6,20 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QMetaObject>
+#include <QTimer>
+
+namespace {
+bool isGuiThread()
+{
+    const QCoreApplication *app = QCoreApplication::instance();
+    return app && QThread::currentThread() == app->thread();
+}
+
+bool sameThread(const QObject *object)
+{
+    return object && QThread::currentThread() == object->thread();
+}
+}
 
 ModbusThreadManager* ModbusThreadManager::instance()
 {
@@ -14,6 +28,10 @@ ModbusThreadManager* ModbusThreadManager::instance()
     static bool initialized = false;
 
     if (!initialized) {
+        qRegisterMetaType<ModbusReadRequest>();
+        qRegisterMetaType<ModbusWriteCommand>();
+        qRegisterMetaType<ModbusResult>();
+        qRegisterMetaType<GateDecision>();
         inst->moveToThread(workerThread);
         QObject::connect(workerThread, &QThread::finished,
                          workerThread, &QObject::deleteLater,
@@ -28,7 +46,9 @@ ModbusThreadManager* ModbusThreadManager::instance()
                     inst->disconnectFromDevice();
                 }, Qt::BlockingQueuedConnection);
                 workerThread->quit();
-                workerThread->wait();
+                if (!workerThread->wait(3000)) {
+                    qWarning() << "主控 Modbus 线程未在 3 秒内退出，禁止 terminate";
+                }
             }, Qt::UniqueConnection);
         }
 
@@ -51,6 +71,14 @@ ModbusThreadManager::ModbusThreadManager(QObject *parent)
             this, &ModbusThreadManager::errorOccurred);
     connect(m_modbusClient, &ModbusTCPClient::registerValueChanged,
             this, &ModbusThreadManager::onRegisterValueChanged);
+    connect(m_modbusClient, &ModbusTCPClient::connected, this, [this]() {
+        m_connectionGeneration.fetch_add(1);
+        m_connectedCached.store(true);
+    });
+    connect(m_modbusClient, &ModbusTCPClient::disconnected, this, [this]() {
+        m_connectionGeneration.fetch_add(1);
+        m_connectedCached.store(false);
+    });
 
     qDebug() << "Modbus线程管理器已启动";
 }
@@ -100,15 +128,18 @@ void ModbusThreadManager::disconnectFromDevice()
 
 bool ModbusThreadManager::isConnected() const
 {
-    if (QThread::currentThread() != thread()) {
-        bool connected = false;
-        QMetaObject::invokeMethod(const_cast<ModbusThreadManager *>(this), [this, &connected]() {
-            connected = m_modbusClient ? m_modbusClient->isConnected() : false;
-        }, Qt::BlockingQueuedConnection);
-        return connected;
+    if (!sameThread(this)) {
+        return m_connectedCached.load();
     }
 
-    return m_modbusClient ? m_modbusClient->isConnected() : false;
+    const bool connected = m_modbusClient && m_modbusClient->isConnected();
+    m_connectedCached.store(connected);
+    return connected;
+}
+
+quint64 ModbusThreadManager::connectionGeneration() const
+{
+    return m_connectionGeneration.load();
 }
 
 void ModbusThreadManager::registerSlider(TechSliderEdit *slider, int address)
@@ -141,6 +172,15 @@ void ModbusThreadManager::registerSlider(TechSliderEdit *slider, int address)
     if (slider->thread() == QThread::currentThread()) {
         slider->setModbusAddress(address);
     }
+
+    disconnect(this, &ModbusThreadManager::registerValueChanged, slider, nullptr);
+    connect(this, &ModbusThreadManager::registerValueChanged, slider,
+            [slider, address](int changedAddress, quint16 value) {
+                if (!slider || changedAddress != address) {
+                    return;
+                }
+                slider->updateFromModbus(static_cast<double>(value));
+            }, Qt::QueuedConnection);
 
     connect(slider, &QObject::destroyed, this, &ModbusThreadManager::onSliderDestroyed);
 }
@@ -177,7 +217,7 @@ void ModbusThreadManager::unregisterSlider(int address)
     if (!m_addressToSlider.contains(address)) {
         return;
     }
-    unregisterSlider(m_addressToSlider[address]);
+    unregisterSlider(m_addressToSlider.value(address).data());
 }
 
 void ModbusThreadManager::registerSliderLabel(TechSliderLabel *sliderLabel, int address)
@@ -210,6 +250,15 @@ void ModbusThreadManager::registerSliderLabel(TechSliderLabel *sliderLabel, int 
     if (sliderLabel->thread() == QThread::currentThread()) {
         sliderLabel->setModbusAddress(address);
     }
+
+    disconnect(this, &ModbusThreadManager::registerValueChanged, sliderLabel, nullptr);
+    connect(this, &ModbusThreadManager::registerValueChanged, sliderLabel,
+            [sliderLabel, address](int changedAddress, quint16 value) {
+                if (!sliderLabel || changedAddress != address) {
+                    return;
+                }
+                sliderLabel->updateFromModbus(static_cast<double>(value));
+            }, Qt::QueuedConnection);
 
     connect(sliderLabel, &QObject::destroyed, this, &ModbusThreadManager::onSliderLabelDestroyed);
 }
@@ -248,30 +297,14 @@ void ModbusThreadManager::unregisterSliderLabel(int address)
     if (!m_addressToSliderLabel.contains(address)) {
         return;
     }
-    unregisterSliderLabel(m_addressToSliderLabel[address]);
+    unregisterSliderLabel(m_addressToSliderLabel.value(address).data());
 }
 
 void ModbusThreadManager::onRegisterValueChanged(int address, quint16 value)
 {
     emit registerValueChanged(address, value);
-
-    if (m_addressToSlider.contains(address)) {
-        TechSliderEdit *slider = m_addressToSlider[address];
-        if (slider) {
-            QMetaObject::invokeMethod(slider, [slider, value]() {
-                slider->updateFromModbus(static_cast<double>(value));
-            }, Qt::QueuedConnection);
-        }
-    }
-
-    if (m_addressToSliderLabel.contains(address)) {
-        TechSliderLabel *sliderLabel = m_addressToSliderLabel[address];
-        if (sliderLabel) {
-            QMetaObject::invokeMethod(sliderLabel, [sliderLabel, value]() {
-                sliderLabel->updateFromModbus(static_cast<double>(value));
-            }, Qt::QueuedConnection);
-        }
-    }
+    Q_UNUSED(address);
+    Q_UNUSED(value);
 }
 
 void ModbusThreadManager::onSliderDestroyed(QObject *obj)
@@ -328,7 +361,11 @@ void ModbusThreadManager::setAutoReconnect(bool enable, int interval)
 
 bool ModbusThreadManager::readSingleRegister(int address, quint16 &value)
 {
-    if (QThread::currentThread() != thread()) {
+    if (!sameThread(this)) {
+        if (isGuiThread()) {
+            qWarning() << "拒绝在 GUI 线程同步读取主控寄存器" << address;
+            return false;
+        }
         bool ok = false;
         QMetaObject::invokeMethod(this, [this, address, &value, &ok]() {
             ok = readSingleRegister(address, value);
@@ -454,7 +491,16 @@ bool ModbusThreadManager::writeMultipleRegisters(int startAddress, const QVector
         return false;
     }
 
-    const bool result = m_modbusClient->writeMultipleRegisters(startAddress, values);
+    bool result = m_modbusClient->writeMultipleRegisters(startAddress, values);
+    if (!result) {
+        result = true;
+        for (int i = 0; i < values.size(); ++i) {
+            if (!m_modbusClient->writeSingleRegister(startAddress + i, values.at(i))) {
+                result = false;
+                break;
+            }
+        }
+    }
     if (result) {
         for (int i = 0; i < values.size(); ++i) {
             emit registerWritten(startAddress + i, values.at(i));
@@ -472,12 +518,11 @@ bool ModbusThreadManager::writeMultipleRegisters(int startAddress, const QVector
 
 bool ModbusThreadManager::readHoldingRegisters(int startAddress, int count)
 {
-    if (QThread::currentThread() != thread()) {
-        bool ok = false;
-        QMetaObject::invokeMethod(this, [this, startAddress, count, &ok]() {
-            ok = readHoldingRegisters(startAddress, count);
-        }, Qt::BlockingQueuedConnection);
-        return ok;
+    if (!sameThread(this)) {
+        QMetaObject::invokeMethod(this, [this, startAddress, count]() {
+            readHoldingRegisters(startAddress, count);
+        }, Qt::QueuedConnection);
+        return true;
     }
 
     if (!m_modbusClient || !m_modbusClient->isConnected()) {
@@ -489,7 +534,12 @@ bool ModbusThreadManager::readHoldingRegisters(int startAddress, int count)
 
 bool ModbusThreadManager::readHoldingRegistersSync(int startAddress, int count, QVector<quint16> &values)
 {
-    if (QThread::currentThread() != thread()) {
+    if (!sameThread(this)) {
+        if (isGuiThread()) {
+            qWarning() << "拒绝在 GUI 线程同步读取主控寄存器" << startAddress;
+            values.clear();
+            return false;
+        }
         bool ok = false;
         QMetaObject::invokeMethod(this, [this, startAddress, count, &values, &ok]() {
             ok = readHoldingRegistersSync(startAddress, count, values);
@@ -507,12 +557,11 @@ bool ModbusThreadManager::readHoldingRegistersSync(int startAddress, int count, 
 
 bool ModbusThreadManager::readInputRegisters(int startAddress, int count)
 {
-    if (QThread::currentThread() != thread()) {
-        bool ok = false;
-        QMetaObject::invokeMethod(this, [this, startAddress, count, &ok]() {
-            ok = readInputRegisters(startAddress, count);
-        }, Qt::BlockingQueuedConnection);
-        return ok;
+    if (!sameThread(this)) {
+        QMetaObject::invokeMethod(this, [this, startAddress, count]() {
+            readInputRegisters(startAddress, count);
+        }, Qt::QueuedConnection);
+        return true;
     }
 
     if (!m_modbusClient || !m_modbusClient->isConnected()) {
@@ -542,4 +591,207 @@ void ModbusThreadManager::readMultipleHoldingRegisters(int startAddress, int cou
         int currentCount = qMin(maxReadCount, count - i);
         m_modbusClient->readHoldingRegisters(currentStart, currentCount);
     }
+}
+
+void ModbusThreadManager::requestRead(const ModbusReadRequest &request)
+{
+    if (!sameThread(this)) {
+        QMetaObject::invokeMethod(this, [this, request]() {
+            requestRead(request);
+        }, Qt::QueuedConnection);
+        return;
+    }
+
+    ModbusResult result;
+    result.id = request.id;
+    result.start = request.start;
+    result.generation = request.generation;
+    const quint64 session = m_connectionGeneration.load();
+    if (request.generation != 0 && request.generation != session) {
+        result.ok = false;
+        result.error = ModbusAsyncError::StaleGeneration;
+        emit readFinished(result);
+        return;
+    }
+
+    QVector<quint16> values;
+    const bool ok = readHoldingRegistersSync(request.start, request.count, values);
+    if (m_connectionGeneration.load() != session) {
+        result.ok = false;
+        result.error = ModbusAsyncError::StaleGeneration;
+        emit readFinished(result);
+        return;
+    }
+    result.ok = ok;
+    result.error = ok ? ModbusAsyncError::None : ModbusAsyncError::IoFailed;
+    result.values = values;
+    emit readFinished(result);
+}
+
+void ModbusThreadManager::requestReadRanges(quint64 id, quint64 generation, const QVector<QPair<int, int>> &ranges)
+{
+    if (!sameThread(this)) {
+        QMetaObject::invokeMethod(this, [this, id, generation, ranges]() {
+            requestReadRanges(id, generation, ranges);
+        }, Qt::QueuedConnection);
+        return;
+    }
+
+    ModbusResult result;
+    result.id = id;
+    result.generation = generation;
+    const quint64 session = m_connectionGeneration.load();
+    if (generation != 0 && generation != session) {
+        result.ok = false;
+        result.error = ModbusAsyncError::StaleGeneration;
+        emit readFinished(result);
+        return;
+    }
+
+    bool ok = true;
+    for (const QPair<int, int> &range : ranges) {
+        if (m_connectionGeneration.load() != session) {
+            ok = false;
+            result.error = ModbusAsyncError::StaleGeneration;
+            break;
+        }
+        if (!readHoldingRegisters(range.first, range.second)) {
+            ok = false;
+            result.error = ModbusAsyncError::IoFailed;
+            break;
+        }
+    }
+    result.ok = ok;
+    if (ok) {
+        result.error = ModbusAsyncError::None;
+    }
+    emit readFinished(result);
+}
+
+void ModbusThreadManager::requestWrite(const ModbusWriteCommand &command)
+{
+    if (!sameThread(this)) {
+        QMetaObject::invokeMethod(this, [this, command]() {
+            requestWrite(command);
+        }, Qt::QueuedConnection);
+        return;
+    }
+
+    ModbusResult result;
+    result.id = command.id;
+    result.start = command.start;
+    result.generation = command.generation;
+    if (command.generationChannel != 0
+        && m_writeGeneration.value(command.generationChannel) != command.generation) {
+        result.ok = false;
+        result.error = ModbusAsyncError::StaleGeneration;
+        emit writeFinished(result);
+        return;
+    }
+
+    bool ok = false;
+    if (command.values.size() == 1) {
+        ok = writeSingleRegister(command.start, command.values.at(0));
+    } else if (!command.values.isEmpty()) {
+        ok = writeMultipleRegisters(command.start, command.values);
+    }
+    result.ok = ok;
+    result.values = command.values;
+    result.error = ok ? ModbusAsyncError::None : ModbusAsyncError::IoFailed;
+    emit writeFinished(result);
+}
+
+void ModbusThreadManager::requestWriteChain(quint64 id, const QVector<ModbusWriteCommand> &steps)
+{
+    if (!sameThread(this)) {
+        QMetaObject::invokeMethod(this, [this, id, steps]() {
+            requestWriteChain(id, steps);
+        }, Qt::QueuedConnection);
+        return;
+    }
+
+    bool ok = !steps.isEmpty();
+    for (const ModbusWriteCommand &step : steps) {
+        if (step.values.isEmpty()) {
+            ok = false;
+            break;
+        }
+        if (step.values.size() == 1) {
+            ok = writeSingleRegister(step.start, step.values.at(0));
+        } else {
+            ok = writeMultipleRegisters(step.start, step.values);
+        }
+        if (!ok) {
+            break;
+        }
+    }
+
+    ModbusResult result;
+    result.id = id;
+    result.ok = ok;
+    result.error = ok ? ModbusAsyncError::None : ModbusAsyncError::IoFailed;
+    emit writeFinished(result);
+}
+
+void ModbusThreadManager::setWriteGeneration(int channel, quint64 generation)
+{
+    if (!sameThread(this)) {
+        QMetaObject::invokeMethod(this, [this, channel, generation]() {
+            setWriteGeneration(channel, generation);
+        }, Qt::QueuedConnection);
+        return;
+    }
+    m_writeGeneration.insert(channel, generation);
+}
+
+void ModbusThreadManager::requestDelayedWrite(int channel, quint64 generation, int address, quint16 value, int delayMs)
+{
+    if (!sameThread(this)) {
+        QMetaObject::invokeMethod(this, [this, channel, generation, address, value, delayMs]() {
+            requestDelayedWrite(channel, generation, address, value, delayMs);
+        }, Qt::QueuedConnection);
+        return;
+    }
+
+    QTimer::singleShot(qMax(0, delayMs), this, [this, channel, generation, address, value]() {
+        if (m_writeGeneration.value(channel) != generation) {
+            return;
+        }
+        writeSingleRegister(address, value);
+    });
+}
+
+void ModbusThreadManager::queueMaskedWrite(quint64 id, int address, quint16 orMask, quint16 andMask)
+{
+    if (!sameThread(this)) {
+        QMetaObject::invokeMethod(this, [this, id, address, orMask, andMask]() {
+            queueMaskedWrite(id, address, orMask, andMask);
+        }, Qt::QueuedConnection);
+        return;
+    }
+
+    quint16 current = 0;
+    if (!readSingleRegister(address, current)) {
+        emit maskedWriteFinished(id, address, false, 0);
+        return;
+    }
+    const quint16 next = static_cast<quint16>((current | orMask) & andMask);
+    bool ok = true;
+    if (next != current) {
+        ok = writeSingleRegister(address, next);
+    }
+    emit maskedWriteFinished(id, address, ok, ok ? next : current);
+}
+
+void ModbusThreadManager::authorizeAgvWrite(quint64 commandId)
+{
+    if (!sameThread(this)) {
+        QMetaObject::invokeMethod(this, [this, commandId]() {
+            authorizeAgvWrite(commandId);
+        }, Qt::QueuedConnection);
+        return;
+    }
+
+    const bool allowed = ModbusWriteGate::allowAgvWrite(this);
+    emit agvGateDecision(commandId, allowed);
 }

@@ -123,6 +123,26 @@ MainWindow::~MainWindow()
     if (m_historyRuntimeUpdateTimer) {
         m_historyRuntimeUpdateTimer->stop();
     }
+    if (m_modbusReadTimer) {
+        m_modbusReadTimer->stop();
+    }
+    if (m_mainControlSyncTimer) {
+        m_mainControlSyncTimer->stop();
+    }
+    if (m_interlockingSyncTimer) {
+        m_interlockingSyncTimer->stop();
+    }
+    if (m_alarmCheckTimer) {
+        m_alarmCheckTimer->stop();
+    }
+    ++m_robotExternalWriteSeq;
+    ++m_sixAxisExternalWriteSeq;
+    if (m_modbusManager) {
+        m_modbusManager->setWriteGeneration(ModbusThreadManager::kRobotExternalWriteChannel,
+                                           m_robotExternalWriteSeq);
+        m_modbusManager->setWriteGeneration(ModbusThreadManager::kSixAxisExternalWriteChannel,
+                                           m_sixAxisExternalWriteSeq);
+    }
     savePersistedDeviceTotalRuntime();
 
     if (m_keyManager) {
@@ -131,16 +151,30 @@ MainWindow::~MainWindow()
     }
 
     qDebug() << "停止使能按钮监控线程...";
-    if (m_enableButtonWorker) {
-        QMetaObject::invokeMethod(m_enableButtonWorker, "stopPolling", Qt::BlockingQueuedConnection);
-    }
-
-    if (m_enableButtonThread) {
+    if (m_enableButtonWorker && m_enableButtonThread && m_enableButtonThread->isRunning()) {
+        EnableButtonWorker *worker = m_enableButtonWorker;
+        QMetaObject::invokeMethod(worker, [worker]() {
+            worker->stopPolling();
+            worker->deleteLater();
+        }, Qt::QueuedConnection);
         m_enableButtonThread->quit();
-        m_enableButtonThread->wait(1000);
+        if (!m_enableButtonThread->wait(3000)) {
+            qWarning() << "使能按钮线程未在 3 秒内退出，保留线程对象，禁止删除运行中的 QThread";
+        } else {
+            delete m_enableButtonThread;
+            m_enableButtonThread = nullptr;
+            m_enableButtonWorker = nullptr;
+            qDebug() << "使能按钮监控线程已停止";
+        }
+    } else if (m_enableButtonThread && !m_enableButtonThread->isRunning()) {
+        if (m_enableButtonWorker && m_enableButtonWorker->thread() == QThread::currentThread()) {
+            delete m_enableButtonWorker;
+        } else if (m_enableButtonWorker) {
+            qWarning() << "使能按钮 worker 仍属于已停止的线程，跳过跨线程 delete";
+        }
+        m_enableButtonWorker = nullptr;
         delete m_enableButtonThread;
         m_enableButtonThread = nullptr;
-        qDebug() << "使能按钮监控线程已停止";
     }
 
     if (m_enableButtonNotifier) {
@@ -157,31 +191,28 @@ MainWindow::~MainWindow()
         qDebug() << "使能按钮轮询定时器已清理";
     }
 
-    if (m_enableButtonFd >= 0) {
+    if (m_enableButtonFd >= 0 && !m_enableButtonWorker) {
         ::close(m_enableButtonFd);
         m_enableButtonFd = -1;
         qDebug() << "使能按钮设备已关闭";
     }
 
-    if (m_modbusManager) {
-        m_modbusManager->disconnectFromDevice();
-    }
-
-    if (m_modbusReadTimer) {
-        m_modbusReadTimer->stop();
-        delete m_modbusReadTimer;
-    }
-
-    if (m_mainControlSyncTimer) {
-        m_mainControlSyncTimer->stop();
-        delete m_mainControlSyncTimer;
-    }
-
     if (m_agvModbusManager) {
         m_agvModbusManager->disconnectFromDevice();
         m_agvModbusManager->stopWorkerThread();
-        delete m_agvModbusManager;
-        m_agvModbusManager = nullptr;
+        if (!m_agvModbusManager->workerThreadRunning()) {
+            delete m_agvModbusManager;
+            m_agvModbusManager = nullptr;
+        } else {
+            qWarning() << "AGV 线程仍在运行，保留管理器对象";
+        }
+    }
+
+    if (m_modbusManager) {
+        ModbusThreadManager *manager = m_modbusManager;
+        QMetaObject::invokeMethod(manager, [manager]() {
+            manager->disconnectFromDevice();
+        }, Qt::QueuedConnection);
     }
 
     if (m_recorder) {
@@ -190,9 +221,6 @@ MainWindow::~MainWindow()
 
     if (m_alarmCheckTimer) {
         m_alarmCheckTimer->stop();
-        delete m_alarmCheckTimer;
-        m_alarmCheckTimer = nullptr;
-        qDebug() << "报警检测定时器已清理";
     }
 
     if (m_alarmWidget) {
@@ -519,7 +547,7 @@ void MainWindow::updateStatusTip(const QString &message)
         
         // 瞬间闪烁效果提示更新
         ui->label_StatusTip->setStyleSheet("color: #FFFFFF; font-size: 14px; font-weight: bold; background: transparent; padding-bottom: 5px;");
-        QTimer::singleShot(200, [this]() {
+        QTimer::singleShot(200, this, [this]() {
             if (ui && ui->label_StatusTip) {
                 ui->label_StatusTip->setStyleSheet("color: #00FFFF; font-size: 14px; font-weight: bold; background: transparent; padding-bottom: 5px;");
             }
