@@ -5728,9 +5728,16 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     // 获取当前页面
     int currentPage = ui->StackedWidget->currentIndex();
     if (isSixAxisLevelingActive()) {
-        qCDebug(lcMainWindow) << "外部按键忽略：姿态调平进行中，按键○" << keyNumber
-                              << (pressed ? "按下" : "释放");
-        return;
+        const bool keyHeld = m_robotExternalKeyPressed.value(keyNumber, false)
+            || m_sixAxisExternalKeyPressed.value(keyNumber, false)
+            || m_robotActiveKey == keyNumber
+            || m_sixAxisActiveKey == keyNumber;
+        // 调平等待中不接受新的按键写入；使能松开时仍允许在途键补写停止。
+        if (pressed || isExternalKeyEnableHeld() || !keyHeld) {
+            qCDebug(lcMainWindow) << "外部按键忽略：姿态调平进行中，按键○" << keyNumber
+                                  << (pressed ? "按下" : "释放");
+            return;
+        }
     }
     if (!isExternalKeyEnableHeld()) {
         const bool keyHeld = m_robotExternalKeyPressed.value(keyNumber, false)
@@ -13740,17 +13747,29 @@ void MainWindow::interruptEnableGatedWaitPopupsOnEnableRelease()
         interrupted = true;
     }
 
-    const bool poseWaitAbortable = (m_sixAxisPoseWaitBit != 2)
-        && (m_sixAxisPoseWaitBit >= 0
-            || (m_sixAxisPoseWaitDialog && m_sixAxisPoseWaitDialog->isVisible()));
+    const bool poseWaitAbortable = (m_sixAxisPoseWaitBit >= 0
+        || (m_sixAxisPoseWaitDialog && m_sixAxisPoseWaitDialog->isVisible()));
     if (poseWaitAbortable) {
         if (QTimer *poseWaitTimer = findChild<QTimer*>(QStringLiteral("sixAxisPoseWaitTimer"))) {
             poseWaitTimer->stop();
             poseWaitTimer->deleteLater();
         }
+        const int bitIndex = m_sixAxisPoseWaitBit;
         m_sixAxisPoseWaitBit = -1;
         m_sixAxisPoseWaitSawActive = false;
         hideSixAxisPoseWaitDialog();
+        if (bitIndex == 1 || bitIndex == 2) {
+            const QString actionName = (bitIndex == 1)
+                ? QStringLiteral("姿态回零")
+                : QStringLiteral("姿态调平");
+            appendBusinessHistory(
+                QStringLiteral("六自由度"),
+                actionName,
+                QStringLiteral("姿态动作"),
+                QStringLiteral("enable_release_abort"),
+                QStringLiteral("正在%1").arg(actionName),
+                QStringLiteral("%1松开使能，%2被中断").arg(historyOperatorName(), actionName));
+        }
         interrupted = true;
     }
 

@@ -337,7 +337,7 @@ public:
     void finishStepMotionWait(bool interruptedByEnable);
     /** @brief 按到位寄存器 0→1 边沿关闭步进等待窗 */
     void checkStepMotionWaitCompletion(int address, quint16 value);
-    /** @brief 使能松开时关闭“等信号关窗”的运动等待弹窗（步进除外）并记中断 */
+    /** @brief 使能松开时关闭驻车/转向/姿态回零/姿态调平等待弹窗（步进除外）并记中断 */
     void interruptEnableGatedWaitPopupsOnEnableRelease();
     /** @brief 支腿打开前：绕车干涉检查弹窗（30 秒倒计时后可确认） */
     void showLegOpenPathCheckDialog(int legLengthMm = -1);
