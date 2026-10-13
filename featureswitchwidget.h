@@ -29,6 +29,7 @@ public:
 signals:
     // 通知外部宿主（通常是 MainWindow）重新加载并应用运行时配置
     void runtimeSettingsChanged();
+    void operationHistoryEntry(const QString &controlName, const QString &oldValue, const QString &newValue);
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -37,6 +38,7 @@ protected:
 private slots:
     void onApply();
     void onSave();
+    void recordIniChanges(const QString &fileName, const QString &group, const QMap<QString, QString> &before);
     void onReload();
     void onToggleAll(bool checked);
 

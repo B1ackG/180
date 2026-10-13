@@ -3809,7 +3809,10 @@ void MainWindow::connectRecordSignals()
     for (QToolButton* toolButton : allToolButtons) {
         // 跳过记录页面和管理员页面的按钮，避免记录操作记录的操作
         if (toolButton->objectName().contains("record", Qt::CaseInsensitive) ||
-            toolButton->objectName().contains("admin", Qt::CaseInsensitive)) {
+            toolButton->objectName().contains("admin", Qt::CaseInsensitive) ||
+            toolButton->objectName() == QStringLiteral("TBtn_RemoveWarning") ||
+            toolButton->objectName() == QStringLiteral("TBtn_Interlocking") ||
+            toolButton->objectName() == QStringLiteral("TBtn_ControlMode")) {
             continue;
         }
 
@@ -4889,6 +4892,16 @@ void MainWindow::setupAdminPasswordPage()
         if (m_currentUserRole == UserRole::Manufacturer) {
             if (!m_featureSwitchWidget) {
                 m_featureSwitchWidget = new FeatureSwitchWidget(this);
+                connect(m_featureSwitchWidget, &FeatureSwitchWidget::operationHistoryEntry,
+                        this, [this](const QString &controlName, const QString &oldValue, const QString &newValue) {
+                    appendBusinessHistory(
+                        QStringLiteral("厂家配置"),
+                        controlName,
+                        QStringLiteral("参数修改"),
+                        QStringLiteral("修改参数"),
+                        oldValue,
+                        QStringLiteral("%1将%2由%3改为%4").arg(historyOperatorName(), controlName, oldValue, newValue));
+                });
                 connect(m_featureSwitchWidget, &FeatureSwitchWidget::runtimeSettingsChanged,
                         this, [this]() {
                     loadPollingRuntimeSettings();
@@ -5983,14 +5996,30 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         }
 
         if (!pressed) {
+            const bool wasPressed = m_robotExternalKeyPressed.value(keyNumber, false);
             m_robotExternalKeyPressed[keyNumber] = false;
             writeToMainDevice(514, 0);
+            if (wasPressed) {
+                const QString action = (keyNumber == 13)
+                    ? QStringLiteral("收回")
+                    : QStringLiteral("放出");
+                appendBusinessHistory(
+                    QStringLiteral("底盘控制"),
+                    QStringLiteral("卷样机钢缆"),
+                    QStringLiteral("设备动作"),
+                    QStringLiteral("动作结束"),
+                    QStringLiteral("钢缆正在%1").arg(action),
+                    QStringLiteral("%1松开外部键○%2，钢缆动作结束").arg(historyOperatorName()).arg(keyNumber));
+            }
             return;
         }
 
         // 点动、步进模式下执行
         if (!m_moveModeUnknown && (m_isJointMode || m_stepModeEnabled)) {
             const int value514 = (keyNumber == 13) ? 4 : 2;
+            const QString action = (keyNumber == 13)
+                ? QStringLiteral("收回")
+                : QStringLiteral("放出");
             
             // 先写目标轴(500=5)，再写动作(514)
             writeToMainDevice(500, 5);
@@ -6001,6 +6030,13 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             });
 
             m_robotExternalKeyPressed[keyNumber] = true;
+            appendBusinessHistory(
+                QStringLiteral("底盘控制"),
+                QStringLiteral("卷样机钢缆"),
+                QStringLiteral("设备动作"),
+                QStringLiteral("开始%1").arg(action),
+                QStringLiteral("钢缆停止"),
+                QStringLiteral("%1按住外部键○%2，钢缆开始%3").arg(historyOperatorName()).arg(keyNumber).arg(action));
             qCDebug(lcMainWindow) << "AGV页面外部按键○" << keyNumber
                                   << "写入 500=5, 514=" << value514;
         }
@@ -6898,6 +6934,10 @@ void MainWindow::on_TBtn_Interlocking_clicked()
     ModbusThreadManager *mgr = m_modbusManager ? m_modbusManager : ModbusThreadManager::instance();
     if (!mgr || !mgr->isConnected()) {
         showNotification(QStringLiteral("主控 Modbus 未连接，无法切换示教器"));
+        appendBusinessHistory(QStringLiteral("权限登录"), QStringLiteral("示教器权限"),
+                              QStringLiteral("权限变更"), QStringLiteral("切换示教器"),
+                              ui->TBtn_Interlocking->text(),
+                              QStringLiteral("%1切换示教器未执行，主控未连接").arg(historyOperatorName()));
         return;
     }
     if (!isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
@@ -6943,6 +6983,13 @@ void MainWindow::on_TBtn_Interlocking_clicked()
     m_pendingInterlockWriteId = command.id;
     mgr->requestWrite(command);
     ui->TBtn_Interlocking->setText(nextLabel);
+    appendBusinessHistory(
+        QStringLiteral("权限登录"),
+        QStringLiteral("示教器权限"),
+        QStringLiteral("权限变更"),
+        QStringLiteral("切换示教器"),
+        label,
+        QStringLiteral("%1由%2切换为%3，切换已下发").arg(historyOperatorName(), label, nextLabel));
     m_pendingInterlockWriteValue = static_cast<int>(valueToWrite);
     m_pendingInterlockWriteMs = QDateTime::currentMSecsSinceEpoch();
     ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(true, valueToWrite);
@@ -9584,6 +9631,9 @@ void MainWindow::onControlModeClicked()
         }
     };
 
+    const QString previousMode = (m_controlMode == WIRED_MODE)
+        ? QStringLiteral("示教器控制")
+        : QStringLiteral("遥控器控制");
     // 切换控制模式
     if (m_controlMode == WIRED_MODE) {
         m_controlMode = WIRELESS_MODE;
@@ -9619,6 +9669,16 @@ void MainWindow::onControlModeClicked()
 
     updateFunctionSwitchVisuals();
     updateStepTargetButtonsState();
+    const QString currentMode = (m_controlMode == WIRED_MODE)
+        ? QStringLiteral("示教器控制")
+        : QStringLiteral("遥控器控制");
+    appendBusinessHistory(
+        QStringLiteral("设备控制"),
+        QStringLiteral("控制模式"),
+        QStringLiteral("模式切换"),
+        QStringLiteral("切换控制方式"),
+        previousMode,
+        QStringLiteral("%1由%2切换为%3，切换已下发").arg(historyOperatorName(), previousMode, currentMode));
 
     if (!m_stepModeUnknown && m_stepModeEnabled) {
         int targetCode = 1;
@@ -12642,6 +12702,39 @@ void MainWindow::recordSixAxisJogExternalKey(int axisIndex, bool pressed)
     showNotification(msg);
 }
 
+QString MainWindow::historyOperatorName() const
+{
+    switch (m_currentUserRole) {
+    case UserRole::Engineer:
+        return QStringLiteral("工程师");
+    case UserRole::Admin:
+        return QStringLiteral("管理员");
+    case UserRole::Manufacturer:
+        return QStringLiteral("厂家");
+    case UserRole::Operator:
+    default:
+        return QStringLiteral("操作员");
+    }
+}
+
+void MainWindow::appendBusinessHistory(const QString &pageName, const QString &controlName,
+                                       const QString &controlType, const QString &operation,
+                                       const QString &oldValue, const QString &newValue)
+{
+    if (!m_recorder) {
+        return;
+    }
+    OperationRecord record;
+    record.timestamp = QDateTime::currentDateTime();
+    record.pageName = pageName;
+    record.controlName = controlName;
+    record.controlType = controlType;
+    record.operation = operation;
+    record.oldValue = oldValue;
+    record.newValue = newValue;
+    m_recorder->addRecord(record);
+}
+
 void MainWindow::sendRemoveWarningModbusWrites()
 {
     const QList<ModbusRegisterSpec> writes = buttonModbusBinding(QStringLiteral("TBtn_RemoveWarning")).writes;
@@ -12659,6 +12752,14 @@ void MainWindow::on_TBtn_RemoveWarning_clicked()
     qCDebug(lcMainWindow) << "用户点击清除报警按钮";
 
     sendRemoveWarningModbusWrites();
+
+    appendBusinessHistory(
+        QStringLiteral("报警处理"),
+        QStringLiteral("清除报错"),
+        QStringLiteral("报警操作"),
+        QStringLiteral("确认清除"),
+        QStringLiteral("存在未清除报错"),
+        QStringLiteral("%1确认清除报错，已通知主控和底盘").arg(historyOperatorName()));
 
     // 清除所有报警状态
     if (m_emergencyStopAlarm) {
@@ -13207,10 +13308,10 @@ void MainWindow::beginSixAxisPoseWait(int bitIndex, const QString &actionName)
         record.timestamp = QDateTime::currentDateTime();
         record.pageName = QStringLiteral("六自由度");
         record.controlName = actionName;
-        record.controlType = QStringLiteral("SixAxisPose");
-        record.operation = QStringLiteral("pose_wait_start");
+        record.controlType = QStringLiteral("姿态动作");
+        record.operation = QStringLiteral("开始执行");
         record.oldValue = QString();
-        record.newValue = QString();
+        record.newValue = QStringLiteral("%1开始%2").arg(historyOperatorName(), actionName);
         m_recorder->addRecord(record);
     }
 
@@ -13301,13 +13402,15 @@ void MainWindow::finishSixAxisPoseWait(bool timedOut)
         record.controlName = (bitIndex == 1)
             ? QStringLiteral("姿态回零")
             : QStringLiteral("姿态调平");
-        record.controlType = QStringLiteral("SixAxisPose");
-        record.operation = timedOut ? QStringLiteral("pose_wait_timeout")
-                                    : QStringLiteral("pose_wait_done");
-        record.oldValue = QStringLiteral("等待615 bit%1=0").arg(bitIndex);
+        record.controlType = QStringLiteral("姿态动作");
+        record.operation = timedOut ? QStringLiteral("等待超时") : QStringLiteral("执行完成");
+        const QString actionName = (bitIndex == 1)
+            ? QStringLiteral("姿态回零")
+            : QStringLiteral("姿态调平");
+        record.oldValue = QStringLiteral("正在%1").arg(actionName);
         record.newValue = timedOut
-            ? QStringLiteral("90秒超时，姿态等待已结束")
-            : QStringLiteral("主控615 bit%1已清零").arg(bitIndex);
+            ? QStringLiteral("%1执行的%2等待超时").arg(historyOperatorName(), actionName)
+            : QStringLiteral("%1执行的%2已完成").arg(historyOperatorName(), actionName);
         m_recorder->addRecord(record);
     }
 }
@@ -13525,9 +13628,9 @@ void MainWindow::finishStepMotionWait(bool interruptedByEnable)
     record.pageName = getCurrentPageName();
     record.controlName = motionName;
     record.controlType = QStringLiteral("StepMove");
-    record.operation = QStringLiteral("step_interrupted");
-    record.oldValue = QString();
-    record.newValue = QStringLiteral("%1步进运动被打断").arg(motionName);
+    record.operation = QStringLiteral("步进被打断");
+    record.oldValue = QStringLiteral("正在步进");
+    record.newValue = QStringLiteral("%1松开使能，%2步进停止").arg(historyOperatorName(), motionName);
     m_recorder->addRecord(record);
 }
 

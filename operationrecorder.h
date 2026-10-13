@@ -255,6 +255,7 @@ private:
     QStringList m_allowedHosts;
     QByteArray m_signingKey;
     QTimer *m_reconnectTimer;
+    QTimer *m_connectTimeoutTimer = nullptr;
     QList<OperationRecord> m_tcpSendQueue;  // 待发送的记录队列
     QString m_lastTcpError;
     qint64 m_lastTcpErrorMs = 0;
@@ -267,6 +268,10 @@ private:
     bool validateTransportPolicy(QString *reason = nullptr) const;
     QByteArray buildSignedPayload(const OperationRecord &record) const;
     bool enqueueRecordIfPossible(const OperationRecord &record);
+    bool writeRecordNow(const OperationRecord &record);
+    void persistSendQueue() const;
+    void loadSpoolIntoQueue();
+    QString pendingSpoolPath() const;
     void sendRecordToServer(const OperationRecord &record);
     void sendQueuedRecords();
     void connectTcpSocket();

@@ -12,6 +12,7 @@
 #include <QCryptographicHash>
 #include <QMessageAuthenticationCode>
 #include <QFile>
+#include <QSaveFile>
 
 namespace {
 QStringList parseCsvList(const QString &raw)
@@ -52,6 +53,21 @@ OperationRecorder::OperationRecorder(QObject *parent)
     m_reconnectTimer->setSingleShot(true);
     m_reconnectTimer->setInterval(kTcpReconnectIntervalMs);
     connect(m_reconnectTimer, &QTimer::timeout, this, &OperationRecorder::onReconnectTimeout);
+
+    m_connectTimeoutTimer = new QTimer(this);
+    m_connectTimeoutTimer->setSingleShot(true);
+    m_connectTimeoutTimer->setInterval(kTcpConnectTimeoutMs);
+    connect(m_connectTimeoutTimer, &QTimer::timeout, this, [this]() {
+        if (!m_tcpSocket || m_tcpSocket->state() != QAbstractSocket::ConnectingState) {
+            return;
+        }
+        qWarning() << "连接日志服务器超时:" << m_tcpServerIp << ":" << m_tcpServerPort;
+        m_tcpSocket->abort();
+        emit tcpTransmissionError(QStringLiteral("连接日志服务器超时"));
+        scheduleReconnect();
+    });
+
+    loadSpoolIntoQueue();
 }
 
 void OperationRecorder::loadSecuritySettings()
@@ -136,16 +152,19 @@ QByteArray OperationRecorder::buildSignedPayload(const OperationRecord &record) 
 
 OperationRecorder::~OperationRecorder()
 {
+    persistSendQueue();
     disconnectTcpSocket();
 }
 
 void OperationRecorder::addRecord(const OperationRecord &record)
 {
+    OperationRecord normalized = record;
     if (!ModbusWriteGate::shouldAppendOperationHistoryRecord()) {
-        return;
+        const QString note = QStringLiteral("当前不是本机示教，操作未执行");
+        const QString existing = normalized.newValue.toString();
+        normalized.newValue = existing.isEmpty() ? note : existing + QStringLiteral("；") + note;
     }
 
-    OperationRecord normalized = record;
     MappingConfig::instance()->normalizeOperationRecord(normalized);
 
     // 限制记录数量
@@ -311,20 +330,18 @@ void OperationRecorder::setTcpServer(const QString &ip, quint16 port)
 void OperationRecorder::sendAllRecordsToServer()
 {
     if (!m_tcpEnabled || !isTcpConnected()) {
-        qWarning() << "TCP传输未启用或未连接，无法发送所有记录";
+        qWarning() << "TCP传输未启用或未连接，无法发送待发记录";
         emit tcpTransmissionError("TCP传输未启用或未连接");
         return;
     }
 
-    // 将所有记录添加到发送队列
-    m_tcpSendQueue.clear();
-    for (const auto &record : m_records) {
-        m_tcpSendQueue.append(record);
+    if (m_tcpSendQueue.isEmpty()) {
+        qDebug() << "没有待发送的操作记录";
+        emit tcpTransmissionComplete();
+        return;
     }
 
-    qDebug() << "开始发送所有记录到服务器，共" << m_tcpSendQueue.size() << "条记录";
-
-    // 开始发送队列中的记录
+    qDebug() << "开始补发待发送记录，共" << m_tcpSendQueue.size() << "条记录";
     sendQueuedRecords();
 }
 
@@ -334,37 +351,40 @@ void OperationRecorder::sendRecordToServer(const OperationRecord &record)
         return;
     }
 
-    if (!isTcpConnected()) {
-        connectTcpSocket();
-
-        // 传输策略阻断时不再累积离线队列，避免长期堆积拖慢主线程。
-        if (m_transportPolicyBlocked) {
-            return;
+    if (!isTcpConnected() || !m_tcpSendQueue.isEmpty()) {
+        if (!isTcpConnected()) {
+            connectTcpSocket();
         }
-
         enqueueRecordIfPossible(record);
+        if (isTcpConnected()) {
+            QTimer::singleShot(30, this, &OperationRecorder::sendQueuedRecords);
+        }
         return;
+    }
+
+    if (!writeRecordNow(record)) {
+        enqueueRecordIfPossible(record);
+        if (isTcpConnected()) {
+            QTimer::singleShot(30, this, &OperationRecorder::sendQueuedRecords);
+        }
+    }
+}
+
+bool OperationRecorder::writeRecordNow(const OperationRecord &record)
+{
+    if (!m_tcpSocket || !isTcpConnected()) {
+        return false;
     }
 
     const QByteArray data = buildSignedPayload(record);
     const qint64 bytesWritten = m_tcpSocket->write(data);
-
-    // QTcpSocket::write 返回值是进入本地发送缓冲的字节数；
-    // 只有 <0 才是真正失败。<size 的部分写入仍由 Qt 继续刷出，不可重连/重发，
-    // 否则会与已缓冲半包交错，破坏接收端按 '\n' 分帧。
-    if (bytesWritten < 0) {
+    if (bytesWritten <= 0) {
         qWarning() << "发送数据失败:" << m_tcpSocket->errorString();
-        enqueueRecordIfPossible(record);
-        return;
+        return false;
     }
-    if (bytesWritten == 0) {
-        // 发送缓冲暂时不可写，稍后再试。
-        enqueueRecordIfPossible(record);
-        return;
-    }
-
     m_tcpSocket->flush();
     qDebug() << "发送记录到服务器:" << record.controlName << "操作:" << record.operation;
+    return true;
 }
 
 void OperationRecorder::sendQueuedRecords()
@@ -382,8 +402,12 @@ void OperationRecorder::sendQueuedRecords()
     const int sendCount = qMin(10, m_tcpSendQueue.size());
     for (int i = 0; i < sendCount; ++i) {
         const OperationRecord record = m_tcpSendQueue.takeFirst();
-        sendRecordToServer(record);
+        if (!writeRecordNow(record)) {
+            m_tcpSendQueue.prepend(record);
+            break;
+        }
     }
+    persistSendQueue();
 
     if (!m_tcpSendQueue.isEmpty()) {
         QTimer::singleShot(30, this, &OperationRecorder::sendQueuedRecords);
@@ -426,21 +450,16 @@ void OperationRecorder::connectTcpSocket()
 
     qDebug() << "连接日志服务器:" << m_tcpServerIp << ":" << m_tcpServerPort;
     m_tcpSocket->connectToHost(m_tcpServerIp, m_tcpServerPort);
-
-    // 连接超时：避免 Connecting 状态长期卡住、队列只进不出。
-    QTimer::singleShot(kTcpConnectTimeoutMs, this, [this]() {
-        if (!m_tcpSocket || m_tcpSocket->state() != QAbstractSocket::ConnectingState) {
-            return;
-        }
-        qWarning() << "连接日志服务器超时:" << m_tcpServerIp << ":" << m_tcpServerPort;
-        m_tcpSocket->abort();
-        emit tcpTransmissionError(QStringLiteral("连接日志服务器超时"));
-        scheduleReconnect();
-    });
+    if (m_connectTimeoutTimer) {
+        m_connectTimeoutTimer->start();
+    }
 }
 
 void OperationRecorder::disconnectTcpSocket()
 {
+    if (m_connectTimeoutTimer && m_connectTimeoutTimer->isActive()) {
+        m_connectTimeoutTimer->stop();
+    }
     if (m_tcpSocket) {
         m_tcpSocket->disconnectFromHost();
     }
@@ -459,6 +478,10 @@ void OperationRecorder::onTcpConnected()
     m_lastTransportPolicyError.clear();
     m_lastTransportPolicyErrorMs = 0;
     emit tcpConnectionStatusChanged(true);
+
+    if (m_connectTimeoutTimer && m_connectTimeoutTimer->isActive()) {
+        m_connectTimeoutTimer->stop();
+    }
 
     // 停止重连定时器
     if (m_reconnectTimer && m_reconnectTimer->isActive()) {
@@ -528,5 +551,49 @@ bool OperationRecorder::enqueueRecordIfPossible(const OperationRecord &record)
         m_tcpSendQueue.removeFirst();
     }
     m_tcpSendQueue.append(record);
+    persistSendQueue();
     return true;
+}
+
+QString OperationRecorder::pendingSpoolPath() const
+{
+    return QStringLiteral("pending_operation_log.jsonl");
+}
+
+void OperationRecorder::persistSendQueue() const
+{
+    QSaveFile file(pendingSpoolPath());
+    if (!file.open(QIODevice::WriteOnly)) {
+        qWarning() << "无法保存待发操作记录:" << file.errorString();
+        return;
+    }
+    for (const OperationRecord &record : m_tcpSendQueue) {
+        file.write(QJsonDocument(record.toJson()).toJson(QJsonDocument::Compact));
+        file.write("\n");
+    }
+    if (!file.commit()) {
+        qWarning() << "提交待发操作记录失败:" << file.errorString();
+    }
+}
+
+void OperationRecorder::loadSpoolIntoQueue()
+{
+    QFile file(pendingSpoolPath());
+    if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
+        return;
+    }
+    while (!file.atEnd()) {
+        const QByteArray line = file.readLine().trimmed();
+        if (line.isEmpty()) {
+            continue;
+        }
+        const QJsonDocument doc = QJsonDocument::fromJson(line);
+        if (!doc.isObject()) {
+            continue;
+        }
+        if (m_tcpSendQueue.size() >= kMaxTcpQueueSize) {
+            m_tcpSendQueue.removeFirst();
+        }
+        m_tcpSendQueue.append(OperationRecord::fromJson(doc.object()));
+    }
 }

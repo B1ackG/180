@@ -19,6 +19,7 @@
 #include <QComboBox>
 #include <QEvent>
 #include <QSettings>
+#include <QSet>
 #include <QGuiApplication>
 #include <QScreen>
 #include <QSizePolicy>
@@ -2268,6 +2269,74 @@ void FeatureSwitchWidget::saveSliderLimitState()
 }
 
 
+namespace {
+QMap<QString, QString> snapshotIniGroup(const QString &fileName, const QString &group)
+{
+    QMap<QString, QString> values;
+    QSettings settings(fileName, QSettings::IniFormat);
+    settings.beginGroup(group);
+    const QStringList keys = settings.childKeys();
+    for (const QString &key : keys) {
+        values.insert(key, settings.value(key).toString());
+    }
+    settings.endGroup();
+    return values;
+}
+
+QString configFieldLabel(const QString &group, const QString &key)
+{
+    const QString id = group + QLatin1Char('/') + key;
+    static const QMap<QString, QString> labels = {
+        {QStringLiteral("Network/tcp_server_host"), QStringLiteral("日志服务器地址")},
+        {QStringLiteral("Network/remote_simulator_host"), QStringLiteral("模拟器地址")},
+        {QStringLiteral("Inclinometer/display_threshold_x_deg"), QStringLiteral("倾角X阈值")},
+        {QStringLiteral("Inclinometer/display_threshold_y_deg"), QStringLiteral("倾角Y阈值")},
+        {QStringLiteral("PlaneHeight/offset_mm"), QStringLiteral("平面高度偏移")},
+        {QStringLiteral("Polling/teaching_write_device_id"), QStringLiteral("本机示教编号")},
+        {QStringLiteral("Polling/main_ui_state_sync_enabled"), QStringLiteral("主控界面同步")},
+        {QStringLiteral("Polling/agv_ui_state_sync_enabled"), QStringLiteral("底盘界面同步")},
+        {QStringLiteral("Polling/main_modbus_poll_ms"), QStringLiteral("主控轮询间隔")},
+        {QStringLiteral("Polling/agv_poll_ms"), QStringLiteral("底盘轮询间隔")},
+    };
+    return labels.value(id, id);
+}
+
+QString displayConfigValue(const QString &value)
+{
+    if (value == QLatin1String("true")) {
+        return QStringLiteral("开启");
+    }
+    if (value == QLatin1String("false")) {
+        return QStringLiteral("关闭");
+    }
+    return value;
+}
+}
+
+void FeatureSwitchWidget::recordIniChanges(const QString &fileName, const QString &group,
+                                           const QMap<QString, QString> &before)
+{
+    QSettings settings(fileName, QSettings::IniFormat);
+    settings.beginGroup(group);
+    QSet<QString> keys;
+    for (auto it = before.cbegin(); it != before.cend(); ++it) {
+        keys.insert(it.key());
+    }
+    const QStringList currentKeys = settings.childKeys();
+    for (const QString &key : currentKeys) {
+        keys.insert(key);
+    }
+    for (const QString &key : keys) {
+        const QString oldValue = displayConfigValue(before.value(key));
+        const QString newValue = displayConfigValue(settings.value(key).toString());
+        if (oldValue == newValue) {
+            continue;
+        }
+        emit operationHistoryEntry(configFieldLabel(group, key), oldValue, newValue);
+    }
+    settings.endGroup();
+}
+
 void FeatureSwitchWidget::onApply()
 {
     if (m_virtualKeyboard) {
@@ -2276,30 +2345,56 @@ void FeatureSwitchWidget::onApply()
 
     FeatureSwitchManager *mgr = FeatureSwitchManager::instance();
     for (auto it = m_bigCheckboxes.begin(); it != m_bigCheckboxes.end(); ++it) {
-        mgr->setBigFeatureEnabled(it.key(), it.value()->isChecked());
+        const bool now = it.value()->isChecked();
+        const bool was = mgr->isBigFeatureEnabled(it.key());
+        if (was != now) {
+            emit operationHistoryEntry(it.value()->text(),
+                                       was ? QStringLiteral("开启") : QStringLiteral("关闭"),
+                                       now ? QStringLiteral("开启") : QStringLiteral("关闭"));
+        }
+        mgr->setBigFeatureEnabled(it.key(), now);
     }
     for (auto it = m_smallCheckboxes.begin(); it != m_smallCheckboxes.end(); ++it) {
-        mgr->setSmallFeatureEnabled(it.key(), it.value()->isChecked());
+        const bool now = it.value()->isChecked();
+        const bool was = mgr->isSmallFeatureEnabled(it.key());
+        if (was != now) {
+            emit operationHistoryEntry(it.value()->text(),
+                                       was ? QStringLiteral("开启") : QStringLiteral("关闭"),
+                                       now ? QStringLiteral("开启") : QStringLiteral("关闭"));
+        }
+        mgr->setSmallFeatureEnabled(it.key(), now);
     }
-    
-    // 应用网络与轮询配置
+
+    const QString ini = QStringLiteral("config.ini");
+    const QMap<QString, QString> networkBefore = snapshotIniGroup(ini, QStringLiteral("Network"));
+    const QMap<QString, QString> pollingBefore = snapshotIniGroup(ini, QStringLiteral("Polling"));
+    const QMap<QString, QString> inclinometerBefore = snapshotIniGroup(ini, QStringLiteral("Inclinometer"));
+    const QMap<QString, QString> planeBefore = snapshotIniGroup(ini, QStringLiteral("PlaneHeight"));
+    const QMap<QString, QString> sliderBefore = snapshotIniGroup(ini, QStringLiteral("SliderLabelLimits"));
+    const QMap<QString, QString> techSliderBefore = snapshotIniGroup(ini, QStringLiteral("TechSliderEditLimits"));
+    const QMap<QString, QString> buttonBefore = snapshotIniGroup(ini, QStringLiteral("ButtonVisibility"));
+
     if (!saveNetworkState()) {
         return;
     }
     savePollingState();
-    
-    // 应用滑块限制配置
     saveSliderLimitState();
     saveTechSliderEditState();
-
     saveInclinometerThresholdState();
     savePlaneHeightOffsetState();
-
     saveButtonVisibilityState();
+
+    recordIniChanges(ini, QStringLiteral("Network"), networkBefore);
+    recordIniChanges(ini, QStringLiteral("Polling"), pollingBefore);
+    recordIniChanges(ini, QStringLiteral("Inclinometer"), inclinometerBefore);
+    recordIniChanges(ini, QStringLiteral("PlaneHeight"), planeBefore);
+    recordIniChanges(ini, QStringLiteral("SliderLabelLimits"), sliderBefore);
+    recordIniChanges(ini, QStringLiteral("TechSliderEditLimits"), techSliderBefore);
+    recordIniChanges(ini, QStringLiteral("ButtonVisibility"), buttonBefore);
 
     emit runtimeSettingsChanged();
 
-    this->hide(); // 立即生效后隐藏界面
+    this->hide();
 }
 
 void FeatureSwitchWidget::onSave()

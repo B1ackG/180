@@ -939,6 +939,7 @@ private:
 
     // ----- 机器人状态控制 -----
     UserRole m_currentUserRole = UserRole::Operator;
+    QString historyOperatorName() const;
     bool m_roleSelected = false;
     
     ControlMode m_controlMode = WIRED_MODE;
@@ -1329,6 +1330,9 @@ private:
 
     /** @brief 与「清除报警」按钮相同的 Modbus 写入（主控/AGV 290） */
     void sendRemoveWarningModbusWrites();
+    void appendBusinessHistory(const QString &pageName, const QString &controlName,
+                               const QString &controlType, const QString &operation,
+                               const QString &oldValue, const QString &newValue);
 
     /** @brief 获取当前页面名称 */
     QString getCurrentPageName() const;
