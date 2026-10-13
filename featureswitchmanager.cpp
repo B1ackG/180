@@ -69,6 +69,9 @@ void FeatureSwitchManager::initializeFeatureSets()
         // 远程 TCP 模拟器模式：开启后将 Modbus 主设备/AGV 指向模拟器电脑 (192.168.1.70)
         "tcp.remote_simulator",
 
+        // 本机历史记录传输：只把历史 TCP 切到 127.0.0.1:12345，不影响 Modbus 模拟器
+        "tcp.local_operation_history",
+
         "modbus_main.polling",
         "modbus_main.float_reading",
         "modbus_main.read_enabled",
@@ -154,6 +157,7 @@ void FeatureSwitchManager::ensureConfigExists()
     for (const QString &key : m_allSmallFeatures) {
         if (key == "tcp.local_simulator"
             || key == "tcp.remote_simulator"
+            || key == "tcp.local_operation_history"
             || disabledByDefault.contains(key)) {
             s.setValue(key, false);
         } else {
@@ -188,7 +192,8 @@ void FeatureSwitchManager::reload()
 
     s.beginGroup("SmallFeatures");
     for (const QString &key : m_allSmallFeatures) {
-        if (!s.value(key, true).toBool()) {
+        const bool defaultEnabled = key != QStringLiteral("tcp.local_operation_history");
+        if (!s.value(key, defaultEnabled).toBool()) {
             m_disabledSmallFeatures.insert(key);
         }
     }

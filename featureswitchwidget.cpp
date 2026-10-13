@@ -598,6 +598,7 @@ void FeatureSwitchWidget::setupUI()
         {QStringLiteral("tcp.send_all"), QStringLiteral("TCP 全量发送")},
         {QStringLiteral("tcp.local_simulator"), QStringLiteral("本机 TCP 模拟器 (127.0.0.1)")},
         {QStringLiteral("tcp.remote_simulator"), QStringLiteral("远程 TCP 模拟器 (192.168.x.xx)")},
+        {QStringLiteral("tcp.local_operation_history"), QStringLiteral("本机历史记录传输 (127.0.0.1:12345)")},
         {QStringLiteral("modbus_main.polling"), QStringLiteral("主控轮询")},
         {QStringLiteral("modbus_main.float_reading"), QStringLiteral("浮点解析")},
         {QStringLiteral("modbus_main.read_enabled"), QStringLiteral("主控 Modbus 读使能")},
@@ -677,7 +678,9 @@ void FeatureSwitchWidget::setupUI()
         for (int i = 0; i < keys.size(); ++i) {
             const QString &key = keys.at(i);
             QCheckBox *cb = new QCheckBox(sdesc.value(key, key), section);
-            cb->setToolTip(key);
+            cb->setToolTip(key == QStringLiteral("tcp.local_operation_history")
+                               ? QStringLiteral("tcp.local_operation_history：只把历史记录链路切到 127.0.0.1:12345")
+                               : key);
             grid->addWidget(cb, i / 2, i % 2);
             m_smallCheckboxes[key] = cb;
 

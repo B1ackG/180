@@ -656,7 +656,7 @@ void MainWindow::loadPollingRuntimeSettings()
     m_agvPort = static_cast<quint16>(qBound(1, static_cast<int>(m_agvPort), 65535));
 
     if (m_recorder) {
-        m_recorder->setTcpServer(m_tcpServerHost, WIN7_PORT);
+        m_recorder->setTcpServer(operationHistoryServerHost(), WIN7_PORT);
     }
 }
 
@@ -11007,12 +11007,17 @@ void MainWindow::enableTcpTransmission(bool enabled)
     m_tcpTransmissionEnabled = enabled;
 
     if (m_recorder) {
-        m_recorder->setTcpServer(m_tcpServerHost, WIN7_PORT);
+        const QString historyHost = operationHistoryServerHost();
+        m_recorder->setTcpServer(historyHost, WIN7_PORT);
         m_recorder->enableTcpTransmission(enabled);
 
         if (enabled) {
-            qCDebug(lcMainWindow) << "启用TCP传输，服务器:" << m_tcpServerHost << ":" << WIN7_PORT;
-            ui->statusBar->showMessage("TCP传输已启用，正在连接服务器...", 3000);
+            qCDebug(lcMainWindow) << "启用TCP传输，服务器:" << historyHost << ":" << WIN7_PORT;
+            if (historyHost == QLatin1String("127.0.0.1")) {
+                ui->statusBar->showMessage(QStringLiteral("本机历史记录测试：127.0.0.1:12345"), 5000);
+            } else {
+                ui->statusBar->showMessage("TCP传输已启用，正在连接服务器...", 3000);
+            }
         } else {
             qCDebug(lcMainWindow) << "禁用TCP传输";
             ui->statusBar->showMessage("TCP传输已禁用", 3000);
@@ -11041,7 +11046,7 @@ void MainWindow::updateTcpServerHost(const QString &subnetOctet, const QString &
     settings.sync();
 
     if (m_recorder) {
-        m_recorder->setTcpServer(m_tcpServerHost, WIN7_PORT);
+        m_recorder->setTcpServer(operationHistoryServerHost(), WIN7_PORT);
         qCDebug(lcMainWindow) << "更新TCP服务器IP为:" << m_tcpServerHost;
     }
 }
@@ -11071,10 +11076,28 @@ void MainWindow::updateSimulatorHost(const QString &subnetOctet, const QString &
     applyNetworkRuntimeSettings();
 }
 
+QString MainWindow::operationHistoryServerHost() const
+{
+    if (isFeatureEnabled(QStringLiteral("tcp_transmission"),
+                         QStringLiteral("tcp.local_operation_history"))) {
+        return QStringLiteral("127.0.0.1");
+    }
+    return m_tcpServerHost;
+}
+
 void MainWindow::applyNetworkRuntimeSettings()
 {
     if (m_recorder) {
-        m_recorder->setTcpServer(m_tcpServerHost, WIN7_PORT);
+        const QString historyHost = operationHistoryServerHost();
+        m_recorder->setTcpServer(historyHost, WIN7_PORT);
+        if (m_tcpTransmissionEnabled && ui && ui->statusBar) {
+            if (historyHost == QLatin1String("127.0.0.1")) {
+                ui->statusBar->showMessage(QStringLiteral("本机历史记录测试：127.0.0.1:12345"), 5000);
+            } else {
+                ui->statusBar->showMessage(
+                    QStringLiteral("历史记录服务器：%1:%2").arg(historyHost).arg(WIN7_PORT), 3000);
+            }
+        }
     }
 
     if (isFeatureEnabled("tcp_transmission", "tcp.remote_simulator")) {

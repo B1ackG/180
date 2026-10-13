@@ -1187,6 +1187,9 @@ public:
     /** @brief 将网络配置（WIN7 IP、远程模拟器）应用到运行中组件 */
     void applyNetworkRuntimeSettings();
 
+    /** @brief 历史记录 TCP 目标：本机测试开关开启时为 127.0.0.1，否则为配置的服务器地址 */
+    QString operationHistoryServerHost() const;
+
     /** @brief 加载 SliderLabel 的自定义配置 */
     void loadSliderLabelRuntimeSettings();
 
