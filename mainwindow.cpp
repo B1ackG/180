@@ -14428,6 +14428,9 @@ void MainWindow::showParkingLegAbnormalDialog()
         });
 
         connect(enableBtn, &QPushButton::clicked, this, [this]() {
+            if (rejectIfEnableNotHeld()) {
+                return;
+            }
             if (!m_parkingLegAbnormalLengthEdit) {
                 return;
             }
@@ -14453,6 +14456,9 @@ void MainWindow::showParkingLegAbnormalDialog()
         });
 
         connect(disableBtn, &QPushButton::clicked, this, [this]() {
+            if (rejectIfEnableNotHeld()) {
+                return;
+            }
             hideParkingLegAbnormalDialog();
             if (isLegOpenPathCheckActive()) {
                 hideLegOpenPathCheckDialog();
