@@ -6366,6 +6366,12 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
             return;
         }
 
+        if (m_controlMode != WIRED_MODE) {
+            showWirelessModeWarningDialog();
+            qWarning() << "底盘步进请求被拒绝：当前不是有线控制模式";
+            return;
+        }
+
         if (!m_agvStepDistanceEdit) {
             qCDebug(lcMainWindow) << "首页○9(步进)：未找到 lineEdit_AGVStep_Distance，仅写 bit4/bit5";
             writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○9步进按下(1)：寄存器0 bit4=1"));
@@ -10011,6 +10017,12 @@ void MainWindow::onAGVOABtnClicked()
         return;
     }
 
+    if (m_controlMode != WIRED_MODE) {
+        showWirelessModeWarningDialog();
+        qWarning() << "避障切换被拒绝：当前不是有线控制模式";
+        return;
+    }
+
     if (property("oaSwitchBusy").toBool()) {
         ui->statusBar->showMessage("避障切换进行中，请稍候...", 1500);
         qWarning() << "OA切换请求被忽略：上一条指令仍在确认中";
@@ -10488,6 +10500,12 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
 
         if (!isChassisViewActive()) {
             qCDebug(lcMainWindow) << "首页○10(步进)：当前非底盘页，忽略";
+            return;
+        }
+
+        if (m_controlMode != WIRED_MODE) {
+            showWirelessModeWarningDialog();
+            qWarning() << "底盘步进请求被拒绝：当前不是有线控制模式";
             return;
         }
 
@@ -13515,6 +13533,10 @@ void MainWindow::updateSixAxisPoseActionButtons()
 void MainWindow::clearCurrentViewStepDoneBitOnEnablePress()
 {
     if (isChassisViewActive()) {
+        if (m_controlMode != WIRED_MODE) {
+            qWarning() << "步进使能按下：遥控器模式，跳过清除 AGV 51.bit9";
+            return;
+        }
         writeAGVRegisterBits(kAgvStepDoneReg,
                              { qMakePair(kAgvStepDoneBit, false) },
                              QStringLiteral("步进使能按下：AGV 51.bit9=0"));
