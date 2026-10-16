@@ -7784,6 +7784,11 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             || (((value >> 4) & 0x03) != 0);
         if (emergencyStop != m_robotArmEmergency150Flag) {
             m_robotArmEmergency150Flag = emergencyStop;
+            if (emergencyStop) {
+                resetAgvPageRegister0CommandBits(
+                    false,
+                    QStringLiteral("AGV页机械臂急停：寄存器0 bit9/bit10=0"));
+            }
             if (emergencyStop && m_recorder) {
                 OperationRecord record;
                 record.timestamp = QDateTime::currentDateTime();
@@ -8659,6 +8664,11 @@ void MainWindow::setupAGVModbus()
 
                     if (bit5 != m_agvChassisEmergency51Bit5Flag) {
                         m_agvChassisEmergency51Bit5Flag = bit5;
+                        if (bit5) {
+                            resetAgvPageRegister0CommandBits(
+                                false,
+                                QStringLiteral("AGV页底盘急停：寄存器0 bit9/bit10=0"));
+                        }
                         if (bit5 && m_recorder) {
                             OperationRecord record;
                             record.timestamp = QDateTime::currentDateTime();
@@ -9561,6 +9571,11 @@ void MainWindow::onEnableButtonActivated(int socket)
 void MainWindow::processEnableButton(bool enabled)
 {
     if (!enabled) {
+        resetAgvPageRegister0CommandBits(
+            m_stepModeEnabled,
+            m_stepModeEnabled
+                ? QStringLiteral("AGV页步进松开使能：寄存器0 bit4/bit5/bit9/bit10=0")
+                : QStringLiteral("AGV页松开使能：寄存器0 bit9/bit10=0"));
         releaseHeldExternalKeysOnEnableRelease();
         finishStepMotionWait(true);
         interruptEnableGatedWaitPopupsOnEnableRelease();
@@ -9715,6 +9730,23 @@ bool MainWindow::writeAGVRegisterBits(int address,
                    << "地址:" << address;
     }
     return queued;
+}
+
+void MainWindow::resetAgvPageRegister0CommandBits(bool clearStepEnableAndStart, const QString &scene)
+{
+    if (!isChassisViewActive()) {
+        return;
+    }
+
+    QList<QPair<int, bool>> bits = {
+        qMakePair(9, false),
+        qMakePair(10, false),
+    };
+    if (clearStepEnableAndStart) {
+        bits.append(qMakePair(4, false));
+        bits.append(qMakePair(5, false));
+    }
+    writeAGVRegisterBits(0, bits, scene, true);
 }
 
 void MainWindow::writeToMainDevice(int address, int value)

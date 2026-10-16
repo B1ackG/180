@@ -422,6 +422,11 @@ public:
                               const QList<QPair<int, bool>> &bitUpdates,
                               const QString &scene = QString(),
                               bool bypassWirelessWarning = false);
+    /**
+     * @brief AGV 页安全复位：寄存器 0 的 bit9/bit10 写 0；步进模式再把 bit4/bit5 一并写 0。
+     * 非底盘页直接返回。bit4/bit5 与 bit9/bit10 同一次按位写，避免两次读改写互相盖掉。
+     */
+    void resetAgvPageRegister0CommandBits(bool clearStepEnableAndStart, const QString &scene);
     /** @brief 驻车伸出触发长度输入：从 config.ini 应用允许范围与校验器 */
     void applyParkOutTriggerLengthRuntimeSettings();
     /** @brief 按功能控制台配置更新管理员负载阈值输入范围 */
