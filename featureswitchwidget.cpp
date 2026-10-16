@@ -406,6 +406,10 @@ FeatureSwitchWidget::FeatureSwitchWidget(QWidget *parent) : QWidget(parent)
 
     const QList<QLineEdit*> edits = findChildren<QLineEdit*>();
     for (QLineEdit *edit : edits) {
+        if (edit->window() == m_virtualKeyboard) {
+            continue;
+        }
+        TechVirtualKeyboard::blockPlatformInputMethod(edit);
         edit->installEventFilter(this);
     }
 
@@ -473,7 +477,9 @@ bool FeatureSwitchWidget::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::MouseButtonPress) {
         QLineEdit *lineEdit = qobject_cast<QLineEdit*>(watched);
-        if (lineEdit && lineEdit->isEnabled() && m_virtualKeyboard) {
+        if (lineEdit && lineEdit->isEnabled() && m_virtualKeyboard
+            && lineEdit->window() != m_virtualKeyboard) {
+            TechVirtualKeyboard::blockPlatformInputMethod(lineEdit);
             m_virtualKeyboard->setTargetLineEdit(lineEdit);
             m_virtualKeyboard->showAtWidget(lineEdit);
             return true;

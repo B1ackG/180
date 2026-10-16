@@ -85,6 +85,15 @@ public:
     void commitPendingInput();
 
     /**
+     * @brief 关掉 Qt Virtual Keyboard，改由本键盘经 setText 写回。
+     * 只读会使 QLineEdit 的 ImEnabled 为 false，设备输入法不再因获得焦点而弹出。
+     */
+    static void blockPlatformInputMethod(QLineEdit *edit);
+
+    /** @brief 收起已经弹出的平台输入法面板 */
+    static void hidePlatformInputMethod();
+
+    /**
      * @brief 设置目标控件并显示键盘
      *
      * 使用示例:

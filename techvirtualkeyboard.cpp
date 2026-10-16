@@ -1,6 +1,7 @@
 #include "techvirtualkeyboard.h"
 #include "techslideredit.h"
 #include "animationmanager.h"
+#include <QInputMethod>
 #include <QPainter>
 #include <QLinearGradient>
 #include <QRandomGenerator>
@@ -319,9 +320,29 @@ void TechVirtualKeyboard::setInitialText(const QString &text)
     updatePreview();
 }
 
+void TechVirtualKeyboard::blockPlatformInputMethod(QLineEdit *edit)
+{
+    if (!edit) {
+        return;
+    }
+    // setText 仍可写回。只读后 inputMethodQuery(ImEnabled) 为 false，
+    // qtvirtualkeyboard 不会在 FocusIn 时弹出。
+    edit->setReadOnly(true);
+    edit->setAttribute(Qt::WA_InputMethodEnabled, false);
+}
+
+void TechVirtualKeyboard::hidePlatformInputMethod()
+{
+    if (QInputMethod *im = QGuiApplication::inputMethod()) {
+        im->hide();
+    }
+}
+
 void TechVirtualKeyboard::showAtWidget(QWidget *targetWidget)
 {
     if (!targetWidget) return;
+
+    hidePlatformInputMethod();
 
     // 同一目标重复点击时不重复 show/activate，避免 Wayland 下窗口序列异常。
     if (isVisible() && m_targetLineEdit && targetWidget == m_targetLineEdit) {
@@ -491,10 +512,19 @@ void TechVirtualKeyboard::onEnterClicked()
         } else {
             m_targetLineEdit->setText(m_currentText);
 
-            QKeyEvent *enterEvent = new QKeyEvent(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
-            QApplication::postEvent(m_targetLineEdit, enterEvent);
-
-            m_targetLineEdit->clearFocus();
+            if (m_targetLineEdit->isReadOnly()) {
+                // 只读框会丢掉 Key_Return，确认信号改由这里直接发出。
+                // clearFocus 前挡住信号，避免失焦再发一次 editingFinished。
+                QMetaObject::invokeMethod(m_targetLineEdit, "returnPressed", Qt::DirectConnection);
+                QMetaObject::invokeMethod(m_targetLineEdit, "editingFinished", Qt::DirectConnection);
+                m_targetLineEdit->blockSignals(true);
+                m_targetLineEdit->clearFocus();
+                m_targetLineEdit->blockSignals(false);
+            } else {
+                QKeyEvent *enterEvent = new QKeyEvent(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
+                QApplication::postEvent(m_targetLineEdit, enterEvent);
+                m_targetLineEdit->clearFocus();
+            }
             emit inputConfirmed(m_currentText);
         }
     }

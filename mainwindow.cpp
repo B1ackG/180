@@ -329,6 +329,14 @@ constexpr int kMainRobotStepDoneReg = 150;
 constexpr int kMainRobotStepDoneBit = 11;
 constexpr int kMainSixAxisStepDoneReg = 87;
 constexpr int kMainSixAxisStepDoneBit = 0;
+constexpr int kSixAxisInitStatusReg = 154;
+constexpr int kSixAxisInitStatusBit = 0;
+constexpr int kSixAxisInitCommandReg = 620;
+constexpr int kSixAxisInitCommandBit = 0;
+const QString kSixAxisInitToastText = QStringLiteral("六自由度需要初始化");
+const QString kSixAxisInitRunningToastText = QStringLiteral("六自由度正在初始化");
+const QString kSixAxisInitConfirmText =
+    QStringLiteral("是否执行六自由度初始化？初始化过程不可被打断。");
 constexpr int kAgvStepDoneReg = 51;
 constexpr int kAgvStepDoneBit = 9;
 constexpr int kHeightLengthLockDefaultMm = 1000;
@@ -2136,6 +2144,7 @@ void MainWindow::showSixAxisView()
     syncStepModeUiByCurrentPage();
     updateStepTargetButtonsState();
     updateSixAxisPoseActionButtons();
+    requestSixAxisInitStatusCheck();
 }
 
 void MainWindow::setupNavigationConnections()
@@ -2765,6 +2774,14 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         }
     }
 
+    if (event->type() == QEvent::FocusIn || event->type() == QEvent::RequestSoftwareInputPanel) {
+        QLineEdit *focusedEdit = qobject_cast<QLineEdit*>(obj);
+        if (focusedEdit && focusedEdit->isReadOnly() && m_virtualKeyboard
+            && focusedEdit->window() != m_virtualKeyboard) {
+            TechVirtualKeyboard::hidePlatformInputMethod();
+        }
+    }
+
     // 处理LineEdit点击事件
     if (event->type() == QEvent::MouseButtonPress) {
         const bool anyPopupVisible =
@@ -2784,6 +2801,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
         }
 
         QLineEdit *lineEdit = qobject_cast<QLineEdit*>(obj);
+        if (lineEdit && m_virtualKeyboard && lineEdit->window() == m_virtualKeyboard) {
+            return QMainWindow::eventFilter(obj, event);
+        }
         const bool isMainWindowLineEdit = lineEdit && this->isAncestorOf(lineEdit);
         const bool isTiltLockPasswordEdit = lineEdit && lineEdit == m_inclinometerTiltLockPasswordEdit;
         const bool isParkingLegAbnormalLengthEdit = lineEdit && lineEdit == m_parkingLegAbnormalLengthEdit;
@@ -2798,8 +2818,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
             //     return false;
             // }
 
-            // 显示虚拟键盘
+            // 显示虚拟键盘。先关掉设备输入法，避免和模态弹窗抢在最前。
             if (m_virtualKeyboard) {
+                TechVirtualKeyboard::blockPlatformInputMethod(lineEdit);
                 m_virtualKeyboard->setTargetLineEdit(lineEdit);
                 m_virtualKeyboard->showAtWidget(lineEdit);
                 return true;
@@ -3681,11 +3702,25 @@ void MainWindow::setupVirtualKeyboard()
     // 创建虚拟键盘
     m_virtualKeyboard = new TechVirtualKeyboard(this);
 
-    // 为所有LineEdit安装事件过滤器
-    QList<QLineEdit*> allLineEdits = this->findChildren<QLineEdit*>();
+    // 已有输入框改为只走应用内键盘。键盘自己的预览框除外。
+    const QList<QLineEdit*> allLineEdits = this->findChildren<QLineEdit*>();
     for (QLineEdit *edit : allLineEdits) {
-        edit->installEventFilter(this);
+        attachInAppVirtualKeyboard(edit, false);
     }
+}
+
+void MainWindow::attachInAppVirtualKeyboard(QLineEdit *edit, bool blockAutoFocus)
+{
+    if (!edit || !m_virtualKeyboard || edit->window() == m_virtualKeyboard) {
+        return;
+    }
+    TechVirtualKeyboard::blockPlatformInputMethod(edit);
+    if (blockAutoFocus) {
+        // 模态窗 show/activate 会把焦点交给第一个可聚焦子控件。
+        // 这里不准聚焦，设备键盘就不会在弹窗出现时被唤起。
+        edit->setFocusPolicy(Qt::NoFocus);
+    }
+    edit->installEventFilter(this);
 }
 
 
@@ -4845,7 +4880,6 @@ void MainWindow::setupAdminPasswordPage()
             m_recorder->addRecord(failRecord);
 
             passwordEdit->clear();
-            passwordEdit->setFocus();
         }
     });
 
@@ -4980,7 +5014,9 @@ void MainWindow::showToast(const QString &message,
                            ToastKind kind,
                            int durationMs,
                            const std::function<void()> &onDismissed,
-                           bool showConfirmButton)
+                           bool showConfirmButton,
+                           const QString &confirmButtonText,
+                           bool dismissOnConfirm)
 {
     if (!userPopupsAllowed()) {
         return;
@@ -5034,16 +5070,22 @@ void MainWindow::showToast(const QString &message,
     layout->addWidget(label, 1);
 
     if (showConfirmButton) {
-        auto *confirmBtn = new QPushButton(QStringLiteral("确认"), toast);
+        const QString buttonText = confirmButtonText.trimmed().isEmpty()
+            ? QStringLiteral("确认")
+            : confirmButtonText.trimmed();
+        auto *confirmBtn = new QPushButton(buttonText, toast);
         confirmBtn->setObjectName(QStringLiteral("toastConfirmBtn"));
         confirmBtn->setAutoDefault(false);
         confirmBtn->setDefault(false);
         confirmBtn->setFocusPolicy(Qt::NoFocus);
-        confirmBtn->setFixedSize(76, 34);
+        const int buttonWidth = qMax(76, buttonText.size() * 22 + 28);
+        confirmBtn->setFixedSize(buttonWidth, 34);
         layout->addWidget(confirmBtn, 0, Qt::AlignVCenter);
 
-        connect(confirmBtn, &QPushButton::clicked, this, [this, toast, onDismissed]() {
-            dismissToast(toast);
+        connect(confirmBtn, &QPushButton::clicked, this, [this, toast, onDismissed, dismissOnConfirm]() {
+            if (dismissOnConfirm) {
+                dismissToast(toast);
+            }
             if (onDismissed) {
                 onDismissed();
             }
@@ -6698,6 +6740,15 @@ void MainWindow::onAsyncReadFinished(const ModbusResult &result)
         return;
     }
 
+    if (result.id != 0 && result.id == m_sixAxisInitStatusReadId) {
+        m_sixAxisInitStatusReadId = 0;
+        if (!result.ok || result.values.isEmpty() || result.error == ModbusAsyncError::StaleGeneration) {
+            return;
+        }
+        applySixAxisInitStatus(result.values.first(), isSixAxisViewActive());
+        return;
+    }
+
     if (result.id != 0 && result.id == m_runtimeReadId) {
         m_runtimeReadId = 0;
         if (!result.ok || result.values.size() < 2 || result.error == ModbusAsyncError::StaleGeneration) {
@@ -6764,6 +6815,23 @@ void MainWindow::onAsyncWriteFinished(const ModbusResult &result)
 
 void MainWindow::onMainMaskedWriteFinished(quint64 id, int address, bool ok, quint16 value)
 {
+    if (id != 0 && id == m_sixAxisInitWriteId) {
+        m_sixAxisInitWriteId = 0;
+        if (!ok) {
+            showNotification(QStringLiteral("六自由度初始化写入失败"));
+            dismissToastByMessage(kSixAxisInitRunningToastText);
+            if (m_lastToastMessage == kSixAxisInitRunningToastText) {
+                m_lastToastMessage.clear();
+            }
+            showSixAxisInitToast();
+            return;
+        }
+        g_registerCache[address] = value;
+        qCDebug(lcMainWindow) << "六自由度初始化：主控" << address << "bit"
+                              << kSixAxisInitCommandBit << "已写 1，当前值" << value;
+        return;
+    }
+
     if (m_maskedPoseWaits.contains(id)) {
         const MaskedPoseWait wait = m_maskedPoseWaits.take(id);
         if (!ok) {
@@ -7057,6 +7125,9 @@ void MainWindow::onModbusConnected()
 {
     qCDebug(lcMainWindow) << "Modbus连接成功，启动交互任务...";
     MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Connected);
+    if (isSixAxisViewActive()) {
+        requestSixAxisInitStatusCheck();
+    }
 
         if (!m_runtimeBaselineReady && m_modbusManager
             && isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
@@ -7524,6 +7595,10 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 
     if (address == kSixAxisPoseReg) {
         checkSixAxisPoseWaitCompletion(address, value);
+    }
+
+    if (address == kSixAxisInitStatusReg) {
+        applySixAxisInitStatus(value, false);
     }
 
     if (address == kMainRobotStepDoneReg || address == kMainSixAxisStepDoneReg) {
@@ -8171,6 +8246,9 @@ void MainWindow::readMainControlSyncRegisters()
     }
     ranges.append(qMakePair(500, 1));
     ranges.append(qMakePair(151, 1));
+    if (isSixAxisInitToastVisible()) {
+        ranges.append(qMakePair(kSixAxisInitStatusReg, 1));
+    }
     MainDeviceModbusApi::requestReads(m_modbusManager,
                                       ++m_nextAsyncId,
                                       m_modbusManager->connectionGeneration(),
@@ -13147,6 +13225,7 @@ void MainWindow::hideNonEmergencyPopups()
 
     hideParkingSwitchHintDialog();
     hideSixAxisPoseWaitDialog();
+    hideSixAxisInitConfirmDialog();
     hideLegOpenPathCheckDialog();
     hideLegControlDialog();
     hideParkingLegAbnormalDialog();
@@ -13370,6 +13449,201 @@ void MainWindow::beginSixAxisPoseWait(int bitIndex, const QString &actionName)
         finishSixAxisPoseWait(true);
     });
     waitTimer->start(90000);
+}
+
+void MainWindow::requestSixAxisInitStatusCheck()
+{
+    if (!isFeatureEnabled(QStringLiteral("modbus_main"), QStringLiteral("modbus_main.read_enabled"))) {
+        return;
+    }
+    if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
+        return;
+    }
+
+    ModbusReadRequest request;
+    request.id = ++m_nextAsyncId;
+    request.start = kSixAxisInitStatusReg;
+    request.count = 1;
+    request.generation = m_modbusManager->connectionGeneration();
+    m_sixAxisInitStatusReadId = request.id;
+    m_modbusManager->requestRead(request);
+}
+
+void MainWindow::applySixAxisInitStatus(quint16 value, bool fromPageOpen)
+{
+    g_registerCache[kSixAxisInitStatusReg] = value;
+    const bool initialized = (((value >> kSixAxisInitStatusBit) & 0x01) == 1);
+    if (initialized) {
+        hideSixAxisInitConfirmDialog();
+        hideSixAxisInitToast();
+        return;
+    }
+    if (fromPageOpen) {
+        showSixAxisInitToast();
+    }
+}
+
+bool MainWindow::isSixAxisInitToastVisible() const
+{
+    for (int i = 0; i < m_toasts.size(); ++i) {
+        const QString &message = m_toasts.at(i).message;
+        if (message == kSixAxisInitToastText || message == kSixAxisInitRunningToastText) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void MainWindow::showSixAxisInitToast()
+{
+    if (isSixAxisInitToastVisible()) {
+        return;
+    }
+    if (m_lastToastMessage == kSixAxisInitToastText) {
+        m_lastToastMessage.clear();
+    }
+    showToast(kSixAxisInitToastText,
+              ToastKind::Warning,
+              0,
+              [this]() { showSixAxisInitConfirmDialog(); },
+              true,
+              QStringLiteral("初始化"),
+              false);
+}
+
+void MainWindow::showSixAxisInitRunningToast()
+{
+    for (int i = 0; i < m_toasts.size(); ++i) {
+        if (m_toasts.at(i).message == kSixAxisInitRunningToastText) {
+            dismissToastByMessage(kSixAxisInitToastText);
+            return;
+        }
+    }
+    if (m_lastToastMessage == kSixAxisInitToastText
+        || m_lastToastMessage == kSixAxisInitRunningToastText) {
+        m_lastToastMessage.clear();
+    }
+    dismissToastByMessage(kSixAxisInitToastText);
+    showToast(kSixAxisInitRunningToastText, ToastKind::Warning, 0, nullptr, false);
+}
+
+void MainWindow::hideSixAxisInitToast()
+{
+    if (m_lastToastMessage == kSixAxisInitToastText
+        || m_lastToastMessage == kSixAxisInitRunningToastText) {
+        m_lastToastMessage.clear();
+    }
+    dismissToastByMessage(kSixAxisInitToastText);
+    dismissToastByMessage(kSixAxisInitRunningToastText);
+}
+
+void MainWindow::showSixAxisInitConfirmDialog()
+{
+    if (!userPopupsAllowed()) {
+        return;
+    }
+    if (!m_sixAxisInitConfirmDialog) {
+        m_sixAxisInitConfirmDialog = new QDialog(this);
+        m_sixAxisInitConfirmDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
+        m_sixAxisInitConfirmDialog->setWindowModality(Qt::ApplicationModal);
+        m_sixAxisInitConfirmDialog->setModal(true);
+        m_sixAxisInitConfirmDialog->setObjectName(QStringLiteral("sixAxisInitConfirmDialog"));
+
+        auto *layout = new QVBoxLayout(m_sixAxisInitConfirmDialog);
+        layout->setContentsMargins(20, 15, 20, 15);
+        layout->setSpacing(12);
+
+        auto *label = new QLabel(kSixAxisInitConfirmText, m_sixAxisInitConfirmDialog);
+        label->setObjectName(QStringLiteral("sixAxisInitConfirmLabel"));
+        label->setAlignment(Qt::AlignCenter);
+        label->setWordWrap(true);
+        layout->addWidget(label);
+
+        auto *buttonRow = new QHBoxLayout();
+        buttonRow->setSpacing(16);
+        auto *yesBtn = new QPushButton(QStringLiteral("是"), m_sixAxisInitConfirmDialog);
+        auto *noBtn = new QPushButton(QStringLiteral("否"), m_sixAxisInitConfirmDialog);
+        yesBtn->setObjectName(QStringLiteral("sixAxisInitYesBtn"));
+        noBtn->setObjectName(QStringLiteral("sixAxisInitNoBtn"));
+        yesBtn->setAutoDefault(false);
+        yesBtn->setDefault(false);
+        noBtn->setAutoDefault(false);
+        noBtn->setDefault(false);
+        yesBtn->setFocusPolicy(Qt::NoFocus);
+        noBtn->setFocusPolicy(Qt::NoFocus);
+        buttonRow->addWidget(yesBtn);
+        buttonRow->addWidget(noBtn);
+        layout->addLayout(buttonRow);
+
+        connect(yesBtn, &QPushButton::clicked, this, [this]() {
+            writeSixAxisInitCommand();
+        });
+        connect(noBtn, &QPushButton::clicked, this, [this]() {
+            hideSixAxisInitConfirmDialog();
+        });
+
+        m_sixAxisInitConfirmDialog->setFixedSize(520, 200);
+        m_sixAxisInitConfirmDialog->setStyleSheet(
+            "#sixAxisInitConfirmDialog {"
+            "  background-color: rgba(30, 0, 0, 230);"
+            "  border: 3px solid #FFFF00;"
+            "  border-radius: 10px;"
+            "}"
+            "#sixAxisInitConfirmLabel {"
+            "  color: #FFFF00;"
+            "  font-size: 20px;"
+            "  font-weight: bold;"
+            "  background-color: transparent;"
+            "}"
+            "#sixAxisInitYesBtn, #sixAxisInitNoBtn {"
+            "  background-color: #FFFF00;"
+            "  color: #202020;"
+            "  border: 2px solid #FFEE55;"
+            "  border-radius: 6px;"
+            "  padding: 8px 16px;"
+            "  font-size: 16px;"
+            "  font-weight: bold;"
+            "  min-width: 100px;"
+            "  min-height: 40px;"
+            "}"
+            "#sixAxisInitYesBtn:pressed, #sixAxisInitNoBtn:pressed {"
+            "  background-color: #FFEE55;"
+            "}");
+    }
+
+    positionFloatingPopupCenter(m_sixAxisInitConfirmDialog);
+    m_sixAxisInitConfirmDialog->show();
+    m_sixAxisInitConfirmDialog->raise();
+    m_sixAxisInitConfirmDialog->activateWindow();
+}
+
+void MainWindow::hideSixAxisInitConfirmDialog()
+{
+    if (m_sixAxisInitConfirmDialog && m_sixAxisInitConfirmDialog->isVisible()) {
+        m_sixAxisInitConfirmDialog->hide();
+    }
+}
+
+void MainWindow::writeSixAxisInitCommand()
+{
+    hideSixAxisInitConfirmDialog();
+    if (!isFeatureEnabled(QStringLiteral("modbus_main"), QStringLiteral("modbus_main.write_enabled"))) {
+        showModbusWriteDisabledToast();
+        return;
+    }
+    if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
+        showNotification(QStringLiteral("主控 Modbus 未连接"));
+        return;
+    }
+
+    m_sixAxisInitWriteId = ++m_nextAsyncId;
+    m_modbusManager->queueMaskedWrite(m_sixAxisInitWriteId,
+                                      kSixAxisInitCommandReg,
+                                      static_cast<quint16>(1u << kSixAxisInitCommandBit),
+                                      0xFFFF);
+    showSixAxisInitRunningToast();
+    qCDebug(lcMainWindow) << "六自由度初始化：向主控" << kSixAxisInitCommandReg
+                          << "bit" << kSixAxisInitCommandBit << "写 1";
 }
 
 void MainWindow::showSixAxisPoseWaitDialog(const QString &message)
@@ -14135,9 +14409,7 @@ void MainWindow::showLegControlDialog()
         m_legControlLengthEdit->setObjectName(QStringLiteral("legControlLengthEdit"));
         m_legControlLengthEdit->setPlaceholderText(QStringLiteral("输入伸出距离 mm"));
         m_legControlLengthEdit->setAlignment(Qt::AlignCenter);
-        if (m_virtualKeyboard) {
-            m_legControlLengthEdit->installEventFilter(this);
-        }
+        attachInAppVirtualKeyboard(m_legControlLengthEdit, true);
         customLayout->addWidget(m_legControlLengthEdit, 1);
 
         m_legControlConfirmBtn = new QPushButton(QStringLiteral("确定"), m_legControlCustomRow);
@@ -14281,6 +14553,7 @@ void MainWindow::showLegControlDialog()
     m_legControlDialog->show();
     m_legControlDialog->raise();
     m_legControlDialog->activateWindow();
+    TechVirtualKeyboard::hidePlatformInputMethod();
     if (!alreadyVisible) {
         appendLegControlHistory(QStringLiteral("打开支腿展出状态选择"));
     }
@@ -14391,9 +14664,7 @@ void MainWindow::showParkingLegAbnormalDialog()
 
         m_parkingLegAbnormalLengthEdit = new QLineEdit(m_parkingLegAbnormalDialog);
         m_parkingLegAbnormalLengthEdit->setObjectName(QStringLiteral("LEdit_AGV_ParkOutTriggerLenght"));
-        if (m_virtualKeyboard) {
-            m_parkingLegAbnormalLengthEdit->installEventFilter(this);
-        }
+        attachInAppVirtualKeyboard(m_parkingLegAbnormalLengthEdit, true);
         layout->addWidget(m_parkingLegAbnormalLengthEdit);
 
         auto *enableBtn = new QPushButton(QStringLiteral("驻车开启"), m_parkingLegAbnormalDialog);
@@ -14521,6 +14792,7 @@ void MainWindow::showParkingLegAbnormalDialog()
     m_parkingLegAbnormalDialog->show();
     m_parkingLegAbnormalDialog->raise();
     m_parkingLegAbnormalDialog->activateWindow();
+    TechVirtualKeyboard::hidePlatformInputMethod();
 }
 
 void MainWindow::hideParkingLegAbnormalDialog()
@@ -14751,9 +15023,7 @@ void MainWindow::presentInclinometerTiltLockModal()
     m_inclinometerTiltLockDialog->show();
     m_inclinometerTiltLockDialog->raise();
     m_inclinometerTiltLockDialog->activateWindow();
-    if (m_inclinometerTiltLockPasswordEdit) {
-        m_inclinometerTiltLockPasswordEdit->setFocus();
-    }
+    TechVirtualKeyboard::hidePlatformInputMethod();
 }
 
 void MainWindow::showInclinometerTiltLockDialog()
@@ -14791,9 +15061,7 @@ void MainWindow::showInclinometerTiltLockDialog()
         m_inclinometerTiltLockPasswordEdit->setEchoMode(QLineEdit::Password);
         m_inclinometerTiltLockPasswordEdit->setAlignment(Qt::AlignCenter);
         m_inclinometerTiltLockPasswordEdit->setPlaceholderText(QStringLiteral("请输入密码"));
-        if (m_virtualKeyboard) {
-            m_inclinometerTiltLockPasswordEdit->installEventFilter(this);
-        }
+        attachInAppVirtualKeyboard(m_inclinometerTiltLockPasswordEdit, true);
         layout->addWidget(m_inclinometerTiltLockPasswordEdit);
 
         m_inclinometerTiltLockErrorLabel = new QLabel(m_inclinometerTiltLockDialog);
@@ -14818,7 +15086,6 @@ void MainWindow::showInclinometerTiltLockDialog()
                     m_inclinometerTiltLockErrorLabel->show();
                 }
                 m_inclinometerTiltLockPasswordEdit->clear();
-                m_inclinometerTiltLockPasswordEdit->setFocus();
                 return;
             }
 

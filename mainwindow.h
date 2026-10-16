@@ -311,6 +311,21 @@ public:
     void hideParkingSwitchHintDialog();
     /** @brief 姿态回零/调平：写 615 对应位后弹出等待窗 */
     void beginSixAxisPoseWait(int bitIndex, const QString &actionName);
+    /** @brief 打开六自由度页时读取主控 154.bit0，为 0 则提示需要初始化 */
+    void requestSixAxisInitStatusCheck();
+    /** @brief 154.bit0=1 收起初始化提示；仅在打开页面的这次读数里为 0 时弹出 */
+    void applySixAxisInitStatus(quint16 value, bool fromPageOpen);
+    /** @brief 显示「六自由度需要初始化」Toast，按键为初始化 */
+    void showSixAxisInitToast();
+    /** @brief 确认执行后改为「六自由度正在初始化」，不再带初始化按键 */
+    void showSixAxisInitRunningToast();
+    /** @brief 隐藏六自由度初始化 Toast */
+    void hideSixAxisInitToast();
+    bool isSixAxisInitToastVisible() const;
+    /** @brief 初始化确认窗（样式同底盘模式切换），是则写主控 620.bit0=1 */
+    void showSixAxisInitConfirmDialog();
+    void hideSixAxisInitConfirmDialog();
+    void writeSixAxisInitCommand();
     /** @brief 显示六自由度姿态等待提示窗（样式同驻车切换等待） */
     void showSixAxisPoseWaitDialog(const QString &message);
     /** @brief 隐藏六自由度姿态等待提示窗 */
@@ -455,6 +470,11 @@ public:
 
     /** @brief 初始化虚拟键盘 */
     void setupVirtualKeyboard();
+    /**
+     * @brief 该输入框只走应用内虚拟键盘。
+     * blockAutoFocus 用于模态弹窗：避免 show/activate 时自动聚焦而唤起设备键盘。
+     */
+    void attachInAppVirtualKeyboard(QLineEdit *edit, bool blockAutoFocus = false);
     /** @brief 初始化按键管理器 */
     void setupKeyManager();
 #ifdef ENABLE_VIRTUAL_MATRIX_KEYS
@@ -822,6 +842,7 @@ private:
     QLabel *m_parkingSwitchHintLabel = nullptr;
     QDialog *m_sixAxisPoseWaitDialog = nullptr;
     QLabel *m_sixAxisPoseWaitLabel = nullptr;
+    QDialog *m_sixAxisInitConfirmDialog = nullptr;
     /** @brief 正在等待清零的 615 位：1=回零，2=调平，&lt;0=未等待 */
     int m_sixAxisPoseWaitBit = -1;
     bool m_sixAxisPoseWaitSawActive = false;
@@ -967,6 +988,8 @@ private:
     quint64 m_runtimeReadId = 0;
     quint64 m_pendingInterlockWriteId = 0;
     quint64 m_sync527WriteId = 0;
+    quint64 m_sixAxisInitStatusReadId = 0;
+    quint64 m_sixAxisInitWriteId = 0;
     int m_spareNamePollTick = 0;
     QHash<quint64, SpareNameReadToken> m_spareNameReads;
     QHash<quint64, MaskedPoseWait> m_maskedPoseWaits;
@@ -1313,7 +1336,9 @@ private:
                    ToastKind kind = ToastKind::Info,
                    int durationMs = 0,
                    const std::function<void()> &onDismissed = nullptr,
-                   bool showConfirmButton = true);
+                   bool showConfirmButton = true,
+                   const QString &confirmButtonText = QString(),
+                   bool dismissOnConfirm = true);
     /** @brief 按寄存器 500 生成正负限位 Toast 文案 */
     QString robotLimitToastMessage(bool positiveLimit) const;
     /** @brief 隐藏指定 Toast 并重排剩余项 */
