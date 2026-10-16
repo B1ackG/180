@@ -88,6 +88,37 @@ const QString kRobotZeroSpeedHintText =
     QStringLiteral("当前设置的机器人全局速度为0");
 const QString kAgvZeroSpeedHintText =
     QStringLiteral("当前设置的全向平台速度为0");
+
+constexpr int kRobotSoftLimitDetailReg = 152;
+constexpr int kRobotSoftLimitDetailCount = 2;
+constexpr int kRobotAxisLimitSlotCount = 8;
+
+struct RobotAxisLimitDef {
+    int axisIndex;
+    bool positive;
+    int reg;
+    int bit;
+};
+
+/** J1/J2 在 152 的低字节，J3/J4 在 153 上对应原 304.10/11 与 304.14/15。 */
+constexpr RobotAxisLimitDef kRobotAxisLimits[kRobotAxisLimitSlotCount] = {
+    {1, true,  152, 0},
+    {1, false, 152, 1},
+    {2, true,  152, 2},
+    {2, false, 152, 3},
+    {3, true,  153, 2},
+    {3, false, 153, 3},
+    {4, true,  153, 6},
+    {4, false, 153, 7},
+};
+
+int robotAxisLimitSlotIndex(int axisIndex, bool positiveLimit)
+{
+    if (axisIndex < 1 || axisIndex > 4) {
+        return -1;
+    }
+    return (axisIndex - 1) * 2 + (positiveLimit ? 0 : 1);
+}
 const QString kRobotZeroSpeedHistoryText =
     QStringLiteral("操作者在机器人全局速度为0时操作");
 const QString kAgvZeroSpeedHistoryText =
@@ -6205,6 +6236,8 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 stepValue = -stepValue;
             }
 
+            reshowRobotAxisLimitToastForMotion(targetCode, !isOddKey);
+
             m_robotExternalKeyPressed[keyNumber] = true;
             const quint64 seq = ++m_robotExternalWriteSeq;
             if (m_modbusManager) {
@@ -6252,6 +6285,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         if (pressed) {
             value500 = qBound(1, targetCode, 4);
             value514 = (keyNumber == 1) ? 4 : 2;
+            reshowRobotAxisLimitToastForMotion(value500, keyNumber != 1);
 
             m_robotExternalKeyPressed[keyNumber] = true;
             m_robotActiveKey = keyNumber;
@@ -6727,6 +6761,20 @@ void MainWindow::queueMainWrite(int address, quint16 value)
 
 void MainWindow::onAsyncReadFinished(const ModbusResult &result)
 {
+    if (result.id != 0 && result.id == m_robotSoftLimitDetailReadId) {
+        m_robotSoftLimitDetailReadId = 0;
+        if (!isRobotLimit102Active()) {
+            return;
+        }
+        if (!result.ok || result.values.size() < kRobotSoftLimitDetailCount
+            || result.error == ModbusAsyncError::StaleGeneration) {
+            return;
+        }
+        applyRobotSoftLimitRegister(kRobotSoftLimitDetailReg, result.values.at(0));
+        applyRobotSoftLimitRegister(kRobotSoftLimitDetailReg + 1, result.values.at(1));
+        return;
+    }
+
     if (result.id != 0 && result.id == m_interlockReadId) {
         m_interlockReadId = 0;
         if (!result.ok || result.values.isEmpty() || result.error == ModbusAsyncError::StaleGeneration) {
@@ -7868,22 +7916,17 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         const bool positiveLimitReached = (((value >> 2) & 0x01) == 1);
         const bool negativeLimitReached = (((value >> 3) & 0x01) == 1);
 
+        const bool wasLimitGateActive = isRobotLimit102Active();
         if (positiveLimitReached != m_robotPositiveLimit102Bit2Flag) {
             m_robotPositiveLimit102Bit2Flag = positiveLimitReached;
-            if (positiveLimitReached) {
-                showRobotLimitReachedDialog(true);
-            } else if (m_robotLimitDialogTrigger == RobotLimitDialogTrigger::Positive) {
-                hideRobotLimitReachedDialog();
-            }
         }
-
         if (negativeLimitReached != m_robotNegativeLimit102Bit3Flag) {
             m_robotNegativeLimit102Bit3Flag = negativeLimitReached;
-            if (negativeLimitReached) {
-                showRobotLimitReachedDialog(false);
-            } else if (m_robotLimitDialogTrigger == RobotLimitDialogTrigger::Negative) {
-                hideRobotLimitReachedDialog();
-            }
+        }
+        if (wasLimitGateActive && !isRobotLimit102Active()) {
+            hideRobotLimitReachedDialog();
+        } else if (isRobotLimit102Active()) {
+            requestRobotSoftLimitDetailPoll();
         }
 
         if (m_recorder) {
@@ -12925,7 +12968,7 @@ void MainWindow::setupAlarmSystem()
     m_robotAxisSyncDeviation150Bit6Flag = false;
     m_robotPositiveLimit102Bit2Flag = false;
     m_robotNegativeLimit102Bit3Flag = false;
-    m_robotLimitDialogTrigger = RobotLimitDialogTrigger::None;
+    hideRobotLimitReachedDialog();
     m_agvBatteryLowAcked = false;
     m_mainRegister150Valid = false;
     m_mainRegister150Shadow = 0;
@@ -12954,6 +12997,9 @@ void MainWindow::checkAlarmConditions()
             MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 150, 1);
         }
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 102, 1);
+        if (isRobotLimit102Active()) {
+            requestRobotSoftLimitDetailPoll();
+        }
         // 卷样机钢缆到位：151.bit0/bit1；姿态调平门控：151.bit2；吊重-支腿-伸缩臂联锁：151.bit3~7
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 151, 1);
     }
@@ -15695,32 +15741,116 @@ void MainWindow::hideWirelessModeWarningDialog()
     dismissToastByMessage(kWirelessModeWarningText);
 }
 
-QString MainWindow::robotLimitToastMessage(bool positiveLimit) const
+bool MainWindow::isRobotLimit102Active() const
 {
-    // 限位 Toast 文案仅对应 J1~J4（寄存器 500=1~4）；500=5 六自由度等其它值不生成文案
-    const int axisCode = static_cast<int>(g_registerCache.value(500, 0));
-    if (axisCode < 1 || axisCode > 4) {
+    return m_robotPositiveLimit102Bit2Flag || m_robotNegativeLimit102Bit3Flag;
+}
+
+void MainWindow::requestRobotSoftLimitDetailPoll()
+{
+    if (!isRobotLimit102Active() || m_robotSoftLimitDetailReadId != 0) {
+        return;
+    }
+    if (!isFeatureEnabled(QStringLiteral("modbus_main"), QStringLiteral("modbus_main.read_enabled"))) {
+        return;
+    }
+    if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
+        return;
+    }
+
+    ModbusReadRequest request;
+    request.id = ++m_nextAsyncId;
+    request.start = kRobotSoftLimitDetailReg;
+    request.count = kRobotSoftLimitDetailCount;
+    request.generation = m_modbusManager->connectionGeneration();
+    m_robotSoftLimitDetailReadId = request.id;
+    m_modbusManager->requestRead(request);
+}
+
+void MainWindow::applyRobotSoftLimitRegister(int address, quint16 value)
+{
+    if (!isRobotLimit102Active()) {
+        return;
+    }
+    g_registerCache[address] = value;
+
+    for (int slot = 0; slot < kRobotAxisLimitSlotCount; ++slot) {
+        const RobotAxisLimitDef &def = kRobotAxisLimits[slot];
+        if (def.reg != address) {
+            continue;
+        }
+        const bool reached = (((value >> def.bit) & 0x01) == 1);
+        if (reached == m_robotAxisLimitActive[slot]) {
+            continue;
+        }
+        m_robotAxisLimitActive[slot] = reached;
+        if (reached) {
+            m_robotAxisLimitAcked[slot] = false;
+            showRobotAxisLimitToast(slot);
+        } else {
+            hideRobotAxisLimitToast(slot);
+        }
+    }
+}
+
+void MainWindow::syncRobotSoftLimitToasts()
+{
+    if (!isRobotLimit102Active()) {
+        return;
+    }
+    for (int slot = 0; slot < kRobotAxisLimitSlotCount; ++slot) {
+        if (m_robotAxisLimitActive[slot] && !m_robotAxisLimitAcked[slot]) {
+            showRobotAxisLimitToast(slot);
+        }
+    }
+}
+
+QString MainWindow::robotLimitToastMessage(int axisIndex, bool positiveLimit) const
+{
+    if (axisIndex < 1 || axisIndex > 4) {
         return {};
     }
 
     const QString limitDir = positiveLimit ? QStringLiteral("正") : QStringLiteral("负");
-    return QStringLiteral("J%1轴到达%2限位").arg(axisCode).arg(limitDir);
+    return QStringLiteral("J%1轴到达%2限位").arg(axisIndex).arg(limitDir);
 }
 
-void MainWindow::showRobotLimitReachedDialog(bool positiveLimit)
+void MainWindow::showRobotAxisLimitToast(int slot)
 {
-    // 正负限位 Toast 仅在首页（机械臂页）显示
+    if (slot < 0 || slot >= kRobotAxisLimitSlotCount) {
+        return;
+    }
+    if (!m_robotAxisLimitActive[slot] || m_robotAxisLimitAcked[slot] || m_robotAxisLimitToast[slot]) {
+        return;
+    }
+    if (!userPopupsAllowed()) {
+        return;
+    }
+    // 正负限位 Toast 仅在首页显示
     if (!ui || !ui->StackedWidget || ui->StackedWidget->currentIndex() != 0) {
         return;
     }
 
-    const QString message = robotLimitToastMessage(positiveLimit);
+    const RobotAxisLimitDef &def = kRobotAxisLimits[slot];
+    const QString message = robotLimitToastMessage(def.axisIndex, def.positive);
     if (message.isEmpty()) {
         return;
     }
 
-    m_robotLimitDialogTrigger = positiveLimit ? RobotLimitDialogTrigger::Positive
-                                              : RobotLimitDialogTrigger::Negative;
+    const int toastCountBefore = m_toasts.size();
+    // 同向补弹可能紧跟确认关闭，不能被 1.2 秒重复文案窗口吞掉。
+    m_lastToastMs = 0;
+    showToast(message, ToastKind::Warning, 5000, [this, slot]() {
+        if (slot < 0 || slot >= kRobotAxisLimitSlotCount) {
+            return;
+        }
+        m_robotAxisLimitToast[slot] = nullptr;
+        m_robotAxisLimitAcked[slot] = true;
+    });
+    if (m_toasts.size() <= toastCountBefore) {
+        return;
+    }
+    m_robotAxisLimitToast[slot] = m_toasts.last().widget;
 
     if (m_recorder) {
         OperationRecord record;
@@ -15733,24 +15863,40 @@ void MainWindow::showRobotLimitReachedDialog(bool positiveLimit)
         record.newValue = message;
         m_recorder->addRecord(record);
     }
+}
 
-    const int toastCountBefore = m_toasts.size();
-    showToast(message, ToastKind::Warning, 5000, [this]() {
-        m_robotLimitToastWidget = nullptr;
-        m_robotLimitDialogTrigger = RobotLimitDialogTrigger::None;
-    });
-    if (m_toasts.size() > toastCountBefore) {
-        m_robotLimitToastWidget = m_toasts.last().widget;
+void MainWindow::hideRobotAxisLimitToast(int slot)
+{
+    if (slot < 0 || slot >= kRobotAxisLimitSlotCount) {
+        return;
     }
+    if (m_robotAxisLimitToast[slot]) {
+        dismissToast(m_robotAxisLimitToast[slot]);
+        m_robotAxisLimitToast[slot] = nullptr;
+    }
+    m_robotAxisLimitAcked[slot] = false;
 }
 
 void MainWindow::hideRobotLimitReachedDialog()
 {
-    if (m_robotLimitToastWidget) {
-        dismissToast(m_robotLimitToastWidget);
-        m_robotLimitToastWidget = nullptr;
+    m_robotSoftLimitDetailReadId = 0;
+    for (int slot = 0; slot < kRobotAxisLimitSlotCount; ++slot) {
+        m_robotAxisLimitActive[slot] = false;
+        hideRobotAxisLimitToast(slot);
     }
-    m_robotLimitDialogTrigger = RobotLimitDialogTrigger::None;
+}
+
+void MainWindow::reshowRobotAxisLimitToastForMotion(int axisIndex, bool positiveLimit)
+{
+    const int slot = robotAxisLimitSlotIndex(axisIndex, positiveLimit);
+    if (slot < 0 || !m_robotAxisLimitActive[slot]) {
+        return;
+    }
+    m_robotAxisLimitAcked[slot] = false;
+    if (m_robotAxisLimitToast[slot]) {
+        return;
+    }
+    showRobotAxisLimitToast(slot);
 }
 
 void MainWindow::showRobotWeightOverloadDialog()

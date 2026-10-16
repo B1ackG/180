@@ -297,9 +297,7 @@ public:
     void showRobotAxisSyncDeviationDialog();
     /** @brief 隐藏主副轴位置偏差提示窗（150.bit6=0） */
     void hideRobotAxisSyncDeviationDialog();
-    /** @brief 显示主控限位 Toast（102.bit2/bit3=1） */
-    void showRobotLimitReachedDialog(bool positiveLimit);
-    /** @brief 隐藏主控限位提示窗 */
+    /** @brief 102 两位置 0：停读细分辨并清掉全部限位 Toast */
     void hideRobotLimitReachedDialog();
     /** @brief 显示吊重-支腿-伸缩臂联锁 Toast（主控 151.bit3~7） */
     void showLegArmInterlockToast();
@@ -821,8 +819,17 @@ private:
     bool m_robotWeightOverload150Bit3Flag = false;
     bool m_robotWeightLock150Bit7Flag = false;
     bool m_robotAxisSyncDeviation150Bit6Flag = false;
+    /** @brief 主控 102.bit2：正限位到达（作为 152/153 细分辨的门控） */
     bool m_robotPositiveLimit102Bit2Flag = false;
+    /** @brief 主控 102.bit3：负限位到达（作为 152/153 细分辨的门控） */
     bool m_robotNegativeLimit102Bit3Flag = false;
+    /** @brief 在途的 152/153 读取；0 表示没有 */
+    quint64 m_robotSoftLimitDetailReadId = 0;
+    /** @brief 4 轴 × 正负，与 kRobotAxisLimits 下标一致 */
+    bool m_robotAxisLimitActive[8] = {};
+    /** @brief 该位仍为 1 时用户已点确认，轮询不再补弹 */
+    bool m_robotAxisLimitAcked[8] = {};
+    QWidget *m_robotAxisLimitToast[8] = {};
     /** @brief 主控 151.bit0：卷样机钢缆已完全收回 */
     bool m_cableRetracted151Bit0Flag = false;
     /** @brief 主控 151.bit1：卷样机钢缆已完全放出 */
@@ -895,11 +902,6 @@ private:
     QWidget *m_robotAxisSyncDeviationWidget = nullptr;
     QLabel *m_robotAxisSyncDeviationLabel = nullptr;
     QPushButton *m_robotAxisSyncDeviationStartBtn = nullptr;
-    /** @brief 当前限位 Toast 控件（用于清理与确认后复位） */
-    QWidget *m_robotLimitToastWidget = nullptr;
-    /** @brief 当前限位 Toast 对应的 102 限位来源 */
-    enum class RobotLimitDialogTrigger : quint8 { None, Positive, Negative };
-    RobotLimitDialogTrigger m_robotLimitDialogTrigger = RobotLimitDialogTrigger::None;
 
     // ----- Modbus & 通信 (Main) -----
     ModbusThreadManager *m_modbusManager;
@@ -1339,8 +1341,22 @@ private:
                    bool showConfirmButton = true,
                    const QString &confirmButtonText = QString(),
                    bool dismissOnConfirm = true);
-    /** @brief 按寄存器 500 生成正负限位 Toast 文案 */
-    QString robotLimitToastMessage(bool positiveLimit) const;
+    /** @brief 102.bit2 或 bit3 为 1 时才去读 152/153 */
+    bool isRobotLimit102Active() const;
+    /** @brief 门控有效且没有在途请求时，读取主控 152、153 */
+    void requestRobotSoftLimitDetailPoll();
+    /** @brief 按主控 152 或 153 刷新对应轴的限位 Toast */
+    void applyRobotSoftLimitRegister(int address, quint16 value);
+    /** @brief 按已缓存且未确认的细分辨位补弹 Toast */
+    void syncRobotSoftLimitToasts();
+    /** @brief 生成「J{n}轴到达正/负限位」 */
+    QString robotLimitToastMessage(int axisIndex, bool positiveLimit) const;
+    /** @brief 细分辨位 0→1 时显示该轴 Toast；已确认或非首页则不弹 */
+    void showRobotAxisLimitToast(int slot);
+    /** @brief 关掉指定轴 Toast 并清除确认标记 */
+    void hideRobotAxisLimitToast(int slot);
+    /** @brief 机械臂页同向运动按下时，限位位仍为 1 则补弹 */
+    void reshowRobotAxisLimitToastForMotion(int axisIndex, bool positiveLimit);
     /** @brief 隐藏指定 Toast 并重排剩余项 */
     void dismissToast(QWidget *toast);
     /** @brief 按文案关闭匹配的 Toast */

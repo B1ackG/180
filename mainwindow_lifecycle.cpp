@@ -298,11 +298,7 @@ void MainWindow::syncActiveUserPopups()
     if (m_legArmInterlock151Bits != 0 && !m_legArmInterlockUserAckedWhileActive) {
         showLegArmInterlockToast();
     }
-    if (m_robotPositiveLimit102Bit2Flag) {
-        showRobotLimitReachedDialog(true);
-    } else if (m_robotNegativeLimit102Bit3Flag) {
-        showRobotLimitReachedDialog(false);
-    }
+    syncRobotSoftLimitToasts();
 
     refreshInclinometerTiltPresentation();
     updateParkingLegAbnormalDialogVisibility();
