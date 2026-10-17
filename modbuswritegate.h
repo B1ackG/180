@@ -30,8 +30,10 @@ bool isExemptMainSingleWrite(int address);
 bool isExemptMainMultipleWrite(int startAddress, int registerCount);
 
 bool allowMainDeviceSingleWrite(int address);
+bool allowMainDeviceSingleWrite(ModbusThreadManager *main, int address);
 
 bool allowMainDeviceMultipleWrite(int startAddress, int registerCount);
+bool allowMainDeviceMultipleWrite(ModbusThreadManager *main, int startAddress, int registerCount);
 
 bool allowAgvWrite(ModbusThreadManager *main);
 

@@ -23,8 +23,10 @@
 #include <QPointer>
 #include <QVector>
 #include <atomic>
-#include "modbustcpclient.h"
+#include "imodbusclient.h"
 #include "modbusasync.h"
+
+class ModbusTCPClient;
 
     class TechSliderEdit;  // 前向声明
 class TechSliderLabel; // 前向声明
@@ -43,6 +45,11 @@ public:
      * @since 1.0.0
      */
     static ModbusThreadManager* instance();
+
+    explicit ModbusThreadManager(IModbusClient *client,
+                                 bool takeOwnership,
+                                 QObject *parent = nullptr);
+    ~ModbusThreadManager() override;
 
     /**
      * 使用示例:
@@ -247,7 +254,6 @@ signals:
 
 private:
     explicit ModbusThreadManager(QObject *parent = nullptr);
-    ~ModbusThreadManager();
 
     // 单例模式
     // 线程安全单例通过 `instance()` 局部静态变量实现（无需额外成员）
@@ -258,7 +264,8 @@ private slots:
     void onSliderLabelDestroyed(QObject *obj);
 
 private:
-    ModbusTCPClient *m_modbusClient;
+    IModbusClient *m_modbusClient = nullptr;
+    bool m_clientOwned = false;
     mutable std::atomic<bool> m_connectedCached{false};
     std::atomic<quint64> m_connectionGeneration{1};
     QHash<int, quint64> m_writeGeneration;

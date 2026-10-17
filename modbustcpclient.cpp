@@ -16,10 +16,15 @@ bool resolveRequiredSymbol(QLibrary &library, const char *name, Func &target, QS
     return true;
 }
 
+bool registerRangeValid(int start, int count)
+{
+    return start >= 0 && count > 0 && start <= 65535 && count - 1 <= 65535 - start;
+}
+
 } // namespace
 
 ModbusTCPClient::ModbusTCPClient(QObject *parent)
-    : QObject(parent)
+    : IModbusClient(parent)
     , m_networkThread(nullptr)
     , m_port(502)  // Modbus TCP默认端口
     , m_slaveId(1)
@@ -259,7 +264,7 @@ bool ModbusTCPClient::readInputRegisters(int startAddress, int count)
 // 通用读取方法
 bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 functionCode)
 {
-    if (!isConnected() || count <= 0 || count > 125) {
+    if (!registerRangeValid(startAddress, count) || count > 125 || !isConnected()) {
         return false;
     }
     m_activeReadSession = m_sessionGeneration;
@@ -302,6 +307,9 @@ bool ModbusTCPClient::readRegisters(int startAddress, int count, quint8 function
 
 bool ModbusTCPClient::writeSingleRegister(int address, quint16 value)
 {
+    if (!registerRangeValid(address, 1)) {
+        return false;
+    }
     if (!isConnected()) {
         qWarning() << "[Modbus写失败] 未连接到服务器";
         return false;
@@ -322,7 +330,7 @@ bool ModbusTCPClient::writeSingleRegister(int address, quint16 value)
 
 bool ModbusTCPClient::writeMultipleRegisters(int startAddress, const QVector<quint16> &values)
 {
-    if (!isConnected() || values.isEmpty() || values.size() > 123) {
+    if (!registerRangeValid(startAddress, values.size()) || values.size() > 123 || !isConnected()) {
         return false;
     }
 
@@ -360,7 +368,7 @@ bool ModbusTCPClient::readHoldingRegisterSync(int address, quint16 &value)
 bool ModbusTCPClient::readHoldingRegistersSync(int startAddress, int count, QVector<quint16> &values)
 {
     values.clear();
-    if (!isConnected() || count <= 0 || count > 125) {
+    if (!registerRangeValid(startAddress, count) || count > 125 || !isConnected()) {
         return false;
     }
     m_activeReadSession = m_sessionGeneration;

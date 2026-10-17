@@ -9,7 +9,7 @@
 constexpr int kModbusUtf8StringRegisterCount = 15;
 
 /**
- * @brief 将 Modbus 保持寄存器解码为 UTF-8 字符串（高字节在前，末尾 0x00 截断）。
+ * @brief 将 Modbus 保持寄存器解码为 UTF-8 字符串（高字节在前，遇首个 0x00 停止）。
  */
 QString decodeUtf8FromRegisters(const quint16 *regs, int regCount);
 

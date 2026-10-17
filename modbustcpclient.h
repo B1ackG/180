@@ -15,7 +15,8 @@
  */
 #define MODBUSTCPCLIENT_H
 
-#include <QObject>
+#include "imodbusclient.h"
+
 #include <QThread>
 #include <QMutex>
 #include <QTimer>
@@ -24,7 +25,7 @@
 #include <QList>
 #include <QVector>
 
-class ModbusTCPClient : public QObject
+class ModbusTCPClient : public IModbusClient
 {
     Q_OBJECT
 
@@ -78,7 +79,7 @@ public:
      * @return true 表示发起连接成功（不等于已完成握手），连接建立后会发出 `connected()`。
      * @note 若需要 DNS 支持或加密通道，请在实现中扩展。
      */
-    bool connectToServer(const QString &host, quint16 port, int slaveId = 1);
+    bool connectToServer(const QString &host, quint16 port, int slaveId = 1) override;
 
     /**
      * 使用示例:
@@ -93,13 +94,13 @@ public:
      *
      * 立即关闭 socket 并停止自动重连逻辑。
      */
-    void disconnectFromServer();
+    void disconnectFromServer() override;
 
     /**
      * @brief 查询连接状态
      * @return true 表示当前 socket 已连接
      */
-    bool isConnected() const;
+    bool isConnected() const override;
 
 
     // 寄存器操作 - 修改这里
@@ -112,7 +113,7 @@ public:
      * @note 大批量读取建议分片以避免超过设备/协议帧长度限制。
      * @warning count 过大可能导致设备拒绝或通信超时。
      */
-    bool readHoldingRegisters(int startAddress, int count);  // 功能码 0x03
+    bool readHoldingRegisters(int startAddress, int count) override;  // 功能码 0x03
 
     /**
      * 使用示例:
@@ -127,7 +128,7 @@ public:
      * @param count 读取数量
      * @return 请求是否成功发出
      */
-    bool readInputRegisters(int startAddress, int count);    // 功能码 0x04
+    bool readInputRegisters(int startAddress, int count) override;    // 功能码 0x04
 
     /**
      * @brief 写单个寄存器
@@ -136,7 +137,7 @@ public:
      * @param value 要写入的 16 位值
      * @return true 表示请求已发送，写入结果以响应或信号反馈
      */
-    bool writeSingleRegister(int address, quint16 value);
+    bool writeSingleRegister(int address, quint16 value) override;
 
     /**
      * 使用示例:
@@ -153,17 +154,17 @@ public:
      * @return true 表示请求已发出
      * @note 对于大量数据会自动分包以符合帧长度限制（实现层）。
      */
-    bool writeMultipleRegisters(int startAddress, const QVector<quint16> &values);
+    bool writeMultipleRegisters(int startAddress, const QVector<quint16> &values) override;
 
     /**
      * @brief 同步读取单个保持寄存器（阻塞，用于门禁/联锁等逻辑）
      */
-    bool readHoldingRegisterSync(int address, quint16 &value);
+    bool readHoldingRegisterSync(int address, quint16 &value) override;
 
     /**
      * @brief 同步读取一段保持寄存器（阻塞，结果写入 values）
      */
-    bool readHoldingRegistersSync(int startAddress, int count, QVector<quint16> &values);
+    bool readHoldingRegistersSync(int startAddress, int count, QVector<quint16> &values) override;
 
     // 批量管理
     /**
@@ -186,7 +187,7 @@ public:
      * @brief 从轮询列表移除寄存器
      * @param address 寄存器地址
      */
-    void removeRegisterFromPoll(int address);
+    void removeRegisterFromPoll(int address) override;
 
     /**
      * @brief 清空所有轮询寄存器
@@ -199,7 +200,7 @@ public:
      * @param ms 间隔毫秒数
      * @note 较短的间隔增加网络与处理开销，需权衡实时性与性能。
      */
-    void setPollInterval(int ms);
+    void setPollInterval(int ms) override;
 
     /**
      * 使用示例:
@@ -215,7 +216,7 @@ public:
      * @param interval 重连间隔（毫秒），默认 5000
      * @note 可扩展为指数退避策略以避免持续重连。
      */
-    void setAutoReconnect(bool enable, int interval = 5000);
+    void setAutoReconnect(bool enable, int interval = 5000) override;
 
     /**
      * 使用示例:
@@ -225,10 +226,6 @@ public:
      */
 
 signals:
-    void connected();
-    void disconnected();
-    void errorOccurred(const QString &error);
-    void registerValueChanged(int address, quint16 value);
     void registerValueChangedNamed(const QString &name, quint16 value);
     void dataReceived(const QByteArray &data);
 
@@ -244,7 +241,7 @@ public slots:
      * client->startPolling();
      * @endcode
      */
-    void startPolling();
+    void startPolling() override;
 
     /**
      * @brief 停止轮询操作
@@ -256,7 +253,7 @@ public slots:
      * client->stopPolling();
      * @endcode
      */
-    void stopPolling();
+    void stopPolling() override;
 
 private slots:
     void pollRegisters();

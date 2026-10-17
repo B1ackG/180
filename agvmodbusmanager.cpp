@@ -2,6 +2,7 @@
 #include "agvmodbusmanager.h"
 #include "modbuswritegate.h"
 #include "modbusthreadmanager.h"
+#include "registerbitutils.h"
 #include <QDebug>
 #include <QDateTime>
 #include <QCoreApplication>
@@ -904,18 +905,15 @@ void AGVModbusManager::performAuthorizedWrite(const QueuedWrite &command)
             emit writeCompleted(command.start, 0, false);
             return;
         }
-        quint16 next = current.first();
+        QVector<QPair<int, bool>> updates;
+        updates.reserve(command.bits.size());
         for (const QPair<int, bool> &bitUpdate : command.bits) {
-            const int bit = bitUpdate.first;
-            if (bit < 0 || bit > 15) {
-                emit writeCompleted(command.start, next, false);
-                return;
-            }
-            if (bitUpdate.second) {
-                next = static_cast<quint16>(next | (static_cast<quint16>(1u) << bit));
-            } else {
-                next = static_cast<quint16>(next & ~(static_cast<quint16>(1u) << bit));
-            }
+            updates.append(bitUpdate);
+        }
+        quint16 next = current.first();
+        if (!RegisterBitUtils::applyBitUpdates(current.first(), updates, next)) {
+            emit writeCompleted(command.start, current.first(), false);
+            return;
         }
         if (next == current.first()) {
             emit writeCompleted(command.start, next, true);

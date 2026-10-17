@@ -37,6 +37,7 @@ Thumbs.db
 
 # Automatically added by Assistant
 build/
+build-tests/
 180
 
 # Runtime / build logs and diagnostics

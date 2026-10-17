@@ -1,0 +1,10 @@
+CONFIG += testcase console c++17
+CONFIG -= app_bundle
+QT += core testlib
+TEMPLATE = app
+MOC_DIR = $$OUT_PWD/moc
+OBJECTS_DIR = $$OUT_PWD/obj
+UI_DIR = $$OUT_PWD/ui
+RCC_DIR = $$OUT_PWD/rcc
+INCLUDEPATH += $$PWD/../..
+DEPENDPATH += $$PWD/../..

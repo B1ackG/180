@@ -11,11 +11,16 @@ QString decodeUtf8FromRegisters(const quint16 *regs, int regCount)
     QByteArray bytes;
     bytes.reserve(regCount * 2);
     for (int i = 0; i < regCount; ++i) {
-        bytes.append(static_cast<char>((regs[i] >> 8) & 0xFF));
-        bytes.append(static_cast<char>(regs[i] & 0xFF));
-    }
-    while (!bytes.isEmpty() && static_cast<quint8>(bytes.back()) == 0) {
-        bytes.chop(1);
+        const quint8 hi = static_cast<quint8>((regs[i] >> 8) & 0xFF);
+        const quint8 lo = static_cast<quint8>(regs[i] & 0xFF);
+        if (hi == 0) {
+            break;
+        }
+        bytes.append(static_cast<char>(hi));
+        if (lo == 0) {
+            break;
+        }
+        bytes.append(static_cast<char>(lo));
     }
     return QString::fromUtf8(bytes);
 }

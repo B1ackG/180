@@ -26,6 +26,7 @@
 #include "techspeeddialsimple.h"
 #include "matrixkeythreadmanager.h"
 #include "modbusthreadmanager.h"
+#include "motionstoprecoverycontroller.h"
 #include "techsliderlabel.h"
 #include "techarcgauge.h"
 #include "techchamfertoolbutton.h"
@@ -409,7 +410,7 @@ public:
     /** @brief 创建并绑定 Modbus 标签 */
     void setupModbusLabels();
     /** @brief 向主控设备写入寄存器 */
-    void writeToMainDevice(int address, int value);
+    void writeToMainDevice(int address, int value, int generationChannel = 0, quint64 generation = 0);
     
     /** @brief 初始化 AGV Modbus 子系统 */
     void setupAGVModbus();
@@ -982,6 +983,8 @@ private:
     QHash<int, bool> m_sixAxisExternalKeyPressed;
     quint64 m_sixAxisExternalWriteSeq = 0;
     int m_sixAxisActiveKey = -1;
+    MotionStopRecoveryController *m_motionStopRecovery = nullptr;
+    qint64 m_motionStopBlockedToastMs = 0;
     struct SpareNameReadToken {
         QString objectName;
         int stateIndex = 1;
@@ -1143,7 +1146,8 @@ private:
     void onAsyncWriteFinished(const ModbusResult &result);
     void onMainMaskedWriteFinished(quint64 id, int address, bool ok, quint16 value);
     void queueSpareButtonNameReads();
-    void queueMainWrite(int address, quint16 value);
+    void queueMainWrite(int address, quint16 value, int generationChannel = 0, quint64 generation = 0);
+    bool rejectMotionUntilStopConfirmed();
     /** @brief 记录示教互锁归属；从其他示教器切回本机时打开权限页 */
     void noteTeachPendantInterlockValue(quint16 registerValue);
     /** @brief 打开权限页并同步导航选中状态 */

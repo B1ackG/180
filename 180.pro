@@ -30,6 +30,10 @@ SOURCES += \
     mainmodbusconnector.cpp \
     mainmodbusstatus.cpp \
     mappingconfig.cpp \
+    modbusregistercodec.cpp \
+    motionwriteplan.cpp \
+    motionstoprecoverycontroller.cpp \
+    registerbitutils.cpp \
     modebuttonstyler.cpp \
     navigationicon.cpp \
     matrixkeymonitor.cpp \
@@ -75,7 +79,12 @@ HEADERS += \
     modbustcpclient.h \
     modbusthreadmanager.h \
     modbusasync.h \
+    imodbusclient.h \
+    modbusregistercodec.h \
     modbusstringregisters.h \
+    motionwriteplan.h \
+    motionstoprecoverycontroller.h \
+    registerbitutils.h \
     modbuswritegate.h \
     modbusvariables.h \
     operationrecorder.h \

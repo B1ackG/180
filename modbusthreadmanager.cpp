@@ -1,6 +1,8 @@
 // file name: modbusthreadmanager.cpp
 #include "modbusthreadmanager.h"
+#include "modbustcpclient.h"
 #include "modbuswritegate.h"
+#include "registerbitutils.h"
 #include "techslideredit.h"
 #include "techsliderlabel.h"
 #include <QCoreApplication>
@@ -60,22 +62,36 @@ ModbusThreadManager* ModbusThreadManager::instance()
 }
 
 ModbusThreadManager::ModbusThreadManager(QObject *parent)
-    : QObject(parent)
-    , m_modbusClient(new ModbusTCPClient(this))
+    : ModbusThreadManager(new ModbusTCPClient(), true, parent)
 {
-    connect(m_modbusClient, &ModbusTCPClient::connected,
+}
+
+ModbusThreadManager::ModbusThreadManager(IModbusClient *client, bool takeOwnership, QObject *parent)
+    : QObject(parent)
+    , m_modbusClient(client)
+    , m_clientOwned(takeOwnership)
+{
+    Q_ASSERT(client != nullptr);
+    if (!client) {
+        m_clientOwned = false;
+        return;
+    }
+    if (takeOwnership) {
+        client->setParent(this);
+    }
+    connect(m_modbusClient, &IModbusClient::connected,
             this, &ModbusThreadManager::connected);
-    connect(m_modbusClient, &ModbusTCPClient::disconnected,
+    connect(m_modbusClient, &IModbusClient::disconnected,
             this, &ModbusThreadManager::disconnected);
-    connect(m_modbusClient, &ModbusTCPClient::errorOccurred,
+    connect(m_modbusClient, &IModbusClient::errorOccurred,
             this, &ModbusThreadManager::errorOccurred);
-    connect(m_modbusClient, &ModbusTCPClient::registerValueChanged,
+    connect(m_modbusClient, &IModbusClient::registerValueChanged,
             this, &ModbusThreadManager::onRegisterValueChanged);
-    connect(m_modbusClient, &ModbusTCPClient::connected, this, [this]() {
+    connect(m_modbusClient, &IModbusClient::connected, this, [this]() {
         m_connectionGeneration.fetch_add(1);
         m_connectedCached.store(true);
     });
-    connect(m_modbusClient, &ModbusTCPClient::disconnected, this, [this]() {
+    connect(m_modbusClient, &IModbusClient::disconnected, this, [this]() {
         m_connectionGeneration.fetch_add(1);
         m_connectedCached.store(false);
     });
@@ -450,7 +466,7 @@ bool ModbusThreadManager::writeSingleRegister(int address, quint16 value)
         return false;
     }
 
-    if (!ModbusWriteGate::allowMainDeviceSingleWrite(address)) {
+    if (!ModbusWriteGate::allowMainDeviceSingleWrite(this, address)) {
         emit writeOperationComplete(false, ModbusWriteGate::deniedReason());
         return false;
     }
@@ -486,7 +502,7 @@ bool ModbusThreadManager::writeMultipleRegisters(int startAddress, const QVector
         return false;
     }
 
-    if (!ModbusWriteGate::allowMainDeviceMultipleWrite(startAddress, values.size())) {
+    if (!ModbusWriteGate::allowMainDeviceMultipleWrite(this, startAddress, values.size())) {
         emit writeOperationComplete(false, ModbusWriteGate::deniedReason());
         return false;
     }
@@ -711,9 +727,17 @@ void ModbusThreadManager::requestWriteChain(quint64 id, const QVector<ModbusWrit
     }
 
     bool ok = !steps.isEmpty();
+    ModbusAsyncError error = ok ? ModbusAsyncError::None : ModbusAsyncError::IoFailed;
     for (const ModbusWriteCommand &step : steps) {
         if (step.values.isEmpty()) {
             ok = false;
+            error = ModbusAsyncError::IoFailed;
+            break;
+        }
+        if (step.generationChannel != 0
+            && m_writeGeneration.value(step.generationChannel) != step.generation) {
+            ok = false;
+            error = ModbusAsyncError::StaleGeneration;
             break;
         }
         if (step.values.size() == 1) {
@@ -722,6 +746,7 @@ void ModbusThreadManager::requestWriteChain(quint64 id, const QVector<ModbusWrit
             ok = writeMultipleRegisters(step.start, step.values);
         }
         if (!ok) {
+            error = ModbusAsyncError::IoFailed;
             break;
         }
     }
@@ -729,7 +754,7 @@ void ModbusThreadManager::requestWriteChain(quint64 id, const QVector<ModbusWrit
     ModbusResult result;
     result.id = id;
     result.ok = ok;
-    result.error = ok ? ModbusAsyncError::None : ModbusAsyncError::IoFailed;
+    result.error = ok ? ModbusAsyncError::None : error;
     emit writeFinished(result);
 }
 
@@ -775,7 +800,11 @@ void ModbusThreadManager::queueMaskedWrite(quint64 id, int address, quint16 orMa
         emit maskedWriteFinished(id, address, false, 0);
         return;
     }
-    const quint16 next = static_cast<quint16>((current | orMask) & andMask);
+    quint16 next = current;
+    if (!RegisterBitUtils::applyMaskedWrite(current, orMask, andMask, next)) {
+        emit maskedWriteFinished(id, address, false, current);
+        return;
+    }
     bool ok = true;
     if (next != current) {
         ok = writeSingleRegister(address, next);

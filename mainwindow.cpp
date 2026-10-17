@@ -11,6 +11,9 @@
 #include "mainmodbusstatus.h"
 #include "modbuswritegate.h"
 #include "modbusstringregisters.h"
+#include "modbusregistercodec.h"
+#include "motionstoprecoverycontroller.h"
+#include "motionwriteplan.h"
 #include "navigationicon.h"
 #include "techchamfertoolbutton.h"
 #ifdef ENABLE_VIRTUAL_MATRIX_KEYS
@@ -252,44 +255,6 @@ QString inclinometerHostAlarmStyleSheet()
         "background: transparent;"
         "border: 2px solid #FF6666;"
         "border-radius: 14px;");
-}
-
-std::array<quint16, 4> doubleToRegistersGHEFCDAB(double value)
-{
-    quint64 raw = 0;
-    memcpy(&raw, &value, sizeof(double));
-
-    const quint8 A = static_cast<quint8>((raw >> 56) & 0xFF);
-    const quint8 B = static_cast<quint8>((raw >> 48) & 0xFF);
-    const quint8 C = static_cast<quint8>((raw >> 40) & 0xFF);
-    const quint8 D = static_cast<quint8>((raw >> 32) & 0xFF);
-    const quint8 E = static_cast<quint8>((raw >> 24) & 0xFF);
-    const quint8 F = static_cast<quint8>((raw >> 16) & 0xFF);
-    const quint8 G = static_cast<quint8>((raw >> 8) & 0xFF);
-    const quint8 H = static_cast<quint8>(raw & 0xFF);
-
-    return {
-        static_cast<quint16>((static_cast<quint16>(G) << 8) | H),
-        static_cast<quint16>((static_cast<quint16>(E) << 8) | F),
-        static_cast<quint16>((static_cast<quint16>(C) << 8) | D),
-        static_cast<quint16>((static_cast<quint16>(A) << 8) | B)
-    };
-}
-
-    std::array<quint16, 2> floatToRegistersCDAB(float value)
-{
-    quint32 raw = 0;
-    memcpy(&raw, &value, sizeof(float));
-
-    const quint8 A = static_cast<quint8>((raw >> 24) & 0xFF);
-    const quint8 B = static_cast<quint8>((raw >> 16) & 0xFF);
-    const quint8 C = static_cast<quint8>((raw >> 8) & 0xFF);
-    const quint8 D = static_cast<quint8>(raw & 0xFF);
-
-    return {
-        static_cast<quint16>((static_cast<quint16>(C) << 8) | D),
-        static_cast<quint16>((static_cast<quint16>(A) << 8) | B)
-    };
 }
 
 /** 与 OperationRecorder 规范化后的中文 controlType 或原始英文类名均可匹配 */
@@ -5981,21 +5946,16 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             m_sixAxisExternalKeyPressed[keyNumber] = true;
             m_sixAxisActiveKey = keyNumber;
             ++m_sixAxisExternalWriteSeq;
-
-            writeToMainDevice(614, axisIndex);
-
-            const auto regs = floatToRegistersCDAB(stepValueFloat);
-            QVector<quint16> values;
-            values.reserve(2);
-            values << regs[0] << regs[1];
             if (m_modbusManager) {
-                ModbusWriteCommand stepCommand;
-                stepCommand.start = 601;
-                stepCommand.values = values;
-                ModbusWriteCommand triggerCommand;
-                triggerCommand.start = 615;
-                triggerCommand.values = {1};
-                m_modbusManager->requestWriteChain(++m_nextAsyncId, {stepCommand, triggerCommand});
+                m_modbusManager->setWriteGeneration(ModbusThreadManager::kSixAxisExternalWriteChannel,
+                                                   m_sixAxisExternalWriteSeq);
+                SixAxisStepWritePlan plan;
+                if (buildSixAxisStepWritePlan(axisIndex,
+                                              stepValueFloat,
+                                              m_sixAxisExternalWriteSeq,
+                                              plan)) {
+                    m_modbusManager->requestWriteChain(++m_nextAsyncId, plan.steps);
+                }
             }
 
             qCDebug(lcMainWindow) << "六轴步进外部按键○" << keyNumber
@@ -6037,18 +5997,45 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         }
 
         if (!pressed) {
+            const bool wasPressed = m_sixAxisExternalKeyPressed.value(keyNumber, false);
+            m_sixAxisExternalKeyPressed[keyNumber] = false;
             recordSixAxisJogExternalKey(axisIndex, false);
-            writeToMainDevice(613, 0);
+            ++m_sixAxisExternalWriteSeq;
+            if (m_modbusManager) {
+                m_modbusManager->setWriteGeneration(ModbusThreadManager::kSixAxisExternalWriteChannel,
+                                                   m_sixAxisExternalWriteSeq);
+            }
+            if (wasPressed && m_motionStopRecovery) {
+                m_motionStopRecovery->requestMotionStop(MainMotionStopKind::SixAxisJog613);
+            } else {
+                writeToMainDevice(613, 0);
+            }
+            return;
+        }
+
+        if (rejectMotionUntilStopConfirmed()) {
             return;
         }
 
         recordSixAxisJogExternalKey(axisIndex, true);
+        m_sixAxisExternalKeyPressed[keyNumber] = true;
+        if (m_motionStopRecovery) {
+            m_motionStopRecovery->markMotionStarted(MainMotionStopKind::SixAxisJog613);
+        }
         int signedCommand = (keyNumber == 1) ? -axisIndex : axisIndex;
         if (axisIndex == 6) {
             signedCommand = -signedCommand;
         }
         const quint16 encoded = static_cast<quint16>(signedCommand); // 负数按补码写入
-        writeToMainDevice(613, static_cast<int>(encoded));
+        ++m_sixAxisExternalWriteSeq;
+        if (m_modbusManager) {
+            m_modbusManager->setWriteGeneration(ModbusThreadManager::kSixAxisExternalWriteChannel,
+                                               m_sixAxisExternalWriteSeq);
+        }
+        writeToMainDevice(613,
+                          static_cast<int>(encoded),
+                          ModbusThreadManager::kSixAxisExternalWriteChannel,
+                          m_sixAxisExternalWriteSeq);
 
         qCDebug(lcMainWindow) << "六自由度外部按键○" << keyNumber
                               << "-> 地址613写入" << signedCommand
@@ -6283,12 +6270,18 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         int value514 = 0;
         const int targetCode = selectedStepTargetRegister() - 499;
         if (pressed) {
+            if (rejectMotionUntilStopConfirmed()) {
+                return;
+            }
             value500 = qBound(1, targetCode, 4);
             value514 = (keyNumber == 1) ? 4 : 2;
             reshowRobotAxisLimitToastForMotion(value500, keyNumber != 1);
 
             m_robotExternalKeyPressed[keyNumber] = true;
             m_robotActiveKey = keyNumber;
+            if (m_motionStopRecovery) {
+                m_motionStopRecovery->markMotionStarted(MainMotionStopKind::RobotJog514);
+            }
             const quint64 seq = ++m_robotExternalWriteSeq;
             if (m_modbusManager) {
                 m_modbusManager->setWriteGeneration(ModbusThreadManager::kRobotExternalWriteChannel, seq);
@@ -6310,6 +6303,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         } else {
             value500 = -1;
             value514 = 0;
+            const bool wasPressed = m_robotExternalKeyPressed.value(keyNumber, false);
             m_robotExternalKeyPressed[keyNumber] = false;
             if (m_robotActiveKey == keyNumber) {
                 m_robotActiveKey = -1;
@@ -6319,7 +6313,11 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 m_modbusManager->setWriteGeneration(ModbusThreadManager::kRobotExternalWriteChannel,
                                                    m_robotExternalWriteSeq);
             }
-            writeToMainDevice(514, 0);
+            if (wasPressed && m_motionStopRecovery) {
+                m_motionStopRecovery->requestMotionStop(MainMotionStopKind::RobotJog514);
+            } else {
+                writeToMainDevice(514, 0);
+            }
         }
 
         qCDebug(lcMainWindow) << "page_Robot (点动/关节) 按键 ○" << keyNumber << " " << (pressed ? "按下" : "释放")
@@ -6643,6 +6641,23 @@ void MainWindow::setupModbusManager()
     connect(m_modbusManager, &ModbusThreadManager::maskedWriteFinished,
             this, &MainWindow::onMainMaskedWriteFinished, Qt::QueuedConnection);
 
+    m_motionStopRecovery = new MotionStopRecoveryController(this);
+    m_motionStopRecovery->setWriteDispatcher([this](int address, quint16 value) -> quint64 {
+        if (!m_modbusManager) {
+            return 0;
+        }
+        if (!isFeatureEnabled("modbus_main", "modbus_main.write_enabled")) {
+            return 0;
+        }
+        const quint64 id = ++m_nextAsyncId;
+        ModbusWriteCommand command;
+        command.id = id;
+        command.start = address;
+        command.values = {value};
+        m_modbusManager->requestWrite(command);
+        return id;
+    });
+
     connect(m_modbusManager, &ModbusThreadManager::writeOperationComplete,
             this,
             [this](bool success, const QString &message) {
@@ -6747,7 +6762,7 @@ void MainWindow::applyInterlockRegisterValue(quint16 value)
     noteTeachPendantInterlockValue(value);
 }
 
-void MainWindow::queueMainWrite(int address, quint16 value)
+void MainWindow::queueMainWrite(int address, quint16 value, int generationChannel, quint64 generation)
 {
     if (!m_modbusManager) {
         return;
@@ -6756,6 +6771,8 @@ void MainWindow::queueMainWrite(int address, quint16 value)
     command.id = ++m_nextAsyncId;
     command.start = address;
     command.values = {value};
+    command.generationChannel = generationChannel;
+    command.generation = generation;
     m_modbusManager->requestWrite(command);
 }
 
@@ -6855,6 +6872,9 @@ void MainWindow::onAsyncReadFinished(const ModbusResult &result)
 
 void MainWindow::onAsyncWriteFinished(const ModbusResult &result)
 {
+    if (m_motionStopRecovery) {
+        m_motionStopRecovery->handleWriteFinished(result.id, result.ok);
+    }
     if (result.id != 0 && result.id == m_pendingInterlockWriteId && !result.ok) {
         m_pendingInterlockWriteId = 0;
         showNotification(QStringLiteral("写入联锁寄存器失败"));
@@ -7171,6 +7191,9 @@ void MainWindow::setupSliderModbusAddresses()
 // Modbus连接成功槽函数
 void MainWindow::onModbusConnected()
 {
+    if (m_motionStopRecovery) {
+        m_motionStopRecovery->setMainConnected(true);
+    }
     qCDebug(lcMainWindow) << "Modbus连接成功，启动交互任务...";
     MainModbusStatus::applyUiState(ui ? ui->statusBar : nullptr, MainModbusState::Connected);
     if (isSixAxisViewActive()) {
@@ -7275,6 +7298,12 @@ void MainWindow::onModbusConnected()
 // Modbus断开连接槽函数
 void MainWindow::onModbusDisconnected()
 {
+    invalidateExternalMotionWritesOnDisconnect(m_modbusManager,
+                                               m_robotExternalWriteSeq,
+                                               m_sixAxisExternalWriteSeq);
+    if (m_motionStopRecovery) {
+        m_motionStopRecovery->setMainConnected(false);
+    }
     qCDebug(lcMainWindow) << "Modbus设备断开连接";
     ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(false, 0);
     if (m_interlockingSyncTimer) {
@@ -8108,19 +8137,7 @@ float MainWindow::registersToFloat(quint16 high, quint16 low)
 
 float MainWindow::registersToFloatCDAB(quint16 regA, quint16 regB)
 {
-    const quint8 A = static_cast<quint8>((regA >> 8) & 0xFF);
-    const quint8 B = static_cast<quint8>(regA & 0xFF);
-    const quint8 C = static_cast<quint8>((regB >> 8) & 0xFF);
-    const quint8 D = static_cast<quint8>(regB & 0xFF);
-
-    const uint32_t combined = (static_cast<uint32_t>(C) << 24)
-                            | (static_cast<uint32_t>(D) << 16)
-                            | (static_cast<uint32_t>(A) << 8)
-                            | static_cast<uint32_t>(B);
-
-    float result = 0.0f;
-    memcpy(&result, &combined, sizeof(float));
-    return result;
+    return ModbusRegisterCodec::floatFromCdab(regA, regB);
 }
 
 double MainWindow::registersToDoubleDCBAFEHG(quint16 reg1, quint16 reg2, quint16 reg3, quint16 reg4)
@@ -9749,7 +9766,20 @@ void MainWindow::resetAgvPageRegister0CommandBits(bool clearStepEnableAndStart, 
     writeAGVRegisterBits(0, bits, scene, true);
 }
 
-void MainWindow::writeToMainDevice(int address, int value)
+bool MainWindow::rejectMotionUntilStopConfirmed()
+{
+    if (externalJogPressAllowed(m_motionStopRecovery)) {
+        return false;
+    }
+    const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
+    if (nowMs - m_motionStopBlockedToastMs >= 500) {
+        m_motionStopBlockedToastMs = nowMs;
+        showToast(QStringLiteral("停止命令尚未确认，暂时禁止再次运动"), ToastKind::Warning);
+    }
+    return true;
+}
+
+void MainWindow::writeToMainDevice(int address, int value, int generationChannel, quint64 generation)
 {
     if (!isFeatureEnabled("modbus_main", "modbus_main.write_enabled")) {
         showModbusWriteDisabledToast();
@@ -9766,7 +9796,7 @@ void MainWindow::writeToMainDevice(int address, int value)
                  << "值:" << value;
     }
 
-    queueMainWrite(address, static_cast<quint16>(value));
+    queueMainWrite(address, static_cast<quint16>(value), generationChannel, generation);
 }
 void MainWindow::onControlModeClicked()
 {
@@ -10408,7 +10438,7 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
             m_legControlLengthEdit->setText(QString::number(mm));
         }
 
-        const auto wordsArr = doubleToRegistersGHEFCDAB(static_cast<double>(mm));
+        const auto wordsArr = ModbusRegisterCodec::doubleToGhefCdab(static_cast<double>(mm));
         const QVector<quint16> parkLenWords = {wordsArr[0], wordsArr[1], wordsArr[2], wordsArr[3]};
 
         if (!writeAgvHoldingRegisterBlock(parkLengthAddr, parkLenWords)) {
@@ -12554,7 +12584,7 @@ void MainWindow::onJ4MoveStepChanged(const QString &text)
 
 void MainWindow::writeStepValueDoubleToMainDevice(double value)
 {
-    const auto regs = doubleToRegistersGHEFCDAB(value);
+    const auto regs = ModbusRegisterCodec::doubleToGhefCdab(value);
 
     QVector<quint16> values;
     values.reserve(4);

@@ -83,21 +83,31 @@ bool isRuntimeU32WriteRange(int startAddress, int registerCount)
     return startAddress == 8193 && registerCount == 2;
 }
 
-bool allowMainDeviceSingleWrite(int address)
+bool allowMainDeviceSingleWrite(ModbusThreadManager *main, int address)
 {
     if (isExemptMainSingleWrite(address)) {
         return true;
     }
-    return verifyWriteAllowed(ModbusThreadManager::instance());
+    return verifyWriteAllowed(main);
 }
 
-bool allowMainDeviceMultipleWrite(int startAddress, int registerCount)
+bool allowMainDeviceSingleWrite(int address)
+{
+    return allowMainDeviceSingleWrite(ModbusThreadManager::instance(), address);
+}
+
+bool allowMainDeviceMultipleWrite(ModbusThreadManager *main, int startAddress, int registerCount)
 {
     if (isExemptMainMultipleWrite(startAddress, registerCount)
         || isRuntimeU32WriteRange(startAddress, registerCount)) {
         return true;
     }
-    return verifyWriteAllowed(ModbusThreadManager::instance());
+    return verifyWriteAllowed(main);
+}
+
+bool allowMainDeviceMultipleWrite(int startAddress, int registerCount)
+{
+    return allowMainDeviceMultipleWrite(ModbusThreadManager::instance(), startAddress, registerCount);
 }
 
 bool allowAgvWrite(ModbusThreadManager *main)
