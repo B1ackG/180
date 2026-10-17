@@ -21,6 +21,11 @@ private slots:
     void failedStopStaysPendingUntilRetrySucceeds();
     void repeatedConnectionChangesDoNotDuplicateInFlight();
     void bothStopsMustSucceed();
+    void diagonalNormalStopClearsPending();
+    void diagonalDisconnectBecomesPending();
+    void diagonalReconnectWritesZero();
+    void diagonalFailedStopRetries();
+    void diagonalAndJointStopsAreIndependent();
     void gateFailureKeepsPending();
     void oldDelayedNonZeroWriteIsCancelled();
 
@@ -174,6 +179,122 @@ void TestMotionStopRecovery::bothStopsMustSucceed()
     QVERIFY(!controller.canStartMotion());
     controller.handleWriteFinished(ids.value(514), true);
     QVERIFY(controller.canStartMotion());
+}
+
+void TestMotionStopRecovery::diagonalNormalStopClearsPending()
+{
+    MotionStopRecoveryController controller;
+    QVector<QPair<int, quint16>> writes;
+    quint64 nextId = 0;
+    controller.setMainConnected(true);
+    controller.setWriteDispatcher([&](int address, quint16 value) {
+        writes.append(qMakePair(address, value));
+        return ++nextId;
+    });
+    controller.markMotionStarted(MainMotionStopKind::SixAxisDiagonalJog622);
+    controller.requestMotionStop(MainMotionStopKind::SixAxisDiagonalJog622);
+    const QVector<QPair<int, quint16>> expected{qMakePair(622, quint16(0))};
+    QCOMPARE(writes, expected);
+    QVERIFY(!controller.canStartMotion());
+    controller.handleWriteFinished(nextId, true);
+    QVERIFY(controller.canStartMotion());
+    QVERIFY(!controller.hasPendingStop());
+}
+
+void TestMotionStopRecovery::diagonalDisconnectBecomesPending()
+{
+    MotionStopRecoveryController controller;
+    int calls = 0;
+    controller.setWriteDispatcher([&](int, quint16) {
+        ++calls;
+        return quint64(1);
+    });
+    controller.setMainConnected(true);
+    controller.markMotionStarted(MainMotionStopKind::SixAxisDiagonalJog622);
+    controller.setMainConnected(false);
+    QCOMPARE(calls, 0);
+    QVERIFY(controller.hasPendingStop());
+    QVERIFY(!controller.canStartMotion());
+}
+
+void TestMotionStopRecovery::diagonalReconnectWritesZero()
+{
+    MotionStopRecoveryController controller;
+    QVector<QPair<int, quint16>> writes;
+    quint64 nextId = 0;
+    controller.setWriteDispatcher([&](int address, quint16 value) {
+        writes.append(qMakePair(address, value));
+        return ++nextId;
+    });
+    controller.setMainConnected(true);
+    controller.markMotionStarted(MainMotionStopKind::SixAxisDiagonalJog622);
+    controller.setMainConnected(false);
+    controller.setMainConnected(true);
+    const QVector<QPair<int, quint16>> expected{qMakePair(622, quint16(0))};
+    QCOMPARE(writes, expected);
+    QVERIFY(!controller.canStartMotion());
+    controller.handleWriteFinished(nextId, true);
+    QVERIFY(controller.canStartMotion());
+}
+
+void TestMotionStopRecovery::diagonalFailedStopRetries()
+{
+    MotionStopRecoveryController controller;
+    int calls = 0;
+    quint64 lastId = 0;
+    controller.setMainConnected(true);
+    QVector<QPair<int, quint16>> writes;
+    controller.setWriteDispatcher([&](int address, quint16 value) {
+        writes.append(qMakePair(address, value));
+        ++calls;
+        return ++lastId;
+    });
+    controller.markMotionStarted(MainMotionStopKind::SixAxisDiagonalJog622);
+    controller.requestMotionStop(MainMotionStopKind::SixAxisDiagonalJog622);
+    QCOMPARE(writes.size(), 1);
+    QCOMPARE(writes.at(0).first, 622);
+    QCOMPARE(writes.at(0).second, quint16(0));
+    QCOMPARE(calls, 1);
+    const quint64 failedId = lastId;
+    controller.handleWriteFinished(failedId, false);
+    QVERIFY(controller.hasPendingStop());
+    QTRY_VERIFY_WITH_TIMEOUT(calls >= 2, 1500);
+    QVERIFY(lastId != failedId);
+    controller.handleWriteFinished(lastId, true);
+    QVERIFY(controller.canStartMotion());
+    QVERIFY(!controller.hasPendingStop());
+}
+
+void TestMotionStopRecovery::diagonalAndJointStopsAreIndependent()
+{
+    MotionStopRecoveryController controller;
+    QVector<int> addresses;
+    QHash<int, quint64> ids;
+    quint64 nextId = 0;
+    controller.setMainConnected(true);
+    QVector<quint16> values;
+    controller.setWriteDispatcher([&](int address, quint16 value) {
+        values.append(value);
+        addresses.append(address);
+        const quint64 id = ++nextId;
+        ids.insert(address, id);
+        return id;
+    });
+    controller.markMotionStarted(MainMotionStopKind::SixAxisJog613);
+    controller.markMotionStarted(MainMotionStopKind::SixAxisDiagonalJog622);
+    controller.setMainConnected(false);
+    controller.setMainConnected(true);
+    QCOMPARE(addresses.size(), 2);
+    QCOMPARE(values, QVector<quint16>({0, 0}));
+    QVERIFY(addresses.contains(613));
+    QVERIFY(addresses.contains(622));
+    QVERIFY(!addresses.contains(514));
+    controller.handleWriteFinished(ids.value(613), true);
+    QVERIFY(!controller.canStartMotion());
+    QVERIFY(controller.hasPendingStop());
+    controller.handleWriteFinished(ids.value(622), true);
+    QVERIFY(controller.canStartMotion());
+    QVERIFY(!controller.hasPendingStop());
 }
 
 void TestMotionStopRecovery::gateFailureKeepsPending()

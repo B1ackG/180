@@ -45,6 +45,8 @@ private slots:
     void gateMatchMismatchAndReadFailure();
     void sixAxisChainOrder();
     void reconnectWritesStopBeforeNextJog();
+    void diagonalPlaneThenJogPressRelease();
+    void diagonalReconnectWritesStopBeforeNextJog();
 
 private:
     bool connectManager();
@@ -301,6 +303,83 @@ void TestModbusTcpIntegration::reconnectWritesStopBeforeNextJog()
             continue;
         }
         QVERIFY2(!sawStop || m_writeValues.at(i) == 0, "停止值确认前出现了新的非零点动写");
+        QCOMPARE(m_writeValues.at(i), quint16(0));
+        sawStop = true;
+    }
+    QVERIFY(sawStop);
+}
+
+void TestModbusTcpIntegration::diagonalPlaneThenJogPressRelease()
+{
+    QVERIFY(connectManager());
+    m_writeAddresses.clear();
+    m_writeValues.clear();
+    QVERIFY(m_manager->writeSingleRegister(621, 1));
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(621), quint16(1), kTimeoutMs);
+    QVERIFY(m_manager->writeSingleRegister(622, static_cast<quint16>(-1)));
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(622), quint16(0xFFFF), kTimeoutMs);
+    QVERIFY(m_manager->writeSingleRegister(622, 0));
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(622), quint16(0), kTimeoutMs);
+
+    const QVector<int> expected{621, 622, 622};
+    QTRY_COMPARE_WITH_TIMEOUT(m_writeAddresses.size(), expected.size(), kTimeoutMs);
+    QCOMPARE(m_writeAddresses, expected);
+    QCOMPARE(m_writeValues.at(0), quint16(1));
+    QCOMPARE(m_writeValues.at(1), quint16(0xFFFF));
+    QCOMPARE(m_writeValues.at(2), quint16(0));
+    QCOMPARE(static_cast<quint16>(-1), quint16(0xFFFF));
+}
+
+void TestModbusTcpIntegration::diagonalReconnectWritesStopBeforeNextJog()
+{
+    MotionStopRecoveryController controller;
+    quint64 nextId = 0;
+    controller.setWriteDispatcher([this, &nextId](int address, quint16 value) {
+        ModbusWriteCommand command;
+        command.id = ++nextId;
+        command.start = address;
+        command.values = {value};
+        m_manager->requestWrite(command);
+        return command.id;
+    });
+    QObject::connect(m_manager, &ModbusThreadManager::connected, &controller, [&controller]() {
+        controller.setMainConnected(true);
+    }, Qt::QueuedConnection);
+    QObject::connect(m_manager, &ModbusThreadManager::disconnected, &controller, [&controller]() {
+        controller.setMainConnected(false);
+    });
+    QObject::connect(m_manager, &ModbusThreadManager::writeFinished, &controller,
+                     [&controller](const ModbusResult &result) {
+                         controller.handleWriteFinished(result.id, result.ok);
+                     },
+                     Qt::QueuedConnection);
+
+    QVERIFY(connectManager());
+    QTRY_VERIFY_WITH_TIMEOUT(m_manager->isConnected(), kTimeoutMs);
+    QVERIFY(m_manager->writeSingleRegister(621, 2));
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(621), quint16(2), kTimeoutMs);
+    controller.markMotionStarted(MainMotionStopKind::SixAxisDiagonalJog622);
+    QVERIFY(m_manager->writeSingleRegister(622, 1));
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(622), quint16(1), kTimeoutMs);
+
+    QCoreApplication::processEvents();
+    m_writeAddresses.clear();
+    m_writeValues.clear();
+    onSlave([this]() { m_slave->disconnectAllClients(); });
+    quint16 ignored = 0;
+    QVERIFY(!m_manager->readSingleRegister(8192, ignored));
+    QTRY_VERIFY_WITH_TIMEOUT(!m_manager->isConnected(), kTimeoutMs);
+    QVERIFY(controller.hasPendingStop());
+    QVERIFY(!externalJogPressAllowed(&controller));
+
+    QVERIFY(connectManager());
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(622), quint16(0), kTimeoutMs);
+    QTRY_VERIFY_WITH_TIMEOUT(controller.canStartMotion(), kTimeoutMs);
+    bool sawStop = false;
+    for (int i = 0; i < m_writeAddresses.size(); ++i) {
+        if (m_writeAddresses.at(i) != 622) {
+            continue;
+        }
         QCOMPARE(m_writeValues.at(i), quint16(0));
         sawStop = true;
     }

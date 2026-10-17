@@ -79,6 +79,13 @@ namespace {
 constexpr int kRuntimePersistRegister = 8193;
 constexpr int kRuntimePersistRegisterHi = 8194;
 constexpr int kMainDevicePageSelectReg = 616; // Robot=0, Chassis=1, SixAxis=2
+constexpr int kSixAxisRunModeReg = 600; // 1=点动, 2=步进, 3=斜向
+constexpr int kSixAxisDiagonalRunModeValue = 3;
+constexpr int kSixAxisDiagonalPlaneReg = 621; // 0=关节, 1=XZ, 2=YZ
+constexpr int kSixAxisDiagonalJogReg = 622; // -1/1/0，负数按16位补码
+const QString kSixAxisDiagonalStepRejectedText = QStringLiteral("斜向运动不存在步进模式");
+const QString kSixAxisDiagonalOnlyText = QStringLiteral("斜向运动仅支持六自由度页面");
+const QString kSixAxisDiagonalPlaneFailedText = QStringLiteral("斜向平面写入失败，请重新选择XZ或YZ");
 const QString kWirelessModeWarningText =
     QStringLiteral("遥控器控制互锁，请切换到当前示教器。");
 const QString kInclinometerTiltLockDialogText =
@@ -2067,7 +2074,12 @@ void MainWindow::applyInnerDeviceStacks(InnerDeviceView view)
     case InnerDeviceView::SixAxis:
         statusPage = ui->page_SixAxies_Status;
         parameterPage = ui->page_SixAxies_Parameter;
-        controlPage = ui->page_SixAxies_Control;
+        controlPage = m_sixAxisDiagonalMode
+            ? findChild<QWidget*>(QStringLiteral("page_SixAxiesdiagram_Control"))
+            : nullptr;
+        if (!controlPage) {
+            controlPage = ui->page_SixAxies_Control;
+        }
         break;
     case InnerDeviceView::Chassis:
         statusPage = ui->page_AGV_Status;
@@ -2116,6 +2128,9 @@ void MainWindow::applyInnerDeviceStacks(InnerDeviceView view)
 
 void MainWindow::showRobotView()
 {
+    if (m_sixAxisDiagonalMode) {
+        exitSixAxisDiagonalMode(true);
+    }
     applyInnerDeviceStacks(InnerDeviceView::Robot);
     setExclusiveNavButtonChecked(ui ? ui->TBtn_RobotControl : nullptr);
     syncStepModeUiByCurrentPage();
@@ -2124,6 +2139,9 @@ void MainWindow::showRobotView()
 
 void MainWindow::showChassisView()
 {
+    if (m_sixAxisDiagonalMode) {
+        exitSixAxisDiagonalMode(true);
+    }
     applyInnerDeviceStacks(InnerDeviceView::Chassis);
     setExclusiveNavButtonChecked(ui ? ui->TBtn_ChassisControl : nullptr);
     syncStepModeUiByCurrentPage();
@@ -2141,6 +2159,220 @@ void MainWindow::showSixAxisView()
     updateStepTargetButtonsState();
     updateSixAxisPoseActionButtons();
     requestSixAxisInitStatusCheck();
+}
+
+void MainWindow::setupSixAxisDiagonalControl()
+{
+    QToolButton *xzButton = findChild<QToolButton*>(QStringLiteral("btnSixAxisDiagonalXZ"));
+    QToolButton *yzButton = findChild<QToolButton*>(QStringLiteral("btnSixAxisDiagonalYZ"));
+    if (!xzButton || !yzButton) {
+        return;
+    }
+
+    const QString buttonStyle = QStringLiteral(
+        "QToolButton {"
+        "    background-color: #6f7f8f;"
+        "    color: #eaf3ff;"
+        "    border: 1px solid #8698ab;"
+        "    border-radius: 8px;"
+        "    font-weight: bold;"
+        "}"
+        "QToolButton:hover {"
+        "    border: 1px solid #b6c9de;"
+        "}"
+        "QToolButton:checked {"
+        "    background-color: #00a8ff;"
+        "    color: #ffffff;"
+        "    border: 1px solid #7fd8ff;"
+        "}");
+    const QList<QToolButton*> buttons = {xzButton, yzButton};
+    if (!m_sixAxisDiagonalPlaneGroup) {
+        m_sixAxisDiagonalPlaneGroup = new QButtonGroup(this);
+        m_sixAxisDiagonalPlaneGroup->setExclusive(true);
+    }
+    for (QToolButton *button : buttons) {
+        button->setCheckable(true);
+        button->setStyleSheet(buttonStyle);
+        if (!m_sixAxisDiagonalPlaneGroup->buttons().contains(button)) {
+            m_sixAxisDiagonalPlaneGroup->addButton(button);
+        }
+        connect(button, &QToolButton::clicked, this, [this, button]() {
+            if (!m_sixAxisDiagonalMode || !isSixAxisViewActive() || !button) {
+                return;
+            }
+            const QString name = button->objectName();
+            if (name == QStringLiteral("btnSixAxisDiagonalXZ")) {
+                setSixAxisDiagonalPlane(SixAxisDiagonalPlane::XZ, true);
+            } else if (name == QStringLiteral("btnSixAxisDiagonalYZ")) {
+                setSixAxisDiagonalPlane(SixAxisDiagonalPlane::YZ, true);
+            }
+        }, Qt::UniqueConnection);
+    }
+}
+
+void MainWindow::updateMoveModePresentation(bool diagonal)
+{
+    if (ui && ui->TBtn_MoveMode) {
+        ui->TBtn_MoveMode->setText(diagonal ? QStringLiteral("斜向运动") : QStringLiteral("关节运动"));
+    }
+    QLabel *moveModeLabel = ui && ui->statusBar
+                                ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarMoveModeLabel"))
+                                : nullptr;
+    if (moveModeLabel) {
+        moveModeLabel->setText(diagonal ? QStringLiteral("斜向运动") : QStringLiteral("关节运动"));
+        moveModeLabel->setStyleSheet(diagonal
+                                         ? QStringLiteral("color: #ffaa00; font-weight: bold; font-size: 11px;")
+                                         : QStringLiteral("color: #55ff55; font-weight: bold; font-size: 11px;"));
+    }
+}
+
+void MainWindow::applySixAxisJogModeUi()
+{
+    m_stepModeUnknown = false;
+    m_stepModeEnabled = false;
+    if (ui && ui->TBtn_Stepmove) {
+        ui->TBtn_Stepmove->setText(QStringLiteral("点动模式"));
+        ui->TBtn_Stepmove->setToolTip(QStringLiteral("当前模式：点动模式"));
+    }
+    QLabel *runModeLabel = ui && ui->statusBar
+                               ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarRunModeLabel"))
+                               : nullptr;
+    if (runModeLabel) {
+        runModeLabel->setText(QStringLiteral("点动模式"));
+        runModeLabel->setStyleSheet(QStringLiteral("color: #00ccff; font-weight: bold; font-size: 11px;"));
+    }
+    updateFunctionSwitchVisuals();
+    updateStepTargetButtonsState();
+}
+
+void MainWindow::applyJogModeForSixAxisDiagonal()
+{
+    applySixAxisJogModeUi();
+    writeToMainDevice(kSixAxisRunModeReg, 1);
+    writeToMainDevice(kSixAxisRunModeReg, kSixAxisDiagonalRunModeValue);
+    qCDebug(lcMainWindow) << "六自由度斜向运动：地址600写入1，再写入3";
+}
+
+void MainWindow::updateSixAxisControlPage()
+{
+    if (!ui || !ui->stackedWidget || !isSixAxisViewActive()) {
+        return;
+    }
+    QWidget *page = m_sixAxisDiagonalMode
+        ? findChild<QWidget*>(QStringLiteral("page_SixAxiesdiagram_Control"))
+        : ui->page_SixAxies_Control;
+    if (!page) {
+        page = ui->page_SixAxies_Control;
+    }
+    if (page && ui->stackedWidget->currentWidget() != page) {
+        ui->stackedWidget->setCurrentWidget(page);
+        ui->stackedWidget->raise();
+    }
+}
+
+void MainWindow::setSixAxisDiagonalPlane(SixAxisDiagonalPlane plane, bool writeRegister)
+{
+    if (!m_sixAxisDiagonalMode || !isSixAxisViewActive()) {
+        return;
+    }
+    if (plane != SixAxisDiagonalPlane::XZ && plane != SixAxisDiagonalPlane::YZ) {
+        return;
+    }
+
+    const bool samePlane = (m_sixAxisDiagonalPlane == plane);
+    m_sixAxisDiagonalPlane = plane;
+    const QString buttonName = (plane == SixAxisDiagonalPlane::XZ)
+        ? QStringLiteral("btnSixAxisDiagonalXZ")
+        : QStringLiteral("btnSixAxisDiagonalYZ");
+    if (QAbstractButton *button = findChild<QAbstractButton*>(buttonName)) {
+        if (!button->isChecked()) {
+            button->setChecked(true);
+        }
+    }
+    if (!writeRegister || (samePlane && (m_sixAxisPlaneWriteConfirmed || m_sixAxisPlaneWriteId != 0))) {
+        return;
+    }
+
+    m_sixAxisPlaneWriteConfirmed = false;
+    m_sixAxisPlaneWritePlane = plane;
+    m_sixAxisPlaneWriteId = writeToMainDevice(kSixAxisDiagonalPlaneReg, static_cast<int>(plane));
+    if (m_sixAxisPlaneWriteId == 0) {
+        showToast(kSixAxisDiagonalPlaneFailedText, ToastKind::Warning);
+    }
+    qCDebug(lcMainWindow) << "六自由度斜向平面：地址621写入" << static_cast<int>(plane);
+}
+
+void MainWindow::stopSixAxisDiagonalMotionIfHeld()
+{
+    const bool key1Held = m_sixAxisExternalKeyPressed.value(1, false) || m_sixAxisActiveKey == 1;
+    const bool key2Held = m_sixAxisExternalKeyPressed.value(2, false) || m_sixAxisActiveKey == 2;
+    if (!key1Held && !key2Held) {
+        return;
+    }
+
+    const SixAxisDiagonalPlane plane = m_sixAxisDiagonalPlane;
+    if (key1Held) {
+        recordSixAxisDiagonalJogExternalKey(plane, 1, false);
+        m_sixAxisExternalKeyPressed[1] = false;
+        m_sixAxisDiagonalReleaseSuppress.insert(1);
+    }
+    if (key2Held) {
+        recordSixAxisDiagonalJogExternalKey(plane, 2, false);
+        m_sixAxisExternalKeyPressed[2] = false;
+        m_sixAxisDiagonalReleaseSuppress.insert(2);
+    }
+    if (m_sixAxisActiveKey == 1 || m_sixAxisActiveKey == 2) {
+        m_sixAxisActiveKey = -1;
+    }
+
+    ++m_sixAxisExternalWriteSeq;
+    if (m_modbusManager) {
+        m_modbusManager->setWriteGeneration(ModbusThreadManager::kSixAxisExternalWriteChannel,
+                                           m_sixAxisExternalWriteSeq);
+    }
+    if (m_motionStopRecovery) {
+        m_motionStopRecovery->requestMotionStop(MainMotionStopKind::SixAxisDiagonalJog622);
+    } else {
+        writeToMainDevice(kSixAxisDiagonalJogReg,
+                          0,
+                          ModbusThreadManager::kSixAxisExternalWriteChannel,
+                          m_sixAxisExternalWriteSeq);
+    }
+}
+
+void MainWindow::enterSixAxisDiagonalMode()
+{
+    if (!isSixAxisViewActive() || m_sixAxisDiagonalMode) {
+        return;
+    }
+    m_sixAxisDiagonalMode = true;
+    m_sixAxisPlaneWriteConfirmed = false;
+    applyJogModeForSixAxisDiagonal();
+    setSixAxisDiagonalPlane(SixAxisDiagonalPlane::XZ, true);
+    updateMoveModePresentation(true);
+    updateSixAxisControlPage();
+    updateFunctionSwitchVisuals();
+    showNotification(QStringLiteral("已切换至斜向运动"));
+}
+
+void MainWindow::exitSixAxisDiagonalMode(bool writeRegister621)
+{
+    if (!m_sixAxisDiagonalMode) {
+        return;
+    }
+    stopSixAxisDiagonalMotionIfHeld();
+    m_sixAxisDiagonalMode = false;
+    m_sixAxisDiagonalPlane = SixAxisDiagonalPlane::None;
+    m_sixAxisPlaneWriteConfirmed = false;
+    m_sixAxisPlaneWriteId = 0;
+    m_sixAxisPlaneWritePlane = SixAxisDiagonalPlane::None;
+    updateMoveModePresentation(false);
+    if (writeRegister621) {
+        writeToMainDevice(kSixAxisDiagonalPlaneReg, static_cast<int>(SixAxisDiagonalPlane::None));
+    }
+    writeToMainDevice(kSixAxisRunModeReg, 1);
+    updateFunctionSwitchVisuals();
+    updateStepTargetButtonsState();
 }
 
 void MainWindow::setupNavigationConnections()
@@ -2230,41 +2462,18 @@ void MainWindow::setupRecordAndPermissionConnections()
     m_isJointMode = true;
     ui->TBtn_MoveMode->setText("关节运动");
 
-    connect(ui->TBtn_MoveMode, &QPushButton::clicked, this, [=]() {
-        m_moveModeUnknown = false;
-        m_isJointMode = !m_isJointMode;
-
-        QLabel *moveModeLabel = ui->statusBar ? ui->statusBar->findChild<QLabel*>("statusBarMoveModeLabel") : nullptr;
-        if (m_isJointMode) {
-            const ButtonModbusMapping::Binding moveBinding = buttonModbusBinding(QStringLiteral("TBtn_MoveMode"));
-            const ModbusRegisterSpec writeSpec = moveBinding.writes.isEmpty()
-                ? ModbusRegisterSpec{}
-                : moveBinding.writes.first();
-            const int writeAddr = ButtonModbusMapping::addressOr(writeSpec, 525);
-            const int jointValue = ButtonModbusMapping::stateValueOr(writeSpec, 1, 2);
-
-            if (writeSpec.device == QStringLiteral("AGV")) {
-                writeToAGVDevice(writeAddr, jointValue, true);
-            } else {
-                writeToMainDevice(writeAddr, jointValue);
-            }
-            ui->TBtn_MoveMode->setText("关节运动");
-            if (moveModeLabel) {
-                moveModeLabel->setText("关节运动");
-                moveModeLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
-            }
-            showNotification("已切换至关节运动");
-        } else {
-            ui->TBtn_MoveMode->setText("斜向运动");
-            if (moveModeLabel) {
-                moveModeLabel->setText("斜向运动");
-                moveModeLabel->setStyleSheet("color: #ffaa00; font-weight: bold; font-size: 11px;");
-            }
-            showNotification("已切换至斜向运动");
+    connect(ui->TBtn_MoveMode, &QPushButton::clicked, this, [this]() {
+        if (!isSixAxisViewActive()) {
+            showToast(kSixAxisDiagonalOnlyText, ToastKind::Warning);
+            return;
         }
-
-        updateFunctionSwitchVisuals();
-        updateStepTargetButtonsState();
+        if (m_sixAxisDiagonalMode) {
+            exitSixAxisDiagonalMode(true);
+            updateSixAxisControlPage();
+            showNotification(QStringLiteral("已切换至关节运动"));
+        } else {
+            enterSixAxisDiagonalMode();
+        }
     });
     connect(ui->TBtn_PermissionPage, &QPushButton::clicked, this, [this]() {
         if (ui->page_Permission) {
@@ -2587,7 +2796,7 @@ void MainWindow::updateFunctionSwitchVisuals()
                                 QColor(0xff, 0xd7, 0xa1));
     }
 
-    if (m_isJointMode) {
+    if (!m_sixAxisDiagonalMode && m_isJointMode) {
         applyChamferStateColors(ui->TBtn_MoveMode,
                                 QColor(32, 140, 86, 224),
                                 QColor(0x9d, 0xff, 0xd3));
@@ -5763,6 +5972,9 @@ void MainWindow::restoreAgvMoveSpeedEditFromShadow()
 // 在 handleMatrixKeyAction 函数中修改 ○1 按键的处理
 void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 {
+    if (!pressed && m_sixAxisDiagonalReleaseSuppress.remove(keyNumber)) {
+        return;
+    }
     // 获取当前页面
     int currentPage = ui->StackedWidget->currentIndex();
     if (isSixAxisLevelingActive()) {
@@ -5839,9 +6051,11 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
     // 外部按钮逻辑门禁：
     // - 点动模式：仅允许在[关节]模式下执行；
+    // - 六自由度斜向点动是唯一例外，走寄存器 622；
     // - 步进模式：允许执行（由按键映射与目标选择进一步约束）。
     // 释放事件仍继续处理，避免切模后寄存器保持在按下态。
-    if ((!m_stepModeEnabled && !m_isJointMode) && pressed) {
+    const bool sixAxisDiagonalJogAllowed = isSixAxisPage && m_sixAxisDiagonalMode && !m_stepModeEnabled;
+    if ((!m_stepModeEnabled && !m_isJointMode) && pressed && !sixAxisDiagonalJogAllowed) {
         qCDebug(lcMainWindow) << "外部按键忽略：当前未处于可执行模式，按键○" << keyNumber
                  << (pressed ? "按下" : "释放");
         return;
@@ -5852,6 +6066,76 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     //   点动写 613（○1 负向、○2 正向；轴6 再取反）；步进写 614 → 601/602 → 615。
     // - 选中钢缆时：○1/○13 收回、○2/○14 放出；写 500=5，514=4/2；释放时 514 回 0。
     if (isSixAxisPage) {
+        if (m_sixAxisDiagonalMode) {
+            if (keyNumber != 1 && keyNumber != 2) {
+                return;
+            }
+            if (!pressed) {
+                const bool wasPressed = m_sixAxisExternalKeyPressed.value(keyNumber, false);
+                m_sixAxisExternalKeyPressed[keyNumber] = false;
+                if (m_sixAxisActiveKey == keyNumber) {
+                    m_sixAxisActiveKey = -1;
+                }
+                if (!wasPressed) {
+                    return;
+                }
+                recordSixAxisDiagonalJogExternalKey(m_sixAxisDiagonalPlane, keyNumber, false);
+                ++m_sixAxisExternalWriteSeq;
+                if (m_modbusManager) {
+                    m_modbusManager->setWriteGeneration(ModbusThreadManager::kSixAxisExternalWriteChannel,
+                                                       m_sixAxisExternalWriteSeq);
+                }
+                if (m_motionStopRecovery) {
+                    m_motionStopRecovery->requestMotionStop(MainMotionStopKind::SixAxisDiagonalJog622);
+                } else {
+                    writeToMainDevice(kSixAxisDiagonalJogReg,
+                                      0,
+                                      ModbusThreadManager::kSixAxisExternalWriteChannel,
+                                      m_sixAxisExternalWriteSeq);
+                }
+                return;
+            }
+
+            if (m_sixAxisExternalKeyPressed.value(keyNumber, false)) {
+                qCDebug(lcMainWindow) << "六轴斜向外部按键去重：按键○" << keyNumber << "重复按下已忽略";
+                return;
+            }
+            if (rejectMotionUntilStopConfirmed()) {
+                return;
+            }
+            if (m_sixAxisDiagonalPlane != SixAxisDiagonalPlane::XZ
+                && m_sixAxisDiagonalPlane != SixAxisDiagonalPlane::YZ) {
+                showToast(QStringLiteral("请先选择XZ或YZ"), ToastKind::Warning);
+                return;
+            }
+            if (!m_sixAxisPlaneWriteConfirmed) {
+                showToast(kSixAxisDiagonalPlaneFailedText, ToastKind::Warning);
+                return;
+            }
+
+            const int signedCommand = (keyNumber == 1) ? -1 : 1;
+            const quint16 encoded = static_cast<quint16>(signedCommand);
+            recordSixAxisDiagonalJogExternalKey(m_sixAxisDiagonalPlane, keyNumber, true);
+            m_sixAxisExternalKeyPressed[keyNumber] = true;
+            m_sixAxisActiveKey = keyNumber;
+            if (m_motionStopRecovery) {
+                m_motionStopRecovery->markMotionStarted(MainMotionStopKind::SixAxisDiagonalJog622);
+            }
+            ++m_sixAxisExternalWriteSeq;
+            if (m_modbusManager) {
+                m_modbusManager->setWriteGeneration(ModbusThreadManager::kSixAxisExternalWriteChannel,
+                                                   m_sixAxisExternalWriteSeq);
+            }
+            writeToMainDevice(kSixAxisDiagonalJogReg,
+                              static_cast<int>(encoded),
+                              ModbusThreadManager::kSixAxisExternalWriteChannel,
+                              m_sixAxisExternalWriteSeq);
+            qCDebug(lcMainWindow) << "六自由度斜向外部按键○" << keyNumber
+                                  << "-> 地址622写入" << signedCommand
+                                  << "(补码:" << encoded << ")";
+            return;
+        }
+
         const int axisIndex = selectedSixAxisTargetIndex();
         QString selectedTargetText;
         if (m_sixAxisStepTargetGroup && m_sixAxisStepTargetGroup->checkedButton()) {
@@ -6762,10 +7046,10 @@ void MainWindow::applyInterlockRegisterValue(quint16 value)
     noteTeachPendantInterlockValue(value);
 }
 
-void MainWindow::queueMainWrite(int address, quint16 value, int generationChannel, quint64 generation)
+quint64 MainWindow::queueMainWrite(int address, quint16 value, int generationChannel, quint64 generation)
 {
     if (!m_modbusManager) {
-        return;
+        return 0;
     }
     ModbusWriteCommand command;
     command.id = ++m_nextAsyncId;
@@ -6774,6 +7058,7 @@ void MainWindow::queueMainWrite(int address, quint16 value, int generationChanne
     command.generationChannel = generationChannel;
     command.generation = generation;
     m_modbusManager->requestWrite(command);
+    return command.id;
 }
 
 void MainWindow::onAsyncReadFinished(const ModbusResult &result)
@@ -6874,6 +7159,17 @@ void MainWindow::onAsyncWriteFinished(const ModbusResult &result)
 {
     if (m_motionStopRecovery) {
         m_motionStopRecovery->handleWriteFinished(result.id, result.ok);
+    }
+    if (result.id != 0 && result.id == m_sixAxisPlaneWriteId) {
+        m_sixAxisPlaneWriteId = 0;
+        const bool planeStillSelected = m_sixAxisDiagonalMode
+            && m_sixAxisPlaneWritePlane == m_sixAxisDiagonalPlane
+            && (m_sixAxisDiagonalPlane == SixAxisDiagonalPlane::XZ
+                || m_sixAxisDiagonalPlane == SixAxisDiagonalPlane::YZ);
+        m_sixAxisPlaneWriteConfirmed = result.ok && planeStillSelected;
+        if (!result.ok && m_sixAxisDiagonalMode) {
+            showToast(kSixAxisDiagonalPlaneFailedText, ToastKind::Warning);
+        }
     }
     if (result.id != 0 && result.id == m_pendingInterlockWriteId && !result.ok) {
         m_pendingInterlockWriteId = 0;
@@ -7027,6 +7323,9 @@ void MainWindow::openPermissionPage()
 void MainWindow::applyMoveModeUiFromRegister126(quint16 value)
 {
     Q_UNUSED(value);
+    if (m_sixAxisDiagonalMode) {
+        return;
+    }
     if (!ui || !ui->TBtn_MoveMode) {
         return;
     }
@@ -8063,6 +8362,21 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
 void MainWindow::syncStepModeUiByCurrentPage()
 {
     if (!ui || !ui->StackedWidget || !ui->TBtn_Stepmove) {
+        return;
+    }
+
+    if (isSixAxisViewActive() && m_sixAxisDiagonalMode) {
+        const bool hasRunMode = g_registerCache.contains(kSixAxisRunModeReg);
+        const quint16 runMode = hasRunMode ? g_registerCache.value(kSixAxisRunModeReg)
+                                           : static_cast<quint16>(kSixAxisDiagonalRunModeValue);
+        if (hasRunMode && runMode != static_cast<quint16>(kSixAxisDiagonalRunModeValue)) {
+            if (runMode == 2) {
+                showToast(kSixAxisDiagonalStepRejectedText, ToastKind::Warning);
+            }
+            applyJogModeForSixAxisDiagonal();
+        } else {
+            applySixAxisJogModeUi();
+        }
         return;
     }
 
@@ -9598,7 +9912,8 @@ void MainWindow::processEnableButton(bool enabled)
         interruptEnableGatedWaitPopupsOnEnableRelease();
     }
 
-    if (!m_stepModeEnabled && !m_isJointMode) {
+    const bool sixAxisDiagonalJog = isSixAxisViewActive() && m_sixAxisDiagonalMode && !m_stepModeEnabled;
+    if (!m_stepModeEnabled && !m_isJointMode && !sixAxisDiagonalJog) {
         if (enabled) {
             qCDebug(lcMainWindow) << "使能按钮按下忽略：当前非关节模式且非步进模式";
         }
@@ -9779,16 +10094,16 @@ bool MainWindow::rejectMotionUntilStopConfirmed()
     return true;
 }
 
-void MainWindow::writeToMainDevice(int address, int value, int generationChannel, quint64 generation)
+quint64 MainWindow::writeToMainDevice(int address, int value, int generationChannel, quint64 generation)
 {
     if (!isFeatureEnabled("modbus_main", "modbus_main.write_enabled")) {
         showModbusWriteDisabledToast();
-        return;
+        return 0;
     }
 
     if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
         qWarning() << "主Modbus未连接，无法写入地址" << address;
-        return;
+        return 0;
     }
 
     if (isFeatureEnabled("modbus_main", "modbus_main.write_logs")) {
@@ -9796,7 +10111,7 @@ void MainWindow::writeToMainDevice(int address, int value, int generationChannel
                  << "值:" << value;
     }
 
-    queueMainWrite(address, static_cast<quint16>(value), generationChannel, generation);
+    return queueMainWrite(address, static_cast<quint16>(value), generationChannel, generation);
 }
 void MainWindow::onControlModeClicked()
 {
@@ -11484,6 +11799,12 @@ void MainWindow::onStepMoveButtonClicked()
         return;
     }
 
+    if (isSixAxisViewActive() && m_sixAxisDiagonalMode) {
+        showToast(kSixAxisDiagonalStepRejectedText, ToastKind::Warning);
+        applySixAxisJogModeUi();
+        return;
+    }
+
     // 寄存器值为0时，首次点击进入默认模式（点动）
     if (m_stepModeUnknown) {
         m_stepModeUnknown = false;
@@ -12929,6 +13250,36 @@ void MainWindow::recordSixAxisJogExternalKey(int axisIndex, bool pressed)
     record.operation = QString();
     record.oldValue = QString();
     record.newValue = QString();
+    m_recorder->addRecord(record);
+    showNotification(msg);
+}
+
+void MainWindow::recordSixAxisDiagonalJogExternalKey(SixAxisDiagonalPlane plane, int keyNumber, bool pressed)
+{
+    if (!m_recorder) {
+        return;
+    }
+    if ((plane != SixAxisDiagonalPlane::XZ && plane != SixAxisDiagonalPlane::YZ)
+        || (keyNumber != 1 && keyNumber != 2)) {
+        return;
+    }
+
+    const QString planeName = (plane == SixAxisDiagonalPlane::XZ)
+        ? QStringLiteral("XZ")
+        : QStringLiteral("YZ");
+    const QString direction = (keyNumber == 1) ? QStringLiteral("负向") : QStringLiteral("正向");
+    const QString action = pressed ? QStringLiteral("开始运动") : QStringLiteral("运动停止");
+    const QString msg = QStringLiteral("%1斜向%2%3").arg(planeName, direction, action);
+
+    OperationRecord record;
+    record.timestamp = QDateTime::currentDateTime();
+    record.pageName = QStringLiteral("六自由度");
+    record.controlName = msg;
+    record.controlType = QStringLiteral("MatrixKey");
+    record.operation = QStringLiteral("点动");
+    record.oldValue = QString();
+    record.newValue = pressed ? (keyNumber == 1 ? QStringLiteral("-1") : QStringLiteral("1"))
+                              : QStringLiteral("0");
     m_recorder->addRecord(record);
     showNotification(msg);
 }
@@ -15735,6 +16086,9 @@ void MainWindow::hideUnselectedMoveModeHintDialog()
 
 bool MainWindow::maybeShowUnselectedMoveModeHintForExternalKey(int keyNumber, bool pressed)
 {
+    if (isSixAxisViewActive() && m_sixAxisDiagonalMode) {
+        return false;
+    }
     if (!pressed || !m_moveModeUnknown) {
         return false;
     }

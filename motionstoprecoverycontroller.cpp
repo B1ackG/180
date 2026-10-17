@@ -6,6 +6,11 @@
 
 namespace {
 constexpr int kRetryIntervalMs = 500;
+constexpr MainMotionStopKind kStopKinds[] = {
+    MainMotionStopKind::SixAxisJog613,
+    MainMotionStopKind::SixAxisDiagonalJog622,
+    MainMotionStopKind::RobotJog514
+};
 }
 
 void invalidateExternalMotionWritesOnDisconnect(ModbusThreadManager *manager,
@@ -42,17 +47,41 @@ void MotionStopRecoveryController::setWriteDispatcher(WriteDispatcher dispatcher
 
 MotionStopRecoveryController::KindState &MotionStopRecoveryController::stateFor(MainMotionStopKind kind)
 {
-    return kind == MainMotionStopKind::SixAxisJog613 ? m_sixAxis : m_robot;
+    switch (kind) {
+    case MainMotionStopKind::SixAxisJog613:
+        return m_sixAxis;
+    case MainMotionStopKind::SixAxisDiagonalJog622:
+        return m_sixAxisDiagonal;
+    case MainMotionStopKind::RobotJog514:
+        return m_robot;
+    }
+    return m_robot;
 }
 
 const MotionStopRecoveryController::KindState &MotionStopRecoveryController::stateFor(MainMotionStopKind kind) const
 {
-    return kind == MainMotionStopKind::SixAxisJog613 ? m_sixAxis : m_robot;
+    switch (kind) {
+    case MainMotionStopKind::SixAxisJog613:
+        return m_sixAxis;
+    case MainMotionStopKind::SixAxisDiagonalJog622:
+        return m_sixAxisDiagonal;
+    case MainMotionStopKind::RobotJog514:
+        return m_robot;
+    }
+    return m_robot;
 }
 
 int MotionStopRecoveryController::addressFor(MainMotionStopKind kind) const
 {
-    return kind == MainMotionStopKind::SixAxisJog613 ? 613 : 514;
+    switch (kind) {
+    case MainMotionStopKind::SixAxisJog613:
+        return 613;
+    case MainMotionStopKind::SixAxisDiagonalJog622:
+        return 622;
+    case MainMotionStopKind::RobotJog514:
+        return 514;
+    }
+    return 514;
 }
 
 void MotionStopRecoveryController::markMotionStarted(MainMotionStopKind kind)
@@ -78,11 +107,7 @@ void MotionStopRecoveryController::setMainConnected(bool connected)
 {
     m_connected = connected;
     if (!connected) {
-        const MainMotionStopKind kinds[] = {
-            MainMotionStopKind::SixAxisJog613,
-            MainMotionStopKind::RobotJog514
-        };
-        for (MainMotionStopKind kind : kinds) {
+        for (MainMotionStopKind kind : kStopKinds) {
             KindState &state = stateFor(kind);
             if (state.active || state.pending || state.inFlight) {
                 state.active = false;
@@ -105,11 +130,7 @@ void MotionStopRecoveryController::handleWriteFinished(quint64 id, bool ok)
         return;
     }
 
-    const MainMotionStopKind kinds[] = {
-        MainMotionStopKind::SixAxisJog613,
-        MainMotionStopKind::RobotJog514
-    };
-    for (MainMotionStopKind kind : kinds) {
+    for (MainMotionStopKind kind : kStopKinds) {
         KindState &state = stateFor(kind);
         if (!state.inFlight || state.inFlightId != id) {
             continue;
@@ -139,7 +160,7 @@ bool MotionStopRecoveryController::canStartMotion() const
 
 bool MotionStopRecoveryController::hasPendingStop() const
 {
-    return m_sixAxis.pending || m_robot.pending;
+    return m_sixAxis.pending || m_sixAxisDiagonal.pending || m_robot.pending;
 }
 
 void MotionStopRecoveryController::retryPendingStops()
@@ -148,8 +169,9 @@ void MotionStopRecoveryController::retryPendingStops()
         stopRetryTimer();
         return;
     }
-    tryDispatch(MainMotionStopKind::SixAxisJog613);
-    tryDispatch(MainMotionStopKind::RobotJog514);
+    for (MainMotionStopKind kind : kStopKinds) {
+        tryDispatch(kind);
+    }
     updateSignals();
     if (!hasPendingStop()) {
         stopRetryTimer();

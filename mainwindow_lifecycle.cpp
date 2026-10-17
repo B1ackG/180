@@ -382,6 +382,7 @@ void MainWindow::initializeCoreSubsystems()
         setupStepMoveControl();
         setupStepMoveLineEdits();
     }
+    setupSixAxisDiagonalControl();
 
     applyButtonVisibilityRuntimeSettings();
     if (!isBigFeatureEnabled("motion_control")) {

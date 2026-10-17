@@ -42,6 +42,8 @@ private slots:
     void gateMismatchRejectsMultipleWrite();
     void gateMatchAllowsWrite();
     void exemptWriteDoesNotNeedGateRead();
+    void diagonalJogValuesAndStaleGeneration();
+    void gateRejectsDiagonalPlaneAndJog();
 
 private:
     void connectReady(quint16 interlockValue);
@@ -247,6 +249,57 @@ void TestModbusThreadManager::exemptWriteDoesNotNeedGateRead()
     QVERIFY(m_manager->writeSingleRegister(8192, 7));
     QCOMPARE(m_client->writes().size(), 1);
     QCOMPARE(m_client->writes().at(0).first, 8192);
+}
+
+void TestModbusThreadManager::diagonalJogValuesAndStaleGeneration()
+{
+    QCOMPARE(static_cast<quint16>(-1), quint16(0xFFFF));
+    connectReady(7);
+    m_manager->setWriteGeneration(ModbusThreadManager::kSixAxisExternalWriteChannel, 4);
+
+    const quint16 values[] = {quint16(0xFFFF), quint16(1), quint16(0)};
+    for (int i = 0; i < 3; ++i) {
+        ModbusWriteCommand command;
+        command.id = static_cast<quint64>(30 + i);
+        command.start = 622;
+        command.values = {values[i]};
+        command.generationChannel = ModbusThreadManager::kSixAxisExternalWriteChannel;
+        command.generation = 4;
+        m_manager->requestWrite(command);
+    }
+    QCOMPARE(m_client->writes().size(), 3);
+    QCOMPARE(m_client->writes().at(0).second, QVector<quint16>({quint16(0xFFFF)}));
+    QCOMPARE(m_client->writes().at(1).second, QVector<quint16>({quint16(1)}));
+    QCOMPARE(m_client->writes().at(2).second, QVector<quint16>({quint16(0)}));
+
+    const int writesBeforeStale = m_client->writes().size();
+    ModbusWriteCommand stale;
+    stale.id = 40;
+    stale.start = 622;
+    stale.values = {quint16(1)};
+    stale.generationChannel = ModbusThreadManager::kSixAxisExternalWriteChannel;
+    stale.generation = 3;
+    QSignalSpy spy(m_manager, &ModbusThreadManager::writeFinished);
+    m_manager->requestWrite(stale);
+    QCOMPARE(spy.count(), 1);
+    const ModbusResult result = spy.at(0).at(0).value<ModbusResult>();
+    QVERIFY(!result.ok);
+    QCOMPARE(result.error, ModbusAsyncError::StaleGeneration);
+    QCOMPARE(m_client->writes().size(), writesBeforeStale);
+}
+
+void TestModbusThreadManager::gateRejectsDiagonalPlaneAndJog()
+{
+    connectReady(1);
+    QVERIFY(!m_manager->writeSingleRegister(621, 1));
+    QVERIFY(!m_manager->writeSingleRegister(622, quint16(0xFFFF)));
+    QVERIFY(m_client->writes().isEmpty());
+
+    m_client->failNextRead();
+    QVERIFY(!m_manager->writeSingleRegister(621, 2));
+    m_client->failNextRead();
+    QVERIFY(!m_manager->writeSingleRegister(622, 0));
+    QVERIFY(m_client->writes().isEmpty());
 }
 
 QTEST_MAIN(TestModbusThreadManager)

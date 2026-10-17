@@ -8,6 +8,7 @@
 
 enum class MainMotionStopKind : quint8 {
     SixAxisJog613,
+    SixAxisDiagonalJog622,
     RobotJog514
 };
 
@@ -58,6 +59,7 @@ private:
 
     WriteDispatcher m_dispatcher;
     KindState m_sixAxis;
+    KindState m_sixAxisDiagonal;
     KindState m_robot;
     bool m_connected = false;
     bool m_blocked = false;

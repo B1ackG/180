@@ -61,6 +61,7 @@ class QResizeEvent;
 
 enum class StepMotionStopKind { RobotJoint, SixAxis, Agv };
 enum class StepMotionWaitKind : quint8 { None, RobotJoint, SixAxis, Agv };
+enum class SixAxisDiagonalPlane : quint8 { None = 0, XZ = 1, YZ = 2 };
 
 struct PendingStepMotionStop {
     StepMotionStopKind kind = StepMotionStopKind::RobotJoint;
@@ -409,8 +410,8 @@ public:
     void setupModbusVariables();
     /** @brief 创建并绑定 Modbus 标签 */
     void setupModbusLabels();
-    /** @brief 向主控设备写入寄存器 */
-    void writeToMainDevice(int address, int value, int generationChannel = 0, quint64 generation = 0);
+    /** @brief 向主控设备写入寄存器，返回异步命令号；未发出时返回 0 */
+    quint64 writeToMainDevice(int address, int value, int generationChannel = 0, quint64 generation = 0);
     
     /** @brief 初始化 AGV Modbus 子系统 */
     void setupAGVModbus();
@@ -977,6 +978,12 @@ private:
     bool m_stepModeUnknown = true;
     bool m_isJointMode = true;
     bool m_moveModeUnknown = false;
+    bool m_sixAxisDiagonalMode = false;
+    SixAxisDiagonalPlane m_sixAxisDiagonalPlane = SixAxisDiagonalPlane::None;
+    quint64 m_sixAxisPlaneWriteId = 0;
+    SixAxisDiagonalPlane m_sixAxisPlaneWritePlane = SixAxisDiagonalPlane::None;
+    bool m_sixAxisPlaneWriteConfirmed = false;
+    QSet<int> m_sixAxisDiagonalReleaseSuppress;
     QHash<int, bool> m_robotExternalKeyPressed;
     quint64 m_robotExternalWriteSeq = 0;
     int m_robotActiveKey = -1;
@@ -1078,6 +1085,7 @@ private:
     QToolButton *m_btnStepMove = nullptr;
     QButtonGroup *m_stepTargetGroup = nullptr;
     QButtonGroup *m_sixAxisStepTargetGroup = nullptr;
+    QButtonGroup *m_sixAxisDiagonalPlaneGroup = nullptr;
     QButtonGroup *m_agvStepDirectionGroup = nullptr;
     QAbstractButton *m_agvStepPadLastSelection = nullptr;
     bool m_pendingAgvStepSteer = false; // 步进九键盘：等待目标模式到位后写角度
@@ -1146,7 +1154,7 @@ private:
     void onAsyncWriteFinished(const ModbusResult &result);
     void onMainMaskedWriteFinished(quint64 id, int address, bool ok, quint16 value);
     void queueSpareButtonNameReads();
-    void queueMainWrite(int address, quint16 value, int generationChannel = 0, quint64 generation = 0);
+    quint64 queueMainWrite(int address, quint16 value, int generationChannel = 0, quint64 generation = 0);
     bool rejectMotionUntilStopConfirmed();
     /** @brief 记录示教互锁归属；从其他示教器切回本机时打开权限页 */
     void noteTeachPendantInterlockValue(quint16 registerValue);
@@ -1325,6 +1333,15 @@ private:
     void showRobotView();
     void showChassisView();
     void showSixAxisView();
+    void setupSixAxisDiagonalControl();
+    void enterSixAxisDiagonalMode();
+    void exitSixAxisDiagonalMode(bool writeRegister621);
+    void setSixAxisDiagonalPlane(SixAxisDiagonalPlane plane, bool writeRegister);
+    void applySixAxisJogModeUi();
+    void applyJogModeForSixAxisDiagonal();
+    void updateSixAxisControlPage();
+    void updateMoveModePresentation(bool diagonal);
+    void stopSixAxisDiagonalMotionIfHeld();
 
     /** @brief 连接历史记录与权限相关信号 */
     void setupRecordAndPermissionConnections();
@@ -1445,6 +1462,8 @@ private:
 
     /** @brief 第四页六自由度点动：按当前选中轴记录 RX/RY/RZ/X/Y/Z */
     void recordSixAxisJogExternalKey(int axisIndex, bool pressed);
+    /** @brief 六自由度斜向点动：记录 XZ/YZ 与外部键方向 */
+    void recordSixAxisDiagonalJogExternalKey(SixAxisDiagonalPlane plane, int keyNumber, bool pressed);
 
     /** @brief 返回蓝色风格的 Widget 样式 */
     QString BlueWidgetStyle(const QString &WidgetType );

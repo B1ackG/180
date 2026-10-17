@@ -1680,6 +1680,54 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
           </item>
          </layout>
         </widget>
+        <widget class="QWidget" name="page_SixAxiesdiagram_Control">
+         <layout class="QVBoxLayout" name="verticalLayout_SixAxiesdiagram_Control">
+          <item>
+           <widget class="QGroupBox" name="groupBox_SixAxiesdiagram_Control">
+            <property name="title">
+             <string>斜向运动</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_SixAxiesdiagram_Buttons">
+             <item>
+              <widget class="QToolButton" name="btnSixAxisDiagonalXZ">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>4</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>XZ</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+               <property name="checked">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="btnSixAxisDiagonalYZ">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>4</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>YZ</string>
+               </property>
+               <property name="checkable">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </widget>
        <widget class="QWidget" name="horizontalLayoutWidget">
         <property name="geometry">
