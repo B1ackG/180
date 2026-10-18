@@ -101,7 +101,7 @@ const QString kAgvZeroSpeedHintText =
     QStringLiteral("当前设置的全向平台速度为0");
 
 constexpr int kRobotSoftLimitDetailReg = 152;
-constexpr int kRobotSoftLimitDetailCount = 2;
+constexpr int kRobotSoftLimitDetailCount = 1;
 constexpr int kRobotAxisLimitSlotCount = 8;
 
 struct RobotAxisLimitDef {
@@ -111,16 +111,16 @@ struct RobotAxisLimitDef {
     int bit;
 };
 
-/** J1/J2 在 152 的低字节，J3/J4 在 153 上对应原 304.10/11 与 304.14/15。 */
+/** 四轴都在主控 152：J1/J2 为 bit0~3，J3 为 bit10/11，J4 为 bit14/15。 */
 constexpr RobotAxisLimitDef kRobotAxisLimits[kRobotAxisLimitSlotCount] = {
     {1, true,  152, 0},
     {1, false, 152, 1},
     {2, true,  152, 2},
     {2, false, 152, 3},
-    {3, true,  153, 2},
-    {3, false, 153, 3},
-    {4, true,  153, 6},
-    {4, false, 153, 7},
+    {3, true,  152, 10},
+    {3, false, 152, 11},
+    {4, true,  152, 14},
+    {4, false, 152, 15},
 };
 
 int robotAxisLimitSlotIndex(int axisIndex, bool positiveLimit)
@@ -7152,7 +7152,6 @@ void MainWindow::onAsyncReadFinished(const ModbusResult &result)
             return;
         }
         applyRobotSoftLimitRegister(kRobotSoftLimitDetailReg, result.values.at(0));
-        applyRobotSoftLimitRegister(kRobotSoftLimitDetailReg + 1, result.values.at(1));
         return;
     }
 

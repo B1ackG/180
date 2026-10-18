@@ -823,11 +823,11 @@ private:
     bool m_robotWeightOverload150Bit3Flag = false;
     bool m_robotWeightLock150Bit7Flag = false;
     bool m_robotAxisSyncDeviation150Bit6Flag = false;
-    /** @brief 主控 102.bit2：正限位到达（作为 152/153 细分辨的门控） */
+    /** @brief 主控 102.bit2：正限位到达（作为 152 细分辨的门控） */
     bool m_robotPositiveLimit102Bit2Flag = false;
-    /** @brief 主控 102.bit3：负限位到达（作为 152/153 细分辨的门控） */
+    /** @brief 主控 102.bit3：负限位到达（作为 152 细分辨的门控） */
     bool m_robotNegativeLimit102Bit3Flag = false;
-    /** @brief 在途的 152/153 读取；0 表示没有 */
+    /** @brief 在途的 152 读取；0 表示没有 */
     quint64 m_robotSoftLimitDetailReadId = 0;
     /** @brief 4 轴 × 正负，与 kRobotAxisLimits 下标一致 */
     bool m_robotAxisLimitActive[8] = {};
@@ -1372,11 +1372,11 @@ private:
                    bool showConfirmButton = true,
                    const QString &confirmButtonText = QString(),
                    bool dismissOnConfirm = true);
-    /** @brief 102.bit2 或 bit3 为 1 时才去读 152/153 */
+    /** @brief 102.bit2 或 bit3 为 1 时才去读 152 */
     bool isRobotLimit102Active() const;
-    /** @brief 门控有效且没有在途请求时，读取主控 152、153 */
+    /** @brief 门控有效且没有在途请求时，读取主控 152 */
     void requestRobotSoftLimitDetailPoll();
-    /** @brief 按主控 152 或 153 刷新对应轴的限位 Toast */
+    /** @brief 按主控 152 刷新对应轴的限位 Toast */
     void applyRobotSoftLimitRegister(int address, quint16 value);
     /** @brief 按已缓存且未确认的细分辨位补弹 Toast */
     void syncRobotSoftLimitToasts();
