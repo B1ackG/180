@@ -83,6 +83,7 @@ HEADERS += \
     modbusregistercodec.h \
     modbusstringregisters.h \
     motionwriteplan.h \
+    sixaxisrunmode.h \
     motionstoprecoverycontroller.h \
     registerbitutils.h \
     modbuswritegate.h \

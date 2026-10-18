@@ -47,6 +47,7 @@ private slots:
     void reconnectWritesStopBeforeNextJog();
     void diagonalPlaneThenJogPressRelease();
     void diagonalReconnectWritesStopBeforeNextJog();
+    void sixAxisRunModeWritesAndDiagonalExitOrder();
 
 private:
     bool connectManager();
@@ -384,6 +385,35 @@ void TestModbusTcpIntegration::diagonalReconnectWritesStopBeforeNextJog()
         sawStop = true;
     }
     QVERIFY(sawStop);
+}
+
+void TestModbusTcpIntegration::sixAxisRunModeWritesAndDiagonalExitOrder()
+{
+    QVERIFY(connectManager());
+    m_writeAddresses.clear();
+    m_writeValues.clear();
+    QVERIFY(m_manager->writeSingleRegister(600, 1));
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(600), quint16(1), kTimeoutMs);
+    QVERIFY(m_manager->writeSingleRegister(600, 2));
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(600), quint16(2), kTimeoutMs);
+    QVERIFY(m_manager->writeSingleRegister(600, 3));
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(600), quint16(3), kTimeoutMs);
+
+    m_writeAddresses.clear();
+    m_writeValues.clear();
+    QVERIFY(m_manager->writeSingleRegister(622, 0));
+    QVERIFY(m_manager->writeSingleRegister(621, 0));
+    QVERIFY(m_manager->writeSingleRegister(600, 1));
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(622), quint16(0), kTimeoutMs);
+    QCOMPARE(m_slave->getRegister(621), quint16(0));
+    QCOMPARE(m_slave->getRegister(600), quint16(1));
+
+    const QVector<int> expected{622, 621, 600};
+    QTRY_COMPARE_WITH_TIMEOUT(m_writeAddresses.size(), expected.size(), kTimeoutMs);
+    QCOMPARE(m_writeAddresses, expected);
+    QCOMPARE(m_writeValues.at(0), quint16(0));
+    QCOMPARE(m_writeValues.at(1), quint16(0));
+    QCOMPARE(m_writeValues.at(2), quint16(1));
 }
 
 QTEST_MAIN(TestModbusTcpIntegration)

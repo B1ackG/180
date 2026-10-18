@@ -1,6 +1,7 @@
 #include "modbusregistercodec.h"
 #include "motionwriteplan.h"
 #include "modbusthreadmanager.h"
+#include "sixaxisrunmode.h"
 
 #include <QtTest>
 
@@ -10,6 +11,7 @@ class TestMotionWritePlan : public QObject
 private slots:
     void rejectsAxisOutsideOneToSix();
     void buildsThreeStepsInOrder();
+    void sixAxisRunModeCycle();
 };
 
 void TestMotionWritePlan::rejectsAxisOutsideOneToSix()
@@ -40,6 +42,19 @@ void TestMotionWritePlan::buildsThreeStepsInOrder()
         QCOMPARE(step.generation, quint64(9));
         QCOMPARE(step.generationChannel, ModbusThreadManager::kSixAxisExternalWriteChannel);
     }
+}
+
+void TestMotionWritePlan::sixAxisRunModeCycle()
+{
+    QCOMPARE(nextSixAxisRunMode(SixAxisRunMode::Jog), SixAxisRunMode::Step);
+    QCOMPARE(nextSixAxisRunMode(SixAxisRunMode::Step), SixAxisRunMode::Diagonal);
+    QCOMPARE(nextSixAxisRunMode(SixAxisRunMode::Diagonal), SixAxisRunMode::Jog);
+    QCOMPARE(nextSixAxisRunMode(SixAxisRunMode::Unknown), SixAxisRunMode::Jog);
+    QCOMPARE(sixAxisRunModeFromRegister(1), SixAxisRunMode::Jog);
+    QCOMPARE(sixAxisRunModeFromRegister(2), SixAxisRunMode::Step);
+    QCOMPARE(sixAxisRunModeFromRegister(3), SixAxisRunMode::Diagonal);
+    QCOMPARE(sixAxisRunModeFromRegister(0), SixAxisRunMode::Unknown);
+    QCOMPARE(sixAxisRunModeFromRegister(9), SixAxisRunMode::Unknown);
 }
 
 QTEST_APPLESS_MAIN(TestMotionWritePlan)

@@ -44,6 +44,7 @@ private slots:
     void exemptWriteDoesNotNeedGateRead();
     void diagonalJogValuesAndStaleGeneration();
     void gateRejectsDiagonalPlaneAndJog();
+    void gateAppliesToSixAxisRunModeAndJointMode();
 
 private:
     void connectReady(quint16 interlockValue);
@@ -286,6 +287,22 @@ void TestModbusThreadManager::diagonalJogValuesAndStaleGeneration()
     QVERIFY(!result.ok);
     QCOMPARE(result.error, ModbusAsyncError::StaleGeneration);
     QCOMPARE(m_client->writes().size(), writesBeforeStale);
+}
+
+void TestModbusThreadManager::gateAppliesToSixAxisRunModeAndJointMode()
+{
+    connectReady(1);
+    QVERIFY(!m_manager->writeSingleRegister(600, 1));
+    QVERIFY(!m_manager->writeSingleRegister(600, 2));
+    QVERIFY(!m_manager->writeSingleRegister(600, 3));
+    QVERIFY(!m_manager->writeSingleRegister(525, 2));
+    QVERIFY(m_client->writes().isEmpty());
+
+    connectReady(7);
+    QVERIFY(m_manager->writeSingleRegister(600, 1));
+    QVERIFY(m_manager->writeSingleRegister(600, 2));
+    QVERIFY(m_manager->writeSingleRegister(600, 3));
+    QVERIFY(m_manager->writeSingleRegister(525, 2));
 }
 
 void TestModbusThreadManager::gateRejectsDiagonalPlaneAndJog()

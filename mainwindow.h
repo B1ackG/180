@@ -36,6 +36,7 @@
 #include "steeringmodeselector.h"
 #include "enablebuttonworker.h"
 #include "buttonmodbusmapping.h"
+#include "sixaxisrunmode.h"
 
 #ifdef ENABLE_VIRTUAL_MATRIX_KEYS
 class VirtualMatrixKeyPanel;
@@ -259,10 +260,6 @@ public:
     void showUnselectedStepModeHintDialog();
     /** @brief 隐藏步进/点动未选择提示窗 */
     void hideUnselectedStepModeHintDialog();
-    /** @brief 外部按键在坐标/关节模式未选择时的提示窗 */
-    void showUnselectedMoveModeHintDialog();
-    /** @brief 隐藏坐标/关节未选择提示窗 */
-    void hideUnselectedMoveModeHintDialog();
     /** @brief 示教写门禁触发时的提示窗（样式仿高度互锁提示） */
     void showTeachingWriteGateDeniedDialog();
     /** @brief 隐藏示教写门禁提示窗 */
@@ -976,9 +973,13 @@ private:
     
     bool m_stepModeEnabled = false;
     bool m_stepModeUnknown = true;
-    bool m_isJointMode = true;
-    bool m_moveModeUnknown = false;
-    bool m_sixAxisDiagonalMode = false;
+    SixAxisRunMode m_sixAxisRunMode = SixAxisRunMode::Unknown;
+    quint64 m_sixAxisRunModeWriteId = 0;
+    SixAxisRunMode m_sixAxisRunModeWriteTarget = SixAxisRunMode::Unknown;
+    bool m_sixAxisRunModeWriteNotify = false;
+    SixAxisRunMode m_sixAxisRunModeBeforeWrite = SixAxisRunMode::Unknown;
+    quint64 m_permanentJointModeWriteId = 0;
+    int m_permanentJointModeRetriesRemaining = 0;
     SixAxisDiagonalPlane m_sixAxisDiagonalPlane = SixAxisDiagonalPlane::None;
     quint64 m_sixAxisPlaneWriteId = 0;
     SixAxisDiagonalPlane m_sixAxisPlaneWritePlane = SixAxisDiagonalPlane::None;
@@ -1161,8 +1162,6 @@ private:
     /** @brief 打开权限页并同步导航选中状态 */
     void openPermissionPage();
 
-    /** @brief 将寄存器 126 反映到运动模式按钮与状态栏 */
-    void applyMoveModeUiFromRegister126(quint16 value);
     /** @brief 将寄存器 130 反映到机器人速度滑块 */
     void applyRobotSpeedUiFromRegister130(quint16 value);
     /** @brief 从 g_registerCache 刷新步进/运动/速度等与主控同步的 UI（示教切换后等） */
@@ -1334,13 +1333,19 @@ private:
     void showChassisView();
     void showSixAxisView();
     void setupSixAxisDiagonalControl();
-    void enterSixAxisDiagonalMode();
-    void exitSixAxisDiagonalMode(bool writeRegister621);
+    bool isSixAxisDiagonalMode() const;
+    void applySixAxisRunMode(SixAxisRunMode mode, bool writeRegister600, bool notifyUser);
+    void syncSixAxisRunModeFromRegister600(quint16 value);
+    void commitSixAxisRunMode(SixAxisRunMode mode, bool notifyUser);
+    void publishSixAxisRunModeUi();
+    void leaveSixAxisDiagonalForDeviceSwitch();
+    void requestPermanentJointMode();
+    void submitPermanentJointModeWrite();
+    void schedulePermanentJointModeRetry();
+    void notePermanentJointModeFailed();
+    void hideRetiredMoveModeButton();
     void setSixAxisDiagonalPlane(SixAxisDiagonalPlane plane, bool writeRegister);
-    void applySixAxisJogModeUi();
-    void applyJogModeForSixAxisDiagonal();
     void updateSixAxisControlPage();
-    void updateMoveModePresentation(bool diagonal);
     void stopSixAxisDiagonalMotionIfHeld();
 
     /** @brief 连接历史记录与权限相关信号 */
@@ -1524,11 +1529,6 @@ private:
     bool maybeShowUnselectedStepModeHintForExternalKey(int keyNumber, bool pressed);
     /** @brief 外部按键触发时自动选择点动模式 */
     void applyDefaultJogStepModeFromExternalKey();
-    /** @brief 外部按键按下且坐标/关节模式未选择时弹出提示，返回 true 表示已拦截 */
-    bool maybeShowUnselectedMoveModeHintForExternalKey(int keyNumber, bool pressed);
-    /** @brief 外部按键触发时自动选择关节模式 */
-    void applyDefaultJointMoveModeFromExternalKey();
-
     /** @brief 处理第二套 AGV 按键动作 */
     void handleAGVKey2Action(int keyNumber, bool pressed);
     /** @brief 检查 ○9/○10、转向切换、驻车按钮用的高度/长度互锁提示语（空表示无互锁） */

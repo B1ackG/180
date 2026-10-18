@@ -162,6 +162,7 @@ const QMap<QString, Binding> &knownBindings()
             }),
             specList({makeSpec(QStringLiteral("AGV"), QStringLiteral("2"), QString(), QStringLiteral("0"), QStringLiteral("1"), QStringLiteral("2/3/4"))}),
             true}},
+        // 保留旧配置描述。界面已隐藏，业务点击不得再写 525。
         {QStringLiteral("TBtn_MoveMode"), {
             specList({makeSpec(QStringLiteral("主控"), QStringLiteral("126"), QString(), QStringLiteral("2"), QStringLiteral("1"))}),
             specList({makeSpec(QStringLiteral("主控"), QStringLiteral("525"), QString(), QStringLiteral("2"), QStringLiteral("1"))}),
