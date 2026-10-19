@@ -37,6 +37,7 @@
 #include "enablebuttonworker.h"
 #include "buttonmodbusmapping.h"
 #include "sixaxisrunmode.h"
+#include "popupcoordinator.h"
 
 #ifdef ENABLE_VIRTUAL_MATRIX_KEYS
 class VirtualMatrixKeyPanel;
@@ -292,7 +293,7 @@ public:
     void prepareWeightLockZDownUnlock();
     /** @brief bit7 锁定态下拦截操作：补回 Toast 并在状态栏提示 */
     void blockRobotWeightLockOperation(const QString &hint);
-    /** @brief 显示主副轴位置偏差提示窗（150.bit6=1），急停全屏清理时不隐藏 */
+    /** @brief 显示主副轴位置偏差提示窗（150.bit6=1）。急停显示期间只排队，急停解除后恢复 */
     void showRobotAxisSyncDeviationDialog();
     /** @brief 隐藏主副轴位置偏差提示窗（150.bit6=0） */
     void hideRobotAxisSyncDeviationDialog();
@@ -351,7 +352,7 @@ public:
     void checkStepMotionWaitCompletion(int address, quint16 value);
     /** @brief 使能松开时关闭驻车/转向/姿态回零/姿态调平等待弹窗（步进除外）并记中断 */
     void interruptEnableGatedWaitPopupsOnEnableRelease();
-    /** @brief 支腿打开前：绕车干涉检查弹窗（30 秒倒计时后可确认） */
+    /** @brief 支腿打开前：绕车干涉检查弹窗（30 秒倒计时后，按住使能才可确认） */
     void showLegOpenPathCheckDialog(int legLengthMm = -1);
     /** @brief 隐藏支腿打开绕车检查弹窗并停止倒计时 */
     void hideLegOpenPathCheckDialog();
@@ -409,6 +410,13 @@ public:
     void setupModbusLabels();
     /** @brief 向主控设备写入寄存器，返回异步命令号；未发出时返回 0 */
     quint64 writeToMainDevice(int address, int value, int generationChannel = 0, quint64 generation = 0);
+    /**
+     * @brief 主控 527.bit7 蜂鸣器。on 为 true 写 0（开），false 写 1（关）。
+     * 读改写，保留同字其它位。未发出返回 0。
+     */
+    quint64 writeMainBuzzer(bool on);
+    /** @brief 读取主控 527.bit7，结果经 mainBuzzerStateReady 回传 */
+    void requestMainBuzzerState();
     
     /** @brief 初始化 AGV Modbus 子系统 */
     void setupAGVModbus();
@@ -760,6 +768,10 @@ private slots:
 
 signals:
     void modbusValueChangedForAlarm();
+    /** @brief 主控 527.bit7 读回。on 为 true 表示蜂鸣器开（位值为 0）。ok 为 false 时 on 无意义 */
+    void mainBuzzerStateReady(bool on, bool ok);
+    /** @brief 蜂鸣器读改写结束。失败时 on 为本次想写入的开/关状态 */
+    void mainBuzzerWriteFinished(bool on, bool ok);
 
 protected:
     void resizeEvent(QResizeEvent *event) override;
@@ -790,6 +802,7 @@ private:
     PoseProvider *m_poseProvider = nullptr;
     FeatureSwitchManager *m_featureSwitchManager = nullptr;
     FeatureSwitchWidget *m_featureSwitchWidget = nullptr;
+    QCheckBox *m_mainBuzzerCheck = nullptr;
     QWidget *m_pageNavigationPopup = nullptr;
     QWidget *m_deviceControlPopup = nullptr;
     QWidget *m_controlModePopup = nullptr;
@@ -868,6 +881,7 @@ private:
     QDialog *m_legOpenPathCheckDialog = nullptr;
     QLabel *m_legOpenPathCheckMessageLabel = nullptr;
     QLabel *m_legOpenPathCheckCountdownLabel = nullptr;
+    QLabel *m_legOpenPathCheckHintLabel = nullptr;
     QPushButton *m_legOpenPathCheckConfirmBtn = nullptr;
     QTimer *m_legOpenPathCheckTimer = nullptr;
     int m_legOpenPathCheckRemainSec = 0;
@@ -944,6 +958,15 @@ private:
     bool m_mainRegister150Valid = false;
     quint16 m_mainRegister150Shadow = 0;
     bool m_mainInitializationComplete = false;
+    PopupCoordinator m_popupCoordinator;
+    bool m_popupRefreshQueued = false;
+    bool m_popupPresenting = false;
+    bool m_robotInterlockRequested = false;
+    QString m_robotInterlockRequestedMessage;
+    bool m_legOpenPathCheckActive = false;
+    bool m_sixAxisInitConfirmRequested = false;
+    bool m_legControlRequested = false;
+    QString m_stepMotionWaitMessage;
 
     // ----- 历史记录与日志 -----
     OperationRecorder *m_recorder;
@@ -1006,6 +1029,10 @@ private:
     quint64 m_runtimeReadId = 0;
     quint64 m_pendingInterlockWriteId = 0;
     quint64 m_sync527WriteId = 0;
+    quint64 m_buzzer527ReadId = 0;
+    quint64 m_buzzer527WriteId = 0;
+    bool m_buzzer527WriteOn = false;
+    bool m_buzzer527IgnoreRead = false;
     quint64 m_sixAxisInitStatusReadId = 0;
     quint64 m_sixAxisInitWriteId = 0;
     int m_spareNamePollTick = 0;
@@ -1443,8 +1470,15 @@ private:
     void recordHorizontalSupportMoveAction(int keyNumber, bool pressed);
     /** @brief 写入支腿展出/收回相关操作历史 */
     void appendLegControlHistory(const QString &text);
-    /** @brief 急停弹窗显示前，隐藏仍可见的非急停类型弹窗（主副轴偏差窗与 Toast 除外） */
-    void hideNonEmergencyPopups();
+    PopupSnapshot buildPopupSnapshot() const;
+    void requestPopupRefresh();
+    void refreshCoordinatedPopup();
+    void applyPopupTransition(const PopupTransition &transition);
+    void showPopupNow(PopupId id);
+    void hidePopupNow(PopupId id);
+    void presentEmergencyStopAlarm();
+    void handleEmergencyStopTransition(bool oldActive, bool newActive);
+    void abortPopupOwnedOperationsForEmergency();
 
     /** @brief 记录步进移动动作开始/持续状态
      *  @param jointName 关节名

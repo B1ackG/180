@@ -81,6 +81,8 @@ constexpr int kRuntimePersistRegisterHi = 8194;
 constexpr int kMainDevicePageSelectReg = 616; // Robot=0, Chassis=1, SixAxis=2
 constexpr int kSixAxisRunModeReg = 600; // 1=点动, 2=步进, 3=斜向
 constexpr int kPermanentJointModeReg = 525;
+constexpr int kMainBuzzerRegister = 527;
+constexpr int kMainBuzzerBit = 7;
 constexpr int kSixAxisDiagonalPlaneReg = 621; // 0=无平面, 1=XZ, 2=YZ
 constexpr int kSixAxisDiagonalJogReg = 622; // -1/1/0，负数按16位补码
 const QString kSixAxisDiagonalPlaneFailedText = QStringLiteral("斜向平面写入失败，请重新选择XZ或YZ");
@@ -3649,7 +3651,6 @@ void MainWindow::refreshInclinometerTiltPresentation()
             m_inclinometerTiltLockUnlocked = false;
             m_inclinometerTiltRiskInZone = false;
             m_inclinometerTiltRiskAcked = false;
-            hideInclinometerTiltRiskDialog();
             if (m_recorder) {
                 OperationRecord record;
                 record.timestamp = QDateTime::currentDateTime();
@@ -3661,20 +3662,17 @@ void MainWindow::refreshInclinometerTiltPresentation()
                 record.newValue = kInclinometerTiltLockToastText;
                 m_recorder->addRecord(record);
             }
-            showInclinometerTiltLockDialog();
+            ensureInclinometerTiltLockToast();
         } else {
             m_inclinometerTiltLockUnlocked = false;
-            hideInclinometerTiltLockDialog();
+            dismissToastByMessage(kInclinometerTiltLockToastText);
         }
     } else if (inLockZone) {
-        if (m_inclinometerTiltLockUnlocked) {
-            presentInclinometerTiltLockUnlocked();
-        } else {
-            showInclinometerTiltLockDialog();
-        }
+        ensureInclinometerTiltLockToast();
     }
 
     if (inLockZone) {
+        requestPopupRefresh();
         return;
     }
 
@@ -3692,18 +3690,13 @@ void MainWindow::refreshInclinometerTiltPresentation()
                 record.newValue = QStringLiteral("倾覆风险提示！设备倾角过大。");
                 m_recorder->addRecord(record);
             }
-            showInclinometerTiltRiskDialog();
         } else {
             m_inclinometerTiltRiskAcked = false;
-            hideInclinometerTiltRiskDialog();
         }
         m_inclinometerTiltRiskInZone = inWarnZone;
-        return;
     }
 
-    if (inWarnZone && !m_inclinometerTiltRiskAcked) {
-        showInclinometerTiltRiskDialog();
-    }
+    requestPopupRefresh();
 }
 
 //模拟速度
@@ -4546,6 +4539,15 @@ void MainWindow::setupAdminPasswordPage()
     logoutButton->setFixedWidth(360);
     logoutButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
+    m_mainBuzzerCheck = new QCheckBox(QStringLiteral("蜂鸣器开"), container);
+    m_mainBuzzerCheck->setObjectName(QStringLiteral("mainBuzzerCheck"));
+    m_mainBuzzerCheck->setToolTip(QStringLiteral("主控 527.7：勾选为开，写 0；取消为关，写 1"));
+    m_mainBuzzerCheck->setStyleSheet(QStringLiteral(
+        "QCheckBox { color: #00ffff; font-family: 'Microsoft YaHei UI'; font-size: 16px; spacing: 10px; }"
+        "QCheckBox::indicator { width: 22px; height: 22px; border: 2px solid #00c8ff;"
+        " border-radius: 4px; background: rgba(10, 10, 30, 180); }"
+        "QCheckBox::indicator:checked { background: #00c8ff; }"));
+
     // 负载阈值配置（管理员登录后可见）
     QWidget *weightThresholdSection = new QWidget(container);
     weightThresholdSection->setObjectName(QStringLiteral("weightThresholdSection"));
@@ -4664,6 +4666,8 @@ void MainWindow::setupAdminPasswordPage()
     containerLayout->addWidget(hintLabel, 0, centerRow);
     containerLayout->addSpacing(12);
     containerLayout->addWidget(loginButton, 0, centerRow);
+    containerLayout->addSpacing(12);
+    containerLayout->addWidget(m_mainBuzzerCheck, 0, centerRow);
     containerLayout->addWidget(featureButton, 0, centerRow);
     containerLayout->addWidget(weightThresholdSection, 0, centerRow);
     containerLayout->addWidget(logoutButton, 0, centerRow);
@@ -5221,6 +5225,38 @@ void MainWindow::setupAdminPasswordPage()
     });
     applyPermissionLoginFormForSelectedRole();
 
+    connect(m_mainBuzzerCheck, &QCheckBox::toggled, this, [this](bool checked) {
+        if (writeMainBuzzer(checked) == 0) {
+            const QSignalBlocker blocker(m_mainBuzzerCheck);
+            m_mainBuzzerCheck->setChecked(!checked);
+        }
+    });
+    connect(this, &MainWindow::mainBuzzerStateReady, this, [this](bool on, bool ok) {
+        if (!ok || !m_mainBuzzerCheck) {
+            return;
+        }
+        const QSignalBlocker blocker(m_mainBuzzerCheck);
+        m_mainBuzzerCheck->setChecked(on);
+    });
+    connect(this, &MainWindow::mainBuzzerWriteFinished, this, [this](bool on, bool ok) {
+        if (ok || !m_mainBuzzerCheck) {
+            return;
+        }
+        if (m_mainBuzzerCheck->isChecked() == on) {
+            const QSignalBlocker blocker(m_mainBuzzerCheck);
+            m_mainBuzzerCheck->setChecked(!on);
+        }
+    });
+    if (ui->StackedWidget) {
+        connect(ui->StackedWidget, &QStackedWidget::currentChanged, this, [this](int) {
+            if (ui->page_Permission && ui->StackedWidget->currentWidget() == ui->page_Permission) {
+                requestMainBuzzerState();
+            }
+        });
+        if (ui->page_Permission && ui->StackedWidget->currentWidget() == ui->page_Permission) {
+            requestMainBuzzerState();
+        }
+    }
 
     // 当输入时隐藏错误提示
     connect(passwordEdit, &QLineEdit::textChanged, errorLabel, &QLabel::hide);
@@ -5342,6 +5378,7 @@ void MainWindow::showToast(const QString &message,
     m_lastToastMessage = text;
     m_lastToastMs = nowMs;
 
+    const bool persistentToast = durationMs < 0;
     const int toastDurationMs = durationMs > 0
                                     ? durationMs
                                     : (kind == ToastKind::Warning
@@ -5400,7 +5437,16 @@ void MainWindow::showToast(const QString &message,
     const int height = qBound(kToastMinHeight, 38 + lineCount * 24, kToastMaxHeight);
     toast->setFixedSize(kToastWidth, height);
 
-    m_toasts.append({toast, nullptr, text});
+    QTimer *closeTimer = nullptr;
+    if (!persistentToast) {
+        closeTimer = new QTimer(this);
+        closeTimer->setSingleShot(true);
+        connect(closeTimer, &QTimer::timeout, this, [this, toast]() {
+            dismissToast(toast);
+        });
+        closeTimer->start(toastDurationMs);
+    }
+    m_toasts.append({toast, closeTimer, text});
     updateToastHostVisibility();
 }
 
@@ -6129,7 +6175,8 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     if (pressed && m_robotWeightOverload150Bit3Flag && m_robotWeightOverloadUserAckedWhileActive) {
         const bool firstPageOverloadExempt = (isRobotAxisViewActive() && (keyNumber == 3 || keyNumber == 4));
         if (!firstPageOverloadExempt) {
-            showRobotWeightOverloadDialog();
+            m_robotWeightOverloadUserAckedWhileActive = false;
+            requestPopupRefresh();
             ui->statusBar->showMessage(QStringLiteral("负载超限：该外部按键操作已无效"), 3000);
             return;
         }
@@ -7155,6 +7202,23 @@ void MainWindow::onAsyncReadFinished(const ModbusResult &result)
         return;
     }
 
+    if (result.id != 0 && result.id == m_buzzer527ReadId) {
+        m_buzzer527ReadId = 0;
+        if (m_buzzer527IgnoreRead) {
+            m_buzzer527IgnoreRead = false;
+            return;
+        }
+        if (!result.ok || result.values.isEmpty() || result.error == ModbusAsyncError::StaleGeneration) {
+            emit mainBuzzerStateReady(false, false);
+            return;
+        }
+        const quint16 value = result.values.first();
+        g_registerCache[kMainBuzzerRegister] = value;
+        const bool bitSet = ((value >> kMainBuzzerBit) & 0x01) != 0;
+        emit mainBuzzerStateReady(!bitSet, true);
+        return;
+    }
+
     if (result.id != 0 && result.id == m_interlockReadId) {
         m_interlockReadId = 0;
         if (!result.ok || result.values.isEmpty() || result.error == ModbusAsyncError::StaleGeneration) {
@@ -7313,6 +7377,22 @@ void MainWindow::onMainMaskedWriteFinished(quint64 id, int address, bool ok, qui
         }
         g_registerCache[address] = value;
         qCDebug(lcMainWindow) << "[主副轴同步] 527 读改写完成，值" << value;
+        return;
+    }
+
+    if (id != 0 && id == m_buzzer527WriteId) {
+        m_buzzer527WriteId = 0;
+        const bool on = m_buzzer527WriteOn;
+        if (!ok) {
+            qWarning() << "[蜂鸣器] 主控寄存器527位7写入失败";
+            showNotification(QStringLiteral("蜂鸣器写入失败"));
+            emit mainBuzzerWriteFinished(on, false);
+            return;
+        }
+        g_registerCache[address] = value;
+        qCDebug(lcMainWindow) << "[蜂鸣器] 527.7 已写" << (on ? 0 : 1)
+                              << (on ? "（开）" : "（关）") << "当前值" << value;
+        emit mainBuzzerWriteFinished(on, true);
         return;
     }
 
@@ -7566,6 +7646,10 @@ void MainWindow::onModbusConnected()
     if (isSixAxisViewActive()) {
         requestSixAxisInitStatusCheck();
     }
+    if (ui && ui->StackedWidget && ui->page_Permission
+        && ui->StackedWidget->currentWidget() == ui->page_Permission) {
+        requestMainBuzzerState();
+    }
 
         if (!m_runtimeBaselineReady && m_modbusManager
             && isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
@@ -7717,7 +7801,7 @@ void MainWindow::noteMainLinkDown()
     if (m_lastToastMessage == toastText) {
         m_lastToastMessage.clear();
     }
-    showToast(toastText, ToastKind::Warning, 0, nullptr, false);
+    showToast(toastText, ToastKind::Warning, -1, nullptr, false);
 }
 
 void MainWindow::noteAgvLinkDown()
@@ -7746,7 +7830,7 @@ void MainWindow::noteAgvLinkDown()
     if (m_lastToastMessage == toastText) {
         m_lastToastMessage.clear();
     }
-    showToast(toastText, ToastKind::Warning, 0, nullptr, false);
+    showToast(toastText, ToastKind::Warning, -1, nullptr, false);
 }
 // 速度选择
 void MainWindow::initSpeedModeSelector()
@@ -8210,13 +8294,10 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             }
             if (weightOverload) {
                 m_robotWeightOverloadUserAckedWhileActive = false;
-                if (!m_robotWeightLock150Bit7Flag) {
-                    showRobotWeightOverloadDialog();
-                }
             } else {
-                hideRobotWeightOverloadDialog();
                 m_robotWeightOverloadUserAckedWhileActive = false;
             }
+            requestPopupRefresh();
         }
 
         const bool weightLock = (((value >> 7) & 0x01) == 1);
@@ -8236,16 +8317,13 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             }
             if (weightLock) {
                 m_robotWeightLockUserAckedWhileActive = false;
-                hideRobotWeightOverloadDialog();
                 prepareWeightLockZDownUnlock();
-                showRobotWeightLockDialog();
+                ensureRobotWeightLockToast();
             } else {
-                hideRobotWeightLockDialog();
                 m_robotWeightLockUserAckedWhileActive = false;
-                if (m_robotWeightOverload150Bit3Flag) {
-                    showRobotWeightOverloadDialog();
-                }
+                dismissToastByMessage(kRobotWeightLockToastText);
             }
+            requestPopupRefresh();
         }
 
         const bool axisSyncDeviation = (((value >> 6) & 0x01) == 1);
@@ -8264,11 +8342,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                     : QStringLiteral("主副轴位置偏差提示已解除");
                 m_recorder->addRecord(record);
             }
-            if (axisSyncDeviation) {
-                showRobotAxisSyncDeviationDialog();
-            } else {
-                hideRobotAxisSyncDeviationDialog();
-            }
+            requestPopupRefresh();
         }
 
         const bool heightInterlock = (((value >> 1) & 0x01) == 1);
@@ -9736,7 +9810,17 @@ void MainWindow::syncAGVParkingStateFromRegister51(quint16 value, bool updateLeg
                                           ? ((((value >> pendingBit) & 0x01) == 1))
                                           : false;
 
+    // 完成位未到时不按 bit3/bit4 改展出/收回文案，也不改 m_agvParkingEnabled。
+    // 51.bit7 的异常外观必须当场刷：这一拍之后整字若不再变化，轮询不会再进来。
     if (parkingSwitchWaiting && !pendingTargetReached) {
+        if (updateLegAbnormal) {
+            if (bit7) {
+                applyAGVParkingLegAbnormalUi();
+            } else {
+                applyAGVParkingButtonUi(m_agvParkingEnabled);
+                applyAGVParkingStatusBarUi(m_agvParkingEnabled);
+            }
+        }
         return;
     }
 
@@ -10166,6 +10250,70 @@ quint64 MainWindow::writeToMainDevice(int address, int value, int generationChan
 
     return queueMainWrite(address, static_cast<quint16>(value), generationChannel, generation);
 }
+
+quint64 MainWindow::writeMainBuzzer(bool on)
+{
+    if (!isFeatureEnabled("modbus_main", "modbus_main.write_enabled")) {
+        showModbusWriteDisabledToast();
+        return 0;
+    }
+    if (!isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
+        showNotification(QStringLiteral("Main Modbus 读功能已关闭"));
+        return 0;
+    }
+    if (!MainDeviceModbusApi::isReady(m_modbusManager)) {
+        showNotification(QStringLiteral("主控 Modbus 未连接"));
+        return 0;
+    }
+
+    const quint16 bitMask = static_cast<quint16>(1u << kMainBuzzerBit);
+    const bool writeOne = !on;
+    const quint16 orMask = writeOne ? bitMask : 0;
+    const quint16 andMask = writeOne
+        ? static_cast<quint16>(0xFFFF)
+        : static_cast<quint16>(~bitMask);
+    if (m_buzzer527ReadId != 0) {
+        m_buzzer527IgnoreRead = true;
+    }
+    m_buzzer527WriteOn = on;
+    m_buzzer527WriteId = ++m_nextAsyncId;
+    m_modbusManager->queueMaskedWrite(m_buzzer527WriteId, kMainBuzzerRegister, orMask, andMask);
+
+    if (m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = QStringLiteral("权限验证");
+        record.controlName = QStringLiteral("蜂鸣器");
+        record.controlType = QStringLiteral("开关");
+        record.operation = on ? QStringLiteral("开") : QStringLiteral("关");
+        record.oldValue = QString();
+        record.newValue = on
+            ? QStringLiteral("向主控寄存器527位7写入0")
+            : QStringLiteral("向主控寄存器527位7写入1");
+        m_recorder->addRecord(record);
+    }
+    return m_buzzer527WriteId;
+}
+
+void MainWindow::requestMainBuzzerState()
+{
+    if (!m_modbusManager || !MainDeviceModbusApi::isReady(m_modbusManager)
+        || !isFeatureEnabled("modbus_main", "modbus_main.read_enabled")) {
+        emit mainBuzzerStateReady(false, false);
+        return;
+    }
+    if (m_buzzer527ReadId != 0 || m_buzzer527WriteId != 0) {
+        return;
+    }
+    ModbusReadRequest request;
+    request.id = ++m_nextAsyncId;
+    request.start = kMainBuzzerRegister;
+    request.count = 1;
+    request.generation = m_modbusManager->connectionGeneration();
+    m_buzzer527ReadId = request.id;
+    m_modbusManager->requestRead(request);
+}
+
 void MainWindow::onControlModeClicked()
 {
     if (!isFeatureEnabled("motion_control", "motion.control_mode_switch")) {
@@ -10858,13 +11006,10 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
         oldTimer->deleteLater();
     }
 
-    hideParkingLegAbnormalDialog();
-
     setProperty("parkingSwitchWaiting", true);
     setProperty("parkingTargetBit", targetWaitBit);
     setProperty("parkingTargetEnabled", targetParkingEnabled);
-
-    showParkingSwitchHintDialog(QStringLiteral("正在切换驻车模式"));
+    requestPopupRefresh();
 
     auto *parkingWaitTimer = new QTimer(this);
     parkingWaitTimer->setObjectName(QStringLiteral("parkingSwitchWaitTimer"));
@@ -10885,8 +11030,10 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
                         parkingWaitTimer->deleteLater();
                         setProperty("parkingSwitchWaiting", false);
                         setProperty("parkingTargetBit", -1);
-                        hideParkingSwitchHintDialog();
-                        updateParkingLegAbnormalDialogVisibility();
+                        if (m_agvLegAbnormal51Bit7Flag) {
+                            applyAGVParkingLegAbnormalUi();
+                        }
+                        requestPopupRefresh();
                         appendLegControlHistory(targetParkingEnabled
                             ? QStringLiteral("支腿展出完成：%1")
                                   .arg(legDeployedStatusButtonText(m_agvParkLastLengthMm))
@@ -10900,8 +11047,10 @@ void MainWindow::executeAGVParkingSwitch(bool targetParkingEnabled, int legLengt
                     parkingWaitTimer->deleteLater();
                     setProperty("parkingSwitchWaiting", false);
                     setProperty("parkingTargetBit", -1);
-                    hideParkingSwitchHintDialog();
-                    updateParkingLegAbnormalDialogVisibility();
+                    if (m_agvLegAbnormal51Bit7Flag) {
+                        applyAGVParkingLegAbnormalUi();
+                    }
+                    requestPopupRefresh();
                     appendLegControlHistory(QStringLiteral("支腿动作90秒已超时"));
                 }
             });
@@ -10927,8 +11076,7 @@ void MainWindow::onAGVParkBtnClicked()
 
     // 绕车检查进行中：不进入其它驻车分支，避免异常窗抢走焦点。
     if (isLegOpenPathCheckActive()) {
-        m_legOpenPathCheckDialog->raise();
-        m_legOpenPathCheckDialog->activateWindow();
+        requestPopupRefresh();
         ui->statusBar->showMessage(QStringLiteral("请先完成支腿伸出路径检查"), 2000);
         return;
     }
@@ -10945,10 +11093,6 @@ void MainWindow::onAGVParkBtnClicked()
     if (m_agvLegAbnormal51Bit7Flag) {
         hideLegControlDialog();
         updateParkingLegAbnormalDialogVisibility();
-        if (m_parkingLegAbnormalDialog) {
-            m_parkingLegAbnormalDialog->raise();
-            m_parkingLegAbnormalDialog->activateWindow();
-        }
         return;
     }
 
@@ -11240,7 +11384,8 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
     }
 
     if (m_robotWeightOverload150Bit3Flag && m_robotWeightOverloadUserAckedWhileActive) {
-        showRobotWeightOverloadDialog();
+        m_robotWeightOverloadUserAckedWhileActive = false;
+        requestPopupRefresh();
         showNotification(QStringLiteral("负载超限：底盘转向模式切换已无效"));
         if (m_steeringModeSelector) {
             const QSignalBlocker blocker(m_steeringModeSelector);
@@ -11279,7 +11424,7 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         m_targetSteeringWaitBit = -1;
         if (m_isSteeringAlarmActive) {
             m_isSteeringAlarmActive = false;
-            updateAlarmDisplay();
+            requestPopupRefresh();
         }
         return;
     }
@@ -11298,7 +11443,7 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
     // 1/2/3 之间互换不弹窗
     if (oldIn123 && newIn123) {
         m_isSteeringAlarmActive = false;
-        hideAlarm();
+        requestPopupRefresh();
         qCDebug(lcMainWindow) << "模式1/2/3之间切换，不弹出提示窗口";
         return;
     }
@@ -11306,11 +11451,11 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
     // 其余切换：示教器控制下弹窗并等待位信号；遥控器模式不弹出
     if (m_controlMode == WIRELESS_MODE) {
         m_isSteeringAlarmActive = false;
-        hideAlarm();
+        requestPopupRefresh();
         qCDebug(lcMainWindow) << "遥控器控制模式，不弹出底盘切换等待窗口";
     } else {
         m_isSteeringAlarmActive = true;
-        showAlarm("正在更换底盘模式", "#FFFF00", false);
+        requestPopupRefresh();
         m_isSwitchingSteeringMode = true;
 
         if (mode == STEER_LATERAL) {
@@ -11341,7 +11486,7 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
             m_isSteeringAlarmActive = false;
             m_pendingAgvStepSteer = false;
             m_pendingAgvStepReadyBit = -1;
-            hideAlarm();
+            requestPopupRefresh();
 
             if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
                 m_agvModbusManager->readMultipleRegisters(50, 1);
@@ -13355,14 +13500,13 @@ void MainWindow::on_TBtn_RemoveWarning_clicked()
         QStringLiteral("存在未清除报错"),
         QStringLiteral("%1确认清除报错，已通知主控和底盘").arg(historyOperatorName()));
 
-    // 清除所有报警状态
+    // 本地先收起急停窗。若 PLC 急停位仍为 1，下一次报警检查会重新显示。
     if (m_emergencyStopAlarm) {
-        m_emergencyStopAlarm = false;
         qCDebug(lcMainWindow) << "用户清除了紧急停止报警";
+        handleEmergencyStopTransition(true, false);
+    } else {
+        updateAlarmDisplay();
     }
-
-    // 更新报警显示
-    updateAlarmDisplay();
 
     // 显示通知
     showNotification("报警已清除");
@@ -13444,22 +13588,22 @@ void MainWindow::checkAlarmConditions()
     }
 
     // 1. 仅检查两条急停报警源：主设备150 + AGV 51.bit5
+    const bool oldEstopState = m_emergencyStopAlarm;
     bool newEstopState = false;
     if (isFeatureEnabled("alarm_system", "alarm.emergency_stop")) {
         newEstopState = (m_robotArmEmergency150Flag
                          || m_agvChassisEmergency51Bit5Flag);
     }
-    if (newEstopState != m_emergencyStopAlarm) {
+    if (newEstopState != oldEstopState) {
         if (newEstopState) {
             qCDebug(lcMainWindow) << "!!! 触发紧急停止报警 !!!";
         } else {
             qCDebug(lcMainWindow) << "解除紧急停止报警";
         }
-        m_emergencyStopAlarm = newEstopState;
     }
+    handleEmergencyStopTransition(oldEstopState, newEstopState);
 
-    // 2. 统一更新显示
-    updateAlarmDisplay();
+    // 2. 低电量仍走 Toast，不占用居中弹窗。
     if (m_agvBatteryLow51Bit0Flag) {
         showAgvBatteryLowDialog();
     }
@@ -13481,14 +13625,8 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
 
     qCDebug(lcMainWindow) << "showAlarm被调用，消息:" << message << "颜色:" << color << "可关闭:" << closable;
 
-    // 确保在主线程中执行
     if (QThread::currentThread() != this->thread()) {
-        qCDebug(lcMainWindow) << "showAlarm不在主线程，将使用invokeMethod";
-        QMetaObject::invokeMethod(this, "showAlarm",
-                                  Qt::QueuedConnection,
-                                  Q_ARG(QString, message),
-                                  Q_ARG(QString, color),
-                                  Q_ARG(bool, closable));
+        qWarning() << "showAlarm只能在主线程调用";
         return;
     }
 
@@ -13497,7 +13635,7 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
         qCDebug(lcMainWindow) << "创建新的报警窗口...";
 
         // 创建报警窗口
-        m_alarmWidget = new QWidget(nullptr);  // 使用nullptr作为父窗口，使其独立显示
+        m_alarmWidget = new QWidget(this);
         m_alarmWidget->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
                                       Qt::WindowStaysOnTopHint);
         m_alarmWidget->setWindowModality(Qt::ApplicationModal);
@@ -13529,10 +13667,21 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
     
     // 控制清除按钮的显示/隐藏
     QPushButton *clearBtn = m_alarmWidget->findChild<QPushButton*>("clearAlarmBtn");
+    const bool sameVisible = m_alarmWidget->isVisible()
+        && m_alarmLabel
+        && m_alarmLabel->text() == message
+        && m_alarmWidget->property("alarmColor").toString() == color
+        && clearBtn
+        && clearBtn->isVisible() == closable;
+    if (sameVisible) {
+        return;
+    }
     if (clearBtn) {
         clearBtn->setVisible(closable);
     }
-    
+    m_alarmWidget->setProperty("alarmColor", color);
+    const bool wasVisible = m_alarmWidget->isVisible();
+
     // 更新报警信息
     m_alarmLabel->setText(message);
 
@@ -13578,7 +13727,9 @@ void MainWindow::showAlarm(const QString &message, const QString &color, bool cl
     positionFloatingPopupCenter(m_alarmWidget);
     m_alarmWidget->show();
     m_alarmWidget->raise();
-    m_alarmWidget->activateWindow();
+    if (!wasVisible) {
+        m_alarmWidget->activateWindow();
+    }
 
     qCDebug(lcMainWindow) << "报警窗口已在屏幕正中显示";
 }
@@ -13626,59 +13777,248 @@ QStringList MainWindow::agvChassisEstopSourcesFromRegister150(quint16 reg150) co
     return out;
 }
 
-// 新增：更新报警显示
-void MainWindow::updateAlarmDisplay()
+PopupSnapshot MainWindow::buildPopupSnapshot() const
 {
-    // 如果有任何报警处于激活状态，显示相应的报警
-    if (m_emergencyStopAlarm) {
-        // 急停优先：出现急停时关闭其他类型弹窗，避免操作员被非急停信息干扰。Toast 保持可见。
-        hideNonEmergencyPopups();
-        const bool robotEmergency = m_robotArmEmergency150Flag;
-        const bool chassisEmergency = m_agvChassisEmergency51Bit5Flag;
-        QString alarmMessage;
-        if (robotEmergency && chassisEmergency) {
-            alarmMessage = "机械臂触发急停，请解除急停。\n底盘触发急停，请解除急停。";
-        } else if (robotEmergency) {
-            alarmMessage = "机械臂触发急停，请解除急停。";
-        } else {
-            alarmMessage = "底盘触发急停，请解除急停。";
-        }
-        bool hasSecondLayerSource = false;
-        if (robotEmergency) {
-            const QStringList teachLines = robotArmTeachPendantEstopFromRegister150(
-                m_mainRegister150Shadow);
-            if (!teachLines.isEmpty()) {
-                hasSecondLayerSource = true;
-                alarmMessage += QLatin1Char('\n');
-                alarmMessage += teachLines.join(QLatin1Char('\n'));
-            }
-        }
-        if (chassisEmergency) {
-            const QStringList sources = agvChassisEstopSourcesFromRegister150(
-                m_agvRegisterShadow.value(150, 0));
-            if (!sources.isEmpty()) {
-                hasSecondLayerSource = true;
-                alarmMessage += QLatin1Char('\n');
-                alarmMessage += sources.join(QLatin1Char('\n'));
-            }
-        }
-        // 第一层已触发但第二层来源位全 0：提供与主页 TBtn_RemoveWarning 相同的清除入口。
-        showAlarm(alarmMessage, "#ff5555", !hasSecondLayerSource);
-    } else {
-        // 没有报警时隐藏窗口
-        // 只有在没有转向切换报警时才隐藏
-        if (!m_isSteeringAlarmActive) {
-            hideAlarm();
-        }
+    PopupSnapshot snapshot;
+    snapshot.userPopupsAllowed = userPopupsAllowed();
+    snapshot.emergencyStop = m_emergencyStopAlarm;
+    snapshot.inclinometerTiltLock = m_inclinometerTiltLockInZone && !m_inclinometerTiltLockUnlocked;
+    snapshot.robotWeightLock = m_robotWeightLock150Bit7Flag && !m_robotWeightLockUserAckedWhileActive;
+    snapshot.robotAxisSyncDeviation = m_robotAxisSyncDeviation150Bit6Flag;
+    snapshot.agvDriveFault = m_agvDriveFault51Bit2Flag;
+    snapshot.agvStationOffline = m_agvStationOffline51Bit1Flag;
+    snapshot.robotWeightOverload = m_robotWeightOverload150Bit3Flag
+        && !m_robotWeightOverloadUserAckedWhileActive
+        && !m_robotWeightLock150Bit7Flag;
+    snapshot.parkingLegAbnormal = m_agvLegAbnormal51Bit7Flag
+        && !property("parkingSwitchWaiting").toBool()
+        && !m_legOpenPathCheckActive;
+    snapshot.inclinometerTiltRisk = m_inclinometerTiltRiskInZone && !m_inclinometerTiltRiskAcked;
+    snapshot.robotInterlockRequested = m_robotInterlockRequested;
+    snapshot.legOpenPathCheckActive = m_legOpenPathCheckActive;
+    snapshot.sixAxisInitConfirmRequested = m_sixAxisInitConfirmRequested;
+    snapshot.legControlRequested = m_legControlRequested;
+    snapshot.steeringSwitchWaiting = m_isSteeringAlarmActive;
+    snapshot.parkingSwitchWaiting = property("parkingSwitchWaiting").toBool();
+    snapshot.sixAxisPoseWaiting = m_sixAxisPoseWaitBit >= 0;
+    snapshot.stepMotionWaiting = m_stepMotionWaitKind != StepMotionWaitKind::None;
+    return snapshot;
+}
+
+void MainWindow::requestPopupRefresh()
+{
+    if (m_popupRefreshQueued) {
+        return;
+    }
+    m_popupRefreshQueued = true;
+    QMetaObject::invokeMethod(this, [this]() {
+        m_popupRefreshQueued = false;
+        refreshCoordinatedPopup();
+    }, Qt::QueuedConnection);
+}
+
+void MainWindow::refreshCoordinatedPopup()
+{
+    const PopupSnapshot snapshot = buildPopupSnapshot();
+    const PopupTransition transition = m_popupCoordinator.reconcile(snapshot);
+    applyPopupTransition(transition);
+    if (transition.show != PopupId::EmergencyStop
+        && m_popupCoordinator.current() == PopupId::EmergencyStop) {
+        presentEmergencyStopAlarm();
     }
 }
 
-void MainWindow::hideNonEmergencyPopups()
+void MainWindow::applyPopupTransition(const PopupTransition &transition)
 {
-    // 主副轴位置偏差提示窗（150.bit6）不在此列表中：急停全屏报警时仍保持可见，直至位6清零。
-    // Toast 也不关闭：急停弹窗只让路独立弹窗，右下角提示继续显示。
-    // 急停触发时如果清理了驻车切换提示，也要同步释放驻车切换在途锁，
-    // 避免按钮继续被 parkingSwitchWaiting 拦截到 90 秒超时。
+    if (transition.hide != PopupId::None) {
+        hidePopupNow(transition.hide);
+    }
+    if (transition.show != PopupId::None) {
+        showPopupNow(transition.show);
+    }
+}
+
+void MainWindow::showPopupNow(PopupId id)
+{
+    m_popupPresenting = true;
+    switch (id) {
+    case PopupId::EmergencyStop:
+        presentEmergencyStopAlarm();
+        break;
+    case PopupId::InclinometerTiltLock:
+        showInclinometerTiltLockDialog();
+        break;
+    case PopupId::RobotWeightLock:
+        showRobotWeightLockDialog();
+        break;
+    case PopupId::RobotAxisSyncDeviation:
+        showRobotAxisSyncDeviationDialog();
+        break;
+    case PopupId::AgvDriveFault:
+        showAgvDriveFaultAlarm();
+        break;
+    case PopupId::AgvStationOffline:
+        showAgvStationOfflineAlarm();
+        break;
+    case PopupId::RobotWeightOverload:
+        showRobotWeightOverloadDialog();
+        break;
+    case PopupId::ParkingLegAbnormal:
+        showParkingLegAbnormalDialog();
+        break;
+    case PopupId::InclinometerTiltRisk:
+        showInclinometerTiltRiskDialog();
+        break;
+    case PopupId::RobotInterlock:
+        showRobotInterlockModalDialog(m_robotInterlockRequestedMessage);
+        break;
+    case PopupId::LegOpenPathCheck:
+        showLegOpenPathCheckDialog(m_legOpenPathCheckLengthMm);
+        break;
+    case PopupId::SixAxisInitConfirm:
+        showSixAxisInitConfirmDialog();
+        break;
+    case PopupId::LegControl:
+        showLegControlDialog();
+        break;
+    case PopupId::SteeringSwitchWait:
+        showAlarm(QStringLiteral("正在更换底盘模式"), QStringLiteral("#FFFF00"), false);
+        break;
+    case PopupId::ParkingSwitchWait:
+        showParkingSwitchHintDialog(QStringLiteral("正在切换驻车模式"));
+        break;
+    case PopupId::SixAxisPoseWait:
+        showSixAxisPoseWaitDialog(m_sixAxisPoseWaitBit == 1
+                                      ? QStringLiteral("正在姿态回零")
+                                      : QStringLiteral("正在姿态调平"));
+        break;
+    case PopupId::StepMotionWait:
+        showStepMotionWaitDialog(m_stepMotionWaitMessage.isEmpty()
+                                     ? QStringLiteral("正在步进运动")
+                                     : m_stepMotionWaitMessage);
+        break;
+    case PopupId::None:
+        break;
+    }
+    m_popupPresenting = false;
+}
+
+void MainWindow::hidePopupNow(PopupId id)
+{
+    switch (id) {
+    case PopupId::EmergencyStop:
+    case PopupId::SteeringSwitchWait:
+        hideAlarm();
+        break;
+    case PopupId::InclinometerTiltLock:
+        if (m_inclinometerTiltLockDialog && m_inclinometerTiltLockDialog->isVisible()) {
+            m_inclinometerTiltLockDialog->hide();
+        }
+        break;
+    case PopupId::RobotWeightLock:
+        if (m_robotWeightLockWidget && m_robotWeightLockWidget->isVisible()) {
+            m_robotWeightLockWidget->hide();
+        }
+        break;
+    case PopupId::RobotAxisSyncDeviation:
+        hideRobotAxisSyncDeviationDialog();
+        break;
+    case PopupId::AgvDriveFault:
+        hideAgvDriveFaultAlarm();
+        break;
+    case PopupId::AgvStationOffline:
+        hideAgvStationOfflineAlarm();
+        break;
+    case PopupId::RobotWeightOverload:
+        hideRobotWeightOverloadDialog();
+        break;
+    case PopupId::ParkingLegAbnormal:
+        hideParkingLegAbnormalDialog();
+        break;
+    case PopupId::InclinometerTiltRisk:
+        hideInclinometerTiltRiskDialog();
+        break;
+    case PopupId::RobotInterlock:
+        if (m_robotInterlockDialog && m_robotInterlockDialog->isVisible()) {
+            m_robotInterlockDialog->hide();
+        }
+        break;
+    case PopupId::LegOpenPathCheck:
+        if (m_legOpenPathCheckDialog && m_legOpenPathCheckDialog->isVisible()) {
+            m_legOpenPathCheckDialog->hide();
+        }
+        break;
+    case PopupId::SixAxisInitConfirm:
+        if (m_sixAxisInitConfirmDialog && m_sixAxisInitConfirmDialog->isVisible()) {
+            m_sixAxisInitConfirmDialog->hide();
+        }
+        break;
+    case PopupId::LegControl:
+        if (m_legControlDialog && m_legControlDialog->isVisible()) {
+            m_legControlDialog->hide();
+        }
+        break;
+    case PopupId::ParkingSwitchWait:
+        hideParkingSwitchHintDialog();
+        break;
+    case PopupId::SixAxisPoseWait:
+        hideSixAxisPoseWaitDialog();
+        break;
+    case PopupId::StepMotionWait:
+        hideStepMotionWaitDialog();
+        break;
+    case PopupId::None:
+        break;
+    }
+}
+
+void MainWindow::presentEmergencyStopAlarm()
+{
+    const bool robotEmergency = m_robotArmEmergency150Flag;
+    const bool chassisEmergency = m_agvChassisEmergency51Bit5Flag;
+    QString alarmMessage;
+    if (robotEmergency && chassisEmergency) {
+        alarmMessage = "机械臂触发急停，请解除急停。\n底盘触发急停，请解除急停。";
+    } else if (robotEmergency) {
+        alarmMessage = "机械臂触发急停，请解除急停。";
+    } else {
+        alarmMessage = "底盘触发急停，请解除急停。";
+    }
+    bool hasSecondLayerSource = false;
+    if (robotEmergency) {
+        const QStringList teachLines = robotArmTeachPendantEstopFromRegister150(
+            m_mainRegister150Shadow);
+        if (!teachLines.isEmpty()) {
+            hasSecondLayerSource = true;
+            alarmMessage += QLatin1Char('\n');
+            alarmMessage += teachLines.join(QLatin1Char('\n'));
+        }
+    }
+    if (chassisEmergency) {
+        const QStringList sources = agvChassisEstopSourcesFromRegister150(
+            m_agvRegisterShadow.value(150, 0));
+        if (!sources.isEmpty()) {
+            hasSecondLayerSource = true;
+            alarmMessage += QLatin1Char('\n');
+            alarmMessage += sources.join(QLatin1Char('\n'));
+        }
+    }
+    showAlarm(alarmMessage, "#ff5555", !hasSecondLayerSource);
+}
+
+void MainWindow::handleEmergencyStopTransition(bool oldActive, bool newActive)
+{
+    if (!oldActive && newActive) {
+        abortPopupOwnedOperationsForEmergency();
+    }
+    if (oldActive != newActive) {
+        m_emergencyStopAlarm = newActive;
+    }
+    requestPopupRefresh();
+}
+
+void MainWindow::abortPopupOwnedOperationsForEmergency()
+{
     if (QTimer *parkingWaitTimer = findChild<QTimer*>("parkingSwitchWaitTimer")) {
         parkingWaitTimer->stop();
         parkingWaitTimer->deleteLater();
@@ -13686,31 +14026,32 @@ void MainWindow::hideNonEmergencyPopups()
     setProperty("parkingSwitchWaiting", false);
     setProperty("parkingTargetBit", -1);
     setProperty("parkingTargetEnabled", false);
+    if (m_agvLegAbnormal51Bit7Flag) {
+        applyAGVParkingLegAbnormalUi();
+    }
     if (QTimer *poseWaitTimer = findChild<QTimer*>(QStringLiteral("sixAxisPoseWaitTimer"))) {
         poseWaitTimer->stop();
         poseWaitTimer->deleteLater();
     }
     m_sixAxisPoseWaitBit = -1;
     m_sixAxisPoseWaitSawActive = false;
-    hideStepMotionWaitDialog();
+    m_stepMotionWaitKind = StepMotionWaitKind::None;
+    m_stepMotionWaitSawZero = false;
+    if (m_legOpenPathCheckTimer) {
+        m_legOpenPathCheckTimer->stop();
+    }
+    m_legOpenPathCheckRemainSec = 0;
+    m_legOpenPathCheckLengthMm = -1;
+    m_legOpenPathCheckActive = false;
+    m_sixAxisInitConfirmRequested = false;
+    m_legControlRequested = false;
+    m_robotInterlockRequested = false;
+    m_robotInterlockRequestedMessage.clear();
+}
 
-    hideParkingSwitchHintDialog();
-    hideSixAxisPoseWaitDialog();
-    hideSixAxisInitConfirmDialog();
-    hideLegOpenPathCheckDialog();
-    hideLegControlDialog();
-    hideParkingLegAbnormalDialog();
-    hideAgvStationOfflineAlarm();
-    hideAgvDriveFaultAlarm();
-    hideAgvBatteryLowDialog();
-    hideRobotWeightOverloadDialog();
-    if (m_robotWeightLockWidget && m_robotWeightLockWidget->isVisible()) {
-        m_robotWeightLockWidget->hide();
-    }
-    hideInclinometerTiltRiskDialog();
-    if (m_inclinometerTiltLockDialog && m_inclinometerTiltLockDialog->isVisible()) {
-        m_inclinometerTiltLockDialog->hide();
-    }
+void MainWindow::updateAlarmDisplay()
+{
+    requestPopupRefresh();
 }
 
 void MainWindow::handleAGVRegister51Alerts(quint16 value)
@@ -13729,11 +14070,7 @@ void MainWindow::handleAGVRegister51Alerts(quint16 value)
             record.newValue = stationOffline ? "检测到有站掉线" : "站掉线报警已解除";
             m_recorder->addRecord(record);
         }
-        if (stationOffline) {
-            showAgvStationOfflineAlarm();
-        } else {
-            hideAgvStationOfflineAlarm();
-        }
+        requestPopupRefresh();
     }
 
     const bool driveFault = (((value >> 2) & 0x01) == 1);
@@ -13750,11 +14087,7 @@ void MainWindow::handleAGVRegister51Alerts(quint16 value)
             record.newValue = driveFault ? "检测到驱动故障" : "驱动故障报警已解除";
             m_recorder->addRecord(record);
         }
-        if (driveFault) {
-            showAgvDriveFaultAlarm();
-        } else {
-            hideAgvDriveFaultAlarm();
-        }
+        requestPopupRefresh();
     }
 
     const bool batteryLow = ((value & 0x01) == 1);
@@ -13787,10 +14120,10 @@ void MainWindow::showAgvStationOfflineAlarm()
         return;
     }
     if (!m_agvStationOfflineAlarmWidget) {
-        m_agvStationOfflineAlarmWidget = new QWidget(nullptr);
+        m_agvStationOfflineAlarmWidget = new QWidget(this);
         m_agvStationOfflineAlarmWidget->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
                                                        Qt::WindowStaysOnTopHint);
-        m_agvStationOfflineAlarmWidget->setWindowModality(Qt::ApplicationModal);
+        m_agvStationOfflineAlarmWidget->setWindowModality(Qt::WindowModal);
         m_agvStationOfflineAlarmWidget->setObjectName("agvStationOfflineAlarmWidget");
 
         QVBoxLayout *layout = new QVBoxLayout(m_agvStationOfflineAlarmWidget);
@@ -13835,7 +14168,7 @@ void MainWindow::showParkingSwitchHintDialog(const QString &message)
     if (!m_parkingSwitchHintDialog) {
         m_parkingSwitchHintDialog = new QDialog(this);
         m_parkingSwitchHintDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_parkingSwitchHintDialog->setWindowModality(Qt::ApplicationModal);
+        m_parkingSwitchHintDialog->setWindowModality(Qt::WindowModal);
         m_parkingSwitchHintDialog->setModal(true);
         m_parkingSwitchHintDialog->setObjectName("parkingSwitchHintDialog");
 
@@ -13895,11 +14228,7 @@ void MainWindow::beginSixAxisPoseWait(int bitIndex, const QString &actionName)
     m_sixAxisPoseWaitBit = bitIndex;
     m_sixAxisPoseWaitSawActive = false;
     m_sixAxisPoseWaitBeginMs = QDateTime::currentMSecsSinceEpoch();
-
-    const QString message = (bitIndex == 1)
-        ? QStringLiteral("正在姿态回零")
-        : QStringLiteral("正在姿态调平");
-    showSixAxisPoseWaitDialog(message);
+    requestPopupRefresh();
 
     if (m_recorder) {
         OperationRecord record;
@@ -13975,7 +14304,7 @@ void MainWindow::showSixAxisInitToast()
     }
     showToast(kSixAxisInitToastText,
               ToastKind::Warning,
-              0,
+              -1,
               [this]() { showSixAxisInitConfirmDialog(); },
               true,
               QStringLiteral("初始化"),
@@ -13995,7 +14324,7 @@ void MainWindow::showSixAxisInitRunningToast()
         m_lastToastMessage.clear();
     }
     dismissToastByMessage(kSixAxisInitToastText);
-    showToast(kSixAxisInitRunningToastText, ToastKind::Warning, 0, nullptr, false);
+    showToast(kSixAxisInitRunningToastText, ToastKind::Warning, -1, nullptr, false);
 }
 
 void MainWindow::hideSixAxisInitToast()
@@ -14010,13 +14339,21 @@ void MainWindow::hideSixAxisInitToast()
 
 void MainWindow::showSixAxisInitConfirmDialog()
 {
+    if (!m_popupPresenting) {
+        if (!userPopupsAllowed()) {
+            return;
+        }
+        m_sixAxisInitConfirmRequested = true;
+        requestPopupRefresh();
+        return;
+    }
     if (!userPopupsAllowed()) {
         return;
     }
     if (!m_sixAxisInitConfirmDialog) {
         m_sixAxisInitConfirmDialog = new QDialog(this);
         m_sixAxisInitConfirmDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_sixAxisInitConfirmDialog->setWindowModality(Qt::ApplicationModal);
+        m_sixAxisInitConfirmDialog->setWindowModality(Qt::WindowModal);
         m_sixAxisInitConfirmDialog->setModal(true);
         m_sixAxisInitConfirmDialog->setObjectName(QStringLiteral("sixAxisInitConfirmDialog"));
 
@@ -14090,9 +14427,8 @@ void MainWindow::showSixAxisInitConfirmDialog()
 
 void MainWindow::hideSixAxisInitConfirmDialog()
 {
-    if (m_sixAxisInitConfirmDialog && m_sixAxisInitConfirmDialog->isVisible()) {
-        m_sixAxisInitConfirmDialog->hide();
-    }
+    m_sixAxisInitConfirmRequested = false;
+    requestPopupRefresh();
 }
 
 void MainWindow::writeSixAxisInitCommand()
@@ -14125,7 +14461,7 @@ void MainWindow::showSixAxisPoseWaitDialog(const QString &message)
     if (!m_sixAxisPoseWaitDialog) {
         m_sixAxisPoseWaitDialog = new QDialog(this);
         m_sixAxisPoseWaitDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_sixAxisPoseWaitDialog->setWindowModality(Qt::ApplicationModal);
+        m_sixAxisPoseWaitDialog->setWindowModality(Qt::WindowModal);
         m_sixAxisPoseWaitDialog->setModal(true);
         m_sixAxisPoseWaitDialog->setObjectName(QStringLiteral("sixAxisPoseWaitDialog"));
 
@@ -14174,7 +14510,7 @@ void MainWindow::hideSixAxisPoseWaitDialog()
 void MainWindow::finishSixAxisPoseWait(bool timedOut)
 {
     if (m_sixAxisPoseWaitBit < 0) {
-        hideSixAxisPoseWaitDialog();
+        requestPopupRefresh();
         return;
     }
 
@@ -14186,7 +14522,7 @@ void MainWindow::finishSixAxisPoseWait(bool timedOut)
     const int bitIndex = m_sixAxisPoseWaitBit;
     m_sixAxisPoseWaitBit = -1;
     m_sixAxisPoseWaitSawActive = false;
-    hideSixAxisPoseWaitDialog();
+    requestPopupRefresh();
 
     if (m_recorder) {
         OperationRecord record;
@@ -14353,7 +14689,8 @@ void MainWindow::beginStepMotionWait(StepMotionWaitKind kind, const QString &mes
         }
     }
 
-    showStepMotionWaitDialog(message.isEmpty() ? QStringLiteral("正在步进运动") : message);
+    m_stepMotionWaitMessage = message.isEmpty() ? QStringLiteral("正在步进运动") : message;
+    requestPopupRefresh();
 }
 
 void MainWindow::checkStepMotionWaitCompletion(int address, quint16 value)
@@ -14389,9 +14726,10 @@ void MainWindow::finishStepMotionWait(bool interruptedByEnable)
     const StepMotionWaitKind waitKind = m_stepMotionWaitKind;
     const QVector<PendingStepMotionStop> pendingStops = m_pendingStepMotionStops;
     const bool hadWait = (waitKind != StepMotionWaitKind::None)
-        || (m_stepMotionWaitDialog && m_stepMotionWaitDialog->isVisible())
         || !pendingStops.isEmpty();
-    hideStepMotionWaitDialog();
+    m_stepMotionWaitKind = StepMotionWaitKind::None;
+    m_stepMotionWaitSawZero = false;
+    requestPopupRefresh();
     if (!hadWait) {
         return;
     }
@@ -14439,7 +14777,7 @@ void MainWindow::showStepMotionWaitDialog(const QString &message)
     if (!m_stepMotionWaitDialog) {
         m_stepMotionWaitDialog = new QDialog(this);
         m_stepMotionWaitDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_stepMotionWaitDialog->setWindowModality(Qt::ApplicationModal);
+        m_stepMotionWaitDialog->setWindowModality(Qt::WindowModal);
         m_stepMotionWaitDialog->setModal(true);
         m_stepMotionWaitDialog->setObjectName(QStringLiteral("stepMotionWaitDialog"));
 
@@ -14479,8 +14817,6 @@ void MainWindow::showStepMotionWaitDialog(const QString &message)
 
 void MainWindow::hideStepMotionWaitDialog()
 {
-    m_stepMotionWaitKind = StepMotionWaitKind::None;
-    m_stepMotionWaitSawZero = false;
     if (m_stepMotionWaitDialog && m_stepMotionWaitDialog->isVisible()) {
         m_stepMotionWaitDialog->hide();
     }
@@ -14509,8 +14845,9 @@ void MainWindow::interruptEnableGatedWaitPopupsOnEnableRelease()
         }
         setProperty("parkingSwitchWaiting", false);
         setProperty("parkingTargetBit", -1);
-        hideParkingSwitchHintDialog();
-        updateParkingLegAbnormalDialogVisibility();
+        if (m_agvLegAbnormal51Bit7Flag) {
+            applyAGVParkingLegAbnormalUi();
+        }
         interrupted = true;
     }
 
@@ -14524,7 +14861,6 @@ void MainWindow::interruptEnableGatedWaitPopupsOnEnableRelease()
         const int bitIndex = m_sixAxisPoseWaitBit;
         m_sixAxisPoseWaitBit = -1;
         m_sixAxisPoseWaitSawActive = false;
-        hideSixAxisPoseWaitDialog();
         if (bitIndex == 1 || bitIndex == 2) {
             const QString actionName = (bitIndex == 1)
                 ? QStringLiteral("姿态回零")
@@ -14544,6 +14880,7 @@ void MainWindow::interruptEnableGatedWaitPopupsOnEnableRelease()
         return;
     }
 
+    requestPopupRefresh();
     showToast(QStringLiteral("使能松开，操作中断"), ToastKind::Warning);
     if (!m_recorder) {
         return;
@@ -14604,16 +14941,32 @@ void MainWindow::releaseHeldExternalKeysOnEnableRelease()
 
 bool MainWindow::isLegOpenPathCheckActive() const
 {
-    return m_legOpenPathCheckDialog && m_legOpenPathCheckDialog->isVisible();
+    return m_legOpenPathCheckActive;
 }
 
 void MainWindow::showLegOpenPathCheckDialog(int legLengthMm)
 {
     if (!isFeatureEnabled("motion_control", "motion.agv_leg_path_check")) {
-        if (isLegOpenPathCheckActive()) {
+        if (m_legOpenPathCheckActive) {
             hideLegOpenPathCheckDialog();
         }
         executeAGVParkingSwitch(true, legLengthMm);
+        return;
+    }
+
+    if (!m_popupPresenting) {
+        if (!userPopupsAllowed()) {
+            return;
+        }
+        if (m_legOpenPathCheckActive) {
+            m_legOpenPathCheckLengthMm = legLengthMm;
+            requestPopupRefresh();
+            return;
+        }
+        m_legOpenPathCheckLengthMm = legLengthMm;
+        m_legOpenPathCheckActive = true;
+        m_legOpenPathCheckRemainSec = 30;
+        requestPopupRefresh();
         return;
     }
 
@@ -14621,24 +14974,12 @@ void MainWindow::showLegOpenPathCheckDialog(int legLengthMm)
         return;
     }
 
-    // 已在检查中：仅抬升窗口，不重置倒计时，避免重复点击干扰检查过程。
-    if (isLegOpenPathCheckActive()) {
-        m_legOpenPathCheckLengthMm = legLengthMm;
-        m_legOpenPathCheckDialog->raise();
-        m_legOpenPathCheckDialog->activateWindow();
-        return;
-    }
-
     m_legOpenPathCheckLengthMm = legLengthMm;
-
-    // 与支腿异常操作窗、驻车切换等待窗互斥，避免同区域叠加。
-    hideParkingLegAbnormalDialog();
-    hideParkingSwitchHintDialog();
 
     if (!m_legOpenPathCheckDialog) {
         m_legOpenPathCheckDialog = new QDialog(this);
         m_legOpenPathCheckDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_legOpenPathCheckDialog->setWindowModality(Qt::ApplicationModal);
+        m_legOpenPathCheckDialog->setWindowModality(Qt::WindowModal);
         m_legOpenPathCheckDialog->setModal(true);
         m_legOpenPathCheckDialog->setObjectName(QStringLiteral("legOpenPathCheckDialog"));
 
@@ -14658,6 +14999,14 @@ void MainWindow::showLegOpenPathCheckDialog(int legLengthMm)
         m_legOpenPathCheckCountdownLabel->setAlignment(Qt::AlignCenter);
         layout->addWidget(m_legOpenPathCheckCountdownLabel);
 
+        m_legOpenPathCheckHintLabel = new QLabel(
+            QStringLiteral("按住使能点击确认按键后开始驻车"), m_legOpenPathCheckDialog);
+        m_legOpenPathCheckHintLabel->setObjectName(QStringLiteral("legOpenPathCheckHintLabel"));
+        m_legOpenPathCheckHintLabel->setAlignment(Qt::AlignCenter);
+        m_legOpenPathCheckHintLabel->setWordWrap(true);
+        m_legOpenPathCheckHintLabel->setVisible(false);
+        layout->addWidget(m_legOpenPathCheckHintLabel);
+
         m_legOpenPathCheckConfirmBtn = new QPushButton(QStringLiteral("确认"), m_legOpenPathCheckDialog);
         m_legOpenPathCheckConfirmBtn->setObjectName(QStringLiteral("legOpenPathCheckConfirmBtn"));
         m_legOpenPathCheckConfirmBtn->setAutoDefault(false);
@@ -14666,6 +15015,9 @@ void MainWindow::showLegOpenPathCheckDialog(int legLengthMm)
         layout->addWidget(m_legOpenPathCheckConfirmBtn);
 
         connect(m_legOpenPathCheckConfirmBtn, &QPushButton::clicked, this, [this]() {
+            if (rejectIfEnableNotHeld()) {
+                return;
+            }
             const int pendingLengthMm = m_legOpenPathCheckLengthMm;
             hideLegOpenPathCheckDialog();
             appendLegControlHistory(pendingLengthMm > 0
@@ -14682,7 +15034,8 @@ void MainWindow::showLegOpenPathCheckDialog(int legLengthMm)
             "  border-radius: 10px;"
             "}"
             "#legOpenPathCheckMessageLabel,"
-            "#legOpenPathCheckCountdownLabel {"
+            "#legOpenPathCheckCountdownLabel,"
+            "#legOpenPathCheckHintLabel {"
             "  color: #FFFF00;"
             "  font-size: 18px;"
             "  font-weight: bold;"
@@ -14722,31 +15075,40 @@ void MainWindow::showLegOpenPathCheckDialog(int legLengthMm)
             }
             if (m_legOpenPathCheckRemainSec <= 0) {
                 m_legOpenPathCheckTimer->stop();
+                if (m_legOpenPathCheckHintLabel) {
+                    m_legOpenPathCheckHintLabel->setVisible(true);
+                }
                 if (m_legOpenPathCheckConfirmBtn) {
                     m_legOpenPathCheckConfirmBtn->setVisible(true);
                 }
                 if (m_legOpenPathCheckDialog) {
-                    m_legOpenPathCheckDialog->setFixedSize(420, 230);
+                    m_legOpenPathCheckDialog->setFixedSize(420, 270);
+                    positionFloatingPopupCenter(m_legOpenPathCheckDialog);
                 }
             }
         });
     }
 
-    m_legOpenPathCheckRemainSec = 30;
+    const bool countdownDone = m_legOpenPathCheckRemainSec <= 0;
     if (m_legOpenPathCheckCountdownLabel) {
         m_legOpenPathCheckCountdownLabel->setText(
-            QStringLiteral("剩余时间：%1 秒").arg(m_legOpenPathCheckRemainSec));
+            QStringLiteral("剩余时间：%1 秒").arg(qMax(0, m_legOpenPathCheckRemainSec)));
+    }
+    if (m_legOpenPathCheckHintLabel) {
+        m_legOpenPathCheckHintLabel->setVisible(countdownDone);
     }
     if (m_legOpenPathCheckConfirmBtn) {
-        m_legOpenPathCheckConfirmBtn->setVisible(false);
+        m_legOpenPathCheckConfirmBtn->setVisible(countdownDone);
     }
-    m_legOpenPathCheckDialog->setFixedSize(420, 190);
+    m_legOpenPathCheckDialog->setFixedSize(420, countdownDone ? 270 : 190);
 
     positionFloatingPopupCenter(m_legOpenPathCheckDialog);
     m_legOpenPathCheckDialog->show();
     m_legOpenPathCheckDialog->raise();
     m_legOpenPathCheckDialog->activateWindow();
-    m_legOpenPathCheckTimer->start();
+    if (m_legOpenPathCheckTimer && !m_legOpenPathCheckTimer->isActive() && !countdownDone) {
+        m_legOpenPathCheckTimer->start();
+    }
 }
 
 void MainWindow::hideLegOpenPathCheckDialog()
@@ -14756,12 +15118,14 @@ void MainWindow::hideLegOpenPathCheckDialog()
     }
     m_legOpenPathCheckRemainSec = 0;
     m_legOpenPathCheckLengthMm = -1;
+    m_legOpenPathCheckActive = false;
+    if (m_legOpenPathCheckHintLabel) {
+        m_legOpenPathCheckHintLabel->setVisible(false);
+    }
     if (m_legOpenPathCheckConfirmBtn) {
         m_legOpenPathCheckConfirmBtn->setVisible(false);
     }
-    if (m_legOpenPathCheckDialog && m_legOpenPathCheckDialog->isVisible()) {
-        m_legOpenPathCheckDialog->hide();
-    }
+    requestPopupRefresh();
 }
 
 namespace {
@@ -14851,13 +15215,25 @@ void MainWindow::requestLegRetract()
 
 void MainWindow::showLegControlDialog()
 {
+    if (!m_popupPresenting) {
+        if (!userPopupsAllowed()) {
+            return;
+        }
+        const bool newlyRequested = !m_legControlRequested;
+        m_legControlRequested = true;
+        if (newlyRequested) {
+            appendLegControlHistory(QStringLiteral("打开支腿展出状态选择"));
+        }
+        requestPopupRefresh();
+        return;
+    }
     if (!userPopupsAllowed()) {
         return;
     }
     if (!m_legControlDialog) {
         m_legControlDialog = new QDialog(this);
         m_legControlDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_legControlDialog->setWindowModality(Qt::ApplicationModal);
+        m_legControlDialog->setWindowModality(Qt::WindowModal);
         m_legControlDialog->setModal(true);
         m_legControlDialog->setObjectName(QStringLiteral("legControlDialog"));
 
@@ -15019,22 +15395,17 @@ void MainWindow::showLegControlDialog()
 
     updateLegControlDialogVisuals();
 
-    const bool alreadyVisible = m_legControlDialog->isVisible();
     positionFloatingPopupCenter(m_legControlDialog);
     m_legControlDialog->show();
     m_legControlDialog->raise();
     m_legControlDialog->activateWindow();
     TechVirtualKeyboard::hidePlatformInputMethod();
-    if (!alreadyVisible) {
-        appendLegControlHistory(QStringLiteral("打开支腿展出状态选择"));
-    }
 }
 
 void MainWindow::hideLegControlDialog()
 {
-    if (m_legControlDialog && m_legControlDialog->isVisible()) {
-        m_legControlDialog->hide();
-    }
+    m_legControlRequested = false;
+    requestPopupRefresh();
 }
 
 void MainWindow::updateLegControlDialogVisuals()
@@ -15083,28 +15454,8 @@ void MainWindow::updateLegControlDialogVisuals()
 
 void MainWindow::updateParkingLegAbnormalDialogVisibility()
 {
-    // 驻车切换等待中、绕车检查倒计时中：不弹支腿异常窗，避免三窗互抢。
-    if (m_agvLegAbnormal51Bit7Flag
-        && !property("parkingSwitchWaiting").toBool()
-        && !isLegOpenPathCheckActive()) {
-        hideLegControlDialog();
-        if (m_parkingLegAbnormalDialog && m_parkingLegAbnormalDialog->isVisible()) {
-            return;
-        }
-        QTimer::singleShot(0, this, [this]() {
-            if (!m_agvLegAbnormal51Bit7Flag
-                || property("parkingSwitchWaiting").toBool()
-                || isLegOpenPathCheckActive()) {
-                return;
-            }
-            if (m_parkingLegAbnormalDialog && m_parkingLegAbnormalDialog->isVisible()) {
-                return;
-            }
-            showParkingLegAbnormalDialog();
-        });
-    } else {
-        hideParkingLegAbnormalDialog();
-    }
+    // 显隐由弹窗快照决定：等待驻车或绕车检查时不显示支腿异常窗。
+    requestPopupRefresh();
 }
 
 void MainWindow::showParkingLegAbnormalDialog()
@@ -15115,7 +15466,7 @@ void MainWindow::showParkingLegAbnormalDialog()
     if (!m_parkingLegAbnormalDialog) {
         m_parkingLegAbnormalDialog = new QDialog(this);
         m_parkingLegAbnormalDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_parkingLegAbnormalDialog->setWindowModality(Qt::ApplicationModal);
+        m_parkingLegAbnormalDialog->setWindowModality(Qt::WindowModal);
         m_parkingLegAbnormalDialog->setModal(true);
         m_parkingLegAbnormalDialog->setObjectName(QStringLiteral("parkingLegAbnormalDialog"));
 
@@ -15286,10 +15637,10 @@ void MainWindow::showAgvDriveFaultAlarm()
         return;
     }
     if (!m_agvDriveFaultAlarmWidget) {
-        m_agvDriveFaultAlarmWidget = new QWidget(nullptr);
+        m_agvDriveFaultAlarmWidget = new QWidget(this);
         m_agvDriveFaultAlarmWidget->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
                                                    Qt::WindowStaysOnTopHint);
-        m_agvDriveFaultAlarmWidget->setWindowModality(Qt::ApplicationModal);
+        m_agvDriveFaultAlarmWidget->setWindowModality(Qt::WindowModal);
         m_agvDriveFaultAlarmWidget->setObjectName("agvDriveFaultAlarmWidget");
 
         QVBoxLayout *layout = new QVBoxLayout(m_agvDriveFaultAlarmWidget);
@@ -15367,7 +15718,7 @@ void MainWindow::showInclinometerTiltRiskDialog()
     if (!m_inclinometerTiltRiskDialog) {
         m_inclinometerTiltRiskDialog = new QDialog(this);
         m_inclinometerTiltRiskDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_inclinometerTiltRiskDialog->setWindowModality(Qt::ApplicationModal);
+        m_inclinometerTiltRiskDialog->setWindowModality(Qt::WindowModal);
         m_inclinometerTiltRiskDialog->setModal(true);
         m_inclinometerTiltRiskDialog->setObjectName(QStringLiteral("inclinometerTiltRiskDialog"));
 
@@ -15396,7 +15747,7 @@ void MainWindow::showInclinometerTiltRiskDialog()
                 m_recorder->addRecord(record);
             }
             m_inclinometerTiltRiskAcked = true;
-            hideInclinometerTiltRiskDialog();
+            requestPopupRefresh();
         });
 
         m_inclinometerTiltRiskDialog->setFixedSize(400, 150);
@@ -15451,15 +15802,13 @@ void MainWindow::ensureInclinometerTiltLockToast()
     if (m_lastToastMessage == kInclinometerTiltLockToastText) {
         m_lastToastMessage.clear();
     }
-    showToast(kInclinometerTiltLockToastText, ToastKind::Warning, 0, nullptr, false);
+    showToast(kInclinometerTiltLockToastText, ToastKind::Warning, -1, nullptr, false);
 }
 
 void MainWindow::presentInclinometerTiltLockUnlocked()
 {
-    if (m_inclinometerTiltLockDialog && m_inclinometerTiltLockDialog->isVisible()) {
-        m_inclinometerTiltLockDialog->hide();
-    }
     ensureInclinometerTiltLockToast();
+    requestPopupRefresh();
 }
 
 void MainWindow::presentInclinometerTiltLockModal()
@@ -15487,7 +15836,7 @@ void MainWindow::presentInclinometerTiltLockModal()
         m_inclinometerTiltLockConfirmBtn->show();
     }
 
-    m_inclinometerTiltLockDialog->setWindowModality(Qt::ApplicationModal);
+    m_inclinometerTiltLockDialog->setWindowModality(Qt::WindowModal);
     m_inclinometerTiltLockDialog->setModal(true);
     m_inclinometerTiltLockDialog->setFixedSize(420, 240);
     positionFloatingPopupCenter(m_inclinometerTiltLockDialog);
@@ -15503,10 +15852,10 @@ void MainWindow::showInclinometerTiltLockDialog()
         return;
     }
     if (!m_inclinometerTiltLockDialog) {
-        m_inclinometerTiltLockDialog = new QDialog(nullptr);
+        m_inclinometerTiltLockDialog = new QDialog(this);
         m_inclinometerTiltLockDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
                                                      Qt::WindowStaysOnTopHint);
-        m_inclinometerTiltLockDialog->setWindowModality(Qt::ApplicationModal);
+        m_inclinometerTiltLockDialog->setWindowModality(Qt::WindowModal);
         m_inclinometerTiltLockDialog->setModal(true);
         m_inclinometerTiltLockDialog->setObjectName(QStringLiteral("inclinometerTiltLockDialog"));
 
@@ -15649,7 +15998,6 @@ void MainWindow::hideInclinometerTiltLockDialog()
     if (m_inclinometerTiltLockDialog && m_inclinometerTiltLockDialog->isVisible()) {
         m_inclinometerTiltLockDialog->hide();
     }
-    dismissToastByMessage(kInclinometerTiltLockToastText);
 }
 
 void MainWindow::showRobotOperationHintDialog(const QString &message)
@@ -15671,20 +16019,29 @@ void MainWindow::showRobotOperationHintDialog(const QString &message)
 
 void MainWindow::hideRobotOperationHintDialog()
 {
-    if (m_robotInterlockDialog && m_robotInterlockDialog->isVisible()) {
-        m_robotInterlockDialog->done(QDialog::Rejected);
-    }
+    m_robotInterlockRequested = false;
+    m_robotInterlockRequestedMessage.clear();
+    requestPopupRefresh();
 }
 
 void MainWindow::showRobotInterlockModalDialog(const QString &message)
 {
+    if (!m_popupPresenting) {
+        if (!userPopupsAllowed()) {
+            return;
+        }
+        m_robotInterlockRequestedMessage = message;
+        m_robotInterlockRequested = true;
+        requestPopupRefresh();
+        return;
+    }
     if (!userPopupsAllowed()) {
         return;
     }
     if (!m_robotInterlockDialog) {
         m_robotInterlockDialog = new QDialog(this);
         m_robotInterlockDialog->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
-        m_robotInterlockDialog->setWindowModality(Qt::ApplicationModal);
+        m_robotInterlockDialog->setWindowModality(Qt::WindowModal);
         m_robotInterlockDialog->setModal(true);
         m_robotInterlockDialog->setObjectName(QStringLiteral("robotInterlockDialog"));
 
@@ -15700,7 +16057,11 @@ void MainWindow::showRobotInterlockModalDialog(const QString &message)
 
         auto *confirmBtn = new QPushButton(QStringLiteral("确认"), m_robotInterlockDialog);
         layout->addWidget(confirmBtn);
-        connect(confirmBtn, &QPushButton::clicked, m_robotInterlockDialog, &QDialog::accept);
+        connect(confirmBtn, &QPushButton::clicked, this, [this]() {
+            m_robotInterlockRequested = false;
+            m_robotInterlockRequestedMessage.clear();
+            requestPopupRefresh();
+        });
 
         m_robotInterlockDialog->setFixedSize(480, 160);
         m_robotInterlockDialog->setStyleSheet(
@@ -15736,7 +16097,9 @@ void MainWindow::showRobotInterlockModalDialog(const QString &message)
     }
 
     positionFloatingPopupCenter(m_robotInterlockDialog);
-    m_robotInterlockDialog->exec();
+    m_robotInterlockDialog->show();
+    m_robotInterlockDialog->raise();
+    m_robotInterlockDialog->activateWindow();
 }
 
 void MainWindow::maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, bool pressed)
@@ -16233,10 +16596,10 @@ void MainWindow::showRobotWeightOverloadDialog()
         return;
     }
     if (!m_robotWeightOverloadWidget) {
-        m_robotWeightOverloadWidget = new QWidget(nullptr);
+        m_robotWeightOverloadWidget = new QWidget(this);
         m_robotWeightOverloadWidget->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
                                                     Qt::WindowStaysOnTopHint);
-        m_robotWeightOverloadWidget->setWindowModality(Qt::ApplicationModal);
+        m_robotWeightOverloadWidget->setWindowModality(Qt::WindowModal);
         m_robotWeightOverloadWidget->setObjectName("robotWeightOverloadWidget");
 
         QVBoxLayout *layout = new QVBoxLayout(m_robotWeightOverloadWidget);
@@ -16293,7 +16656,7 @@ void MainWindow::onRobotWeightOverloadConfirmClicked()
 {
     writeToMainDevice(290, 1);
     m_robotWeightOverloadUserAckedWhileActive = true;
-    hideRobotWeightOverloadDialog();
+    requestPopupRefresh();
     if (m_recorder) {
         OperationRecord record;
         record.timestamp = QDateTime::currentDateTime();
@@ -16346,7 +16709,8 @@ void MainWindow::prepareWeightLockZDownUnlock()
 
 void MainWindow::blockRobotWeightLockOperation(const QString &hint)
 {
-    showRobotWeightLockDialog();
+    ensureRobotWeightLockToast();
+    requestPopupRefresh();
     if (ui && ui->statusBar) {
         ui->statusBar->showMessage(hint, 3000);
     }
@@ -16362,7 +16726,7 @@ void MainWindow::ensureRobotWeightLockToast()
     if (m_lastToastMessage == kRobotWeightLockToastText) {
         m_lastToastMessage.clear();
     }
-    showToast(kRobotWeightLockToastText, ToastKind::Warning, 0, nullptr, false);
+    showToast(kRobotWeightLockToastText, ToastKind::Warning, -1, nullptr, false);
 }
 
 void MainWindow::showRobotWeightLockDialog()
@@ -16377,10 +16741,10 @@ void MainWindow::showRobotWeightLockDialog()
     }
 
     if (!m_robotWeightLockWidget) {
-        m_robotWeightLockWidget = new QWidget(nullptr);
+        m_robotWeightLockWidget = new QWidget(this);
         m_robotWeightLockWidget->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
                                                   Qt::WindowStaysOnTopHint);
-        m_robotWeightLockWidget->setWindowModality(Qt::NonModal);
+        m_robotWeightLockWidget->setWindowModality(Qt::WindowModal);
         m_robotWeightLockWidget->setObjectName(QStringLiteral("robotWeightLockWidget"));
 
         QVBoxLayout *layout = new QVBoxLayout(m_robotWeightLockWidget);
@@ -16446,10 +16810,8 @@ void MainWindow::onRobotWeightLockConfirmClicked()
         m_recorder->addRecord(record);
     }
     m_robotWeightLockUserAckedWhileActive = true;
-    if (m_robotWeightLockWidget && m_robotWeightLockWidget->isVisible()) {
-        m_robotWeightLockWidget->hide();
-    }
     ensureRobotWeightLockToast();
+    requestPopupRefresh();
 }
 
 void MainWindow::hideRobotWeightLockDialog()
@@ -16457,7 +16819,6 @@ void MainWindow::hideRobotWeightLockDialog()
     if (m_robotWeightLockWidget && m_robotWeightLockWidget->isVisible()) {
         m_robotWeightLockWidget->hide();
     }
-    dismissToastByMessage(kRobotWeightLockToastText);
 }
 
 void MainWindow::showLegArmInterlockToast()
@@ -16487,7 +16848,7 @@ void MainWindow::showLegArmInterlockToast()
             m_recorder->addRecord(record);
         }
     }
-    showToast(message, ToastKind::Warning, 0, [this, message]() {
+    showToast(message, ToastKind::Warning, -1, [this, message]() {
         if (m_legArmInterlockShownMessage == message) {
             m_legArmInterlockUserAckedWhileActive = true;
             m_legArmInterlockShownMessage.clear();
@@ -16510,10 +16871,10 @@ void MainWindow::showRobotAxisSyncDeviationDialog()
         return;
     }
     if (!m_robotAxisSyncDeviationWidget) {
-        m_robotAxisSyncDeviationWidget = new QWidget(nullptr);
+        m_robotAxisSyncDeviationWidget = new QWidget(this);
         m_robotAxisSyncDeviationWidget->setWindowFlags(Qt::Dialog | Qt::FramelessWindowHint |
                                                        Qt::WindowStaysOnTopHint);
-        m_robotAxisSyncDeviationWidget->setWindowModality(Qt::ApplicationModal);
+        m_robotAxisSyncDeviationWidget->setWindowModality(Qt::WindowModal);
         m_robotAxisSyncDeviationWidget->setObjectName(QStringLiteral("robotAxisSyncDeviationWidget"));
 
         QVBoxLayout *layout = new QVBoxLayout(m_robotAxisSyncDeviationWidget);
@@ -16706,6 +17067,6 @@ void MainWindow::checkSteeringSwitchCompletion(int address, quint16 value)
         m_isSwitchingSteeringMode = false;
         m_targetSteeringWaitBit = -1;
         m_isSteeringAlarmActive = false;
-        hideAlarm();
+        requestPopupRefresh();
     }
 }

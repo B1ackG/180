@@ -45,6 +45,7 @@ SOURCES += \
     modbusvariables.cpp \
     operationrecorder.cpp \
     poseprovider.cpp \
+    popupcoordinator.cpp \
     runtimehealthmonitor.cpp \
     speedmodeselector.cpp \
     steeringmodeselector.cpp \
@@ -90,6 +91,7 @@ HEADERS += \
     modbusvariables.h \
     operationrecorder.h \
     poseprovider.h \
+    popupcoordinator.h \
     runtimehealthmonitor.h \
     speedmodeselector.h \
     steeringmodeselector.h \

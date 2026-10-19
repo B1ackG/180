@@ -223,12 +223,7 @@ MainWindow::~MainWindow()
         m_alarmCheckTimer->stop();
     }
 
-    if (m_alarmWidget) {
-        m_alarmWidget->close();
-        delete m_alarmWidget;
-        m_alarmWidget = nullptr;
-        qDebug() << "报警窗口已清理";
-    }
+    m_popupCoordinator.reset();
 
     for (int i = 0; i < m_toasts.size(); ++i) {
         const ToastEntry &entry = m_toasts.at(i);
@@ -275,39 +270,26 @@ void MainWindow::markMainInitializationComplete()
 
 void MainWindow::syncActiveUserPopups()
 {
-    updateAlarmDisplay();
-
-    if (m_agvStationOffline51Bit1Flag) {
-        showAgvStationOfflineAlarm();
-    }
-    if (m_agvDriveFault51Bit2Flag) {
-        showAgvDriveFaultAlarm();
-    }
     if (m_agvBatteryLow51Bit0Flag && !m_agvBatteryLowAcked) {
         showAgvBatteryLowDialog();
     }
-
     if (m_robotWeightLock150Bit7Flag) {
-        showRobotWeightLockDialog();
-    } else if (m_robotWeightOverload150Bit3Flag && !m_robotWeightOverloadUserAckedWhileActive) {
-        showRobotWeightOverloadDialog();
+        ensureRobotWeightLockToast();
     }
-    if (m_robotAxisSyncDeviation150Bit6Flag) {
-        showRobotAxisSyncDeviationDialog();
+    if (m_inclinometerTiltLockInZone) {
+        ensureInclinometerTiltLockToast();
     }
     if (m_legArmInterlock151Bits != 0 && !m_legArmInterlockUserAckedWhileActive) {
         showLegArmInterlockToast();
     }
     syncRobotSoftLimitToasts();
-
-    refreshInclinometerTiltPresentation();
-    updateParkingLegAbnormalDialogVisibility();
     if (m_mainLinkDownNoted) {
         noteMainLinkDown();
     }
     if (m_agvLinkDownNoted) {
         noteAgvLinkDown();
     }
+    requestPopupRefresh();
 }
 
 void MainWindow::initializePageNames()
