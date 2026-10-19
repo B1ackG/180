@@ -106,6 +106,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    finishAllMotionHistory(QStringLiteral("程序关闭，无法继续确认运动状态"));
     qDebug() << "正在清理资源...";
 
 #ifdef ENABLE_VIRTUAL_MATRIX_KEYS

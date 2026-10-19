@@ -101,3 +101,7 @@ system_check.log
 
 # Added by Assistant staging review
 备份/
+
+# Added by Assistant staging review
+*.json
+*.jsonl

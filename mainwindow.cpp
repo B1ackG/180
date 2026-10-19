@@ -4121,8 +4121,9 @@ void MainWindow::connectRecordSignals()
                     if (isInsideSteeringModeSelector(button)) {
                         record.controlName = QStringLiteral("转向模式切换为：“%1”").arg(detailText);
                     } else if (button->objectName() == QStringLiteral("techBtn_resetSixAxies")
-                               || button->objectName() == QStringLiteral("techBtn_balanceSixAxies")) {
-                        record.controlName = QStringLiteral("执行“%1”").arg(detailText);
+                               || button->objectName() == QStringLiteral("techBtn_balanceSixAxies")
+                               || button->objectName().startsWith(QStringLiteral("techBtn_AGVStep_"))) {
+                        return;
                     } else {
                         record.controlName = groupTitle.isEmpty()
                             ? QStringLiteral("切换到“%1”").arg(detailText)
@@ -5890,126 +5891,75 @@ QString MainWindow::getAxisHistoryUnit(int axisIndex) const
 // 记录回转升降页面的操作
 void MainWindow::recordVerticalSupportAction(int keyNumber, bool pressed)
 {
-    QString pageName = "回转升降";
-
-    // 获取当前高度（J2）
-    double currentHeight = getAxisCurrentValue(2);
-    // 获取移动速度
-    double moveSpeed = getSliderEditValue("TechSliderEdit_VeSupSec_MoveSpeed");
-
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = pageName;
-    record.controlName = QString("按键○%1").arg(keyNumber);
-    record.controlType = "MatrixKey";
-    record.operation = pressed ? "pressed" : "released";
-    record.oldValue = "";
-
-    if (keyNumber == 1) {  // ○1 升降下降
-        if (pressed) {
-            record.newValue = QString("立柱升降当前高度为%1mm，当前以%2mm/s速度下降")
-                                  .arg(currentHeight, 0, 'f', 1)
-                                  .arg(moveSpeed, 0, 'f', 1);
-        } else {
-            record.newValue = QString("立柱升降当前高度为%1mm，下降完成")
-                                  .arg(currentHeight, 0, 'f', 1);
-        }
-    } else if (keyNumber == 2) {  // ○2 升降上升
-        if (pressed) {
-            record.newValue = QString("立柱升降当前高度为%1mm，当前以%2mm/s速度上升")
-                                  .arg(currentHeight, 0, 'f', 1)
-                                  .arg(moveSpeed, 0, 'f', 1);
-        } else {
-            record.newValue = QString("立柱升降当前高度为%1mm，上升完成")
-                                  .arg(currentHeight, 0, 'f', 1);
-        }
+    if (keyNumber != 1 && keyNumber != 2) {
+        return;
     }
-
-    m_recorder->addRecord(record);
-    showNotification(record.newValue.toString());
+    const bool down = (keyNumber == 1);
+    const QString motionName = down ? QStringLiteral("立柱升降下降") : QStringLiteral("立柱升降上升");
+    const QString key = down ? QStringLiteral("vertical-down") : QStringLiteral("vertical-up");
+    const QString heightText = QString::number(getAxisCurrentValue(2), 'f', 1) + QStringLiteral("毫米");
+    if (pressed) {
+        m_robotExternalKeyPressed[keyNumber] = true;
+        const QString description = QStringLiteral("%1开始%2，当前高度%3，速度为每秒%4毫米")
+                                        .arg(historyOperatorName(), motionName, heightText)
+                                        .arg(getSliderEditValue("TechSliderEdit_VeSupSec_MoveSpeed"), 0, 'f', 1);
+        beginMotionHistory(key, motionName, description);
+        showNotification(description);
+        return;
+    }
+    m_robotExternalKeyPressed[keyNumber] = false;
+    const QString description = QStringLiteral("操作员松开按键，运动记录结束，当前高度%1").arg(heightText);
+    finishMotionHistory(key, description);
+    showNotification(description);
 }
 
 // 记录伸缩臂页面的操作
 void MainWindow::recordHorizontalSupportAction(int keyNumber, bool pressed)
 {
-    QString pageName = "伸缩臂";
-
-    // 获取当前角度（J1）
-    double currentAngle = getAxisCurrentValue(1);
-    // 获取旋转速度
-    double rotationSpeed = getSliderEditValue("TechSliderEdit_HoriSupSec_RotationSpeed");
-
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = pageName;
-    record.controlName = QString("按键○%1").arg(keyNumber);
-    record.controlType = "MatrixKey";
-    record.operation = pressed ? "pressed" : "released";
-    record.oldValue = "";
-
-    if (keyNumber == 3) {  // ○3 负方向旋转
-        if (pressed) {
-            record.newValue = QString("立柱旋转当前角度为%1°，当前以%2°/s速度负方向旋转")
-                                  .arg(currentAngle, 0, 'f', 1)
-                                  .arg(rotationSpeed, 0, 'f', 1);
-        } else {
-            record.newValue = QString("立柱旋转当前角度为%1°，旋转完成")
-                                  .arg(currentAngle, 0, 'f', 1);
-        }
-    } else if (keyNumber == 4) {  // ○4 正方向旋转
-        if (pressed) {
-            record.newValue = QString("立柱旋转当前角度为%1°，当前以%2°/s速度正方向旋转")
-                                  .arg(currentAngle, 0, 'f', 1)
-                                  .arg(rotationSpeed, 0, 'f', 1);
-        } else {
-            record.newValue = QString("立柱旋转当前角度为%1°，旋转完成")
-                                  .arg(currentAngle, 0, 'f', 1);
-        }
+    if (keyNumber != 3 && keyNumber != 4) {
+        return;
     }
-
-    m_recorder->addRecord(record);
-    showNotification(record.newValue.toString());
+    const bool negative = (keyNumber == 3);
+    const QString motionName = negative ? QStringLiteral("立柱旋转负方向") : QStringLiteral("立柱旋转正方向");
+    const QString key = negative ? QStringLiteral("hori-rot-neg") : QStringLiteral("hori-rot-pos");
+    const QString angleText = QString::number(getAxisCurrentValue(1), 'f', 1) + QStringLiteral("度");
+    if (pressed) {
+        m_robotExternalKeyPressed[keyNumber] = true;
+        const QString description = QStringLiteral("%1开始%2，当前角度%3，速度为每秒%4度")
+                                        .arg(historyOperatorName(), motionName, angleText)
+                                        .arg(getSliderEditValue("TechSliderEdit_HoriSupSec_RotationSpeed"), 0, 'f', 1);
+        beginMotionHistory(key, motionName, description);
+        showNotification(description);
+        return;
+    }
+    m_robotExternalKeyPressed[keyNumber] = false;
+    const QString description = QStringLiteral("操作员松开按键，运动记录结束，当前角度%1").arg(angleText);
+    finishMotionHistory(key, description);
+    showNotification(description);
 }
 
 void MainWindow::recordHorizontalSupportMoveAction(int keyNumber, bool pressed)
 {
-    QString pageName = "伸缩臂";
-
-    // 获取当前长度（J3）
-    double currentLength = getAxisCurrentValue(3);
-    // 获取移动速度
-    double moveSpeed = getSliderEditValue("TechSliderEdit_HoriSupSec_MoveSpeed");
-
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = pageName;
-    record.controlName = QString("按键○%1").arg(keyNumber);
-    record.controlType = "MatrixKey";
-    record.operation = pressed ? "pressed" : "released";
-    record.oldValue = "";
-
-    if (keyNumber == 1) {  // ○1 缩短
-        if (pressed) {
-            record.newValue = QString("伸缩平衡臂当前长度为%1mm，当前以%2mm/s速度缩短")
-                                  .arg(currentLength, 0, 'f', 1)
-                                  .arg(moveSpeed, 0, 'f', 1);
-        } else {
-            record.newValue = QString("伸缩平衡臂当前长度为%1mm，缩短完成")
-                                  .arg(currentLength, 0, 'f', 1);
-        }
-    } else if (keyNumber == 2) {  // ○2 伸长
-        if (pressed) {
-            record.newValue = QString("伸缩平衡臂当前长度为%1mm，当前以%2mm/s速度伸长")
-                                  .arg(currentLength, 0, 'f', 1)
-                                  .arg(moveSpeed, 0, 'f', 1);
-        } else {
-            record.newValue = QString("伸缩平衡臂当前长度为%1mm，伸长完成")
-                                  .arg(currentLength, 0, 'f', 1);
-        }
+    if (keyNumber != 1 && keyNumber != 2) {
+        return;
     }
-
-    m_recorder->addRecord(record);
-    showNotification(record.newValue.toString());
+    const bool shorten = (keyNumber == 1);
+    const QString motionName = shorten ? QStringLiteral("伸缩臂缩短") : QStringLiteral("伸缩臂伸长");
+    const QString key = shorten ? QStringLiteral("hori-move-short") : QStringLiteral("hori-move-long");
+    const QString lengthText = QString::number(getAxisCurrentValue(3), 'f', 1) + QStringLiteral("毫米");
+    if (pressed) {
+        m_robotExternalKeyPressed[keyNumber] = true;
+        const QString description = QStringLiteral("%1开始%2，当前长度%3，速度为每秒%4毫米")
+                                        .arg(historyOperatorName(), motionName, lengthText)
+                                        .arg(getSliderEditValue("TechSliderEdit_HoriSupSec_MoveSpeed"), 0, 'f', 1);
+        beginMotionHistory(key, motionName, description);
+        showNotification(description);
+        return;
+    }
+    m_robotExternalKeyPressed[keyNumber] = false;
+    const QString description = QStringLiteral("操作员松开按键，运动记录结束，当前长度%1").arg(lengthText);
+    finishMotionHistory(key, description);
+    showNotification(description);
 }
 
 void MainWindow::appendLegControlHistory(const QString &text)
@@ -6292,9 +6242,19 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             if (!isCableRetractKey && !isCableExtendKey) {
                 return;
             }
+            const QString cableKey = isCableRetractKey
+                ? QStringLiteral("cable-retract")
+                : QStringLiteral("cable-extend");
+            const QString cableName = isCableRetractKey
+                ? QStringLiteral("卷样机钢缆收回")
+                : QStringLiteral("卷样机钢缆放出");
             if (!pressed) {
+                const bool wasPressed = m_sixAxisExternalKeyPressed.value(keyNumber, false);
                 m_sixAxisExternalKeyPressed[keyNumber] = false;
                 writeToMainDevice(514, 0);
+                if (wasPressed) {
+                    finishMotionHistory(cableKey, QStringLiteral("操作员松开按键，运动记录结束"));
+                }
                 return;
             }
 
@@ -6302,22 +6262,8 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             writeToMainDevice(500, 5);
             writeToMainDevice(514, value514);
             m_sixAxisExternalKeyPressed[keyNumber] = true;
-
-            if (m_recorder) {
-                const QString msg = isCableRetractKey
-                                        ? QStringLiteral("正在收回卷样机钢缆")
-                                        : QStringLiteral("正在放出卷样机钢缆");
-                OperationRecord record;
-                record.timestamp = QDateTime::currentDateTime();
-                record.pageName = getCurrentPageName();
-                record.controlName = msg;
-                record.controlType = QStringLiteral("MatrixKey");
-                record.operation = QString();
-                record.oldValue = QString();
-                record.newValue = QString();
-                m_recorder->addRecord(record);
-                showNotification(msg);
-            }
+            beginMotionHistory(cableKey, cableName,
+                               QStringLiteral("%1开始%2").arg(historyOperatorName(), cableName));
 
             qCDebug(lcMainWindow) << "六自由度页面钢缆外部按键○" << keyNumber
                                   << "写入 500=5, 514=" << value514;
@@ -6425,7 +6371,9 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         if (!pressed) {
             const bool wasPressed = m_sixAxisExternalKeyPressed.value(keyNumber, false);
             m_sixAxisExternalKeyPressed[keyNumber] = false;
-            recordSixAxisJogExternalKey(axisIndex, false);
+            if (wasPressed) {
+                recordSixAxisJogExternalKey(axisIndex, false);
+            }
             ++m_sixAxisExternalWriteSeq;
             if (m_modbusManager) {
                 m_modbusManager->setWriteGeneration(ModbusThreadManager::kSixAxisExternalWriteChannel,
@@ -6554,25 +6502,25 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             switch (axisIndex) {
             case 1:
                 componentName = QStringLiteral("立柱旋转");
-                unit = QStringLiteral("°");
+                unit = QStringLiteral("度");
                 oddAction = QStringLiteral("减小");
                 evenAction = QStringLiteral("增大");
                 break;
             case 2:
                 componentName = QStringLiteral("立柱升降");
-                unit = QStringLiteral("mm");
+                unit = QStringLiteral("毫米");
                 oddAction = QStringLiteral("下降");
                 evenAction = QStringLiteral("上升");
                 break;
             case 3:
-                componentName = QStringLiteral("伸缩平衡臂");
-                unit = QStringLiteral("mm");
+                componentName = QStringLiteral("伸缩臂");
+                unit = QStringLiteral("毫米");
                 oddAction = QStringLiteral("缩短");
                 evenAction = QStringLiteral("伸长");
                 break;
             case 4:
                 componentName = QStringLiteral("末端组件");
-                unit = QStringLiteral("°");
+                unit = QStringLiteral("度");
                 oddAction = QStringLiteral("负向旋转");
                 evenAction = QStringLiteral("正向旋转");
                 break;
@@ -6586,29 +6534,20 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 globalSpeedPercent = getSliderEditValue("TechSliderEdit_EOAT_RotationSpeed");
             }
 
-            OperationRecord record;
-            record.timestamp = QDateTime::currentDateTime();
-            record.pageName = "机械臂";
-            record.controlName = QString("外部按键○%1").arg(key);
-            record.controlType = "MatrixKey";
-            record.operation = isPressed ? "external_motion_start" : "external_motion_stop";
-            record.oldValue = "";
-
+            const QString motionName = componentName + (isOddKey ? oddAction : evenAction);
+            const QString motionKey = QStringLiteral("robot-jog-%1-%2")
+                                          .arg(axisIndex)
+                                          .arg(isOddKey ? QStringLiteral("neg") : QStringLiteral("pos"));
+            const QString measure = QString::number(currentValue, 'f', 1) + unit;
             if (isPressed) {
-                record.newValue = QString("%1当前为：%2%3，正在以%4%（机器人全局速度）%5")
-                                      .arg(componentName)
-                                      .arg(currentValue, 0, 'f', 1)
-                                      .arg(unit)
-                                      .arg(globalSpeedPercent, 0, 'f', 0)
-                                      .arg(isOddKey ? oddAction : evenAction);
+                beginMotionHistory(motionKey, motionName,
+                                   QStringLiteral("%1开始%2，当前位置%3，速度为百分之%4")
+                                       .arg(historyOperatorName(), motionName, measure)
+                                       .arg(globalSpeedPercent, 0, 'f', 0));
             } else {
-                record.newValue = QString("运动停止，当前%1为%2%3")
-                                      .arg(componentName)
-                                      .arg(currentValue, 0, 'f', 1)
-                                      .arg(unit);
+                finishMotionHistory(motionKey,
+                                    QStringLiteral("操作员松开按键，运动记录结束，当前位置%1").arg(measure));
             }
-
-            m_recorder->addRecord(record);
         };
 
         if (keyNumber != 1 && keyNumber != 2) {
@@ -6694,6 +6633,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
         int value500 = 0;
         int value514 = 0;
+        bool wasPressed = pressed;
         const int targetCode = selectedStepTargetRegister() - 499;
         if (pressed) {
             if (rejectMotionUntilStopConfirmed()) {
@@ -6729,7 +6669,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         } else {
             value500 = -1;
             value514 = 0;
-            const bool wasPressed = m_robotExternalKeyPressed.value(keyNumber, false);
+            wasPressed = m_robotExternalKeyPressed.value(keyNumber, false);
             m_robotExternalKeyPressed[keyNumber] = false;
             if (m_robotActiveKey == keyNumber) {
                 m_robotActiveKey = -1;
@@ -6750,7 +6690,9 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                  << " -> 地址500写入:" << (pressed ? QString::number(value500) : "保持")
                  << ", 地址514写入:" << value514;
 
-        recordRobotExternalMotion(keyNumber, pressed);
+        if (pressed || wasPressed) {
+            recordRobotExternalMotion(keyNumber, pressed);
+        }
         return;
     }
 
@@ -6783,44 +6725,23 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         }
     }
 
-    // 新增：记录EOAT控制页面的操作
-    if (pageName == "EOAT控制") {
-        // 获取当前角度（label_Value4）
-        double currentAngle = getSliderLabelValue("label_Value4");
-        // 获取旋转速度
-        double rotationSpeed = getSliderEditValue("TechSliderEdit_EOAT_RotationSpeed");
-
-        OperationRecord record;
-        record.timestamp = QDateTime::currentDateTime();
-        record.pageName = pageName;
-        record.controlName = QString("按键○%1").arg(keyNumber);
-        record.controlType = "MatrixKey";
-        record.operation = pressed ? "pressed" : "released";
-        record.oldValue = "";
-
-        if (keyNumber == 1) {  // ○1 柔顺组件负方向旋转
-            if (pressed) {
-                record.newValue = QString("柔顺组件当前角度为%1°，当前以%2°/s速度负方向旋转")
-                                      .arg(currentAngle, 0, 'f', 1)
-                                      .arg(rotationSpeed, 0, 'f', 1);
-            } else {
-                record.newValue = QString("柔顺组件当前角度为%1°，旋转完成")
-                                      .arg(currentAngle, 0, 'f', 1);
-            }
-        } else if (keyNumber == 2) {  // ○2 柔顺组件正方向旋转
-            if (pressed) {
-                record.newValue = QString("柔顺组件当前角度为%1°，当前以%2°/s速度正方向旋转")
-                                      .arg(currentAngle, 0, 'f', 1)
-                                      .arg(rotationSpeed, 0, 'f', 1);
-            } else {
-                record.newValue = QString("柔顺组件当前角度为%1°，旋转完成")
-                                      .arg(currentAngle, 0, 'f', 1);
-            }
-        }
-
-        if (keyNumber == 1 || keyNumber == 2) {
-            m_recorder->addRecord(record);
-            showNotification(record.newValue.toString());
+    if (pageName == "EOAT控制" && (keyNumber == 1 || keyNumber == 2)) {
+        const bool negative = (keyNumber == 1);
+        const QString motionName = negative ? QStringLiteral("末端组件负向旋转") : QStringLiteral("末端组件正向旋转");
+        const QString key = negative ? QStringLiteral("eoat-neg") : QStringLiteral("eoat-pos");
+        const QString angleText = QString::number(getSliderLabelValue("label_Value4"), 'f', 1) + QStringLiteral("度");
+        if (pressed) {
+            m_robotExternalKeyPressed[keyNumber] = true;
+            const QString description = QStringLiteral("%1开始%2，当前角度%3，速度为每秒%4度")
+                                            .arg(historyOperatorName(), motionName, angleText)
+                                            .arg(getSliderEditValue("TechSliderEdit_EOAT_RotationSpeed"), 0, 'f', 1);
+            beginMotionHistory(key, motionName, description);
+            showNotification(description);
+        } else {
+            m_robotExternalKeyPressed[keyNumber] = false;
+            const QString description = QStringLiteral("操作员松开按键，运动记录结束，当前角度%1").arg(angleText);
+            finishMotionHistory(key, description);
+            showNotification(description);
         }
     }
 
@@ -6896,6 +6817,11 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         return;
     }
 
+    if (pressed) {
+        m_robotExternalKeyPressed[keyNumber] = true;
+    } else {
+        m_robotExternalKeyPressed[keyNumber] = false;
+    }
     writeAGVRegisterBits(0,
                          { qMakePair(3, pressed) },
                          pressed ? QStringLiteral("○9点动按下：寄存器0 bit3=1")
@@ -7752,6 +7678,16 @@ void MainWindow::onModbusDisconnected()
     invalidateExternalMotionWritesOnDisconnect(m_modbusManager,
                                                m_robotExternalWriteSeq,
                                                m_sixAxisExternalWriteSeq);
+    const QString linkLostEnd = QStringLiteral("通信失败，运动记录结束");
+    finishActiveMotionsWithPrefix(QStringLiteral("robot-jog-"), linkLostEnd);
+    finishActiveMotionsWithPrefix(QStringLiteral("six-jog-"), linkLostEnd);
+    finishActiveMotionsWithPrefix(QStringLiteral("six-diagonal-"), linkLostEnd);
+    finishActiveMotionsWithPrefix(QStringLiteral("cable-"), linkLostEnd);
+    finishActiveMotionsWithPrefix(QStringLiteral("pose-"), linkLostEnd);
+    finishActiveMotionsWithPrefix(QStringLiteral("step:"), linkLostEnd);
+    finishActiveMotionsWithPrefix(QStringLiteral("vertical-"), linkLostEnd);
+    finishActiveMotionsWithPrefix(QStringLiteral("hori-"), linkLostEnd);
+    finishActiveMotionsWithPrefix(QStringLiteral("eoat-"), linkLostEnd);
     if (m_motionStopRecovery) {
         m_motionStopRecovery->setMainConnected(false);
     }
@@ -9392,6 +9328,7 @@ void MainWindow::onAGVModbusConnected()
  */
 void MainWindow::onAGVModbusDisconnected()
 {
+    finishActiveMotionsWithPrefix(QStringLiteral("chassis-"), QStringLiteral("通信失败，运动记录结束"));
     qCDebug(lcMainWindow) << "AGV Modbus连接断开";
     ui->statusBar->showMessage("AGV Modbus连接断开", 3000);
 
@@ -10047,6 +9984,15 @@ void MainWindow::processEnableButton(bool enabled)
                 : QStringLiteral("AGV页松开使能：寄存器0 bit9/bit10=0"));
         releaseHeldExternalKeysOnEnableRelease();
         finishStepMotionWait(true);
+        const QString enableReleaseEnd = QStringLiteral("操作员松开使能，运动记录结束");
+        finishActiveMotionsWithPrefix(QStringLiteral("chassis-jog-"), enableReleaseEnd);
+        finishActiveMotionsWithPrefix(QStringLiteral("robot-jog-"), enableReleaseEnd);
+        finishActiveMotionsWithPrefix(QStringLiteral("six-jog-"), enableReleaseEnd);
+        finishActiveMotionsWithPrefix(QStringLiteral("six-diagonal-"), enableReleaseEnd);
+        finishActiveMotionsWithPrefix(QStringLiteral("cable-"), enableReleaseEnd);
+        finishActiveMotionsWithPrefix(QStringLiteral("vertical-"), enableReleaseEnd);
+        finishActiveMotionsWithPrefix(QStringLiteral("hori-"), enableReleaseEnd);
+        finishActiveMotionsWithPrefix(QStringLiteral("eoat-"), enableReleaseEnd);
         interruptEnableGatedWaitPopupsOnEnableRelease();
     }
 
@@ -11227,6 +11173,11 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         return;
     }
 
+    if (pressed) {
+        m_robotExternalKeyPressed[keyNumber] = true;
+    } else {
+        m_robotExternalKeyPressed[keyNumber] = false;
+    }
     writeAGVRegisterBits(0,
                          { qMakePair(2, pressed) },
                          pressed ? QStringLiteral("○10点动按下：寄存器0 bit2=1")
@@ -11256,30 +11207,27 @@ void MainWindow::appendAgvExternalKeyRecord(int keyNumber, bool pressed, const Q
     const double speedValue = m_editAGV_MoveSpeed ? m_editAGV_MoveSpeed->value() : getSliderEditValue("SEdit_AGV_MoveSpeed");
     const double angleValue = m_editAGV_Angle ? m_editAGV_Angle->value() : getSliderEditValue("SEdit_AGV_Angle");
 
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = "AGV控制";
-    record.controlName = QString("外部按键○%1").arg(keyNumber);
-    record.controlType = "MatrixKey";
-    record.operation = pressed ? "agv_external_motion_start" : "agv_external_motion_end";
-    record.oldValue = "";
-    // ○2/○10 写正值步进、点动 bit2 → 正向；○1/○9 写负值步进、点动 bit3 → 反向
     const bool isForwardKey = (keyNumber == 2 || keyNumber == 10);
-    QString detail = pressed
-                         ? QString("当前模式为%1，设置速度为%2，设置角度为%3，开始%4运动")
-                               .arg(currentSteeringModeText())
-                               .arg(speedValue, 0, 'f', 0)
-                               .arg(angleValue, 0, 'f', 0)
-                               .arg(isForwardKey ? QStringLiteral("正向") : QStringLiteral("反向"))
-                         : QString("运动完成，当前模式为%1，设置速度为%2，设置角度为%3")
-                               .arg(currentSteeringModeText())
-                               .arg(speedValue, 0, 'f', 0)
-                               .arg(angleValue, 0, 'f', 0);
+    const bool stepMotion = m_stepModeEnabled;
+    const QString direction = isForwardKey ? QStringLiteral("向前") : QStringLiteral("向后");
+    const QString motionName = stepMotion
+        ? QStringLiteral("底盘%1步进").arg(direction)
+        : QStringLiteral("底盘%1点动").arg(direction);
+    const QString key = QStringLiteral("chassis-%1-%2")
+                            .arg(stepMotion ? QStringLiteral("step") : QStringLiteral("jog"))
+                            .arg(isForwardKey ? QStringLiteral("forward") : QStringLiteral("back"));
+    QString detail = QStringLiteral("当前模式为%1，速度为百分之%2，角度为%3度")
+                         .arg(currentSteeringModeText())
+                         .arg(speedValue, 0, 'f', 0)
+                         .arg(angleValue, 0, 'f', 0);
     if (!stepDistanceText.isEmpty()) {
-        detail += QStringLiteral("，步进距离为：%1").arg(stepDistanceText);
+        detail += QStringLiteral("，步进距离为%1毫米").arg(stepDistanceText);
     }
-    record.newValue = detail;
-    m_recorder->addRecord(record);
+    if (pressed) {
+        beginMotionHistory(key, motionName, historyOperatorName() + QStringLiteral("开始") + motionName + QStringLiteral("，") + detail);
+    } else {
+        finishMotionHistory(key, QStringLiteral("操作员松开按键，运动记录结束，") + detail);
+    }
 }
 //运动模式选择
 
@@ -12070,48 +12018,6 @@ void MainWindow::onEnableButtonPressedStepMode()
 
     // 需求变更：步进模式下使能按钮不再触发514或步进值写入，改由外部按键触发。
 
-    if (!isChassisViewActive() && m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
-        const int targetReg = selectedStepTargetRegister();
-        const QString stepValue = m_stepValueEdit->text();
-        const QString targetName = selectedStepTargetName();
-
-        double currentValue = 0.0;
-        if (targetReg == 500) currentValue = getSliderLabelValue("label_Value1");
-        else if (targetReg == 501) currentValue = getSliderLabelValue("label_Value2");
-        else if (targetReg == 502) currentValue = getSliderLabelValue("label_Value3");
-        else if (targetReg == 503) currentValue = getSliderLabelValue("label_Value4");
-
-        recordStepMoveAction(targetName, currentValue, stepValue, true);
-        ui->statusBar->showMessage(QString("步进模式：目标%1，步进值%2")
-                                       .arg(targetName, stepValue), 2000);
-        return;
-    }
-
-    // 检查各个输入框是否有内容，有则记录历史记录
-    if (m_editJ1MoveStep && !m_editJ1MoveStep->text().isEmpty()) {
-        double currentAngle = getSliderLabelValue("label_Value1"); // J1当前角度
-        QString stepValue = m_editJ1MoveStep->text();
-        recordStepMoveAction("悬臂组件(J1)", currentAngle, stepValue, true);
-    }
-
-    if (m_editJ2MoveStep && !m_editJ2MoveStep->text().isEmpty()) {
-        double currentHeight = getSliderLabelValue("label_Value2"); // J2当前高度
-        QString stepValue = m_editJ2MoveStep->text();
-        recordStepMoveAction("升降组件(J2)", currentHeight, stepValue, true);
-    }
-
-    if (m_editJ3MoveStep && !m_editJ3MoveStep->text().isEmpty()) {
-        double currentLength = getSliderLabelValue("label_Value3"); // J3当前长度
-        QString stepValue = m_editJ3MoveStep->text();
-        recordStepMoveAction("伸缩臂(J3)", currentLength, stepValue, true);
-    }
-
-    if (m_editJ4MoveStep && !m_editJ4MoveStep->text().isEmpty()) {
-        double currentAngle = getSliderLabelValue("label_Value4"); // J4当前角度
-        QString stepValue = m_editJ4MoveStep->text();
-        recordStepMoveAction("柔顺组件(J4)", currentAngle, stepValue, true);
-    }
-
     ui->statusBar->showMessage("步进模式：使能按钮按下（等待外部按键触发）", 2000);
 }
 
@@ -12136,44 +12042,6 @@ void MainWindow::onEnableButtonReleasedStepMode()
     if (hadPendingStepStops) {
         ui->statusBar->showMessage("步进模式：使能按钮释放", 2000);
         return;
-    }
-
-    // 与 onEnableButtonPressedStepMode 一致：仅当机械臂步进输入框有内容时才按选中目标记录结束；
-    // 底盘距离走独立输入框，不在此用 lineEdit_StepValue 误记为「立柱旋转」步进结束。
-    if (!isChassisViewActive() && m_stepValueEdit && !m_stepValueEdit->text().isEmpty()) {
-        const int targetReg = selectedStepTargetRegister();
-        const QString targetName = selectedStepTargetName();
-
-        double currentValue = 0.0;
-        if (targetReg == 500) currentValue = getSliderLabelValue("label_Value1");
-        else if (targetReg == 501) currentValue = getSliderLabelValue("label_Value2");
-        else if (targetReg == 502) currentValue = getSliderLabelValue("label_Value3");
-        else if (targetReg == 503) currentValue = getSliderLabelValue("label_Value4");
-
-        recordStepMoveEnd(targetName, currentValue);
-        ui->statusBar->showMessage(QString("步进模式：目标%1，步进结束").arg(targetName), 2000);
-        return;
-    }
-
-    // 检查各个输入框是否有内容，有则记录历史记录
-    if (m_editJ1MoveStep && !m_editJ1MoveStep->text().isEmpty()) {
-        double currentAngle = getSliderLabelValue("label_Value1"); // J1当前角度
-        recordStepMoveEnd("悬臂组件(J1)", currentAngle);
-    }
-
-    if (m_editJ2MoveStep && !m_editJ2MoveStep->text().isEmpty()) {
-        double currentHeight = getSliderLabelValue("label_Value2"); // J2当前高度
-        recordStepMoveEnd("升降组件(J2)", currentHeight);
-    }
-
-    if (m_editJ3MoveStep && !m_editJ3MoveStep->text().isEmpty()) {
-        double currentLength = getSliderLabelValue("label_Value3"); // J3当前长度
-        recordStepMoveEnd("伸缩臂(J3)", currentLength);
-    }
-
-    if (m_editJ4MoveStep && !m_editJ4MoveStep->text().isEmpty()) {
-        double currentAngle = getSliderLabelValue("label_Value4"); // J4当前角度
-        recordStepMoveEnd("柔顺组件(J4)", currentAngle);
     }
 
     ui->statusBar->showMessage("步进模式：使能按钮释放", 2000);
@@ -12458,7 +12326,7 @@ void MainWindow::setupAGVStepPad()
         btn->enableClickAnimation(true);
         btn->setTextGlow(true);
         if (name == QStringLiteral("techBtn_AGVStep_Rotate")) {
-            btn->setText(QStringLiteral("⟳\n原地旋转"));
+            btn->setText(QStringLiteral("原地旋转"));
         }
         if (m_agvStepDirectionGroup->id(btn) == -1) {
             m_agvStepDirectionGroup->addButton(btn, buttonId);
@@ -12485,12 +12353,12 @@ void MainWindow::setupAGVStepPad()
                 }
                 OperationRecord record;
                 record.timestamp = QDateTime::currentDateTime();
-                record.pageName = QStringLiteral("AGV控制");
-                record.controlName = QStringLiteral("底盘步进距离被设定为%1").arg(distanceText);
-                record.controlType = QString();
-                record.operation = QString();
+                record.pageName = QStringLiteral("底盘控制");
+                record.controlName = QStringLiteral("底盘步进距离");
+                record.controlType = QStringLiteral("参数修改");
+                record.operation = QStringLiteral("修改参数");
                 record.oldValue = QString();
-                record.newValue = QString();
+                record.newValue = QStringLiteral("步进距离被设定为%1毫米").arg(distanceText);
                 m_recorder->addRecord(record);
             });
         }
@@ -13151,143 +13019,141 @@ void MainWindow::clearStepMoveRegisters()
 }
 
 namespace {
-QString historySixAxisLabel(const QString &jointName)
+QString historyMeasure(double value, int decimals, const QString &unit)
 {
-    if (jointName == QLatin1String("RX")) return QStringLiteral("轴1");
-    if (jointName == QLatin1String("RY")) return QStringLiteral("轴2");
-    if (jointName == QLatin1String("RZ")) return QStringLiteral("轴3");
-    if (jointName == QLatin1String("X")) return QStringLiteral("轴4");
-    if (jointName == QLatin1String("Y")) return QStringLiteral("轴5");
-    if (jointName == QLatin1String("Z")) return QStringLiteral("轴6");
-    return jointName;
+    return QString::number(value, 'f', decimals) + unit;
 }
 } // namespace
+
+void MainWindow::beginMotionHistory(const QString &motionKey, const QString &targetName, const QString &description)
+{
+    if (!m_recorder || motionKey.isEmpty() || targetName.isEmpty()) {
+        return;
+    }
+    if (m_activeMotionHistory.contains(motionKey)) {
+        finishMotionHistory(motionKey, QStringLiteral("收到新的运动命令，上一次运动记录结束"));
+    }
+    m_closedMotionKeys.remove(motionKey);
+    ActiveMotionHistory active;
+    active.targetName = targetName;
+    active.startDescription = description;
+    active.startedAt = QDateTime::currentDateTime();
+    m_activeMotionHistory.insert(motionKey, active);
+    appendBusinessHistory(getCurrentPageName(), targetName, QStringLiteral("运动操作"),
+                          QStringLiteral("运动开始"), QString(), description);
+}
+
+void MainWindow::finishMotionHistory(const QString &motionKey, const QString &resultDescription)
+{
+    if (!m_recorder || motionKey.isEmpty()) {
+        return;
+    }
+    const auto it = m_activeMotionHistory.constFind(motionKey);
+    if (it == m_activeMotionHistory.cend()) {
+        if (m_closedMotionKeys.contains(motionKey)) {
+            return;
+        }
+        qWarning() << "运动结束缺少开始记录:" << motionKey;
+        appendBusinessHistory(getCurrentPageName(), QStringLiteral("运动记录"),
+                              QStringLiteral("记录异常"), QStringLiteral("缺少开始记录"),
+                              QString(), resultDescription);
+        m_closedMotionKeys.insert(motionKey);
+        return;
+    }
+    const QString targetName = it->targetName;
+    m_activeMotionHistory.remove(motionKey);
+    m_closedMotionKeys.insert(motionKey);
+    appendBusinessHistory(getCurrentPageName(), targetName, QStringLiteral("运动操作"),
+                          QStringLiteral("运动结束"), QString(), resultDescription);
+}
+
+void MainWindow::finishAllMotionHistory(const QString &resultDescription)
+{
+    const QStringList keys = m_activeMotionHistory.keys();
+    for (const QString &key : keys) {
+        finishMotionHistory(key, resultDescription);
+    }
+}
+
+void MainWindow::finishActiveMotionsWithPrefix(const QString &keyPrefix, const QString &resultDescription)
+{
+    const QStringList keys = m_activeMotionHistory.keys();
+    for (const QString &key : keys) {
+        if (key.startsWith(keyPrefix)) {
+            finishMotionHistory(key, resultDescription);
+        }
+    }
+}
+
+void MainWindow::finishActiveMotionsContaining(const QString &targetText, const QString &resultDescription)
+{
+    if (targetText.isEmpty()) {
+        return;
+    }
+    const QStringList keys = m_activeMotionHistory.keys();
+    for (const QString &key : keys) {
+        if (m_activeMotionHistory.value(key).targetName.contains(targetText)) {
+            finishMotionHistory(key, resultDescription);
+        }
+    }
+}
+
+QString MainWindow::historyMotionTargetName(const QString &jointName) const
+{
+    const QString name = QString(jointName).remove(QLatin1Char('\n')).remove(QLatin1Char('\r')).trimmed();
+    if (name == QLatin1String("RX") || name.contains(QStringLiteral("第一轴"))) return QStringLiteral("第一轴");
+    if (name == QLatin1String("RY") || name.contains(QStringLiteral("第二轴"))) return QStringLiteral("第二轴");
+    if (name == QLatin1String("RZ") || name.contains(QStringLiteral("第三轴"))) return QStringLiteral("第三轴");
+    if (name == QLatin1String("X") || name.contains(QStringLiteral("第四轴"))) return QStringLiteral("第四轴");
+    if (name == QLatin1String("Y") || name.contains(QStringLiteral("第五轴"))) return QStringLiteral("第五轴");
+    if (name == QLatin1String("Z") || name.contains(QStringLiteral("第六轴"))) return QStringLiteral("第六轴");
+    if (name.contains(QStringLiteral("立柱旋转")) || name.contains(QStringLiteral("J1"))) return QStringLiteral("立柱旋转");
+    if (name.contains(QStringLiteral("立柱升降")) || name.contains(QStringLiteral("升降")) || name.contains(QStringLiteral("J2"))) return QStringLiteral("立柱升降");
+    if (name.contains(QStringLiteral("伸缩"))) return QStringLiteral("伸缩臂");
+    if (name.contains(QStringLiteral("末端")) || name.contains(QStringLiteral("柔顺")) || name.contains(QStringLiteral("J4"))) return QStringLiteral("末端组件");
+    if (name.contains(QStringLiteral("底盘")) || name.contains(QStringLiteral("AGV"), Qt::CaseInsensitive)) return QStringLiteral("底盘");
+    return name;
+}
+
+QString MainWindow::historyMotionKeyForTarget(const QString &jointName) const
+{
+    return QStringLiteral("step:") + historyMotionTargetName(jointName);
+}
 
 // 记录步进动作开始
 void MainWindow::recordStepMoveAction(const QString &jointName, double currentValue, const QString &stepValue, bool start)
 {
     Q_UNUSED(start);
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = getCurrentPageName();
-    const QString axisLabel = historySixAxisLabel(jointName);
-    QString msg;
-    if (jointName == "RX" || jointName == "RY" || jointName == "RZ") {
-        msg = QString("%1当前角度为%2，步进%3°")
-                  .arg(axisLabel)
-                  .arg(currentValue, 0, 'f', 3)
-                  .arg(stepValue);
-    } else if (jointName == "X" || jointName == "Y" || jointName == "Z") {
-        msg = QString("%1当前位置为%2，步进%3mm")
-                  .arg(axisLabel)
-                  .arg(currentValue, 0, 'f', 3)
-                  .arg(stepValue);
-    } else if (jointName.contains("J1") || jointName.contains("立柱旋转")) {
-        msg = QString("立柱旋转当前角度为%1°，开始步进%2°").arg(currentValue, 0, 'f', 1).arg(stepValue);
-    } else if (jointName.contains("J2") || jointName.contains("立柱升降")) {
-        msg = QString("立柱升降当前高度为%1mm，开始步进%2mm").arg(currentValue, 0, 'f', 1).arg(stepValue);
-    } else if (jointName.contains("J3") || jointName.contains("伸缩平衡臂") || jointName.contains("伸缩臂")) {
-        msg = QString("伸缩臂当前长度为%1mm，开始步进%2mm").arg(currentValue, 0, 'f', 1).arg(stepValue);
-    } else if (jointName.contains("J4") || jointName.contains("末端组件")) {
-        msg = QString("末端组件当前角度为%1°，开始步进%2°").arg(currentValue, 0, 'f', 1).arg(stepValue);
-    } else {
-        msg = QString("%1当前%2为%3，步进%4°")
-                  .arg(jointName)
-                  .arg(jointName.contains("角度") ? "角度" :
-                           jointName.contains("高度") ? "高度" : "长度")
-                  .arg(currentValue, 0, 'f', 1)
-                  .arg(stepValue);
-    }
-
-    // 六自由度步进：历史列表「操作详情」只显示约定文案，不出现 StepMove_* / 开始步进移动 等。
-    const bool sixAxisStepDetailOnly = (jointName == "RX" || jointName == "RY" || jointName == "RZ"
-                                        || jointName == "X" || jointName == "Y" || jointName == "Z");
-    if (sixAxisStepDetailOnly) {
-        record.controlName = msg;
-        record.controlType = "";
-        record.operation = "";
-        record.oldValue = "";
-        record.newValue = "";
-    } else {
-        record.controlName = "StepMove_" + jointName;
-        record.controlType = "StepMove";
-        record.operation = "step_move_start";
-        record.oldValue = "";
-        record.newValue = msg;
-    }
-
-    m_recorder->addRecord(record);
-    showNotification(msg);
+    const QString targetName = historyMotionTargetName(jointName);
+    const bool rotation = targetName == QStringLiteral("立柱旋转")
+        || targetName == QStringLiteral("末端组件")
+        || targetName == QStringLiteral("第一轴")
+        || targetName == QStringLiteral("第二轴")
+        || targetName == QStringLiteral("第三轴");
+    const QString unit = rotation ? QStringLiteral("度") : QStringLiteral("毫米");
+    const QString description = QStringLiteral("%1开始让%2步进，当前位置%3，步进量%4")
+                                    .arg(historyOperatorName(), targetName,
+                                         historyMeasure(currentValue, 1, unit),
+                                         stepValue + unit);
+    beginMotionHistory(historyMotionKeyForTarget(jointName), targetName + QStringLiteral("步进"), description);
+    showNotification(description);
 }
 
 // 记录步进动作结束
 void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue, bool motionStopStyle)
 {
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    const QString axisLabel = historySixAxisLabel(jointName);
-    record.pageName = getCurrentPageName();
-    record.controlName = (axisLabel == jointName)
-                             ? QStringLiteral("StepMove_") + jointName
-                             : axisLabel;
-    record.controlType = "StepMove";
-    record.operation = "step_move_end";
-    record.oldValue = "";
-    QString msg;
-    if (motionStopStyle) {
-        if (jointName.contains("J1") || jointName.contains("立柱旋转")) {
-            msg = QString("运动停止，当前立柱旋转角度为%1°").arg(currentValue, 0, 'f', 1);
-        } else if (jointName.contains("J2") || jointName.contains("立柱升降")) {
-            msg = QString("运动停止，当前立柱升降高度为%1mm").arg(currentValue, 0, 'f', 1);
-        } else if (jointName.contains("J3") || jointName.contains("伸缩平衡臂") || jointName.contains("伸缩臂")) {
-            msg = QString("运动停止，当前伸缩臂长度为%1mm").arg(currentValue, 0, 'f', 1);
-        } else if (jointName.contains("J4") || jointName.contains("末端组件")) {
-            msg = QString("运动停止，当前末端组件角度为%1°").arg(currentValue, 0, 'f', 1);
-        } else if (jointName.contains("AGV") || jointName.contains("底盘")) {
-            msg = QString("运动停止，当前底盘速度为%1").arg(currentValue, 0, 'f', 1);
-        } else if (axisLabel != jointName) {
-            const bool rotation = (jointName == QLatin1String("RX")
-                                   || jointName == QLatin1String("RY")
-                                   || jointName == QLatin1String("RZ"));
-            msg = rotation
-                      ? QString("运动停止，当前%1角度为%2°").arg(axisLabel).arg(currentValue, 0, 'f', 1)
-                      : QString("运动停止，当前%1位置为%2mm").arg(axisLabel).arg(currentValue, 0, 'f', 1);
-        } else {
-            const QString valueLabel = jointName.contains("角度") ? "角度"
-                                         : jointName.contains("高度") ? "高度"
-                                         : jointName.contains("长度") ? "长度"
-                                         : "值";
-            msg = QString("运动停止，当前%1%2为%3")
-                      .arg(axisLabel)
-                      .arg(valueLabel)
-                      .arg(currentValue, 0, 'f', 1);
-        }
-    } else if (jointName.contains("J1") || jointName.contains("立柱旋转")) {
-        msg = QString("立柱旋转当前角度为%1°，步进结束").arg(currentValue, 0, 'f', 1);
-    } else if (jointName.contains("J2") || jointName.contains("立柱升降")) {
-        msg = QString("立柱升降当前高度为%1mm，步进结束").arg(currentValue, 0, 'f', 1);
-    } else if (jointName.contains("J3") || jointName.contains("伸缩平衡臂") || jointName.contains("伸缩臂")) {
-        msg = QString("伸缩臂当前长度为%1mm，步进结束").arg(currentValue, 0, 'f', 1);
-    } else if (jointName.contains("J4") || jointName.contains("末端组件")) {
-        msg = QString("末端组件当前角度为%1°，步进结束").arg(currentValue, 0, 'f', 1);
-    } else if (axisLabel != jointName) {
-        const bool rotation = (jointName == QLatin1String("RX")
-                               || jointName == QLatin1String("RY")
-                               || jointName == QLatin1String("RZ"));
-        msg = rotation
-                  ? QString("%1当前角度为%2°，步进结束").arg(axisLabel).arg(currentValue, 0, 'f', 1)
-                  : QString("%1当前位置为%2mm，步进结束").arg(axisLabel).arg(currentValue, 0, 'f', 1);
-    } else {
-        msg = QString("%1当前%2为%3，步进结束")
-                  .arg(axisLabel)
-                  .arg(jointName.contains("角度") ? "角度" :
-                           jointName.contains("高度") ? "高度" : "长度")
-                  .arg(currentValue, 0, 'f', 1);
-    }
-    record.newValue = msg;
-
-    m_recorder->addRecord(record);
-    showNotification(record.newValue.toString());
+    const QString targetName = historyMotionTargetName(jointName);
+    const bool rotation = targetName == QStringLiteral("立柱旋转")
+        || targetName == QStringLiteral("末端组件")
+        || targetName == QStringLiteral("第一轴")
+        || targetName == QStringLiteral("第二轴")
+        || targetName == QStringLiteral("第三轴");
+    const QString unit = rotation ? QStringLiteral("度") : QStringLiteral("毫米");
+    const QString reason = motionStopStyle
+        ? QStringLiteral("操作员松开使能，运动记录结束，当前位置%1").arg(historyMeasure(currentValue, 1, unit))
+        : QStringLiteral("正常完成，运动记录结束，当前位置%1").arg(historyMeasure(currentValue, 1, unit));
+    finishMotionHistory(historyMotionKeyForTarget(jointName), reason);
+    showNotification(reason);
 }
 
 void MainWindow::markStepMotionPendingStop(StepMotionStopKind kind,
@@ -13301,7 +13167,7 @@ void MainWindow::markStepMotionPendingStop(StepMotionStopKind kind,
     m_pendingStepMotionStops.append(pending);
 }
 
-void MainWindow::flushPendingStepMotionStopsOnEnableRelease()
+void MainWindow::flushPendingStepMotionStopsOnEnableRelease(const QString &resultDescription)
 {
     if (m_pendingStepMotionStops.isEmpty()) {
         return;
@@ -13309,43 +13175,21 @@ void MainWindow::flushPendingStepMotionStopsOnEnableRelease()
 
     const QVector<PendingStepMotionStop> pendingStops = m_pendingStepMotionStops;
     m_pendingStepMotionStops.clear();
+    const QString reason = resultDescription.isEmpty()
+        ? QStringLiteral("操作员松开使能，运动记录结束")
+        : resultDescription;
 
     for (const PendingStepMotionStop &pending : pendingStops) {
         switch (pending.kind) {
-        case StepMotionStopKind::RobotJoint: {
-            double currentValue = 0.0;
-            if (pending.targetName.contains("J1") || pending.targetName.contains("立柱旋转")) {
-                currentValue = getSliderLabelValue("label_Value1");
-            } else if (pending.targetName.contains("J2") || pending.targetName.contains("立柱升降")) {
-                currentValue = getSliderLabelValue("label_Value2");
-            } else if (pending.targetName.contains("J3") || pending.targetName.contains("伸缩平衡臂")
-                       || pending.targetName.contains("伸缩臂")) {
-                currentValue = getSliderLabelValue("label_Value3");
-            } else if (pending.targetName.contains("J4") || pending.targetName.contains("末端组件")) {
-                currentValue = getSliderLabelValue("label_Value4");
-            } else if (pending.targetName.contains("AGV") || pending.targetName.contains("底盘")) {
-                currentValue = m_editAGV_MoveSpeed ? m_editAGV_MoveSpeed->value()
-                                                   : getSliderEditValue("SEdit_AGV_MoveSpeed");
-            }
-            recordStepMoveEnd(pending.targetName, currentValue, true);
+        case StepMotionStopKind::RobotJoint:
+        case StepMotionStopKind::SixAxis:
+            finishMotionHistory(historyMotionKeyForTarget(pending.targetName), reason);
             break;
-        }
-        case StepMotionStopKind::SixAxis: {
-            int axisIndex = 0;
-            if (pending.targetName.contains(QStringLiteral("RX"))) axisIndex = 1;
-            else if (pending.targetName.contains(QStringLiteral("RY"))) axisIndex = 2;
-            else if (pending.targetName.contains(QStringLiteral("RZ"))) axisIndex = 3;
-            else if (pending.targetName == QStringLiteral("X")) axisIndex = 4;
-            else if (pending.targetName == QStringLiteral("Y")) axisIndex = 5;
-            else if (pending.targetName == QStringLiteral("Z")) axisIndex = 6;
-            if (axisIndex >= 1) {
-                recordSixAxisJogExternalKey(axisIndex, false);
-            }
-            break;
-        }
         case StepMotionStopKind::Agv:
             if (pending.externalKeyNumber >= 1) {
-                appendAgvExternalKeyRecord(pending.externalKeyNumber, false);
+                const bool forward = pending.externalKeyNumber == 2 || pending.externalKeyNumber == 10;
+                const QString key = QStringLiteral("chassis-step-%1").arg(forward ? "forward" : "back");
+                finishMotionHistory(key, reason);
             }
             break;
         }
@@ -13357,58 +13201,15 @@ void MainWindow::recordSixAxisJogExternalKey(int axisIndex, bool pressed)
     if (!m_recorder || axisIndex < 1 || axisIndex > 6) {
         return;
     }
-
-    QString axisName;
-    switch (axisIndex) {
-    case 1: axisName = QStringLiteral("RX"); break;
-    case 2: axisName = QStringLiteral("RY"); break;
-    case 3: axisName = QStringLiteral("RZ"); break;
-    case 4: axisName = QStringLiteral("X"); break;
-    case 5: axisName = QStringLiteral("Y"); break;
-    case 6: axisName = QStringLiteral("Z"); break;
-    default: return;
-    }
-
-    double currentValue = 0.0;
-    const QString sixAxisGaugeName = QStringLiteral("robot_ArcGauge_SixAxis%1").arg(axisIndex);
-    if (TechArcGauge *gauge = m_arcGauges.value(sixAxisGaugeName, nullptr)) {
-        currentValue = gauge->value();
-    }
-
-    const bool isRotationAxis = (axisIndex <= 3);
-    QString msg;
+    static const char *kNames[] = {"第一轴", "第二轴", "第三轴", "第四轴", "第五轴", "第六轴"};
+    const QString axisName = QString::fromUtf8(kNames[axisIndex - 1]);
+    const QString motionName = axisName + QStringLiteral("点动");
+    const QString key = QStringLiteral("six-jog-%1").arg(axisIndex);
     if (pressed) {
-        if (isRotationAxis) {
-            msg = QStringLiteral("%1当前角度为%2，开始运动")
-                      .arg(axisName)
-                      .arg(currentValue, 0, 'f', 3);
-        } else {
-            msg = QStringLiteral("%1轴当前位置为%2，开始运动")
-                      .arg(axisName)
-                      .arg(currentValue, 0, 'f', 3);
-        }
+        beginMotionHistory(key, motionName, QStringLiteral("%1开始%2").arg(historyOperatorName(), motionName));
     } else {
-        if (isRotationAxis) {
-            msg = QStringLiteral("%1当前角度为%2，运动停止")
-                      .arg(axisName)
-                      .arg(currentValue, 0, 'f', 3);
-        } else {
-            msg = QStringLiteral("%1轴当前位置为%2，运动停止")
-                      .arg(axisName)
-                      .arg(currentValue, 0, 'f', 3);
-        }
+        finishMotionHistory(key, QStringLiteral("操作员松开按键，运动记录结束"));
     }
-
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = getCurrentPageName();
-    record.controlName = msg;
-    record.controlType = QString();
-    record.operation = QString();
-    record.oldValue = QString();
-    record.newValue = QString();
-    m_recorder->addRecord(record);
-    showNotification(msg);
 }
 
 void MainWindow::recordSixAxisDiagonalJogExternalKey(SixAxisDiagonalPlane plane, int keyNumber, bool pressed)
@@ -13422,23 +13223,18 @@ void MainWindow::recordSixAxisDiagonalJogExternalKey(SixAxisDiagonalPlane plane,
     }
 
     const QString planeName = (plane == SixAxisDiagonalPlane::XZ)
-        ? QStringLiteral("XZ")
-        : QStringLiteral("YZ");
+        ? QStringLiteral("第四轴和第六轴方向")
+        : QStringLiteral("第五轴和第六轴方向");
     const QString direction = (keyNumber == 1) ? QStringLiteral("负向") : QStringLiteral("正向");
-    const QString action = pressed ? QStringLiteral("开始运动") : QStringLiteral("运动停止");
-    const QString msg = QStringLiteral("%1斜向%2%3").arg(planeName, direction, action);
-
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = QStringLiteral("六自由度");
-    record.controlName = msg;
-    record.controlType = QStringLiteral("MatrixKey");
-    record.operation = QStringLiteral("点动");
-    record.oldValue = QString();
-    record.newValue = pressed ? (keyNumber == 1 ? QStringLiteral("-1") : QStringLiteral("1"))
-                              : QStringLiteral("0");
-    m_recorder->addRecord(record);
-    showNotification(msg);
+    const QString motionName = planeName + direction + QStringLiteral("运动");
+    const QString key = QStringLiteral("six-diagonal-%1-%2")
+                            .arg(plane == SixAxisDiagonalPlane::XZ ? 1 : 2)
+                            .arg(keyNumber);
+    if (pressed) {
+        beginMotionHistory(key, motionName, QStringLiteral("%1开始%2").arg(historyOperatorName(), motionName));
+    } else {
+        finishMotionHistory(key, QStringLiteral("操作员松开按键，运动记录结束"));
+    }
 }
 
 QString MainWindow::historyOperatorName() const
@@ -14229,18 +14025,11 @@ void MainWindow::beginSixAxisPoseWait(int bitIndex, const QString &actionName)
     m_sixAxisPoseWaitSawActive = false;
     m_sixAxisPoseWaitBeginMs = QDateTime::currentMSecsSinceEpoch();
     requestPopupRefresh();
-
-    if (m_recorder) {
-        OperationRecord record;
-        record.timestamp = QDateTime::currentDateTime();
-        record.pageName = QStringLiteral("六自由度");
-        record.controlName = actionName;
-        record.controlType = QStringLiteral("姿态动作");
-        record.operation = QStringLiteral("开始执行");
-        record.oldValue = QString();
-        record.newValue = QStringLiteral("%1开始%2").arg(historyOperatorName(), actionName);
-        m_recorder->addRecord(record);
-    }
+    const QString poseName = actionName.isEmpty()
+        ? ((bitIndex == 1) ? QStringLiteral("姿态回零") : QStringLiteral("姿态调平"))
+        : actionName;
+    beginMotionHistory(QStringLiteral("pose-%1").arg(bitIndex), poseName,
+                       QStringLiteral("%1开始%2").arg(historyOperatorName(), poseName));
 
     auto *waitTimer = new QTimer(this);
     waitTimer->setObjectName(QStringLiteral("sixAxisPoseWaitTimer"));
@@ -14523,25 +14312,9 @@ void MainWindow::finishSixAxisPoseWait(bool timedOut)
     m_sixAxisPoseWaitBit = -1;
     m_sixAxisPoseWaitSawActive = false;
     requestPopupRefresh();
-
-    if (m_recorder) {
-        OperationRecord record;
-        record.timestamp = QDateTime::currentDateTime();
-        record.pageName = QStringLiteral("六自由度");
-        record.controlName = (bitIndex == 1)
-            ? QStringLiteral("姿态回零")
-            : QStringLiteral("姿态调平");
-        record.controlType = QStringLiteral("姿态动作");
-        record.operation = timedOut ? QStringLiteral("等待超时") : QStringLiteral("执行完成");
-        const QString actionName = (bitIndex == 1)
-            ? QStringLiteral("姿态回零")
-            : QStringLiteral("姿态调平");
-        record.oldValue = QStringLiteral("正在%1").arg(actionName);
-        record.newValue = timedOut
-            ? QStringLiteral("%1执行的%2等待超时").arg(historyOperatorName(), actionName)
-            : QStringLiteral("%1执行的%2已完成").arg(historyOperatorName(), actionName);
-        m_recorder->addRecord(record);
-    }
+    finishMotionHistory(QStringLiteral("pose-%1").arg(bitIndex),
+                        timedOut ? QStringLiteral("等待超时，运动记录结束")
+                                 : QStringLiteral("正常完成，运动记录结束"));
 }
 
 void MainWindow::checkSixAxisPoseWaitCompletion(int address, quint16 value)
@@ -14735,38 +14508,22 @@ void MainWindow::finishStepMotionWait(bool interruptedByEnable)
     }
 
     if (!interruptedByEnable) {
-        flushPendingStepMotionStopsOnEnableRelease();
+        flushPendingStepMotionStopsOnEnableRelease(QStringLiteral("正常完成，运动记录结束"));
         return;
     }
 
     m_pendingStepMotionStops.clear();
     m_skipStepReleaseHistory = true;
-    if (!m_recorder) {
-        return;
+    for (const PendingStepMotionStop &pending : pendingStops) {
+        if (pending.kind == StepMotionStopKind::Agv && pending.externalKeyNumber >= 1) {
+            const bool forward = pending.externalKeyNumber == 2 || pending.externalKeyNumber == 10;
+            finishMotionHistory(QStringLiteral("chassis-step-%1").arg(forward ? "forward" : "back"),
+                                QStringLiteral("操作员松开使能，运动记录结束"));
+        } else {
+            finishMotionHistory(historyMotionKeyForTarget(pending.targetName),
+                                QStringLiteral("操作员松开使能，运动记录结束"));
+        }
     }
-
-    QString motionName;
-    if (!pendingStops.isEmpty() && !pendingStops.first().targetName.trimmed().isEmpty()) {
-        motionName = pendingStops.first().targetName.trimmed();
-    } else if (waitKind == StepMotionWaitKind::RobotJoint) {
-        motionName = QStringLiteral("机械臂");
-    } else if (waitKind == StepMotionWaitKind::SixAxis) {
-        motionName = QStringLiteral("六自由度");
-    } else if (waitKind == StepMotionWaitKind::Agv) {
-        motionName = QStringLiteral("底盘");
-    } else {
-        motionName = QStringLiteral("步进");
-    }
-
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = getCurrentPageName();
-    record.controlName = motionName;
-    record.controlType = QStringLiteral("StepMove");
-    record.operation = QStringLiteral("步进被打断");
-    record.oldValue = QStringLiteral("正在步进");
-    record.newValue = QStringLiteral("%1松开使能，%2步进停止").arg(historyOperatorName(), motionName);
-    m_recorder->addRecord(record);
 }
 
 void MainWindow::showStepMotionWaitDialog(const QString &message)
@@ -14862,16 +14619,8 @@ void MainWindow::interruptEnableGatedWaitPopupsOnEnableRelease()
         m_sixAxisPoseWaitBit = -1;
         m_sixAxisPoseWaitSawActive = false;
         if (bitIndex == 1 || bitIndex == 2) {
-            const QString actionName = (bitIndex == 1)
-                ? QStringLiteral("姿态回零")
-                : QStringLiteral("姿态调平");
-            appendBusinessHistory(
-                QStringLiteral("六自由度"),
-                actionName,
-                QStringLiteral("姿态动作"),
-                QStringLiteral("enable_release_abort"),
-                QStringLiteral("正在%1").arg(actionName),
-                QStringLiteral("%1松开使能，%2被中断").arg(historyOperatorName(), actionName));
+            finishMotionHistory(QStringLiteral("pose-%1").arg(bitIndex),
+                                QStringLiteral("操作员松开使能，运动记录结束"));
         }
         interrupted = true;
     }
@@ -16478,6 +16227,17 @@ void MainWindow::applyRobotSoftLimitRegister(int address, quint16 value)
         if (reached) {
             m_robotAxisLimitAcked[slot] = false;
             showRobotAxisLimitToast(slot);
+            const QString axisNames[] = {
+                QString(),
+                QStringLiteral("立柱旋转"),
+                QStringLiteral("立柱升降"),
+                QStringLiteral("伸缩臂"),
+                QStringLiteral("末端组件"),
+            };
+            if (def.axisIndex >= 1 && def.axisIndex <= 4) {
+                finishActiveMotionsContaining(axisNames[def.axisIndex],
+                                              QStringLiteral("达到限位，运动记录结束"));
+            }
         } else {
             hideRobotAxisLimitToast(slot);
         }

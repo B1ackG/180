@@ -63,11 +63,12 @@ Item {
             return true
         }
 
-        return opText.indexOf("external") >= 0 ||
-               opText.indexOf("enable") >= 0 ||
+        return opText.indexOf("运动开始") >= 0 ||
+               opText.indexOf("运动结束") >= 0 ||
                opText.indexOf("使能") >= 0 ||
                opText.indexOf("外部运动") >= 0 ||
-               opText.indexOf("agv外部") >= 0
+               ct.indexOf("运动操作") >= 0 ||
+               ct.indexOf("物理按键") >= 0
     }
 
     function matchesCategory(controlType, op, page, control) {

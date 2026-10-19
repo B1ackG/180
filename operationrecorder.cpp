@@ -13,6 +13,7 @@
 #include <QMessageAuthenticationCode>
 #include <QFile>
 #include <QSaveFile>
+#include <QRegularExpression>
 
 namespace {
 QStringList parseCsvList(const QString &raw)
@@ -26,6 +27,34 @@ QStringList parseCsvList(const QString &raw)
         }
     }
     return result;
+}
+
+QStringList findUnreadableHistoryParts(const OperationRecord &record)
+{
+    QStringList hits;
+    const QList<QPair<QString, QString>> fields = {
+        {QStringLiteral("pageName"), record.pageName},
+        {QStringLiteral("controlName"), record.controlName},
+        {QStringLiteral("controlType"), record.controlType},
+        {QStringLiteral("operation"), record.operation},
+        {QStringLiteral("oldValue"), record.oldValue.toString()},
+        {QStringLiteral("newValue"), record.newValue.toString()},
+    };
+    const QRegularExpression latin(QStringLiteral("[A-Za-z]"));
+    const QString symbols = QStringLiteral("%°/=_()○↑↓←→↖↗↘↙⟳");
+    for (const auto &field : fields) {
+        if (latin.match(field.second).hasMatch()) {
+            hits.append(field.first + QStringLiteral(":") + field.second);
+            continue;
+        }
+        for (const QChar ch : field.second) {
+            if (symbols.contains(ch)) {
+                hits.append(field.first + QStringLiteral(":") + field.second);
+                break;
+            }
+        }
+    }
+    return hits;
 }
 }
 
@@ -166,6 +195,10 @@ void OperationRecorder::addRecord(const OperationRecord &record)
     }
 
     MappingConfig::instance()->normalizeOperationRecord(normalized);
+    const QStringList unreadable = findUnreadableHistoryParts(normalized);
+    if (!unreadable.isEmpty()) {
+        qWarning() << "历史记录仍含不易阅读的内容:" << unreadable;
+    }
 
     // 限制记录数量
     if (m_records.size() >= m_maxRecords) {

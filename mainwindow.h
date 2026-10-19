@@ -16,6 +16,7 @@
 
 
 #include <QMainWindow>
+#include <QHash>
 #include "techpushbutton.h"
 #include "techspeedgauge.h"
 #include "techslideredit.h"
@@ -1480,6 +1481,25 @@ private:
     void handleEmergencyStopTransition(bool oldActive, bool newActive);
     void abortPopupOwnedOperationsForEmergency();
 
+    struct ActiveMotionHistory {
+        QString targetName;
+        QString startDescription;
+        QDateTime startedAt;
+    };
+
+    /** @brief 实际运动命令发出后记录一条运动开始，并记住配对键 */
+    void beginMotionHistory(const QString &motionKey, const QString &targetName, const QString &description);
+    /** @brief 为已有开始记录补一条运动结束；已结束则不再写；从未开始只记一条异常 */
+    void finishMotionHistory(const QString &motionKey, const QString &resultDescription);
+    /** @brief 关闭程序时结束所有尚未闭合的运动记录 */
+    void finishAllMotionHistory(const QString &resultDescription);
+    void finishActiveMotionsWithPrefix(const QString &keyPrefix, const QString &resultDescription);
+    void finishActiveMotionsContaining(const QString &targetText, const QString &resultDescription);
+    QString historyMotionTargetName(const QString &jointName) const;
+    QString historyMotionKeyForTarget(const QString &jointName) const;
+    QHash<QString, ActiveMotionHistory> m_activeMotionHistory;
+    QSet<QString> m_closedMotionKeys;
+
     /** @brief 记录步进移动动作开始/持续状态
      *  @param jointName 关节名
      *  @param currentValue 当前值
@@ -1496,8 +1516,9 @@ private:
                                    const QString &targetName,
                                    int externalKeyNumber = -1);
 
-    /** @brief 使能松开时写入待记录的步进运动停止历史 */
-    void flushPendingStepMotionStopsOnEnableRelease();
+    /** @brief 使能松开或步进完成时写入待记录的步进运动停止历史 */
+    void flushPendingStepMotionStopsOnEnableRelease(
+        const QString &resultDescription = QString());
 
     /** @brief 第四页六自由度点动：按当前选中轴记录 RX/RY/RZ/X/Y/Z */
     void recordSixAxisJogExternalKey(int axisIndex, bool pressed);

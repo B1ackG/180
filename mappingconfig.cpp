@@ -665,6 +665,32 @@ void MappingConfig::normalizeOperationRecord(OperationRecord &record) const
     record.newValue = scrubHistoryValueVariant(record.newValue);
     record.operation = scrubOperationHistoryRegisterWriteText(record.operation);
     record.controlName = scrubOperationHistoryRegisterWriteText(record.controlName);
+    auto plainHistoryText = [](QString text) {
+        text.replace(QStringLiteral("StepMove_"), QString());
+        text.replace(QStringLiteral("MainModbus"), QStringLiteral("主控制器"));
+        text.replace(QStringLiteral("AdminConfig"), QStringLiteral("厂家配置"));
+        text.replace(QStringLiteral("Modbus"), QStringLiteral("设备通信"));
+        text.replace(QStringLiteral("AGV"), QStringLiteral("底盘"));
+        text.replace(QStringLiteral("EOAT"), QStringLiteral("末端组件"));
+        text.replace(QStringLiteral("TCP"), QStringLiteral("网络传输"));
+        text.replace(QStringLiteral("mm/s"), QStringLiteral("毫米每秒"));
+        text.replace(QStringLiteral("mm"), QStringLiteral("毫米"));
+        text.replace(QChar(0x00B0), QStringLiteral("度"));
+        text.remove(QLatin1Char('%'));
+        text.remove(QLatin1Char('_'));
+        text.remove(QStringLiteral("○"));
+        return text;
+    };
+    record.pageName = plainHistoryText(record.pageName);
+    record.controlName = plainHistoryText(record.controlName);
+    record.controlType = plainHistoryText(record.controlType);
+    record.operation = plainHistoryText(record.operation);
+    if (record.oldValue.type() == QVariant::String) {
+        record.oldValue = plainHistoryText(record.oldValue.toString());
+    }
+    if (record.newValue.type() == QVariant::String) {
+        record.newValue = plainHistoryText(record.newValue.toString());
+    }
 
     // 按钮 UI 可能为换行显示（如「立柱\n旋转」），历史列表始终单行。
     auto flattenLine = [](QString s) {
