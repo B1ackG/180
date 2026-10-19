@@ -4513,7 +4513,7 @@ void MainWindow::setupAdminPasswordPage()
     passwordEdit->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     // 密码提示
-    QLabel *hintLabel = new QLabel("工程师: 456 | 管理员: 123 | 厂家: 8888", container);
+    QLabel *hintLabel = new QLabel("工程师: 456 | 管理员: 123", container);
     hintLabel->setObjectName("passwordHint");
     hintLabel->setAlignment(Qt::AlignCenter);
 
