@@ -305,6 +305,12 @@ public:
     void showLegArmInterlockToast();
     /** @brief 隐藏吊重-支腿-伸缩臂联锁 Toast */
     void hideLegArmInterlockToast();
+    /** @brief 钢缆点动中的常驻提示：正在收回 / 正在放出 */
+    void showCableMotionToast(bool extending);
+    /** @brief 收起钢缆点动中的常驻提示 */
+    void hideCableMotionToast();
+    /** @brief 结束钢缆锁定运动：关提示、结历史，可选写 514=0 */
+    void stopLatchedCableMotion(const QString &historyEndReason, bool writeStop);
     /** @brief 显示驻车切换等待提示窗（与报警窗解耦） */
     void showParkingSwitchHintDialog(const QString &message);
     /** @brief 隐藏驻车切换等待提示窗 */
@@ -860,6 +866,8 @@ private:
     bool m_cableRetracted151Bit0Flag = false;
     /** @brief 主控 151.bit1：卷样机钢缆已完全放出 */
     bool m_cableExtended151Bit1Flag = false;
+    /** @brief 钢缆点动锁定：0=未运行，2=收回，4=放出。松开外部键不停，松开使能才清 514 */
+    int m_cableLatch514 = 0;
     /** @brief 主控 151.bit2：1=姿态调平灭灯不可用 */
     bool m_sixAxisLevelingBlocked151Bit2 = false;
     /** @brief 主控 151.bit3~7：吊重-支腿-伸缩臂联锁（保留原 bit 号） */

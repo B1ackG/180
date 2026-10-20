@@ -105,6 +105,10 @@ const QString kColumnRotateScreenClearanceHintText =
     QStringLiteral("请检查并将工控屏挪至AGV轮廓外侧！");
 const QString kReselectMotionTargetHintText =
     QStringLiteral("请先选择运动目标");
+const QString kCableRetractingToastText =
+    QStringLiteral("卷样机当前正在收回");
+const QString kCableExtendingToastText =
+    QStringLiteral("卷样机当前正在放出");
 
 constexpr int kRobotSoftLimitDetailReg = 152;
 constexpr int kRobotSoftLimitDetailCount = 1;
@@ -6156,7 +6160,8 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     // 六自由度页面外部键逻辑：
     // - 仅 ○1/○2 驱动六轴：目标轴由 groupBox_SixAxies_StepMove 当前选中项决定。
     //   点动写 613（○1 负向、○2 正向；轴6 再取反）；步进写 614 → 601/602 → 615。
-    // - 选中钢缆时：仅 ○1 收回、○2 放出；写 500=5，514=4/2；释放时 514 回 0。
+    // - 选中钢缆时：仅 ○1 放出、○2 收回；写 500=5，514=4/2。
+    //   松开外部键不停轴，松开使能才写 514=0。
     if (isSixAxisPage) {
         if (isSixAxisDiagonalMode()) {
             if (keyNumber != 1 && keyNumber != 2) {
@@ -6246,34 +6251,36 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                                      .remove(QLatin1Char('\n'));
         }
 
-        const bool isCableRetractKey = (keyNumber == 1);
-        const bool isCableExtendKey = (keyNumber == 2);
+        const bool isCableExtendKey = (keyNumber == 1);
+        const bool isCableRetractKey = (keyNumber == 2);
         if (axisIndex == 7) {
             if (!isCableRetractKey && !isCableExtendKey) {
                 return;
             }
+            if (!pressed) {
+                m_sixAxisExternalKeyPressed[keyNumber] = false;
+                return;
+            }
+
+            const int value514 = isCableExtendKey ? 4 : 2;
+            const bool alreadySame = (m_cableLatch514 == value514);
             const QString cableKey = isCableRetractKey
                 ? QStringLiteral("cable-retract")
                 : QStringLiteral("cable-extend");
             const QString cableName = isCableRetractKey
                 ? QStringLiteral("卷样机钢缆收回")
                 : QStringLiteral("卷样机钢缆放出");
-            if (!pressed) {
-                const bool wasPressed = m_sixAxisExternalKeyPressed.value(keyNumber, false);
-                m_sixAxisExternalKeyPressed[keyNumber] = false;
-                writeToMainDevice(514, 0);
-                if (wasPressed) {
-                    finishMotionHistory(cableKey, QStringLiteral("操作员松开按键，运动记录结束"));
-                }
-                return;
-            }
-
-            const int value514 = isCableRetractKey ? 4 : 2;
             writeToMainDevice(500, 5);
             writeToMainDevice(514, value514);
             m_sixAxisExternalKeyPressed[keyNumber] = true;
-            beginMotionHistory(cableKey, cableName,
-                               QStringLiteral("%1开始%2").arg(historyOperatorName(), cableName));
+            m_cableLatch514 = value514;
+            if (!alreadySame) {
+                finishActiveMotionsWithPrefix(QStringLiteral("cable-"),
+                                              QStringLiteral("收到新的运动命令，上一次运动记录结束"));
+                beginMotionHistory(cableKey, cableName,
+                                   QStringLiteral("%1开始%2").arg(historyOperatorName(), cableName));
+                showCableMotionToast(isCableExtendKey);
+            }
 
             qCDebug(lcMainWindow) << "六自由度页面钢缆外部按键○" << keyNumber
                                   << "写入 500=5, 514=" << value514;
@@ -7639,6 +7646,7 @@ void MainWindow::onModbusDisconnected()
                                                m_robotExternalWriteSeq,
                                                m_sixAxisExternalWriteSeq);
     const QString linkLostEnd = QStringLiteral("通信失败，运动记录结束");
+    stopLatchedCableMotion(linkLostEnd, false);
     finishActiveMotionsWithPrefix(QStringLiteral("robot-jog-"), linkLostEnd);
     finishActiveMotionsWithPrefix(QStringLiteral("six-jog-"), linkLostEnd);
     finishActiveMotionsWithPrefix(QStringLiteral("six-diagonal-"), linkLostEnd);
@@ -8335,6 +8343,9 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         if (cableRetracted != m_cableRetracted151Bit0Flag) {
             m_cableRetracted151Bit0Flag = cableRetracted;
             if (cableRetracted) {
+                if (m_cableLatch514 == 2) {
+                    stopLatchedCableMotion(QStringLiteral("卷样机钢缆已完全收回，运动记录结束"), true);
+                }
                 static const QString kMsg = QStringLiteral("卷样机钢缆已完全收回");
                 if (m_recorder) {
                     OperationRecord record;
@@ -8354,6 +8365,9 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
         if (cableExtended != m_cableExtended151Bit1Flag) {
             m_cableExtended151Bit1Flag = cableExtended;
             if (cableExtended) {
+                if (m_cableLatch514 == 4) {
+                    stopLatchedCableMotion(QStringLiteral("卷样机钢缆已完全放出，运动记录结束"), true);
+                }
                 static const QString kMsg = QStringLiteral("卷样机钢缆已完全放出");
                 if (m_recorder) {
                     OperationRecord record;
@@ -9942,6 +9956,7 @@ void MainWindow::processEnableButton(bool enabled)
             m_stepModeEnabled
                 ? QStringLiteral("AGV页步进松开使能：寄存器0 bit4/bit5/bit9/bit10=0")
                 : QStringLiteral("AGV页松开使能：寄存器0 bit9/bit10=0"));
+        stopLatchedCableMotion(QStringLiteral("操作员松开使能，运动记录结束"), true);
         releaseHeldExternalKeysOnEnableRelease();
         finishStepMotionWait(true);
         const QString enableReleaseEnd = QStringLiteral("操作员松开使能，运动记录结束");
@@ -16624,6 +16639,35 @@ void MainWindow::hideLegArmInterlockToast()
         dismissToastByMessage(legArmInterlockMessage(bit));
     }
     m_legArmInterlockShownMessage.clear();
+}
+
+void MainWindow::showCableMotionToast(bool extending)
+{
+    hideCableMotionToast();
+    const QString text = extending ? kCableExtendingToastText : kCableRetractingToastText;
+    if (m_lastToastMessage == text) {
+        m_lastToastMessage.clear();
+    }
+    showToast(text, ToastKind::Warning, -1, nullptr, false);
+}
+
+void MainWindow::hideCableMotionToast()
+{
+    dismissToastByMessage(kCableRetractingToastText);
+    dismissToastByMessage(kCableExtendingToastText);
+}
+
+void MainWindow::stopLatchedCableMotion(const QString &historyEndReason, bool writeStop)
+{
+    hideCableMotionToast();
+    if (m_cableLatch514 == 0) {
+        return;
+    }
+    if (writeStop) {
+        writeToMainDevice(514, 0);
+    }
+    finishActiveMotionsWithPrefix(QStringLiteral("cable-"), historyEndReason);
+    m_cableLatch514 = 0;
 }
 
 void MainWindow::showRobotAxisSyncDeviationDialog()
