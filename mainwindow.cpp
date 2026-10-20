@@ -103,6 +103,8 @@ const QString kAgvZeroSpeedHintText =
     QStringLiteral("当前设置的全向平台速度为0");
 const QString kColumnRotateScreenClearanceHintText =
     QStringLiteral("请检查并将工控屏挪至AGV轮廓外侧！");
+const QString kReselectMotionTargetHintText =
+    QStringLiteral("请先选择运动目标");
 
 constexpr int kRobotSoftLimitDetailReg = 152;
 constexpr int kRobotSoftLimitDetailCount = 1;
@@ -2139,6 +2141,7 @@ void MainWindow::showRobotView()
     setExclusiveNavButtonChecked(ui ? ui->TBtn_RobotControl : nullptr);
     syncStepModeUiByCurrentPage();
     updateStepTargetButtonsState();
+    clearRobotStepTargetSelection();
 }
 
 void MainWindow::showChassisView()
@@ -2164,6 +2167,11 @@ void MainWindow::showSixAxisView()
     updateStepTargetButtonsState();
     updateSixAxisPoseActionButtons();
     requestSixAxisInitStatusCheck();
+    if (isSixAxisDiagonalMode()) {
+        clearSixAxisDiagonalPlaneSelection();
+    } else {
+        clearSixAxisStepTargetSelection();
+    }
 }
 
 void MainWindow::setupSixAxisDiagonalControl()
@@ -2207,12 +2215,15 @@ void MainWindow::setupSixAxisDiagonalControl()
             }
             const QString name = button->objectName();
             if (name == QStringLiteral("btnSixAxisDiagonalXZ")) {
+                dismissToastByMessage(QStringLiteral("请先选择XZ或YZ"));
                 setSixAxisDiagonalPlane(SixAxisDiagonalPlane::XZ, true);
             } else if (name == QStringLiteral("btnSixAxisDiagonalYZ")) {
+                dismissToastByMessage(QStringLiteral("请先选择XZ或YZ"));
                 setSixAxisDiagonalPlane(SixAxisDiagonalPlane::YZ, true);
             }
         }, Qt::UniqueConnection);
     }
+    clearSixAxisDiagonalPlaneSelection();
 }
 
 bool MainWindow::isSixAxisDiagonalMode() const
@@ -2279,11 +2290,6 @@ void MainWindow::commitSixAxisRunMode(SixAxisRunMode mode, bool notifyUser)
     m_stepModeUnknown = mode == SixAxisRunMode::Unknown;
     m_stepModeEnabled = mode == SixAxisRunMode::Step;
     publishSixAxisRunModeUi();
-    if (mode == SixAxisRunMode::Diagonal
-        && m_sixAxisDiagonalPlane != SixAxisDiagonalPlane::XZ
-        && m_sixAxisDiagonalPlane != SixAxisDiagonalPlane::YZ) {
-        setSixAxisDiagonalPlane(SixAxisDiagonalPlane::XZ, true);
-    }
     if (notifyUser && mode != SixAxisRunMode::Unknown) {
         showNotification(QStringLiteral("已切换至%1").arg(QString::fromUtf8(sixAxisRunModeLabel(mode))));
     }
@@ -2421,9 +2427,15 @@ void MainWindow::updateSixAxisControlPage()
     if (!page) {
         page = ui->page_SixAxies_Control;
     }
-    if (page && ui->stackedWidget->currentWidget() != page) {
-        ui->stackedWidget->setCurrentWidget(page);
-        ui->stackedWidget->raise();
+    if (!page || ui->stackedWidget->currentWidget() == page) {
+        return;
+    }
+    ui->stackedWidget->setCurrentWidget(page);
+    ui->stackedWidget->raise();
+    if (page->objectName() == QStringLiteral("page_SixAxiesdiagram_Control")) {
+        clearSixAxisDiagonalPlaneSelection();
+    } else if (page == ui->page_SixAxies_Control) {
+        clearSixAxisStepTargetSelection();
     }
 }
 
@@ -6203,6 +6215,16 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         }
 
         const int axisIndex = selectedSixAxisTargetIndex();
+        if (axisIndex <= 0) {
+            const bool keyHeld = m_sixAxisExternalKeyPressed.value(keyNumber, false)
+                || m_sixAxisActiveKey == keyNumber;
+            if (pressed || !keyHeld) {
+                if (pressed && (keyNumber == 1 || keyNumber == 2)) {
+                    showToast(kReselectMotionTargetHintText, ToastKind::Warning);
+                }
+                return;
+            }
+        }
         QString selectedTargetText;
         if (m_sixAxisStepTargetGroup && m_sixAxisStepTargetGroup->checkedButton()) {
             selectedTargetText = QString(m_sixAxisStepTargetGroup->checkedButton()->text())
@@ -6477,6 +6499,18 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
         if (keyNumber != 1 && keyNumber != 2) {
             return;
+        }
+
+        const bool robotTargetSelected = m_stepTargetGroup && m_stepTargetGroup->checkedButton();
+        if (!robotTargetSelected) {
+            const bool keyHeld = m_robotExternalKeyPressed.value(keyNumber, false)
+                || m_robotActiveKey == keyNumber;
+            if (pressed || !keyHeld) {
+                if (pressed) {
+                    showToast(kReselectMotionTargetHintText, ToastKind::Warning);
+                }
+                return;
+            }
         }
 
         maybeShowZeroSpeedHintForHomePageExternalKey(keyNumber, pressed);
@@ -10250,7 +10284,8 @@ void MainWindow::onControlModeClicked()
         previousMode,
         QStringLiteral("%1由%2切换为%3，切换已下发").arg(historyOperatorName(), previousMode, currentMode));
 
-    if (!m_stepModeUnknown && m_stepModeEnabled) {
+    if (!m_stepModeUnknown && m_stepModeEnabled
+        && m_stepTargetGroup && m_stepTargetGroup->checkedButton()) {
         int targetCode = 1;
         const int targetReg = selectedStepTargetRegister();
         if (targetReg == 501) targetCode = 2;
@@ -11988,7 +12023,7 @@ QString MainWindow::selectedStepTargetName() const
 int MainWindow::selectedSixAxisTargetIndex() const
 {
     if (!m_sixAxisStepTargetGroup || !m_sixAxisStepTargetGroup->checkedButton()) {
-        return 1;
+        return 0;
     }
 
     const QString name = m_sixAxisStepTargetGroup->checkedButton()->objectName();
@@ -12076,30 +12111,21 @@ void MainWindow::updateStepTargetButtonsState()
         }
     }
 
-    auto applyExclusiveStepStyle = [](QButtonGroup *group, const QString &defaultButtonName) {
+    auto enableStepTargets = [](QButtonGroup *group) {
         if (!group) {
             return;
         }
 
         group->setExclusive(true);
-        const auto btns = group->buttons();
-        if (!group->checkedButton()) {
-            for (QAbstractButton *btn : btns) {
-                if (btn && btn->objectName() == defaultButtonName) {
-                    btn->setChecked(true);
-                    break;
-                }
-            }
-        }
-        for (QAbstractButton *btn : btns) {
+        for (QAbstractButton *btn : group->buttons()) {
             if (btn) {
                 btn->setEnabled(true);
             }
         }
     };
 
-    applyExclusiveStepStyle(m_stepTargetGroup, "btnStepTargetAxis1");
-    applyExclusiveStepStyle(m_sixAxisStepTargetGroup, "btnStepTargetSixAxis1");
+    enableStepTargets(m_stepTargetGroup);
+    enableStepTargets(m_sixAxisStepTargetGroup);
 
     const bool hideSixAxisCable = (!m_stepModeUnknown && m_stepModeEnabled);
     if (QAbstractButton *cableBtn = findChild<QAbstractButton*>(QStringLiteral("btnStepTargetSixAxis7"))) {
@@ -12293,6 +12319,49 @@ void MainWindow::clearAgvStepPadSelection()
     }
     m_agvStepPadLastSelection = nullptr;
     updateAGVStepPadVisuals();
+}
+
+namespace {
+
+void uncheckButtonGroup(QButtonGroup *group)
+{
+    if (!group) {
+        return;
+    }
+
+    const bool exclusive = group->exclusive();
+    const QSignalBlocker groupBlocker(group);
+    group->setExclusive(false);
+    for (QAbstractButton *btn : group->buttons()) {
+        if (!btn) {
+            continue;
+        }
+        const QSignalBlocker btnBlocker(btn);
+        btn->setChecked(false);
+    }
+    group->setExclusive(exclusive);
+}
+
+} // namespace
+
+void MainWindow::clearRobotStepTargetSelection()
+{
+    uncheckButtonGroup(m_stepTargetGroup);
+    dismissToastByMessage(kColumnRotateScreenClearanceHintText);
+}
+
+void MainWindow::clearSixAxisStepTargetSelection()
+{
+    uncheckButtonGroup(m_sixAxisStepTargetGroup);
+}
+
+void MainWindow::clearSixAxisDiagonalPlaneSelection()
+{
+    uncheckButtonGroup(m_sixAxisDiagonalPlaneGroup);
+    m_sixAxisDiagonalPlane = SixAxisDiagonalPlane::None;
+    m_sixAxisPlaneWriteConfirmed = false;
+    m_sixAxisPlaneWriteId = 0;
+    m_sixAxisPlaneWritePlane = SixAxisDiagonalPlane::None;
 }
 
 void MainWindow::applyAgvStepPadAxisSelection(QAbstractButton *clicked)
@@ -12527,6 +12596,9 @@ void MainWindow::setupStepMoveControl()
             }
 
             const QString n = btn->objectName();
+            if (btn->isChecked()) {
+                dismissToastByMessage(kReselectMotionTargetHintText);
+            }
             if (n == QStringLiteral("btnStepTargetAxis1") && btn->isChecked()) {
                 showToast(kColumnRotateScreenClearanceHintText, ToastKind::Warning, -1);
             } else if (btn->isChecked()) {
@@ -12640,6 +12712,10 @@ void MainWindow::setupStepMoveControl()
                 return;
             }
 
+            if (btn && btn->isChecked()) {
+                dismissToastByMessage(kReselectMotionTargetHintText);
+            }
+
             if (!m_stepModeEnabled || m_stepModeUnknown || !btn || !btn->isChecked()) {
                 return;
             }
@@ -12662,13 +12738,8 @@ void MainWindow::setupStepMoveControl()
         }, Qt::UniqueConnection);
     }
 
-    if (axis1Btn2 && !m_sixAxisStepTargetGroup->checkedButton()) {
-        axis1Btn2->setChecked(true);
-    }
-
-    if (axis1Btn && !m_stepTargetGroup->checkedButton()) {
-        axis1Btn->setChecked(true);
-    }
+    clearRobotStepTargetSelection();
+    clearSixAxisStepTargetSelection();
 
     if (m_btnStepMove) {
         // 启动时先显示未选择，随后由寄存器值回填

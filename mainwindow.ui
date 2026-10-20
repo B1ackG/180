@@ -1338,9 +1338,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                   <property name="checkable">
                    <bool>true</bool>
                   </property>
-                  <property name="checked">
-                   <bool>true</bool>
-                  </property>
                  </widget>
                 </item>
                 <item>
@@ -1510,9 +1507,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                    <string>RX</string>
                   </property>
                   <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                  <property name="checked">
                    <bool>true</bool>
                   </property>
                  </widget>
@@ -1734,9 +1728,6 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                    <string>XZ</string>
                   </property>
                   <property name="checkable">
-                   <bool>true</bool>
-                  </property>
-                  <property name="checked">
                    <bool>true</bool>
                   </property>
                  </widget>

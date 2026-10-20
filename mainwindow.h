@@ -524,6 +524,12 @@ public:
     void applyAgvStepPadAxisSelection(QAbstractButton *clicked);
     /** @brief 清空步进九键盘选中态，需用户重新选择方向 */
     void clearAgvStepPadSelection();
+    /** @brief 清空机械臂步进目标，打开 page_Robot_Control 后需重新选择 */
+    void clearRobotStepTargetSelection();
+    /** @brief 清空六自由度步进目标，打开 page_SixAxies_Control 后需重新选择 */
+    void clearSixAxisStepTargetSelection();
+    /** @brief 清空斜向平面，打开 page_SixAxiesdiagram_Control 后需重新选择 */
+    void clearSixAxisDiagonalPlaneSelection();
     /** @brief 刷新底盘步进九键盘选中态外观 */
     void updateAGVStepPadVisuals();
     /** @brief 步进九键盘：切到底盘模式，到位后写角度 */
@@ -542,7 +548,7 @@ public:
     int selectedStepTargetRegister() const;
     /** @brief 获取当前选中的步进目标名称 */
     QString selectedStepTargetName() const;
-    /** @brief 获取当前选中的六轴目标轴号（1~6，默认 RX） */
+    /** @brief 获取当前选中的六轴目标轴号（1~7；未选择时为 0） */
     int selectedSixAxisTargetIndex() const;
     /** @brief 根据模式与当前页刷新步进控制分组标题与可用态 */
     void updateStepMoveGroupBoxState();
