@@ -2139,6 +2139,7 @@ void MainWindow::showRobotView()
     leaveSixAxisDiagonalForDeviceSwitch();
     applyInnerDeviceStacks(InnerDeviceView::Robot);
     setExclusiveNavButtonChecked(ui ? ui->TBtn_RobotControl : nullptr);
+    syncRobotSoftLimitToasts();
     syncStepModeUiByCurrentPage();
     updateStepTargetButtonsState();
     clearRobotStepTargetSelection();
@@ -2149,6 +2150,7 @@ void MainWindow::showChassisView()
     leaveSixAxisDiagonalForDeviceSwitch();
     applyInnerDeviceStacks(InnerDeviceView::Chassis);
     setExclusiveNavButtonChecked(ui ? ui->TBtn_ChassisControl : nullptr);
+    suppressRobotAxisLimitToastsOffHome();
     syncStepModeUiByCurrentPage();
     updateStepTargetButtonsState();
     if (!m_stepModeUnknown && m_stepModeEnabled) {
@@ -2163,6 +2165,7 @@ void MainWindow::showSixAxisView()
     }
     applyInnerDeviceStacks(InnerDeviceView::SixAxis);
     setExclusiveNavButtonChecked(ui ? ui->TBtn_SixAxies : nullptr);
+    suppressRobotAxisLimitToastsOffHome();
     syncStepModeUiByCurrentPage();
     updateStepTargetButtonsState();
     updateSixAxisPoseActionButtons();
@@ -5456,8 +5459,11 @@ void MainWindow::showToast(const QString &message,
     if (!persistentToast) {
         closeTimer = new QTimer(this);
         closeTimer->setSingleShot(true);
-        connect(closeTimer, &QTimer::timeout, this, [this, toast]() {
-            dismissToast(toast);
+        const QPointer<QWidget> toastGuard(toast);
+        connect(closeTimer, &QTimer::timeout, this, [this, toastGuard]() {
+            if (toastGuard) {
+                dismissToast(toastGuard.data());
+            }
         });
         closeTimer->start(toastDurationMs);
     }
@@ -5469,6 +5475,14 @@ void MainWindow::dismissToast(QWidget *toast)
 {
     if (!toast) {
         return;
+    }
+
+    // 定时关闭、挤掉旧条、确认关闭都会走到这里。先摘掉限位槽位上的指针，
+    // 避免 5 秒到时删掉控件后，下一次 hide 再对已释放对象 deleteLater（Bus error）。
+    for (int slot = 0; slot < kRobotAxisLimitSlotCount; ++slot) {
+        if (m_robotAxisLimitToast[slot] == toast) {
+            m_robotAxisLimitToast[slot].clear();
+        }
     }
 
     for (int i = 0; i < m_toasts.size(); ++i) {
@@ -8333,7 +8347,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                     record.newValue = kMsg;
                     m_recorder->addRecord(record);
                 }
-                showToast(kMsg, ToastKind::Warning);
+                showToast(kMsg, ToastKind::Warning, -1);
             }
         }
 
@@ -8352,7 +8366,7 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                     record.newValue = kMsg;
                     m_recorder->addRecord(record);
                 }
-                showToast(kMsg, ToastKind::Warning);
+                showToast(kMsg, ToastKind::Warning, -1);
             }
         }
 
@@ -16254,8 +16268,9 @@ void MainWindow::showRobotAxisLimitToast(int slot)
     if (!userPopupsAllowed()) {
         return;
     }
-    // 正负限位 Toast 仅在首页显示
-    if (!ui || !ui->StackedWidget || ui->StackedWidget->currentIndex() != 0) {
+    // 机械臂、六自由度、底盘共用 StackedWidget 的 page_Robot（index 0）。
+    // 限位 Toast 只在机械臂页显示，避免操作钢缆时弹出 J 轴限位。
+    if (!isRobotAxisViewActive()) {
         return;
     }
 
@@ -16298,11 +16313,20 @@ void MainWindow::hideRobotAxisLimitToast(int slot)
     if (slot < 0 || slot >= kRobotAxisLimitSlotCount) {
         return;
     }
-    if (m_robotAxisLimitToast[slot]) {
-        dismissToast(m_robotAxisLimitToast[slot]);
-        m_robotAxisLimitToast[slot] = nullptr;
+    if (QWidget *toast = m_robotAxisLimitToast[slot].data()) {
+        m_robotAxisLimitToast[slot].clear();
+        dismissToast(toast);
     }
     m_robotAxisLimitAcked[slot] = false;
+}
+
+void MainWindow::suppressRobotAxisLimitToastsOffHome()
+{
+    for (int slot = 0; slot < kRobotAxisLimitSlotCount; ++slot) {
+        if (QWidget *toast = m_robotAxisLimitToast[slot].data()) {
+            dismissToast(toast);
+        }
+    }
 }
 
 void MainWindow::hideRobotLimitReachedDialog()

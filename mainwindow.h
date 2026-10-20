@@ -17,6 +17,7 @@
 
 #include <QMainWindow>
 #include <QHash>
+#include <QPointer>
 #include "techpushbutton.h"
 #include "techspeedgauge.h"
 #include "techslideredit.h"
@@ -853,7 +854,8 @@ private:
     bool m_robotAxisLimitActive[8] = {};
     /** @brief 该位仍为 1 时用户已点确认，轮询不再补弹 */
     bool m_robotAxisLimitAcked[8] = {};
-    QWidget *m_robotAxisLimitToast[8] = {};
+    /** @brief 对应轴限位 Toast。控件销毁后自动变空，避免关闭后再次 dismiss 碰到已释放对象 */
+    QPointer<QWidget> m_robotAxisLimitToast[8];
     /** @brief 主控 151.bit0：卷样机钢缆已完全收回 */
     bool m_cableRetracted151Bit0Flag = false;
     /** @brief 主控 151.bit1：卷样机钢缆已完全放出 */
@@ -1416,10 +1418,12 @@ private:
     void syncRobotSoftLimitToasts();
     /** @brief 生成「J{n}轴到达正/负限位」 */
     QString robotLimitToastMessage(int axisIndex, bool positiveLimit) const;
-    /** @brief 细分辨位 0→1 时显示该轴 Toast；已确认或非首页则不弹 */
+    /** @brief 细分辨位 0→1 时显示该轴 Toast；已确认或不在机械臂页则不弹 */
     void showRobotAxisLimitToast(int slot);
     /** @brief 关掉指定轴 Toast 并清除确认标记 */
     void hideRobotAxisLimitToast(int slot);
+    /** @brief 离开机械臂页时收起已显示的限位 Toast，不改到位标志和确认标志 */
+    void suppressRobotAxisLimitToastsOffHome();
     /** @brief 机械臂页同向运动按下时，限位位仍为 1 则补弹 */
     void reshowRobotAxisLimitToastForMotion(int axisIndex, bool positiveLimit);
     /** @brief 隐藏指定 Toast 并重排剩余项 */

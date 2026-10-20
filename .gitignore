@@ -105,3 +105,7 @@ system_check.log
 # Added by Assistant staging review
 *.json
 *.jsonl
+
+# Added by Assistant staging review
+.worktrees/rev-25c4adc
+rev-25c4adc
