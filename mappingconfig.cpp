@@ -133,7 +133,7 @@ QString scrubOperationHistoryRegisterWriteText(QString s)
         return QString();
     }
 
-    // 如「○9点动按下：寄存器0 bit3=1」→ 去掉冒号后的寄存器位描述
+    // 如「○1点动按下：寄存器0 bit3=1」→ 去掉冒号后的寄存器位描述
     static const QRegularExpression reColonRegisterTail(
         QStringLiteral(R"([:：][^:：]*寄存器\s*\d+.*$)"),
         QRegularExpression::DotMatchesEverythingOption);

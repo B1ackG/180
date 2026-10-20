@@ -5,7 +5,6 @@
 
 #include <QMap>
 #include <QPointer>
-#include <QSet>
 #include <QWidget>
 
 class QPushButton;
@@ -16,7 +15,8 @@ class QPushButton;
  * 不挂到主窗口下面，避免跟主界面一起被模态窗盖住。
  * 窗口带 Qt::WA_GroupLeader：ApplicationModal 只挡住普通顶层窗口，
  * 这个属性让 QWidgetWindow 的 qt_try_modal 继续把鼠标交给按键。
- * ○1～○14 与使能键均为点按切换：点一下进入按下，再点一下进入松开。
+ * ○1～○14 与使能键：左键按住为短按，松开即松开；右键锁定按下，再点一次松开。
+ * 左键按住时再右键会转为锁定，松开左键后仍保持按下。已锁定时松开左键不会松开。
  * 示教器 Release 不编译此控件。
  */
 class VirtualMatrixKeyPanel : public QWidget
@@ -44,10 +44,19 @@ protected:
 private:
     void buildUi();
     void applyCollapsedState();
+    struct InputHold {
+        bool latched = false;
+        bool momentary = false;
+        bool isPressed() const { return latched || momentary; }
+    };
+
     void releaseAllHeldInputs();
-    void onKeyToggled(int keyNumber, bool pressed);
-    void onEnableToggled(bool enabled);
     void onToggleClicked();
+    int keyNumberForButton(const QPushButton *button) const;
+    /** 处理左键短按与右键锁定。返回 true 表示事件已吃掉。 */
+    bool handleInputMouse(QPushButton *button, InputHold &hold, QEvent *event);
+    void syncChecked(QPushButton *button, bool pressed);
+    void clearInput(QPushButton *button, InputHold &hold);
 
     static constexpr int kCollapsedWidth = 28;
     static constexpr int kExpandedWidth = 120;
@@ -57,8 +66,8 @@ private:
 
     QPointer<QWidget> m_host;
     bool m_collapsed = false;
-    bool m_enableHeld = false;
-    QSet<int> m_heldKeys;
+    InputHold m_enableHold;
+    QMap<int, InputHold> m_keyHolds;
     QWidget *m_expandedBody = nullptr;
     QPushButton *m_toggleButton = nullptr;
     QPushButton *m_enableButton = nullptr;

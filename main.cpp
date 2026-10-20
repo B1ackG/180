@@ -443,7 +443,7 @@ int main(int argc, char *argv[])
 
     // 单实例保护：禁止同时跑两个 180。
     // 两实例都会打开 /dev/input/event0 并写同一套 Modbus；后台实例常停在首页，
-    // 会在前台已切到六自由度时仍执行首页 ○9/○10（AGV）逻辑。
+    // 会在前台已切到六自由度时仍执行首页 ○1/○2（AGV）逻辑。
     const bool allowMultiple = a.arguments().contains(QStringLiteral("--allow-multiple"));
     QLockFile instanceLock(QDir::temp().absoluteFilePath(QStringLiteral("industrial_control_180.lock")));
     instanceLock.setStaleLockTime(30 * 1000); // 崩溃残留锁约 30s 后可接管

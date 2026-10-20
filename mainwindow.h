@@ -556,7 +556,7 @@ public:
     void writeStepMoveRegisters();
     /** @brief 清除步进寄存器 */
     void clearStepMoveRegisters();
-    /** @brief 首页步进：当 ○1~○10 均已松开时清空当前页步进输入（机械臂或底盘距离） */
+    /** @brief 首页步进：当 ○1、○2 均已松开时清空当前页步进输入（机械臂或底盘距离） */
     void maybeClearFirstPageStepValueIfAllExternalKeysReleased();
 
     // ==========================================
@@ -1464,9 +1464,6 @@ private:
     /** @brief 记录竖直支撑动作（用于历史记录） */
     void recordVerticalSupportAction(int keyNumber, bool pressed);
 
-    /** @brief 记录水平支撑动作 */
-    void recordHorizontalSupportAction(int keyNumber, bool pressed);
-
     /** @brief 记录水平支撑移动动作 */
     void recordHorizontalSupportMoveAction(int keyNumber, bool pressed);
     /** @brief 写入支腿展出/收回相关操作历史 */
@@ -1586,7 +1583,7 @@ private:
     void applyDefaultJogStepModeFromExternalKey();
     /** @brief 处理第二套 AGV 按键动作 */
     void handleAGVKey2Action(int keyNumber, bool pressed);
-    /** @brief 检查 ○9/○10、转向切换、驻车按钮用的高度/长度互锁提示语（空表示无互锁） */
+    /** @brief 检查底盘进退、转向切换、驻车按钮用的高度/长度互锁提示语（空表示无互锁） */
     QString robotInterlockHintMessage() const;
     /** @brief 高度/长度互锁有效时显示模态提示并返回 true */
     bool blockIfHeightLengthInterlock();
@@ -1598,7 +1595,7 @@ private:
     /** @brief 获取当前转向模式文本（用于记录） */
     QString currentSteeringModeText() const;
 
-    /** @brief 记录AGV外部按键运动日志；按下时按○2/○10正向、○1/○9反向写入「开始正向/反向运动」；stepDistanceText 非空时追加「步进距离为：…」 */
+    /** @brief 记录AGV外部按键运动日志；按下时按○2正向、○1反向写入「开始正向/反向运动」；stepDistanceText 非空时追加「步进距离为：…」 */
     void appendAgvExternalKeyRecord(int keyNumber, bool pressed, const QString &stepDistanceText = QString());
 
     /** @brief 处理矩阵键动作 */

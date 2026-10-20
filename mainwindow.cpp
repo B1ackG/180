@@ -101,6 +101,8 @@ const QString kRobotZeroSpeedHintText =
     QStringLiteral("当前设置的机器人全局速度为0");
 const QString kAgvZeroSpeedHintText =
     QStringLiteral("当前设置的全向平台速度为0");
+const QString kColumnRotateScreenClearanceHintText =
+    QStringLiteral("请检查并将工控屏挪至AGV轮廓外侧！");
 
 constexpr int kRobotSoftLimitDetailReg = 152;
 constexpr int kRobotSoftLimitDetailCount = 1;
@@ -5913,31 +5915,6 @@ void MainWindow::recordVerticalSupportAction(int keyNumber, bool pressed)
     showNotification(description);
 }
 
-// 记录伸缩臂页面的操作
-void MainWindow::recordHorizontalSupportAction(int keyNumber, bool pressed)
-{
-    if (keyNumber != 3 && keyNumber != 4) {
-        return;
-    }
-    const bool negative = (keyNumber == 3);
-    const QString motionName = negative ? QStringLiteral("立柱旋转负方向") : QStringLiteral("立柱旋转正方向");
-    const QString key = negative ? QStringLiteral("hori-rot-neg") : QStringLiteral("hori-rot-pos");
-    const QString angleText = QString::number(getAxisCurrentValue(1), 'f', 1) + QStringLiteral("度");
-    if (pressed) {
-        m_robotExternalKeyPressed[keyNumber] = true;
-        const QString description = QStringLiteral("%1开始%2，当前角度%3，速度为每秒%4度")
-                                        .arg(historyOperatorName(), motionName, angleText)
-                                        .arg(getSliderEditValue("TechSliderEdit_HoriSupSec_RotationSpeed"), 0, 'f', 1);
-        beginMotionHistory(key, motionName, description);
-        showNotification(description);
-        return;
-    }
-    m_robotExternalKeyPressed[keyNumber] = false;
-    const QString description = QStringLiteral("操作员松开按键，运动记录结束，当前角度%1").arg(angleText);
-    finishMotionHistory(key, description);
-    showNotification(description);
-}
-
 void MainWindow::recordHorizontalSupportMoveAction(int keyNumber, bool pressed)
 {
     if (keyNumber != 1 && keyNumber != 2) {
@@ -6121,15 +6098,12 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         }
         return;
     }
-    // 超载仍有效且用户已点「确认」关窗后：拦截外部按键（首页 ○3/○4 除外），并再次弹出超载提示
+    // 超载仍有效且用户已点「确认」关窗后：拦截外部按键，并再次弹出超载提示
     if (pressed && m_robotWeightOverload150Bit3Flag && m_robotWeightOverloadUserAckedWhileActive) {
-        const bool firstPageOverloadExempt = (isRobotAxisViewActive() && (keyNumber == 3 || keyNumber == 4));
-        if (!firstPageOverloadExempt) {
-            m_robotWeightOverloadUserAckedWhileActive = false;
-            requestPopupRefresh();
-            ui->statusBar->showMessage(QStringLiteral("负载超限：该外部按键操作已无效"), 3000);
-            return;
-        }
+        m_robotWeightOverloadUserAckedWhileActive = false;
+        requestPopupRefresh();
+        ui->statusBar->showMessage(QStringLiteral("负载超限：该外部按键操作已无效"), 3000);
+        return;
     }
 
     QString pageName = m_pageNames.value(currentPage, "未知");
@@ -6156,7 +6130,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     // 六自由度页面外部键逻辑：
     // - 仅 ○1/○2 驱动六轴：目标轴由 groupBox_SixAxies_StepMove 当前选中项决定。
     //   点动写 613（○1 负向、○2 正向；轴6 再取反）；步进写 614 → 601/602 → 615。
-    // - 选中钢缆时：○1/○13 收回、○2/○14 放出；写 500=5，514=4/2；释放时 514 回 0。
+    // - 选中钢缆时：仅 ○1 收回、○2 放出；写 500=5，514=4/2；释放时 514 回 0。
     if (isSixAxisPage) {
         if (isSixAxisDiagonalMode()) {
             if (keyNumber != 1 && keyNumber != 2) {
@@ -6236,8 +6210,8 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                                      .remove(QLatin1Char('\n'));
         }
 
-        const bool isCableRetractKey = (keyNumber == 1 || keyNumber == 13);
-        const bool isCableExtendKey = (keyNumber == 2 || keyNumber == 14);
+        const bool isCableRetractKey = (keyNumber == 1);
+        const bool isCableExtendKey = (keyNumber == 2);
         if (axisIndex == 7) {
             if (!isCableRetractKey && !isCableExtendKey) {
                 return;
@@ -6422,7 +6396,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         return;
     }
 
-    // 底盘控制：○1/○2 沿用原 ○9/○10 底盘运动；○13/○14 仍写钢缆 500/514。
+    // 底盘控制：仅 ○1 反向、○2 正向。
     if (isAgvPage) {
         if (keyNumber == 1) {
             handleAGVKeyAction(keyNumber, pressed);
@@ -6431,55 +6405,6 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
         if (keyNumber == 2) {
             handleAGVKey2Action(keyNumber, pressed);
             return;
-        }
-        if (keyNumber != 13 && keyNumber != 14) {
-            return;
-        }
-
-        if (!pressed) {
-            const bool wasPressed = m_robotExternalKeyPressed.value(keyNumber, false);
-            m_robotExternalKeyPressed[keyNumber] = false;
-            writeToMainDevice(514, 0);
-            if (wasPressed) {
-                const QString action = (keyNumber == 13)
-                    ? QStringLiteral("收回")
-                    : QStringLiteral("放出");
-                appendBusinessHistory(
-                    QStringLiteral("底盘控制"),
-                    QStringLiteral("卷样机钢缆"),
-                    QStringLiteral("设备动作"),
-                    QStringLiteral("动作结束"),
-                    QStringLiteral("钢缆正在%1").arg(action),
-                    QStringLiteral("%1松开外部键○%2，钢缆动作结束").arg(historyOperatorName()).arg(keyNumber));
-            }
-            return;
-        }
-
-        // 关节模式常驻，点动和步进都执行钢缆动作
-        {
-            const int value514 = (keyNumber == 13) ? 4 : 2;
-            const QString action = (keyNumber == 13)
-                ? QStringLiteral("收回")
-                : QStringLiteral("放出");
-            
-            // 先写目标轴(500=5)，再写动作(514)
-            writeToMainDevice(500, 5);
-            
-            // 延时写514以确保PLC逻辑正确识别
-            QTimer::singleShot(50, this, [this, value514]() {
-                writeToMainDevice(514, value514);
-            });
-
-            m_robotExternalKeyPressed[keyNumber] = true;
-            appendBusinessHistory(
-                QStringLiteral("底盘控制"),
-                QStringLiteral("卷样机钢缆"),
-                QStringLiteral("设备动作"),
-                QStringLiteral("开始%1").arg(action),
-                QStringLiteral("钢缆停止"),
-                QStringLiteral("%1按住外部键○%2，钢缆开始%3").arg(historyOperatorName()).arg(keyNumber).arg(action));
-            qCDebug(lcMainWindow) << "AGV页面外部按键○" << keyNumber
-                                  << "写入 500=5, 514=" << value514;
         }
         return;
     }
@@ -6697,7 +6622,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     }
 
     // 处理124地址的写入
-    if (keyNumber >= 1 && keyNumber <= 4) {
+    if (keyNumber >= 1 && keyNumber <= 2) {
         int value = getValueFor124Address(keyNumber, pressed);
 
         if (value != 0 || !pressed) {  // 按下时写入特定值，释放时写入0
@@ -6717,11 +6642,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     // 新增：记录伸缩臂页面的操作
     if (pageName == "伸缩臂") {
         if (keyNumber == 1 || keyNumber == 2) {
-            // 新增：处理伸缩臂的移动操作（缩短/伸长）
             recordHorizontalSupportMoveAction(keyNumber, pressed);
-        } else if (keyNumber == 3 || keyNumber == 4) {
-            // 原有：处理伸缩臂的旋转操作
-            recordHorizontalSupportAction(keyNumber, pressed);
         }
     }
 
@@ -6753,7 +6674,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         return;
     }
 
-    if (keyNumber != 1 && keyNumber != 9) {
+    if (keyNumber != 1) {
         return;
     }
 
@@ -6777,7 +6698,7 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         }
 
         if (!isChassisViewActive()) {
-            qCDebug(lcMainWindow) << "首页○9(步进)：当前非底盘页，忽略";
+            qCDebug(lcMainWindow) << "首页○1(步进)：当前非底盘页，忽略";
             return;
         }
 
@@ -6788,9 +6709,9 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         }
 
         if (!m_agvStepDistanceEdit) {
-            qCDebug(lcMainWindow) << "首页○9(步进)：未找到 lineEdit_AGVStep_Distance，仅写 bit4/bit5";
-            writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○9步进按下(1)：寄存器0 bit4=1"));
-            writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
+            qCDebug(lcMainWindow) << "首页○1(步进)：未找到 lineEdit_AGVStep_Distance，仅写 bit4/bit5";
+            writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○1步进按下(1)：寄存器0 bit4=1"));
+            writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○1步进按下(3)：寄存器0 bit5=1"));
             appendAgvExternalKeyRecord(keyNumber, pressed);
             markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
             beginStepMotionWait(StepMotionWaitKind::Agv);
@@ -6801,15 +6722,15 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
         bool ok = false;
         const double raw = m_agvStepDistanceEdit->text().trimmed().toDouble(&ok);
         if (!ok) {
-            qCDebug(lcMainWindow) << "首页○9(步进)：步进距离无效" << m_agvStepDistanceEdit->text();
+            qCDebug(lcMainWindow) << "首页○1(步进)：步进距离无效" << m_agvStepDistanceEdit->text();
             return;
         }
         int stepInt = static_cast<int>(raw);
         stepInt = -stepInt;
 
-        writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○9步进按下(1)：寄存器0 bit4=1"));
+        writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○1步进按下(1)：寄存器0 bit4=1"));
         writeToAGVDevice(5, stepInt);
-        writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○9步进按下(3)：寄存器0 bit5=1"));
+        writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○1步进按下(3)：寄存器0 bit5=1"));
         appendAgvExternalKeyRecord(keyNumber, pressed, m_agvStepDistanceEdit->text().trimmed());
         markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
         beginStepMotionWait(StepMotionWaitKind::Agv);
@@ -6824,8 +6745,8 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
     }
     writeAGVRegisterBits(0,
                          { qMakePair(3, pressed) },
-                         pressed ? QStringLiteral("○9点动按下：寄存器0 bit3=1")
-                                 : QStringLiteral("○9点动释放：寄存器0 bit3=0"));
+                         pressed ? QStringLiteral("○1点动按下：寄存器0 bit3=1")
+                                 : QStringLiteral("○1点动释放：寄存器0 bit3=0"));
     appendAgvExternalKeyRecord(keyNumber, pressed);
 }
 
@@ -6862,16 +6783,7 @@ int MainWindow::getValueFor124Address(int keyNumber, bool pressed)
         }
         break;
 
-    case 3: // 按键○3
-        if (pageName == "伸缩臂") {  // page_HoriSupSec
-            return -1;
-        }
-        break;
-
-    case 4: // 按键○4
-        if (pageName == "伸缩臂") {  // page_HoriSupSec
-            return 1;
-        }
+    default:
         break;
     }
 
@@ -11110,7 +11022,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         return;
     }
 
-    if (keyNumber != 2 && keyNumber != 10) {
+    if (keyNumber != 2) {
         return;
     }
 
@@ -11134,7 +11046,7 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         }
 
         if (!isChassisViewActive()) {
-            qCDebug(lcMainWindow) << "首页○10(步进)：当前非底盘页，忽略";
+            qCDebug(lcMainWindow) << "首页○2(步进)：当前非底盘页，忽略";
             return;
         }
 
@@ -11145,9 +11057,9 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         }
 
         if (!m_agvStepDistanceEdit) {
-            qCDebug(lcMainWindow) << "首页○10(步进)：未找到 lineEdit_AGVStep_Distance，仅写 bit4/bit5";
-            writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○10步进按下(1)：寄存器0 bit4=1"));
-            writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
+            qCDebug(lcMainWindow) << "首页○2(步进)：未找到 lineEdit_AGVStep_Distance，仅写 bit4/bit5";
+            writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○2步进按下(1)：寄存器0 bit4=1"));
+            writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○2步进按下(3)：寄存器0 bit5=1"));
             appendAgvExternalKeyRecord(keyNumber, pressed);
             markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
             beginStepMotionWait(StepMotionWaitKind::Agv);
@@ -11158,14 +11070,14 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
         bool ok = false;
         const double raw = m_agvStepDistanceEdit->text().trimmed().toDouble(&ok);
         if (!ok) {
-            qCDebug(lcMainWindow) << "首页○10(步进)：步进距离无效" << m_agvStepDistanceEdit->text();
+            qCDebug(lcMainWindow) << "首页○2(步进)：步进距离无效" << m_agvStepDistanceEdit->text();
             return;
         }
         const int stepInt = static_cast<int>(raw);
 
-        writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○10步进按下(1)：寄存器0 bit4=1"));
+        writeAGVRegisterBits(0, { qMakePair(4, true) }, QStringLiteral("○2步进按下(1)：寄存器0 bit4=1"));
         writeToAGVDevice(5, stepInt);
-        writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○10步进按下(3)：寄存器0 bit5=1"));
+        writeAGVRegisterBits(0, { qMakePair(5, true) }, QStringLiteral("○2步进按下(3)：寄存器0 bit5=1"));
         appendAgvExternalKeyRecord(keyNumber, pressed, m_agvStepDistanceEdit->text().trimmed());
         markStepMotionPendingStop(StepMotionStopKind::Agv, QStringLiteral("底盘(AGV)"), keyNumber);
         beginStepMotionWait(StepMotionWaitKind::Agv);
@@ -11180,8 +11092,8 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
     }
     writeAGVRegisterBits(0,
                          { qMakePair(2, pressed) },
-                         pressed ? QStringLiteral("○10点动按下：寄存器0 bit2=1")
-                                 : QStringLiteral("○10点动释放：寄存器0 bit2=0"));
+                         pressed ? QStringLiteral("○2点动按下：寄存器0 bit2=1")
+                                 : QStringLiteral("○2点动释放：寄存器0 bit2=0"));
     appendAgvExternalKeyRecord(keyNumber, pressed);
 }
 
@@ -11207,7 +11119,7 @@ void MainWindow::appendAgvExternalKeyRecord(int keyNumber, bool pressed, const Q
     const double speedValue = m_editAGV_MoveSpeed ? m_editAGV_MoveSpeed->value() : getSliderEditValue("SEdit_AGV_MoveSpeed");
     const double angleValue = m_editAGV_Angle ? m_editAGV_Angle->value() : getSliderEditValue("SEdit_AGV_Angle");
 
-    const bool isForwardKey = (keyNumber == 2 || keyNumber == 10);
+    const bool isForwardKey = (keyNumber == 2);
     const bool stepMotion = m_stepModeEnabled;
     const QString direction = isForwardKey ? QStringLiteral("向前") : QStringLiteral("向后");
     const QString motionName = stepMotion
@@ -11992,7 +11904,7 @@ void MainWindow::maybeClearFirstPageStepValueIfAllExternalKeysReleased()
     if (!m_stepModeEnabled || !ui || !ui->StackedWidget || ui->StackedWidget->currentIndex() != 0) {
         return;
     }
-    for (int k = 1; k <= 10; ++k) {
+    for (int k = 1; k <= 2; ++k) {
         if (m_robotExternalKeyPressed.value(k, false)) {
             return;
         }
@@ -12026,7 +11938,7 @@ void MainWindow::onEnableButtonReleasedStepMode()
 {
     qCDebug(lcMainWindow) << "步进模式下使能按钮释放";
 
-    // 首页步进输入：不在使能松开时清空，改由所有外部按键(○1~○10)均松开后清空。
+    // 首页步进输入：不在使能松开时清空，改由外部按键 ○1、○2 均松开后清空。
 
     // 步进模式下使能按钮释放：不写514；机械臂 lineEdit_StepValue / 底盘 lineEdit_AGVStep_Distance 清空见 maybeClearFirstPageStepValueIfAllExternalKeysReleased。
 
@@ -12610,12 +12522,22 @@ void MainWindow::setupStepMoveControl()
         m_stepTargetGroup->addButton(btn);
 
         connect(btn, &QToolButton::clicked, this, [this, btn]() {
-            if (!m_stepModeEnabled || m_stepModeUnknown || !btn || !btn->isChecked()) {
+            if (!btn) {
+                return;
+            }
+
+            const QString n = btn->objectName();
+            if (n == QStringLiteral("btnStepTargetAxis1") && btn->isChecked()) {
+                showToast(kColumnRotateScreenClearanceHintText, ToastKind::Warning, -1);
+            } else if (btn->isChecked()) {
+                dismissToastByMessage(kColumnRotateScreenClearanceHintText);
+            }
+
+            if (!m_stepModeEnabled || m_stepModeUnknown || !btn->isChecked()) {
                 return;
             }
 
             int targetCode = 1;
-            const QString n = btn->objectName();
             if (n == "btnStepTargetAxis1") targetCode = 1;
             else if (n == "btnStepTargetAxis2") targetCode = 2;
             else if (n == "btnStepTargetAxis3") targetCode = 3;
@@ -15857,7 +15779,7 @@ void MainWindow::maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, boo
         return;
     }
     if (isChassisViewActive()) {
-        if (keyNumber != 1 && keyNumber != 2 && keyNumber != 9 && keyNumber != 10) {
+        if (keyNumber != 1 && keyNumber != 2) {
             return;
         }
         const double agvSpeed = m_editAGV_MoveSpeed
@@ -15884,29 +15806,16 @@ void MainWindow::maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, boo
         return;
     }
 
-    bool speedIsZero = false;
-    if (keyNumber == 1 || keyNumber == 2) {
-        speedIsZero = (getSliderEditValue(QStringLiteral("TechSliderEdit_Robot_RobotSpeed")) <= 0.0);
-    } else if (keyNumber == 9 || keyNumber == 10) {
-        const double agvSpeed = m_editAGV_MoveSpeed
-                                      ? m_editAGV_MoveSpeed->value()
-                                      : getSliderEditValue(QStringLiteral("SEdit_AGV_MoveSpeed"));
-        speedIsZero = (agvSpeed <= 0.0);
-    } else {
+    if (keyNumber != 1 && keyNumber != 2) {
         return;
     }
 
-    if (!speedIsZero) {
+    if (getSliderEditValue(QStringLiteral("TechSliderEdit_Robot_RobotSpeed")) > 0.0) {
         return;
     }
 
-    if (keyNumber == 1 || keyNumber == 2) {
-        showZeroSpeedOperationHintDialog(kRobotZeroSpeedHintText,
-                                         kRobotZeroSpeedHistoryText);
-    } else {
-        showZeroSpeedOperationHintDialog(kAgvZeroSpeedHintText,
-                                         kAgvZeroSpeedHistoryText);
-    }
+    showZeroSpeedOperationHintDialog(kRobotZeroSpeedHintText,
+                                     kRobotZeroSpeedHistoryText);
 }
 
 void MainWindow::showZeroSpeedOperationHintDialog(const QString &hintText,
@@ -15980,7 +15889,7 @@ void MainWindow::maybeShowUnconfiguredStepValueHintForExternalKey(int keyNumber,
         }
         stepEdit = findChild<QLineEdit*>(QStringLiteral("lineEdit_SixAxies_StepValue"));
     } else if (isChassisViewActive()) {
-        if (keyNumber != 1 && keyNumber != 2 && keyNumber != 9 && keyNumber != 10) {
+        if (keyNumber != 1 && keyNumber != 2) {
             return;
         }
         stepEdit = m_agvStepDistanceEdit;
@@ -16128,14 +16037,11 @@ bool MainWindow::maybeShowUnselectedStepModeHintForExternalKey(int keyNumber, bo
     const QString pageObjectName = currentPageWidget->objectName();
     if (isSixAxisViewActive()
         || pageObjectName == QStringLiteral("page_SixAxies")) {
-        if (keyNumber != 1 && keyNumber != 2 && keyNumber != 13 && keyNumber != 14) {
-            return false;
-        }
-        if ((keyNumber == 13 || keyNumber == 14) && selectedSixAxisTargetIndex() != 7) {
+        if (keyNumber != 1 && keyNumber != 2) {
             return false;
         }
     } else if (isChassisViewActive()) {
-        if (keyNumber != 1 && keyNumber != 2 && keyNumber != 13 && keyNumber != 14) {
+        if (keyNumber != 1 && keyNumber != 2) {
             return false;
         }
     } else if (isRobotAxisViewActive()

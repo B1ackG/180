@@ -8,8 +8,11 @@
 #include <QGuiApplication>
 #include <QHBoxLayout>
 #include <QHideEvent>
+#include <QList>
+#include <QMouseEvent>
 #include <QPushButton>
 #include <QScreen>
+#include <QSignalBlocker>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -110,8 +113,9 @@ void VirtualMatrixKeyPanel::buildUi()
     m_enableButton->setFocusPolicy(Qt::NoFocus);
     m_enableButton->setCheckable(true);
     m_enableButton->setAutoRepeat(false);
+    m_enableButton->setContextMenuPolicy(Qt::NoContextMenu);
     m_enableButton->setCursor(Qt::PointingHandCursor);
-    connect(m_enableButton, &QPushButton::toggled, this, &VirtualMatrixKeyPanel::onEnableToggled);
+    m_enableButton->setToolTip(QStringLiteral("左键按住为短按，松开即松开；右键锁定按下，再点一次松开"));
     bodyLayout->addWidget(m_enableButton);
 
     auto *grid = new QGridLayout();
@@ -124,12 +128,12 @@ void VirtualMatrixKeyPanel::buildUi()
         button->setFocusPolicy(Qt::NoFocus);
         button->setCheckable(true);
         button->setAutoRepeat(false);
+        button->setContextMenuPolicy(Qt::NoContextMenu);
         button->setCursor(Qt::PointingHandCursor);
         button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        connect(button, &QPushButton::toggled, this, [this, keyNumber](bool pressed) {
-            onKeyToggled(keyNumber, pressed);
-        });
+        button->setToolTip(QStringLiteral("左键按住为短按，松开即松开；右键锁定按下，再点一次松开"));
         m_keyButtons.insert(keyNumber, button);
+        m_keyHolds.insert(keyNumber, InputHold());
         const int row = (keyNumber - 1) / 2;
         const int col = (keyNumber - 1) % 2;
         grid->addWidget(button, row, col);
@@ -236,6 +240,30 @@ bool VirtualMatrixKeyPanel::eventFilter(QObject *watched, QEvent *event)
         return QWidget::eventFilter(watched, event);
     }
 
+    if (auto *button = qobject_cast<QPushButton *>(watched)) {
+        if (button == m_enableButton) {
+            const bool before = m_enableHold.isPressed();
+            if (handleInputMouse(button, m_enableHold, event)) {
+                if (m_enableHold.isPressed() != before) {
+                    emit enableButtonChanged(m_enableHold.isPressed());
+                }
+                return true;
+            }
+        } else {
+            const int keyNumber = keyNumberForButton(button);
+            if (keyNumber > 0) {
+                InputHold &hold = m_keyHolds[keyNumber];
+                const bool before = hold.isPressed();
+                if (handleInputMouse(button, hold, event)) {
+                    if (hold.isPressed() != before) {
+                        emit matrixKeyChanged(keyNumber, hold.isPressed());
+                    }
+                    return true;
+                }
+            }
+        }
+    }
+
     if (event->type() == QEvent::Show) {
         auto *shown = qobject_cast<QWidget *>(watched);
         if (shown && shown->isWindow() && shown != this
@@ -253,38 +281,91 @@ bool VirtualMatrixKeyPanel::eventFilter(QObject *watched, QEvent *event)
 
 void VirtualMatrixKeyPanel::releaseAllHeldInputs()
 {
-    if (m_enableButton && m_enableButton->isChecked()) {
-        m_enableButton->setChecked(false);
+    const bool enableWasPressed = m_enableHold.isPressed();
+    clearInput(m_enableButton, m_enableHold);
+
+    QList<int> releasedKeys;
+    for (auto it = m_keyHolds.begin(); it != m_keyHolds.end(); ++it) {
+        if (it.value().isPressed()) {
+            releasedKeys.append(it.key());
+        }
+        clearInput(m_keyButtons.value(it.key()), it.value());
     }
 
+    if (enableWasPressed) {
+        emit enableButtonChanged(false);
+    }
+    for (int keyNumber : releasedKeys) {
+        emit matrixKeyChanged(keyNumber, false);
+    }
+}
+
+int VirtualMatrixKeyPanel::keyNumberForButton(const QPushButton *button) const
+{
     for (auto it = m_keyButtons.cbegin(); it != m_keyButtons.cend(); ++it) {
-        QPushButton *button = it.value();
-        if (button && button->isChecked()) {
-            button->setChecked(false);
+        if (it.value() == button) {
+            return it.key();
         }
     }
+    return 0;
 }
 
-void VirtualMatrixKeyPanel::onKeyToggled(int keyNumber, bool pressed)
+bool VirtualMatrixKeyPanel::handleInputMouse(QPushButton *button, InputHold &hold, QEvent *event)
 {
-    if (pressed) {
-        if (m_heldKeys.contains(keyNumber)) {
-            return;
+    const QEvent::Type type = event->type();
+    if (type == QEvent::ContextMenu) {
+        return true;
+    }
+    if (type != QEvent::MouseButtonPress
+        && type != QEvent::MouseButtonRelease
+        && type != QEvent::MouseButtonDblClick) {
+        return false;
+    }
+
+    const auto *mouse = static_cast<const QMouseEvent *>(event);
+    const Qt::MouseButton which = mouse->button();
+
+    if (type == QEvent::MouseButtonRelease) {
+        if (which == Qt::LeftButton) {
+            hold.momentary = false;
+            if (button && QWidget::mouseGrabber() == button) {
+                button->releaseMouse();
+            }
         }
-        m_heldKeys.insert(keyNumber);
-    } else if (!m_heldKeys.remove(keyNumber)) {
-        return;
+        syncChecked(button, hold.isPressed());
+        return true;
     }
-    emit matrixKeyChanged(keyNumber, pressed);
+
+    if (which == Qt::LeftButton) {
+        hold.momentary = true;
+        if (button) {
+            button->grabMouse();
+        }
+    } else if (which == Qt::RightButton) {
+        hold.latched = !hold.latched;
+    }
+
+    syncChecked(button, hold.isPressed());
+    return true;
 }
 
-void VirtualMatrixKeyPanel::onEnableToggled(bool enabled)
+void VirtualMatrixKeyPanel::syncChecked(QPushButton *button, bool pressed)
 {
-    if (m_enableHeld == enabled) {
+    if (!button || button->isChecked() == pressed) {
         return;
     }
-    m_enableHeld = enabled;
-    emit enableButtonChanged(enabled);
+    const QSignalBlocker blocker(button);
+    button->setChecked(pressed);
+}
+
+void VirtualMatrixKeyPanel::clearInput(QPushButton *button, InputHold &hold)
+{
+    hold.latched = false;
+    hold.momentary = false;
+    syncChecked(button, false);
+    if (button && QWidget::mouseGrabber() == button) {
+        button->releaseMouse();
+    }
 }
 
 void VirtualMatrixKeyPanel::onToggleClicked()
