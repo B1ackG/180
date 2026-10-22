@@ -79,6 +79,20 @@ public:
         StateDisabled
     };
 
+    // 方向盘矢量图标（用于底盘步进九键等）
+    enum DirectionGlyph {
+        GlyphNone = 0,
+        GlyphUp,
+        GlyphDown,
+        GlyphLeft,
+        GlyphRight,
+        GlyphUpLeft,
+        GlyphUpRight,
+        GlyphDownLeft,
+        GlyphDownRight,
+        GlyphRotate
+    };
+
     /**
      * @brief 使用文本构造
      *
@@ -224,6 +238,15 @@ public:
      */
     void setTechIcon(const QIcon &icon);
 
+    /**
+     * @brief 设置矢量方向图标
+     *
+     * 在按钮上半部绘制抗锯齿箭头/旋转符号，文字自动落到下沿。
+     * 颜色跟随 `textColor` / `glowColor`，选中态会额外加光晕。
+     */
+    void setDirectionGlyph(DirectionGlyph glyph);
+    DirectionGlyph directionGlyph() const { return m_directionGlyph; }
+
     // 设置按钮文字效果
     /**
      * @brief 启用/禁用文字发光
@@ -309,7 +332,9 @@ private:
     void drawCyberButton(QPainter &painter, const QRect &rect);
 
     void drawIcon(QPainter &painter, const QRect &rect);
+    void drawDirectionGlyph(QPainter &painter, const QRect &rect);
     void drawText(QPainter &painter, const QRect &rect);
+    int directionCaptionHeight(const QRect &rect) const;
     void drawGlowEffect(QPainter &painter, const QRect &rect);
     void drawScanLine(QPainter &painter, const QRect &rect);
     void drawDataFlow(QPainter &painter, const QRect &rect);
@@ -350,6 +375,7 @@ private:
 
     // 图标相关
     QIcon m_techIcon;
+    DirectionGlyph m_directionGlyph;
 
     // 定时器（用于数据流效果）
     // QTimer *m_dataFlowTimer;

@@ -12273,8 +12273,31 @@ void MainWindow::setupAGVStepPad()
         QStringLiteral("WenQuanYi Micro Hei"),
         QStringLiteral("DejaVu Sans")
     });
-    padFont.setPointSize(13);
+    padFont.setPointSize(11);
     padFont.setBold(true);
+
+    static const QHash<QString, TechPushButton::DirectionGlyph> kGlyph{
+        {QStringLiteral("techBtn_AGVStep_UpLeft"), TechPushButton::GlyphUpLeft},
+        {QStringLiteral("techBtn_AGVStep_Up"), TechPushButton::GlyphUp},
+        {QStringLiteral("techBtn_AGVStep_UpRight"), TechPushButton::GlyphUpRight},
+        {QStringLiteral("techBtn_AGVStep_Left"), TechPushButton::GlyphLeft},
+        {QStringLiteral("techBtn_AGVStep_Rotate"), TechPushButton::GlyphRotate},
+        {QStringLiteral("techBtn_AGVStep_Right"), TechPushButton::GlyphRight},
+        {QStringLiteral("techBtn_AGVStep_DownLeft"), TechPushButton::GlyphDownLeft},
+        {QStringLiteral("techBtn_AGVStep_Down"), TechPushButton::GlyphDown},
+        {QStringLiteral("techBtn_AGVStep_DownRight"), TechPushButton::GlyphDownRight},
+    };
+    static const QHash<QString, QString> kCaption{
+        {QStringLiteral("techBtn_AGVStep_UpLeft"), QStringLiteral("左上")},
+        {QStringLiteral("techBtn_AGVStep_Up"), QStringLiteral("上")},
+        {QStringLiteral("techBtn_AGVStep_UpRight"), QStringLiteral("右上")},
+        {QStringLiteral("techBtn_AGVStep_Left"), QStringLiteral("左")},
+        {QStringLiteral("techBtn_AGVStep_Rotate"), QStringLiteral("原地旋转")},
+        {QStringLiteral("techBtn_AGVStep_Right"), QStringLiteral("右")},
+        {QStringLiteral("techBtn_AGVStep_DownLeft"), QStringLiteral("左下")},
+        {QStringLiteral("techBtn_AGVStep_Down"), QStringLiteral("下")},
+        {QStringLiteral("techBtn_AGVStep_DownRight"), QStringLiteral("右下")},
+    };
 
     int buttonId = 0;
     for (const QString &name : buttonNames) {
@@ -12286,15 +12309,16 @@ void MainWindow::setupAGVStepPad()
         btn->setAutoExclusive(false);
         btn->setCursor(Qt::PointingHandCursor);
         btn->setFont(padFont);
-        btn->setButtonStyle(TechPushButton::StyleHolographic);
-        btn->setCornerRadius(16);
+        btn->setButtonStyle(TechPushButton::StyleDefault);
+        btn->setCornerRadius(name == QStringLiteral("techBtn_AGVStep_Rotate") ? 22 : 14);
         btn->setBorderWidth(2);
         btn->enableHoverAnimation(true);
         btn->enableClickAnimation(true);
+        btn->enable3DEffect(true);
         btn->setTextGlow(true);
-        if (name == QStringLiteral("techBtn_AGVStep_Rotate")) {
-            btn->setText(QStringLiteral("原地旋转"));
-        }
+        btn->setDirectionGlyph(kGlyph.value(name, TechPushButton::GlyphNone));
+        btn->setTechIconSize(QSize(48, 48));
+        btn->setText(kCaption.value(name, btn->text()));
         if (m_agvStepDirectionGroup->id(btn) == -1) {
             m_agvStepDirectionGroup->addButton(btn, buttonId);
         }
@@ -12449,11 +12473,12 @@ void MainWindow::updateAGVStepPadVisuals()
         const bool on = btn->isChecked();
         const bool isRotate = (btn->objectName() == QStringLiteral("techBtn_AGVStep_Rotate"));
         const QColor primary = on ? (isRotate ? activeRotate : active) : inactive;
-        btn->setButtonStyle(on && isRotate ? TechPushButton::StyleEnergy : TechPushButton::StyleHolographic);
+        btn->setButtonStyle(on && isRotate ? TechPushButton::StyleEnergy : TechPushButton::StyleDefault);
         btn->setPrimaryColor(primary);
-        btn->setSecondaryColor(on ? QColor(160, 255, 255) : QColor(70, 100, 120));
-        btn->setGlowColor(on ? primary.lighter(145) : QColor(58, 82, 104));
+        btn->setSecondaryColor(on ? QColor(180, 255, 255) : QColor(78, 112, 138));
+        btn->setGlowColor(on ? primary.lighter(145) : QColor(72, 108, 136));
         btn->setTextColor(on ? QColor(255, 255, 255) : inactiveText);
+        btn->setTechIconSize(on ? QSize(52, 52) : QSize(46, 46));
         btn->enablePulseEffect(false);
         btn->update();
     }
