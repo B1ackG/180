@@ -380,7 +380,7 @@ public:
     void showParkingLegAbnormalDialog();
     /** @brief 隐藏支腿异常驻车操作弹窗 */
     void hideParkingLegAbnormalDialog();
-    /** @brief 按 bit7 与驻车切换状态更新支腿异常弹窗显隐（与切换提示窗/绕车检查窗互斥） */
+    /** @brief 按 bit7、当前是否底盘页与驻车切换状态更新支腿异常弹窗显隐（仅 AGV 页弹出） */
     void updateParkingLegAbnormalDialogVisibility();
     /** @brief 显示倾覆风险提示窗（倾角报警阈值与锁定阈值之间） */
     void showInclinometerTiltRiskDialog();

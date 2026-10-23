@@ -2057,6 +2057,7 @@ void MainWindow::setExclusiveNavButtonChecked(QToolButton *active)
             btn->setChecked(btn == active);
         }
     }
+    requestPopupRefresh();
 }
 
 bool MainWindow::isRobotAxisViewActive() const
@@ -13845,6 +13846,7 @@ PopupSnapshot MainWindow::buildPopupSnapshot() const
         && !m_robotWeightOverloadUserAckedWhileActive
         && !m_robotWeightLock150Bit7Flag;
     snapshot.parkingLegAbnormal = m_agvLegAbnormal51Bit7Flag
+        && isChassisViewActive()
         && !property("parkingSwitchWaiting").toBool()
         && !m_legOpenPathCheckActive;
     snapshot.inclinometerTiltRisk = m_inclinometerTiltRiskInZone && !m_inclinometerTiltRiskAcked;
