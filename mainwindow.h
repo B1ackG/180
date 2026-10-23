@@ -1205,7 +1205,7 @@ private:
     bool rejectMotionUntilStopConfirmed();
     /** @brief 记录示教互锁归属；从其他示教器切回本机时打开权限页 */
     void noteTeachPendantInterlockValue(quint16 registerValue);
-    /** @brief 打开权限页并同步导航选中状态 */
+    /** @brief 打开权限页并同步导航选中状态（转调 showPermissionView） */
     void openPermissionPage();
 
     /** @brief 将寄存器 130 反映到机器人速度滑块 */
@@ -1378,6 +1378,7 @@ private:
     void showRobotView();
     void showChassisView();
     void showSixAxisView();
+    void showPermissionView();
     void setupSixAxisDiagonalControl();
     bool isSixAxisDiagonalMode() const;
     void applySixAxisRunMode(SixAxisRunMode mode, bool writeRegister600, bool notifyUser);
@@ -1515,6 +1516,9 @@ private:
     QString historyMotionTargetName(const QString &jointName) const;
     QString historySixAxisName(int axisIndex) const;
     QString historyModeSelectionText(const QWidget *widget, const QString &detailText) const;
+    QString historyNavMenuParentTitle(const QWidget *widget) const;
+    QString historyNavMenuSwitchText(const QWidget *widget, const QString &childText) const;
+    void appendNavMenuChildHistory(const QString &parentTitle, const QString &childText);
     QString historyMotionKeyForTarget(const QString &jointName) const;
     double historySixAxisCurrentValue(int axisIndex) const;
     QHash<QString, ActiveMotionHistory> m_activeMotionHistory;

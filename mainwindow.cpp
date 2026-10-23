@@ -2181,6 +2181,25 @@ void MainWindow::showSixAxisView()
     }
 }
 
+void MainWindow::showPermissionView()
+{
+    if (!ui || !ui->StackedWidget || !ui->page_Permission) {
+        return;
+    }
+    leaveSixAxisDiagonalForDeviceSwitch();
+    suppressRobotAxisLimitToastsOffHome();
+    syncStepModeUiByCurrentPage();
+    updateStepTargetButtonsState();
+    hideCollapsibleControlPanels();
+    ui->StackedWidget->setCurrentWidget(ui->page_Permission);
+    setExclusiveNavButtonChecked(ui->TBtn_PermissionPage);
+    if (m_currentUserRole == UserRole::Admin) {
+        refreshWeightThresholdEditsFromDevice();
+        refreshHeightLengthThresholdEditsFromDevice();
+        refreshInclinometerThresholdEditsFromDevice();
+    }
+}
+
 void MainWindow::setupSixAxisDiagonalControl()
 {
     QToolButton *xzButton = findChild<QToolButton*>(QStringLiteral("btnSixAxisDiagonalXZ"));
@@ -2298,6 +2317,8 @@ void MainWindow::commitSixAxisRunMode(SixAxisRunMode mode, bool notifyUser)
     m_stepModeEnabled = mode == SixAxisRunMode::Step;
     publishSixAxisRunModeUi();
     if (notifyUser && mode != SixAxisRunMode::Unknown) {
+        appendNavMenuChildHistory(QStringLiteral("控制模式"),
+                                  QString::fromUtf8(sixAxisRunModeLabel(mode)));
         showNotification(QStringLiteral("已切换至%1").arg(QString::fromUtf8(sixAxisRunModeLabel(mode))));
     }
 }
@@ -2544,12 +2565,7 @@ void MainWindow::setupNavigationConnections()
     const auto guardDeviceView = [this](const auto &showView) {
         if (isPermissionSelectionPending()) {
             showNotification(QStringLiteral("请先选择权限"));
-            if (ui->page_Permission) {
-                ui->StackedWidget->setCurrentWidget(ui->page_Permission);
-            }
-            if (ui->TBtn_PermissionPage) {
-                ui->TBtn_PermissionPage->setChecked(true);
-            }
+            showPermissionView();
             return;
         }
         showView();
@@ -2576,13 +2592,7 @@ void MainWindow::setupRecordAndPermissionConnections()
     connect(ui->TBtn_HistoryRecord, &QPushButton::clicked, this, [this]() {
         if (isPermissionSelectionPending()) {
             showNotification(QStringLiteral("请先选择权限"));
-            leaveSixAxisDiagonalForDeviceSwitch();
-            if (ui->page_Permission) {
-                ui->StackedWidget->setCurrentWidget(ui->page_Permission);
-            }
-            if (ui->TBtn_PermissionPage) {
-                ui->TBtn_PermissionPage->setChecked(true);
-            }
+            showPermissionView();
             return;
         }
         if (m_currentUserRole >= UserRole::Admin) {
@@ -2597,21 +2607,13 @@ void MainWindow::setupRecordAndPermissionConnections()
             const QString tip = "权限不足：查看历史记录需要管理员权限";
             showToast(tip, ToastKind::Warning);
             updateStatusTip(tip);
+            showPermissionView();
         }
     });
 
     hideRetiredMoveModeButton();
     connect(ui->TBtn_PermissionPage, &QPushButton::clicked, this, [this]() {
-        leaveSixAxisDiagonalForDeviceSwitch();
-        if (ui->page_Permission) {
-            ui->StackedWidget->setCurrentWidget(ui->page_Permission);
-        }
-        setExclusiveNavButtonChecked(ui->TBtn_PermissionPage);
-        if (m_currentUserRole == UserRole::Admin) {
-            refreshWeightThresholdEditsFromDevice();
-            refreshHeightLengthThresholdEditsFromDevice();
-            refreshInclinometerThresholdEditsFromDevice();
-        }
+        showPermissionView();
     });
 
     connect(m_recorder, &OperationRecorder::recordAdded, this, [this](const OperationRecord &record) {
@@ -2643,11 +2645,7 @@ void MainWindow::setupRecordAndPermissionConnections()
                 return;
             }
             if (ui->StackedWidget->currentWidget() != ui->page_Permission) {
-                leaveSixAxisDiagonalForDeviceSwitch();
-                ui->StackedWidget->setCurrentWidget(ui->page_Permission);
-                if (ui->TBtn_PermissionPage) {
-                    ui->TBtn_PermissionPage->setChecked(true);
-                }
+                showPermissionView();
             }
         });
     }
@@ -4176,7 +4174,11 @@ void MainWindow::connectRecordSignals()
             toolButton->objectName().contains("admin", Qt::CaseInsensitive) ||
             toolButton->objectName() == QStringLiteral("TBtn_RemoveWarning") ||
             toolButton->objectName() == QStringLiteral("TBtn_Interlocking") ||
-            toolButton->objectName() == QStringLiteral("TBtn_ControlMode")) {
+            toolButton->objectName() == QStringLiteral("TBtn_ControlMode") ||
+            toolButton->objectName() == QStringLiteral("TBtn_ControlModeMenu") ||
+            toolButton->objectName() == QStringLiteral("TBtn_DeviceControlMenu") ||
+            toolButton->objectName() == QStringLiteral("TBtn_PageNavMenu") ||
+            toolButton->objectName() == QStringLiteral("TBtn_Stepmove")) {
             continue;
         }
 
@@ -4199,23 +4201,29 @@ void MainWindow::connectRecordSignals()
                         : (!tooltipText.isEmpty() ? tooltipText : toolButton->objectName());
                     const QString groupTitle = findNearestGroupTitle(toolButton);
                     const QString modeSelectionText = historyModeSelectionText(toolButton, detailText);
-                    if (toolButton->isCheckable() && !toolButton->isChecked() && !modeSelectionText.isEmpty()) {
+                    const QString navMenuText = historyNavMenuSwitchText(toolButton, detailText);
+                    if (toolButton->isCheckable() && !toolButton->isChecked()
+                        && (!modeSelectionText.isEmpty() || !navMenuText.isEmpty())) {
                         return;
                     }
 
                     OperationRecord record;
                     record.timestamp = QDateTime::currentDateTime();
                     record.pageName = MappingConfig::instance()->mapPageName(pageName);
-                    record.controlName = !modeSelectionText.isEmpty()
-                        ? modeSelectionText
-                        : (groupTitle.isEmpty()
+                    if (!navMenuText.isEmpty()) {
+                        record.controlName = navMenuText;
+                    } else if (!modeSelectionText.isEmpty()) {
+                        record.controlName = modeSelectionText;
+                    } else {
+                        record.controlName = groupTitle.isEmpty()
                             ? QStringLiteral("切换到“%1”").arg(detailText)
-                            : QStringLiteral("“%1”切换到了“%2”").arg(groupTitle, detailText));
+                            : QStringLiteral("“%1”切换到了“%2”").arg(groupTitle, detailText);
+                    }
                     record.controlType = MappingConfig::instance()->mapControlType("QToolButton");
                     record.operation = MappingConfig::instance()->mapOperation("clicked");
                     record.oldValue = "";
                     record.newValue = MappingConfig::instance()->mapValue(detailText);
-                    if (!modeSelectionText.isEmpty()) {
+                    if (!modeSelectionText.isEmpty() || !navMenuText.isEmpty()) {
                         record.operation = QString();
                         record.newValue = QString();
                     }
@@ -7385,27 +7393,19 @@ void MainWindow::noteTeachPendantInterlockValue(quint16 registerValue)
     m_teachPendantOwnershipKnown = true;
     m_teachPendantOwnedByOther = !localActive;
     if (switchedBackToLocal) {
-        openPermissionPage();
+        const bool alreadyThere =
+            ui && ui->StackedWidget && ui->page_Permission
+            && ui->StackedWidget->currentWidget() == ui->page_Permission;
+        showPermissionView();
+        if (!alreadyThere) {
+            showNotification(QStringLiteral("已切换回当前示教器"));
+        }
     }
 }
 
 void MainWindow::openPermissionPage()
 {
-    if (!ui || !ui->StackedWidget || !ui->page_Permission) {
-        return;
-    }
-    const bool alreadyThere = ui->StackedWidget->currentWidget() == ui->page_Permission;
-    leaveSixAxisDiagonalForDeviceSwitch();
-    ui->StackedWidget->setCurrentWidget(ui->page_Permission);
-    setExclusiveNavButtonChecked(ui->TBtn_PermissionPage);
-    if (m_currentUserRole == UserRole::Admin) {
-        refreshWeightThresholdEditsFromDevice();
-        refreshHeightLengthThresholdEditsFromDevice();
-        refreshInclinometerThresholdEditsFromDevice();
-    }
-    if (!alreadyThere) {
-        showNotification(QStringLiteral("已切换回当前示教器"));
-    }
+    showPermissionView();
 }
 
 void MainWindow::applyRobotSpeedUiFromRegister130(quint16 value)
@@ -7481,6 +7481,27 @@ void MainWindow::on_TBtn_Interlocking_clicked()
     } else {
         valueToWrite = static_cast<quint16>(upperValue);
         nextLabel = upper;
+    }
+
+    const bool protectUpperTeach =
+        isFeatureEnabled("permission_system", "permission.upper_teach_protect");
+    const bool localIsLower =
+        ModbusWriteGate::configuredTeachingDeviceId() == static_cast<quint16>(lowerValue);
+    const bool takingFromUpper = (label == upper);
+    if (protectUpperTeach && localIsLower && takingFromUpper
+        && m_currentUserRole < UserRole::Engineer) {
+        const QString tip = QStringLiteral("从上方示教器切回需要工程师及以上权限");
+        showToast(tip, ToastKind::Warning);
+        showPermissionView();
+        appendBusinessHistory(
+            QStringLiteral("权限登录"),
+            QStringLiteral("示教器权限"),
+            QStringLiteral("权限变更"),
+            QStringLiteral("切换示教器"),
+            label,
+            QStringLiteral("%1切换示教器未执行，从上方示教器切回需要工程师及以上权限")
+                .arg(historyOperatorName()));
+        return;
     }
 
     ModbusWriteCommand command;
@@ -11983,6 +12004,10 @@ void MainWindow::onStepMoveButtonClicked()
         ui->statusBar->showMessage("已切换到点动模式", 2000);
     }
 
+    if (ui->TBtn_Stepmove) {
+        appendNavMenuChildHistory(QStringLiteral("控制模式"), ui->TBtn_Stepmove->text());
+    }
+
     updateFunctionSwitchVisuals();
     updateStepTargetButtonsState();
     updateChassisParameterPage();
@@ -13230,6 +13255,62 @@ QString MainWindow::historyModeSelectionText(const QWidget *widget, const QStrin
         axisName = detailText;
     }
     return QStringLiteral("%1当前处于%2下").arg(axisName, groupTitle);
+}
+
+QString MainWindow::historyNavMenuParentTitle(const QWidget *widget) const
+{
+    if (!widget) {
+        return QString();
+    }
+    for (const QWidget *current = widget; current; current = current->parentWidget()) {
+        if (current == m_controlModePopup) {
+            return QStringLiteral("控制模式");
+        }
+        if (current == m_deviceControlPopup) {
+            return QStringLiteral("设备控制");
+        }
+        if (current == m_pageNavigationPopup) {
+            return QStringLiteral("系统管理");
+        }
+    }
+    const QString name = widget->objectName();
+    if (name == QStringLiteral("TBtn_Stepmove")
+        || name == QStringLiteral("TBtn_Interlocking")
+        || name == QStringLiteral("TBtn_ControlMode")) {
+        return QStringLiteral("控制模式");
+    }
+    if (name == QStringLiteral("TBtn_RobotControl")
+        || name == QStringLiteral("TBtn_ChassisControl")
+        || name == QStringLiteral("TBtn_SixAxies")) {
+        return QStringLiteral("设备控制");
+    }
+    if (name == QStringLiteral("TBtn_HistoryRecord")
+        || name == QStringLiteral("TBtn_PermissionPage")) {
+        return QStringLiteral("系统管理");
+    }
+    return QString();
+}
+
+QString MainWindow::historyNavMenuSwitchText(const QWidget *widget, const QString &childText) const
+{
+    const QString parentTitle = historyNavMenuParentTitle(widget);
+    const QString child = QString(childText).remove(QLatin1Char('\r')).remove(QLatin1Char('\n')).trimmed();
+    if (parentTitle.isEmpty() || child.isEmpty() || parentTitle == child) {
+        return QString();
+    }
+    return QStringLiteral("%1切换到%2").arg(parentTitle, child);
+}
+
+void MainWindow::appendNavMenuChildHistory(const QString &parentTitle, const QString &childText)
+{
+    const QString child = QString(childText).remove(QLatin1Char('\r')).remove(QLatin1Char('\n')).trimmed();
+    if (parentTitle.isEmpty() || child.isEmpty() || parentTitle == child) {
+        return;
+    }
+    appendBusinessHistory(QStringLiteral("通用/导航"),
+                          QStringLiteral("%1切换到%2").arg(parentTitle, child),
+                          QStringLiteral("工具按钮"),
+                          QString(), QString(), QString());
 }
 
 QString MainWindow::historyMotionTargetName(const QString &jointName) const

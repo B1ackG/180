@@ -632,19 +632,30 @@ void MappingConfig::normalizeOperationRecord(OperationRecord &record) const
     record.oldValue = mapVariantForDisplay(record.oldValue);
     record.newValue = mapVariantForDisplay(record.newValue);
 
-    // 3. 处理：有页面的显示“切换到XX页面”，没有页面的显示“切换到XX”
-    // 判断逻辑：如果控件名包含“切换”且 newValue 有效
-    if (record.controlName.contains("切换") && !record.newValue.toString().isEmpty()) {
-        QString target = record.newValue.toString();
-        if (target.contains("页面")) {
-            record.operation = QString("切换到%1").arg(target);
-        } else {
-            record.operation = QString("切换到%1").arg(target); // 统一逻辑，如果值里没带页面就在映射逻辑里处理
-            // 如果 newValue 已经是映射后的（如“伸缩臂页面”），则直接使用
-        }
-        // 既然已经揉到了操作详情，清空值显示避免重复
+    // 3. 控件名已经写清切换时，不再把同样的话复制到 operation / newValue
+    if (record.controlName.contains(QStringLiteral("切换"))) {
         record.oldValue = QVariant();
         record.newValue = QVariant();
+    }
+
+    auto foldHistoryText = [](QString text) {
+        text.remove(QLatin1Char('"'));
+        text.remove(QStringLiteral("“"));
+        text.remove(QStringLiteral("”"));
+        text.remove(QLatin1Char(' '));
+        text.replace(QStringLiteral("切换到了"), QStringLiteral("切换到"));
+        return text;
+    };
+    const QString foldedName = foldHistoryText(record.controlName);
+    const QString foldedOp = foldHistoryText(record.operation);
+    if (!foldedOp.isEmpty() && !foldedName.isEmpty()
+        && (foldedName.contains(foldedOp) || foldedOp.contains(foldedName))) {
+        record.operation = QString();
+    }
+    const QString foldedValue = foldHistoryText(record.newValue.toString());
+    if (!foldedValue.isEmpty()
+        && (foldedName.contains(foldedValue) || foldedOp.contains(foldedValue))) {
+        record.newValue = QString();
     }
 
     // 4. 处理：groupBox 或 steeringModeSelector 等切换时不记录关闭动作

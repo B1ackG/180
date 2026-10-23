@@ -58,6 +58,7 @@ void FeatureSwitchManager::initializeFeatureSets()
 
         "permission.admin_login",
         "permission.password_hint",
+        "permission.upper_teach_protect",
 
         "records.filter_export",
 
