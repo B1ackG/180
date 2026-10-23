@@ -1513,7 +1513,10 @@ private:
     void finishActiveMotionsWithPrefix(const QString &keyPrefix, const QString &resultDescription);
     void finishActiveMotionsContaining(const QString &targetText, const QString &resultDescription);
     QString historyMotionTargetName(const QString &jointName) const;
+    QString historySixAxisName(int axisIndex) const;
+    QString historyModeSelectionText(const QWidget *widget, const QString &detailText) const;
     QString historyMotionKeyForTarget(const QString &jointName) const;
+    double historySixAxisCurrentValue(int axisIndex) const;
     QHash<QString, ActiveMotionHistory> m_activeMotionHistory;
     QSet<QString> m_closedMotionKeys;
 
