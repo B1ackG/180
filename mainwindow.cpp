@@ -101,6 +101,10 @@ const QString kRobotZeroSpeedHintText =
     QStringLiteral("当前设置的机器人全局速度为0");
 const QString kAgvZeroSpeedHintText =
     QStringLiteral("当前设置的全向平台速度为0");
+const QString kAgvLegsDeployedHintText =
+    QStringLiteral("运动停止，收回支腿后再进行操作");
+const QString kAgvParkSelectStateText =
+    QStringLiteral("支腿展出状态选择");
 const QString kColumnRotateScreenClearanceHintText =
     QStringLiteral("请检查并将工控屏挪至AGV轮廓外侧！");
 const QString kReselectMotionTargetHintText =
@@ -5550,6 +5554,7 @@ void MainWindow::dismissOperationHintToasts()
 {
     dismissToastByMessage(kRobotZeroSpeedHintText);
     dismissToastByMessage(kAgvZeroSpeedHintText);
+    dismissToastByMessage(kAgvLegsDeployedHintText);
     dismissToastByMessage(QStringLiteral("当前未设置步进值"));
     dismissToastByMessage(QStringLiteral("外部按键与当前选中的步进目标不匹配"));
     dismissToastByMessage(QStringLiteral("未选择步进或者点动模式，将自动选择点动模式"));
@@ -6749,6 +6754,41 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     }
 
 }
+
+bool MainWindow::maybeBlockAgvExternalKeyOnLegsDeployed(int keyNumber, bool pressed)
+{
+    if (!pressed || (keyNumber != 1 && keyNumber != 2)) {
+        return false;
+    }
+    if (!isChassisViewActive()) {
+        return false;
+    }
+
+    const bool inSelectState = m_techBtnAGV_Park
+        ? (m_techBtnAGV_Park->text() == kAgvParkSelectStateText)
+        : (!m_agvParkingEnabled && !m_agvLegAbnormal51Bit7Flag);
+    if (inSelectState) {
+        return false;
+    }
+
+    if (m_recorder) {
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = QStringLiteral("提示系统");
+        record.controlName = QStringLiteral("支腿非选择态运动提示");
+        record.controlType = QStringLiteral("提示窗口");
+        record.operation = QStringLiteral("提示触发");
+        record.oldValue = QString();
+        record.newValue = QStringLiteral("操作者在支腿非选择态按下按键○%1").arg(keyNumber);
+        m_recorder->addRecord(record);
+    }
+
+    showToast(kAgvLegsDeployedHintText, ToastKind::Warning);
+    qCDebug(lcMainWindow) << "底盘外部按键拦截：techBtn_AGV_Park 非选择态，按键○" << keyNumber
+                          << "按钮文案" << (m_techBtnAGV_Park ? m_techBtnAGV_Park->text() : QString());
+    return true;
+}
+
 // 新增：处理AGV页面的按键○1动作
 void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
 {
@@ -6762,6 +6802,10 @@ void MainWindow::handleAGVKeyAction(int keyNumber, bool pressed)
 
     const bool stepModeHintShown = maybeShowUnselectedStepModeHintForExternalKey(keyNumber, pressed);
     if (stepModeHintShown) {
+        return;
+    }
+
+    if (maybeBlockAgvExternalKeyOnLegsDeployed(keyNumber, pressed)) {
         return;
     }
 
@@ -8362,21 +8406,6 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
                 record.newValue = positiveLimitReached ? "正方向行程已达限制" : "正限位已解除";
                 m_recorder->addRecord(record);
             }
-
-            // 记录负限位
-            static bool s_negLimitLogged = false;
-            if (negativeLimitReached != s_negLimitLogged) {
-                s_negLimitLogged = negativeLimitReached;
-                OperationRecord record;
-                record.timestamp = QDateTime::currentDateTime();
-                record.pageName = "报警系统";
-                record.controlName = "负限位报警";
-                record.controlType = "限位监控";
-                record.operation = negativeLimitReached ? "限制触发" : "限制解除";
-                record.oldValue = "";
-                record.newValue = negativeLimitReached ? "负方向行程已达限制" : "负限位已解除";
-                m_recorder->addRecord(record);
-            }
         }
     }
 
@@ -9696,9 +9725,12 @@ void MainWindow::applyAGVParkingButtonUi(bool enabled)
     }
     m_techBtnAGV_Park->setText(enabled
         ? legDeployedStatusButtonText(m_agvParkLastLengthMm)
-        : QStringLiteral("支腿展出状态选择"));
+        : kAgvParkSelectStateText);
     m_techBtnAGV_Park->setPrimaryColor(enabled ? QColor("#00C8FF") : QColor("#7F8C8D"));
     m_techBtnAGV_Park->setGlowColor(enabled ? QColor(0, 200, 255, 180) : QColor(127, 140, 141, 100));
+    if (!enabled) {
+        dismissToastByMessage(kAgvLegsDeployedHintText);
+    }
 }
 
 void MainWindow::applyAGVParkingLegAbnormalUi()
@@ -11139,6 +11171,10 @@ void MainWindow::handleAGVKey2Action(int keyNumber, bool pressed)
 
     const bool stepModeHintShown = maybeShowUnselectedStepModeHintForExternalKey(keyNumber, pressed);
     if (stepModeHintShown) {
+        return;
+    }
+
+    if (maybeBlockAgvExternalKeyOnLegsDeployed(keyNumber, pressed)) {
         return;
     }
 

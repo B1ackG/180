@@ -1600,6 +1600,8 @@ private:
     
     /** @brief 处理 AGV 按键动作 */
     void handleAGVKeyAction(int keyNumber, bool pressed);
+    /** @brief techBtn_AGV_Park 不在「支腿展出状态选择」时，底盘页 ○1/○2 弹 Toast 并拦截写入 */
+    bool maybeBlockAgvExternalKeyOnLegsDeployed(int keyNumber, bool pressed);
     /** @brief 点动或步进模式下，首页 page_Robot 外部按键按下且对应速度为0时弹出提示 */
     void maybeShowZeroSpeedHintForHomePageExternalKey(int keyNumber, bool pressed);
     /** @brief 步进模式下外部按键按下且步进值为空或0时弹出提示 */

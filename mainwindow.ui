@@ -729,7 +729,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          </rect>
         </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="page_SixAxies_Parameter">
          <widget class="QWidget" name="horizontalLayoutWidget_2">
