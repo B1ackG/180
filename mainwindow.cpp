@@ -448,14 +448,14 @@ QPair<int, int> parkOutTriggerLengthLimitsFromSettings()
 {
     QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
     settings.beginGroup(QStringLiteral("SliderLabelLimits"));
-    int lo = qRound(settings.value(QStringLiteral("agv_park_out_trigger_length_min"), 100).toDouble());
+    int lo = qRound(settings.value(QStringLiteral("agv_park_out_trigger_length_min"), 0).toDouble());
     int hi = qRound(settings.value(QStringLiteral("agv_park_out_trigger_length_max"), 1100).toDouble());
     settings.endGroup();
     if (hi < lo) {
         qSwap(lo, hi);
     }
-    lo = qBound(1, lo, 1000000);
-    hi = qBound(1, hi, 1000000);
+    lo = qBound(0, lo, 1000000);
+    hi = qBound(0, hi, 1000000);
     if (lo > hi) {
         qSwap(lo, hi);
     }

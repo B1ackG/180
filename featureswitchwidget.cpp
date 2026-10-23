@@ -2218,7 +2218,7 @@ void FeatureSwitchWidget::loadSliderLimitState()
         {"robot_ArcGauge_SixAxis4", qMakePair(-110.0, 110.0)},
         {"robot_ArcGauge_SixAxis5", qMakePair(-110.0, 110.0)},
         {"robot_ArcGauge_SixAxis6", qMakePair(-90.0, 90.0)},
-        {"agv_park_out_trigger_length", qMakePair(100.0, 1100.0)},
+        {"agv_park_out_trigger_length", qMakePair(0.0, 1100.0)},
         {"weight_overload_limit", qMakePair(0.0, 350.0)},
         {"weight_lock_limit", qMakePair(0.0, 450.0)},
         {"inclinometer_alarm_limit", qMakePair(0.01, 15.0)},
