@@ -5940,7 +5940,7 @@ void MainWindow::recordVerticalSupportAction(int keyNumber, bool pressed)
         return;
     }
     m_robotExternalKeyPressed[keyNumber] = false;
-    const QString description = QStringLiteral("操作员松开按键，运动记录结束，当前高度%1").arg(heightText);
+    const QString description = QStringLiteral("操作员松开按键，运动记录结束");
     finishMotionHistory(key, description);
     showNotification(description);
 }
@@ -5964,7 +5964,7 @@ void MainWindow::recordHorizontalSupportMoveAction(int keyNumber, bool pressed)
         return;
     }
     m_robotExternalKeyPressed[keyNumber] = false;
-    const QString description = QStringLiteral("操作员松开按键，运动记录结束，当前长度%1").arg(lengthText);
+    const QString description = QStringLiteral("操作员松开按键，运动记录结束");
     finishMotionHistory(key, description);
     showNotification(description);
 }
@@ -6513,8 +6513,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                                        .arg(historyOperatorName(), motionName, measure)
                                        .arg(globalSpeedPercent, 0, 'f', 0));
             } else {
-                finishMotionHistory(motionKey,
-                                    QStringLiteral("操作员松开按键，运动记录结束，当前位置%1").arg(measure));
+                finishMotionHistory(motionKey, QStringLiteral("操作员松开按键，运动记录结束"));
             }
         };
 
@@ -6715,7 +6714,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
             showNotification(description);
         } else {
             m_robotExternalKeyPressed[keyNumber] = false;
-            const QString description = QStringLiteral("操作员松开按键，运动记录结束，当前角度%1").arg(angleText);
+            const QString description = QStringLiteral("操作员松开按键，运动记录结束");
             finishMotionHistory(key, description);
             showNotification(description);
         }
@@ -7632,9 +7631,13 @@ void MainWindow::onModbusConnected()
         enableTcpTransmission(true);
     }
 
+    const bool firstOrRecovered = m_mainLinkDownNoted || !m_mainLinkUpHistoryRecorded;
     m_mainLinkDownNoted = false;
     dismissToastByMessage(QStringLiteral("主控制器未连接"));
-    MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Connected);
+    if (firstOrRecovered) {
+        m_mainLinkUpHistoryRecorded = true;
+        MainModbusStatus::appendOperationRecord(m_recorder, MainModbusState::Connected);
+    }
 }
 
 // Modbus断开连接槽函数
@@ -9259,6 +9262,7 @@ void MainWindow::setupAGVUI()
 void MainWindow::onAGVModbusConnected()
 {
     qCDebug(lcMainWindow) << "AGV Modbus连接成功";
+    const bool firstOrRecovered = m_agvLinkDownNoted || !m_agvLinkUpHistoryRecorded;
     m_agvLinkDownNoted = false;
     dismissToastByMessage(QStringLiteral("AGV未连接"));
     m_agvDisconnectedWarnedAddresses.clear();
@@ -9271,16 +9275,18 @@ void MainWindow::onAGVModbusConnected()
         agvIndicator->setToolTip("AGV Modbus连接正常");
     }
 
-    // 记录连接事件
-    OperationRecord record;
-    record.timestamp = QDateTime::currentDateTime();
-    record.pageName = "AGV控制";
-    record.controlName = "AGV Modbus连接";
-    record.controlType = "ModbusTCP";
-    record.operation = "connected";
-    record.oldValue = "";
-    record.newValue = "连接成功";
-    m_recorder->addRecord(record);
+    if (firstOrRecovered) {
+        m_agvLinkUpHistoryRecorded = true;
+        OperationRecord record;
+        record.timestamp = QDateTime::currentDateTime();
+        record.pageName = "AGV控制";
+        record.controlName = "AGV Modbus连接";
+        record.controlType = "ModbusTCP";
+        record.operation = "connected";
+        record.oldValue = "";
+        record.newValue = "连接成功";
+        m_recorder->addRecord(record);
+    }
 
     // 开机后短时重复读取关键寄存器，尽快回填模式按钮与驻车状态。
     for (int i = 0; i < 5; ++i) {
@@ -13189,16 +13195,10 @@ void MainWindow::recordStepMoveAction(const QString &jointName, double currentVa
 // 记录步进动作结束
 void MainWindow::recordStepMoveEnd(const QString &jointName, double currentValue, bool motionStopStyle)
 {
-    const QString targetName = historyMotionTargetName(jointName);
-    const bool rotation = targetName == QStringLiteral("立柱旋转")
-        || targetName == QStringLiteral("末端组件")
-        || targetName == QStringLiteral("第一轴")
-        || targetName == QStringLiteral("第二轴")
-        || targetName == QStringLiteral("第三轴");
-    const QString unit = rotation ? QStringLiteral("度") : QStringLiteral("毫米");
+    Q_UNUSED(currentValue);
     const QString reason = motionStopStyle
-        ? QStringLiteral("操作员松开使能，运动记录结束，当前位置%1").arg(historyMeasure(currentValue, 1, unit))
-        : QStringLiteral("正常完成，运动记录结束，当前位置%1").arg(historyMeasure(currentValue, 1, unit));
+        ? QStringLiteral("操作员松开使能，运动记录结束")
+        : QStringLiteral("正常完成，运动记录结束");
     finishMotionHistory(historyMotionKeyForTarget(jointName), reason);
     showNotification(reason);
 }

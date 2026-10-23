@@ -1003,6 +1003,8 @@ private:
     QSet<int> m_agvDisconnectedWarnedAddresses;
     bool m_mainLinkDownNoted = false;
     bool m_agvLinkDownNoted = false;
+    bool m_mainLinkUpHistoryRecorded = false;
+    bool m_agvLinkUpHistoryRecorded = false;
 
     // ----- 机器人状态控制 -----
     UserRole m_currentUserRole = UserRole::Operator;

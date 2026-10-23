@@ -56,6 +56,47 @@ QStringList findUnreadableHistoryParts(const OperationRecord &record)
     }
     return hits;
 }
+
+bool isDeviceOriginHistoryRecord(const OperationRecord &record)
+{
+    const QString type = record.controlType;
+    const QString op = record.operation;
+    const QString name = record.controlName;
+    if (type == QLatin1String("限位监控")
+        || type == QLatin1String("限位系统")
+        || type == QLatin1String("报警监控")
+        || type == QLatin1String("提示窗口")
+        || type == QLatin1String("系统弹窗")
+        || type == QLatin1String("互锁监控")
+        || type == QLatin1String("ModbusTCP")
+        || type == QLatin1String("设备通信连接")
+        || type == QLatin1String("网络服务")
+        || type == QLatin1String("EnableButton")
+        || type == QLatin1String("使能按钮")) {
+        return true;
+    }
+    if (op == QLatin1String("限制触发")
+        || op == QLatin1String("限制解除")
+        || op == QLatin1String("报警触发")
+        || op == QLatin1String("报警解除")
+        || op == QLatin1String("提示触发")
+        || op == QLatin1String("设备状态更新")
+        || op == QLatin1String("状态变化")
+        || op == QLatin1String("互锁触发")
+        || op == QLatin1String("互锁解除")
+        || op == QLatin1String("connected")
+        || op == QLatin1String("disconnected")
+        || op == QLatin1String("error")
+        || op == QLatin1String("建立连接")) {
+        return true;
+    }
+    return name.contains(QStringLiteral("限位"))
+        || name.contains(QStringLiteral("报警"))
+        || name.contains(QStringLiteral("互锁"))
+        || name.contains(QStringLiteral("通讯"))
+        || name.contains(QStringLiteral("连接"))
+        || name.contains(QStringLiteral("使能"));
+}
 }
 
 OperationRecorder::OperationRecorder(QObject *parent)
@@ -189,6 +230,9 @@ void OperationRecorder::addRecord(const OperationRecord &record)
 {
     OperationRecord normalized = record;
     if (!ModbusWriteGate::shouldAppendOperationHistoryRecord()) {
+        if (isDeviceOriginHistoryRecord(normalized)) {
+            return;
+        }
         const QString note = QStringLiteral("当前不是本机示教，操作未执行");
         const QString existing = normalized.newValue.toString();
         normalized.newValue = existing.isEmpty() ? note : existing + QStringLiteral("；") + note;
