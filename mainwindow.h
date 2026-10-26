@@ -1618,6 +1618,10 @@ private:
     bool blockIfHeightLengthInterlock();
     /** @brief 将底盘角度控件恢复为最近回读值 */
     void restoreAgvAngleEditFromShadow();
+    /** @brief 按转向模式刷新底盘角度控件范围；横移/原地旋转强制显示 0° */
+    void applyAgvAngleEditForSteeringMode(SteeringMode mode);
+    /** @brief 当前转向模式（选择器优先，否则用最近一次确认的模式） */
+    SteeringMode currentAgvSteeringMode() const;
     /** @brief 将底盘速度控件恢复为最近回读值 */
     void restoreAgvMoveSpeedEditFromShadow();
 

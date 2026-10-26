@@ -156,6 +156,30 @@ bool isSteeringModeIn123Group(SteeringMode mode)
         || mode == STEER_PARALLEL;
 }
 
+bool isAgvAngleAdjustLockedSteeringMode(SteeringMode mode)
+{
+    return mode == STEER_LATERAL || mode == STEER_ROTATE;
+}
+
+void agvAngleRangeForSteeringMode(SteeringMode mode, double *minValue, double *maxValue)
+{
+    if (mode == STEER_FRONT_BACK || mode == STEER_FRONT_ONLY) {
+        if (minValue) {
+            *minValue = -25;
+        }
+        if (maxValue) {
+            *maxValue = 25;
+        }
+        return;
+    }
+    if (minValue) {
+        *minValue = -45;
+    }
+    if (maxValue) {
+        *maxValue = 45;
+    }
+}
+
 QString steeringModeStatusText(SteeringMode mode)
 {
     switch (mode) {
@@ -806,7 +830,7 @@ void MainWindow::applySliderEditRuntimeSettings()
         const double displayMax = readBound(QStringLiteral("_display_max"),
             readBound(QStringLiteral("_value_max"), slider->displayRangeMaximum()));
 
-        if (displayMax > displayMin) {
+        if (name != QStringLiteral("SEdit_AGV_Angle") && displayMax > displayMin) {
             slider->setDisplayRange(displayMin, displayMax);
         }
     }
@@ -826,6 +850,8 @@ void MainWindow::applySliderEditRuntimeSettings()
         }
     }
     settings.endGroup();
+
+    applyAgvAngleEditForSteeringMode(currentAgvSteeringMode());
 }
 
 void MainWindow::applySliderLabelRuntimeSettings()
@@ -3824,14 +3850,14 @@ void MainWindow::initSliderEditUI()
             qCDebug(lcMainWindow) << "初始化: SEdit_AGV_MoveSpeed, 范围:0-100 mm/s, 默认值:0 mm/s";
         }
         else if (objName == "SEdit_AGV_Angle") {
-            // AGV转向角度：-45~45 °
+            // 默认前后轮转向：-25~25 °；平移为 -45~45 °，由 applyAgvAngleEditForSteeringMode 按模式刷新
             slider->setLabelText("六自由度平台转向角度");
-            slider->setRange(-45, 45);
+            slider->setRange(-25, 25);
             slider->setValue(0);
             slider->setSuffix("°");
             slider->setPrecision(0);
 
-            qCDebug(lcMainWindow) << "初始化: SEdit_AGV_Angle, 范围:-45~45 °, 默认值:0 °";
+            qCDebug(lcMainWindow) << "初始化: SEdit_AGV_Angle, 范围:-25~25 °, 默认值:0 °";
         }
         else if (objName == "TechSliderEdit_Robot_RobotSpeed") {
             slider->setLabelText("机器人全局速度");
@@ -6072,6 +6098,11 @@ void MainWindow::restoreAgvAngleEditFromShadow()
     if (!m_editAGV_Angle) {
         return;
     }
+    if (isAgvAngleAdjustLockedSteeringMode(currentAgvSteeringMode())) {
+        const QSignalBlocker blocker(m_editAGV_Angle);
+        m_editAGV_Angle->setValue(0);
+        return;
+    }
     double revertValue = 0;
     if (m_agvRegisterShadow.contains(154)) {
         revertValue = qBound(m_editAGV_Angle->minimum(),
@@ -6084,6 +6115,31 @@ void MainWindow::restoreAgvAngleEditFromShadow()
     }
     const QSignalBlocker blocker(m_editAGV_Angle);
     m_editAGV_Angle->setValue(revertValue);
+}
+
+SteeringMode MainWindow::currentAgvSteeringMode() const
+{
+    if (m_steeringModeSelector) {
+        return m_steeringModeSelector->currentMode();
+    }
+    return m_lastSteeringMode;
+}
+
+void MainWindow::applyAgvAngleEditForSteeringMode(SteeringMode mode)
+{
+    if (!m_editAGV_Angle) {
+        return;
+    }
+
+    double minValue = -45;
+    double maxValue = 45;
+    agvAngleRangeForSteeringMode(mode, &minValue, &maxValue);
+
+    const QSignalBlocker blocker(m_editAGV_Angle);
+    m_editAGV_Angle->setRange(minValue, maxValue);
+    if (isAgvAngleAdjustLockedSteeringMode(mode)) {
+        m_editAGV_Angle->setValue(0);
+    }
 }
 
 void MainWindow::restoreAgvMoveSpeedEditFromShadow()
@@ -9097,8 +9153,12 @@ void MainWindow::setupAGVModbus()
 
                 if (m_agvUiStateSyncEnabled && address == 154 && m_editAGV_Angle) {
                     const QSignalBlocker blocker(m_editAGV_Angle);
-                    const double clamped = qBound(m_editAGV_Angle->minimum(), static_cast<double>(value), m_editAGV_Angle->maximum());
-                    m_editAGV_Angle->setValue(clamped);
+                    if (isAgvAngleAdjustLockedSteeringMode(currentAgvSteeringMode())) {
+                        m_editAGV_Angle->setValue(0);
+                    } else {
+                        const double clamped = qBound(m_editAGV_Angle->minimum(), static_cast<double>(value), m_editAGV_Angle->maximum());
+                        m_editAGV_Angle->setValue(clamped);
+                    }
                 }
 
                 if (address == 51) {
@@ -9509,8 +9569,12 @@ void MainWindow::onAGVWordVariableChanged(int address, quint16 value)
 
     if (m_agvUiStateSyncEnabled && address == 154 && m_editAGV_Angle) {
         const QSignalBlocker blocker(m_editAGV_Angle);
-        const double clamped = qBound(m_editAGV_Angle->minimum(), static_cast<double>(value), m_editAGV_Angle->maximum());
-        m_editAGV_Angle->setValue(clamped);
+        if (isAgvAngleAdjustLockedSteeringMode(currentAgvSteeringMode())) {
+            m_editAGV_Angle->setValue(0);
+        } else {
+            const double clamped = qBound(m_editAGV_Angle->minimum(), static_cast<double>(value), m_editAGV_Angle->maximum());
+            m_editAGV_Angle->setValue(clamped);
+        }
     }
 }
 
@@ -9866,6 +9930,7 @@ void MainWindow::syncAGVSteeringModeFromRegister50(quint16 value)
     const QSignalBlocker blocker(m_steeringModeSelector);
     m_steeringModeSelector->setCurrentMode(mode);
     m_lastSteeringMode = mode;
+    applyAgvAngleEditForSteeringMode(mode);
 
     QLabel *steeringLabel = ui && ui->statusBar
                                  ? ui->statusBar->findChild<QLabel*>("statusBarSteeringLabel")
@@ -10530,6 +10595,7 @@ void MainWindow::setupAGVAngleControl()
 
         connect(m_editAGV_Angle, &TechSliderEdit::valueChanged,
                 this, &MainWindow::onAGVAngleChanged);
+        applyAgvAngleEditForSteeringMode(currentAgvSteeringMode());
 
         qCDebug(lcMainWindow) << "AGV转向角度控件初始化完成，范围:"
              << m_editAGV_Angle->minimum() << "~" << m_editAGV_Angle->maximum();
@@ -11126,6 +11192,14 @@ void MainWindow::onAGVAngleChanged(double value)
     if (!isFeatureEnabled("motion_control", "motion.agv_angle_control")) {
         return;
     }
+    if (isAgvAngleAdjustLockedSteeringMode(currentAgvSteeringMode())) {
+        if (m_editAGV_Angle) {
+            const QSignalBlocker blocker(m_editAGV_Angle);
+            m_editAGV_Angle->setValue(0);
+        }
+        showWarningToast(QStringLiteral("当前转向模式不可调整角度，不予执行"));
+        return;
+    }
     if (rejectIfEnableNotHeld()) {
         restoreAgvAngleEditFromShadow();
         return;
@@ -11426,6 +11500,8 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
         steeringLabel->setStyleSheet("color: #55ff55; font-weight: bold; font-size: 11px;");
     }
 
+    applyAgvAngleEditForSteeringMode(mode);
+
     if (!isFeatureEnabled("alarm_system", "alarm.steering_switch")) {
         qCDebug(lcMainWindow) << "转向模式切换报警功能已关闭，跳过报警窗口逻辑";
         m_isSwitchingSteeringMode = false;
@@ -11520,6 +11596,7 @@ void MainWindow::onSteeringModeChanged(SteeringMode mode, int modbusValue)
                     }
                     if (modeResolved) {
                         m_lastSteeringMode = currentMode;
+                        applyAgvAngleEditForSteeringMode(currentMode);
                     }
                 }
 
