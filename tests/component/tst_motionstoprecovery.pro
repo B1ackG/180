@@ -1,4 +1,5 @@
 include(../support/test_common.pri)
+include(../support/modbus_static_link.pri)
 QT += widgets
 TARGET = tst_motionstoprecovery
 INCLUDEPATH += $$PWD

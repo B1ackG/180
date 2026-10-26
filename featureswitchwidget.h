@@ -36,7 +36,7 @@ protected:
     void showEvent(QShowEvent *event) override;
 
 private slots:
-    void onApply();
+    bool onApply();
     void onSave();
     void recordIniChanges(const QString &fileName, const QString &group, const QMap<QString, QString> &before);
     void onReload();
@@ -46,6 +46,9 @@ private:
     void setupUI();
     void loadCurrentState();
     void setupNetworkUI(QVBoxLayout *scrollLayout);
+    void setupModbusBackendModeUI(QVBoxLayout *scrollLayout);
+    void loadModbusBackendModeState();
+    bool saveModbusBackendModeState(QString *error = nullptr);
     void setupPollingUI(QVBoxLayout *scrollLayout);
     void setupSliderLimitUI(QVBoxLayout *scrollLayout);
     void setupTechSliderEditUI(QVBoxLayout *scrollLayout);
@@ -101,6 +104,8 @@ private:
 
     QMap<QString, QCheckBox*> m_bigCheckboxes;
     QMap<QString, QCheckBox*> m_smallCheckboxes;
+
+    QComboBox *m_comboModbusBackendMode = nullptr;
 
     QLineEdit *m_editWin7Subnet = nullptr;
     QLineEdit *m_editWin7Host = nullptr;

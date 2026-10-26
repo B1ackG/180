@@ -38,6 +38,8 @@ SOURCES += \
     navigationicon.cpp \
     matrixkeymonitor.cpp \
     matrixkeythreadmanager.cpp \
+    modbusbackendmode.cpp \
+    modbus_backend_c.cpp \
     modbustcpclient.cpp \
     modbusthreadmanager.cpp \
     modbusstringregisters.cpp \
@@ -77,6 +79,8 @@ HEADERS += \
     navigationicon.h \
     matrixkeymonitor.h \
     matrixkeythreadmanager.h \
+    modbusbackendmode.h \
+    modbus_backend_c.h \
     modbustcpclient.h \
     modbusthreadmanager.h \
     modbusasync.h \
@@ -116,6 +120,25 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     res.qrc
+
+# 静态链接官方 libmodbus.a，供控制台选择的 static 模式使用。
+# 目标架构必须看 Qt 的 QT_ARCH，不能用宿主机 uname。
+MODBUS_STATIC_ROOT = $$(MODBUS_STATIC_ROOT)
+isEmpty(MODBUS_STATIC_ROOT) {
+    contains(QT_ARCH, arm64)|contains(QT_ARCH, aarch64) {
+        MODBUS_STATIC_ROOT = $$PWD/third_party/libmodbus-aarch64
+    } else {
+        MODBUS_STATIC_ROOT = $$PWD/third_party/libmodbus-local
+    }
+}
+message(MODBUS_STATIC_ROOT=$$MODBUS_STATIC_ROOT)
+!exists($$MODBUS_STATIC_ROOT/include/modbus/modbus.h): \
+    error("modbus.h not found in $$MODBUS_STATIC_ROOT/include/modbus")
+!exists($$MODBUS_STATIC_ROOT/lib/libmodbus.a): \
+    error("libmodbus.a not found in $$MODBUS_STATIC_ROOT/lib")
+INCLUDEPATH += $$MODBUS_STATIC_ROOT/include
+PRE_TARGETDEPS += $$MODBUS_STATIC_ROOT/lib/libmodbus.a
+LIBS += $$MODBUS_STATIC_ROOT/lib/libmodbus.a
 
 # 生成文件相对 OUT_PWD（影子构建目录），不要写回源码根目录。
 # UI_DIR=. 时源码树会留下 ui_*.h，影子构建的 -I$${PWD} 会优先吃到旧头文件。

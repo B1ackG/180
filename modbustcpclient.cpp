@@ -1,4 +1,5 @@
 #include "modbustcpclient.h"
+#include "modbus_backend_c.h"
 #include <QDebug>
 #include <QLoggingCategory>
 Q_LOGGING_CATEGORY(lcModbusTCPClient, "app.modbustcpclient")
@@ -49,7 +50,7 @@ ModbusTCPClient::~ModbusTCPClient()
 {
     stopPolling();
     disconnectFromServer();
-    unloadDynamicBackend();
+    unloadBackend();
 
     if (m_networkThread && m_networkThread->isRunning()) {
         m_networkThread->quit();
@@ -57,15 +58,45 @@ ModbusTCPClient::~ModbusTCPClient()
     }
 }
 
-bool ModbusTCPClient::ensureDynamicBackendLoaded()
+bool ModbusTCPClient::ensureBackendLoaded()
 {
-    if (m_dynamicBackendLoadAttempted) {
-        return m_useDynamicBackend;
+    if (m_backendLoadAttempted) {
+        return m_backendReady;
     }
-    m_dynamicBackendLoadAttempted = true;
+    m_backendLoadAttempted = true;
+    m_backendMode = processModbusBackendMode();
 
+    const bool bound = (m_backendMode == ModbusBackendMode::Static)
+                           ? bindStaticBackend()
+                           : loadDynamicBackend();
+    if (!bound) {
+        return false;
+    }
+
+    m_dynamicBackendHandle = m_backendCreate ? m_backendCreate() : nullptr;
+    if (!m_dynamicBackendHandle) {
+        m_lastDynamicBackendError = (m_backendMode == ModbusBackendMode::Static)
+                                        ? QStringLiteral("静态链接后端初始化失败")
+                                        : QStringLiteral("动态库创建 backend 句柄失败");
+        qWarning() << m_lastDynamicBackendError;
+        unloadBackend();
+        return false;
+    }
+
+    m_backendReady = true;
+    if (m_backendMode == ModbusBackendMode::Static) {
+        qInfo() << "Modbus 静态链接后端已启用";
+    } else {
+        qInfo() << "Modbus 动态库后端已启用:" << m_dynamicBackendPath;
+    }
+    return true;
+}
+
+bool ModbusTCPClient::loadDynamicBackend()
+{
     m_dynamicBackendPath = qEnvironmentVariable("MODBUS_BACKEND_LIB").trimmed();
     if (m_dynamicBackendPath.isEmpty()) {
+        m_lastDynamicBackendError = QStringLiteral("未设置MODBUS_BACKEND_LIB");
         return false;
     }
 
@@ -92,7 +123,7 @@ bool ModbusTCPClient::ensureDynamicBackendLoaded()
         || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_write_single_register",
                                   m_backendWriteSingle, m_lastDynamicBackendError)) {
         qWarning() << m_lastDynamicBackendError;
-        unloadDynamicBackend();
+        unloadBackend();
         return false;
     }
 
@@ -100,21 +131,29 @@ bool ModbusTCPClient::ensureDynamicBackendLoaded()
         m_dynamicBackendLibrary.resolve("modbus_backend_read_input_registers"));
     m_backendWriteMultiple = reinterpret_cast<MbWriteMultipleFn>(
         m_dynamicBackendLibrary.resolve("modbus_backend_write_multiple_registers"));
-
-    m_dynamicBackendHandle = m_backendCreate ? m_backendCreate() : nullptr;
-    if (!m_dynamicBackendHandle) {
-        m_lastDynamicBackendError = QStringLiteral("动态库创建 backend 句柄失败");
-        qWarning() << m_lastDynamicBackendError;
-        unloadDynamicBackend();
-        return false;
-    }
-
-    m_useDynamicBackend = true;
-    qInfo() << "Modbus 动态库后端已启用:" << m_dynamicBackendPath;
     return true;
 }
 
-void ModbusTCPClient::unloadDynamicBackend()
+bool ModbusTCPClient::bindStaticBackend()
+{
+    m_backendCreate = &modbus_backend_create;
+    m_backendDestroy = &modbus_backend_destroy;
+    m_backendConnect = &modbus_backend_connect;
+    m_backendDisconnect = &modbus_backend_disconnect;
+    m_backendIsConnected = &modbus_backend_is_connected;
+    m_backendReadHolding = &modbus_backend_read_holding_registers;
+    m_backendReadInput = &modbus_backend_read_input_registers;
+    m_backendWriteSingle = &modbus_backend_write_single_register;
+    m_backendWriteMultiple = &modbus_backend_write_multiple_registers;
+    if (!m_backendCreate || !m_backendDestroy || !m_backendConnect || !m_backendDisconnect
+        || !m_backendIsConnected || !m_backendReadHolding || !m_backendWriteSingle) {
+        m_lastDynamicBackendError = QStringLiteral("静态链接后端缺少必需接口");
+        return false;
+    }
+    return true;
+}
+
+void ModbusTCPClient::unloadBackend()
 {
     if (m_backendDisconnect && m_dynamicBackendHandle) {
         m_backendDisconnect(m_dynamicBackendHandle);
@@ -132,9 +171,9 @@ void ModbusTCPClient::unloadDynamicBackend()
     m_backendReadInput = nullptr;
     m_backendWriteSingle = nullptr;
     m_backendWriteMultiple = nullptr;
-    m_useDynamicBackend = false;
+    m_backendReady = false;
 
-    if (m_dynamicBackendLibrary.isLoaded()) {
+    if (m_backendMode == ModbusBackendMode::Dynamic && m_dynamicBackendLibrary.isLoaded()) {
         m_dynamicBackendLibrary.unload();
     }
 }
@@ -147,8 +186,16 @@ bool ModbusTCPClient::connectToServer(const QString &host, quint16 port, int sla
     m_port = port;
     m_slaveId = slaveId;
 
-    if (!ensureDynamicBackendLoaded()) {
-        const QString err = QStringLiteral("未加载Modbus官方动态库，请设置MODBUS_BACKEND_LIB");
+    if (!ensureBackendLoaded()) {
+        QString err;
+        if (m_backendMode == ModbusBackendMode::Static) {
+            err = QStringLiteral("未初始化Modbus静态链接后端");
+        } else {
+            err = QStringLiteral("未加载Modbus官方动态库，请设置MODBUS_BACKEND_LIB");
+        }
+        if (!m_lastDynamicBackendError.isEmpty()) {
+            err += QStringLiteral("：") + m_lastDynamicBackendError;
+        }
         qWarning() << err;
         emit errorOccurred(err);
         return false;

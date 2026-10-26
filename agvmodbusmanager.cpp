@@ -1,5 +1,6 @@
 // file name: agvmodbusmanager.cpp
 #include "agvmodbusmanager.h"
+#include "modbus_backend_c.h"
 #include "modbuswritegate.h"
 #include "modbusthreadmanager.h"
 #include "registerbitutils.h"
@@ -100,24 +101,53 @@ void AGVModbusManager::stopWorkerThread()
 AGVModbusManager::~AGVModbusManager()
 {
     stopWorkerThread();
-    unloadDynamicBackend();
+    unloadBackend();
 
     qDebug() << "AGV Modbus管理器已销毁";
 }
 
-bool AGVModbusManager::ensureDynamicBackendLoaded()
+bool AGVModbusManager::ensureBackendLoaded()
 {
-    if (m_dynamicBackendLoadAttempted) {
-        return m_useDynamicBackend;
+    if (m_backendLoadAttempted) {
+        return m_backendReady;
     }
-    m_dynamicBackendLoadAttempted = true;
+    m_backendLoadAttempted = true;
+    m_backendMode = processModbusBackendMode();
 
-    // 兼容主链路变量名，同时支持 AGV 专用覆盖
+    const bool bound = (m_backendMode == ModbusBackendMode::Static)
+                           ? bindStaticBackend()
+                           : loadDynamicBackend();
+    if (!bound) {
+        return false;
+    }
+
+    m_dynamicBackendHandle = m_backendCreate ? m_backendCreate() : nullptr;
+    if (!m_dynamicBackendHandle) {
+        m_lastDynamicBackendError = (m_backendMode == ModbusBackendMode::Static)
+                                        ? QStringLiteral("静态链接后端初始化失败")
+                                        : QStringLiteral("AGV动态库创建 backend 句柄失败");
+        qWarning() << m_lastDynamicBackendError;
+        unloadBackend();
+        return false;
+    }
+
+    m_backendReady = true;
+    if (m_backendMode == ModbusBackendMode::Static) {
+        qInfo() << "AGV Modbus 静态链接后端已启用";
+    } else {
+        qInfo() << "AGV Modbus 动态库后端已启用:" << m_dynamicBackendPath;
+    }
+    return true;
+}
+
+bool AGVModbusManager::loadDynamicBackend()
+{
     m_dynamicBackendPath = qEnvironmentVariable("AGV_MODBUS_BACKEND_LIB").trimmed();
     if (m_dynamicBackendPath.isEmpty()) {
         m_dynamicBackendPath = qEnvironmentVariable("MODBUS_BACKEND_LIB").trimmed();
     }
     if (m_dynamicBackendPath.isEmpty()) {
+        m_lastDynamicBackendError = QStringLiteral("未设置MODBUS_BACKEND_LIB或AGV_MODBUS_BACKEND_LIB");
         return false;
     }
 
@@ -144,7 +174,7 @@ bool AGVModbusManager::ensureDynamicBackendLoaded()
         || !resolveRequiredSymbol(m_dynamicBackendLibrary, "modbus_backend_write_single_register",
                                   m_backendWriteSingle, m_lastDynamicBackendError)) {
         qWarning() << m_lastDynamicBackendError;
-        unloadDynamicBackend();
+        unloadBackend();
         return false;
     }
 
@@ -152,21 +182,29 @@ bool AGVModbusManager::ensureDynamicBackendLoaded()
         m_dynamicBackendLibrary.resolve("modbus_backend_read_input_registers"));
     m_backendWriteMultiple = reinterpret_cast<MbWriteMultipleFn>(
         m_dynamicBackendLibrary.resolve("modbus_backend_write_multiple_registers"));
-
-    m_dynamicBackendHandle = m_backendCreate ? m_backendCreate() : nullptr;
-    if (!m_dynamicBackendHandle) {
-        m_lastDynamicBackendError = QStringLiteral("AGV动态库创建 backend 句柄失败");
-        qWarning() << m_lastDynamicBackendError;
-        unloadDynamicBackend();
-        return false;
-    }
-
-    m_useDynamicBackend = true;
-    qInfo() << "AGV Modbus 动态库后端已启用:" << m_dynamicBackendPath;
     return true;
 }
 
-void AGVModbusManager::unloadDynamicBackend()
+bool AGVModbusManager::bindStaticBackend()
+{
+    m_backendCreate = &modbus_backend_create;
+    m_backendDestroy = &modbus_backend_destroy;
+    m_backendConnect = &modbus_backend_connect;
+    m_backendDisconnect = &modbus_backend_disconnect;
+    m_backendIsConnected = &modbus_backend_is_connected;
+    m_backendReadHolding = &modbus_backend_read_holding_registers;
+    m_backendReadInput = &modbus_backend_read_input_registers;
+    m_backendWriteSingle = &modbus_backend_write_single_register;
+    m_backendWriteMultiple = &modbus_backend_write_multiple_registers;
+    if (!m_backendCreate || !m_backendDestroy || !m_backendConnect || !m_backendDisconnect
+        || !m_backendIsConnected || !m_backendReadHolding || !m_backendWriteSingle) {
+        m_lastDynamicBackendError = QStringLiteral("静态链接后端缺少必需接口");
+        return false;
+    }
+    return true;
+}
+
+void AGVModbusManager::unloadBackend()
 {
     if (m_backendDisconnect && m_dynamicBackendHandle) {
         m_backendDisconnect(m_dynamicBackendHandle);
@@ -184,9 +222,9 @@ void AGVModbusManager::unloadDynamicBackend()
     m_backendReadInput = nullptr;
     m_backendWriteSingle = nullptr;
     m_backendWriteMultiple = nullptr;
-    m_useDynamicBackend = false;
+    m_backendReady = false;
 
-    if (m_dynamicBackendLibrary.isLoaded()) {
+    if (m_backendMode == ModbusBackendMode::Dynamic && m_dynamicBackendLibrary.isLoaded()) {
         m_dynamicBackendLibrary.unload();
     }
 }
@@ -206,8 +244,16 @@ bool AGVModbusManager::connectToDevice(const QString &host, quint16 port)
     m_host = host;
     m_port = port;
 
-    if (!ensureDynamicBackendLoaded()) {
-        const QString err = QStringLiteral("未加载AGV Modbus官方动态库，请设置MODBUS_BACKEND_LIB或AGV_MODBUS_BACKEND_LIB");
+    if (!ensureBackendLoaded()) {
+        QString err;
+        if (m_backendMode == ModbusBackendMode::Static) {
+            err = QStringLiteral("未初始化AGV Modbus静态链接后端");
+        } else {
+            err = QStringLiteral("未加载AGV Modbus官方动态库，请设置MODBUS_BACKEND_LIB或AGV_MODBUS_BACKEND_LIB");
+        }
+        if (!m_lastDynamicBackendError.isEmpty()) {
+            err += QStringLiteral("：") + m_lastDynamicBackendError;
+        }
         m_lastSocketError = err;
         qWarning() << err;
         emit errorOccurred(err);

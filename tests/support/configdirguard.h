@@ -3,6 +3,7 @@
 
 #include <QDir>
 #include <QFile>
+#include <QSettings>
 #include <QString>
 #include <QTemporaryDir>
 
@@ -35,6 +36,15 @@ public:
         }
         file.write(QStringLiteral("[Polling]\nteaching_write_device_id=%1\n").arg(id).toUtf8());
         file.close();
+    }
+
+    void setModbusBackendMode(const QString &mode) const
+    {
+        QSettings settings(QStringLiteral("config.ini"), QSettings::IniFormat);
+        settings.beginGroup(QStringLiteral("ModbusBackend"));
+        settings.setValue(QStringLiteral("mode"), mode);
+        settings.endGroup();
+        settings.sync();
     }
 
 private:

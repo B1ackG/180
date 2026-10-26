@@ -1,3 +1,5 @@
+#include "agvmodbusmanager.h"
+#include "modbusbackendmode.h"
 #include "modbusregistercodec.h"
 #include "modbustcpclient.h"
 #include "modbusthreadmanager.h"
@@ -9,6 +11,8 @@
 #include "../support/configdirguard.h"
 
 #include <QCoreApplication>
+#include <QFile>
+#include <QSignalSpy>
 #include <QThread>
 #include <QtTest>
 
@@ -48,12 +52,21 @@ private slots:
     void diagonalPlaneThenJogPressRelease();
     void diagonalReconnectWritesStopBeforeNextJog();
     void sixAxisRunModeWritesAndDiagonalExitOrder();
+    void staticBackendReadsAndWrites();
+    void dynamicBackendReadsAndWrites();
+    void dynamicBackendMissingLibraryFails();
+    void agvStaticConnectsAndWrites();
+    void agvDynamicConnectsAndWrites();
 
 private:
     bool connectManager();
+    void connectGateManager();
+    void recreateClient();
+    void restoreDynamicEnv();
     void onSlave(const std::function<void()> &fn);
     void collectWrites();
     ConfigDirGuard *m_config = nullptr;
+    QByteArray m_savedBackend;
     QThread m_slaveThread;
     ModbusSlave *m_slave = nullptr;
     quint16 m_port = 0;
@@ -71,9 +84,7 @@ void TestModbusTcpIntegration::initTestCase()
     qRegisterMetaType<ModbusReadRequest>();
     qRegisterMetaType<GateDecision>();
     qRegisterMetaType<QVector<QPair<quint16, quint16>>>();
-    const QByteArray backend = qgetenv("MODBUS_BACKEND_LIB");
-    QVERIFY2(!backend.isEmpty() && QFile::exists(QString::fromLocal8Bit(backend)),
-             "MODBUS_BACKEND_LIB 不存在，集成测试不能退化为假客户端");
+    m_savedBackend = qgetenv("MODBUS_BACKEND_LIB");
 }
 
 void TestModbusTcpIntegration::onSlave(const std::function<void()> &fn)
@@ -86,6 +97,9 @@ void TestModbusTcpIntegration::init()
     m_config = new ConfigDirGuard();
     QVERIFY(m_config->isValid());
     m_config->setTeachingDeviceId(7);
+    m_config->setModbusBackendMode(QStringLiteral("dynamic"));
+    resetProcessModbusBackendModeCache();
+    restoreDynamicEnv();
     m_slave = new ModbusSlave();
     m_slave->moveToThread(&m_slaveThread);
     m_slaveThread.start();
@@ -134,6 +148,8 @@ void TestModbusTcpIntegration::cleanup()
     QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     ModbusWriteGate::setInterlockRegisterAddress(8192);
     ModbusWriteGate::updateOperationHistoryGateFromInterlockRead(false, 0);
+    restoreDynamicEnv();
+    resetProcessModbusBackendModeCache();
 }
 
 void TestModbusTcpIntegration::collectWrites()
@@ -164,6 +180,29 @@ void TestModbusTcpIntegration::collectWrites()
 bool TestModbusTcpIntegration::connectManager()
 {
     return m_manager->connectToDevice(QStringLiteral("127.0.0.1"), m_port, 1);
+}
+
+void TestModbusTcpIntegration::recreateClient()
+{
+    if (m_manager) {
+        m_manager->disconnectFromDevice();
+    }
+    delete m_manager;
+    m_manager = nullptr;
+    m_client = nullptr;
+    m_client = new ModbusTCPClient();
+    m_client->setAutoReconnect(false);
+    m_manager = new ModbusThreadManager(m_client, true);
+}
+
+void TestModbusTcpIntegration::restoreDynamicEnv()
+{
+    if (m_savedBackend.isEmpty()) {
+        qunsetenv("MODBUS_BACKEND_LIB");
+    } else {
+        qputenv("MODBUS_BACKEND_LIB", m_savedBackend);
+    }
+    qunsetenv("AGV_MODBUS_BACKEND_LIB");
 }
 
 void TestModbusTcpIntegration::readsHoldingRegister()
@@ -398,9 +437,11 @@ void TestModbusTcpIntegration::sixAxisRunModeWritesAndDiagonalExitOrder()
     QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(600), quint16(2), kTimeoutMs);
     QVERIFY(m_manager->writeSingleRegister(600, 3));
     QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(600), quint16(3), kTimeoutMs);
+    QTRY_VERIFY_WITH_TIMEOUT(m_writeAddresses.size() >= 3, kTimeoutMs);
 
     m_writeAddresses.clear();
     m_writeValues.clear();
+    collectWrites();
     QVERIFY(m_manager->writeSingleRegister(622, 0));
     QVERIFY(m_manager->writeSingleRegister(621, 0));
     QVERIFY(m_manager->writeSingleRegister(600, 1));
@@ -414,6 +455,119 @@ void TestModbusTcpIntegration::sixAxisRunModeWritesAndDiagonalExitOrder()
     QCOMPARE(m_writeValues.at(0), quint16(0));
     QCOMPARE(m_writeValues.at(1), quint16(0));
     QCOMPARE(m_writeValues.at(2), quint16(1));
+}
+
+void TestModbusTcpIntegration::staticBackendReadsAndWrites()
+{
+    qunsetenv("MODBUS_BACKEND_LIB");
+    qunsetenv("AGV_MODBUS_BACKEND_LIB");
+    m_config->setModbusBackendMode(QStringLiteral("static"));
+    resetProcessModbusBackendModeCache();
+    recreateClient();
+
+    onSlave([this]() { m_slave->setRegister(100, 0xBEEF); });
+    QVERIFY(connectManager());
+    quint16 value = 0;
+    QVERIFY(m_manager->readSingleRegister(100, value));
+    QCOMPARE(value, quint16(0xBEEF));
+    QVERIFY(m_manager->writeSingleRegister(101, 7));
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(101), quint16(7), kTimeoutMs);
+    QVERIFY(m_manager->writeMultipleRegisters(200, {4, 5}));
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(200), quint16(4), kTimeoutMs);
+    QCOMPARE(m_slave->getRegister(201), quint16(5));
+}
+
+void TestModbusTcpIntegration::dynamicBackendReadsAndWrites()
+{
+    QVERIFY2(!m_savedBackend.isEmpty() && QFile::exists(QString::fromLocal8Bit(m_savedBackend)),
+             "MODBUS_BACKEND_LIB 不存在，动态模式用例无法运行");
+    restoreDynamicEnv();
+    m_config->setModbusBackendMode(QStringLiteral("dynamic"));
+    resetProcessModbusBackendModeCache();
+    recreateClient();
+    onSlave([this]() { m_slave->setRegister(130, 0x11); });
+    QVERIFY(connectManager());
+    quint16 value = 0;
+    QVERIFY(m_manager->readSingleRegister(130, value));
+    QCOMPARE(value, quint16(0x11));
+    QVERIFY(m_manager->writeSingleRegister(131, 3));
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(131), quint16(3), kTimeoutMs);
+}
+
+void TestModbusTcpIntegration::dynamicBackendMissingLibraryFails()
+{
+    qunsetenv("MODBUS_BACKEND_LIB");
+    qunsetenv("AGV_MODBUS_BACKEND_LIB");
+    m_config->setModbusBackendMode(QStringLiteral("dynamic"));
+    resetProcessModbusBackendModeCache();
+    recreateClient();
+
+    QSignalSpy spy(m_client, &IModbusClient::errorOccurred);
+    QVERIFY(!connectManager());
+    QVERIFY(!spy.isEmpty());
+    const QString err = spy.first().at(0).toString();
+    QVERIFY(err.contains(QStringLiteral("未加载Modbus官方动态库")));
+    QVERIFY(!err.contains(QStringLiteral("静态链接")));
+}
+
+void TestModbusTcpIntegration::connectGateManager()
+{
+    ModbusThreadManager *gate = ModbusThreadManager::instance();
+    gate->setAutoReconnect(false);
+    QVERIFY(gate->connectToDevice(QStringLiteral("127.0.0.1"), m_port, 1));
+    QTRY_VERIFY_WITH_TIMEOUT(gate->isConnected(), kTimeoutMs);
+}
+
+void TestModbusTcpIntegration::agvStaticConnectsAndWrites()
+{
+    qunsetenv("MODBUS_BACKEND_LIB");
+    qunsetenv("AGV_MODBUS_BACKEND_LIB");
+    m_config->setModbusBackendMode(QStringLiteral("static"));
+    resetProcessModbusBackendModeCache();
+    connectGateManager();
+
+    AGVModbusManager agv;
+    agv.setAutoReconnect(false);
+    QVERIFY(agv.connectToDevice(QStringLiteral("127.0.0.1"), m_port));
+    onSlave([this]() { m_slave->setRegister(50, 0x22); });
+    QVector<quint16> values;
+    QVERIFY(agv.readHoldingRegistersSync(50, 1, values));
+    QCOMPARE(values.size(), 1);
+    QCOMPARE(values.first(), quint16(0x22));
+    QSignalSpy written(&agv, &AGVModbusManager::writeCompleted);
+    QVERIFY(agv.writeSingleRegister(51, 8));
+    QTRY_VERIFY_WITH_TIMEOUT(!written.isEmpty(), kTimeoutMs);
+    QCOMPARE(written.last().at(2).toBool(), true);
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(51), quint16(8), kTimeoutMs);
+    agv.disconnectFromDevice();
+    agv.stopWorkerThread();
+    ModbusThreadManager::instance()->disconnectFromDevice();
+}
+
+void TestModbusTcpIntegration::agvDynamicConnectsAndWrites()
+{
+    QVERIFY2(!m_savedBackend.isEmpty() && QFile::exists(QString::fromLocal8Bit(m_savedBackend)),
+             "MODBUS_BACKEND_LIB 不存在，AGV 动态模式用例无法运行");
+    restoreDynamicEnv();
+    m_config->setModbusBackendMode(QStringLiteral("dynamic"));
+    resetProcessModbusBackendModeCache();
+    connectGateManager();
+
+    AGVModbusManager agv;
+    agv.setAutoReconnect(false);
+    QVERIFY(agv.connectToDevice(QStringLiteral("127.0.0.1"), m_port));
+    onSlave([this]() { m_slave->setRegister(52, 0x33); });
+    QVector<quint16> values;
+    QVERIFY(agv.readHoldingRegistersSync(52, 1, values));
+    QCOMPARE(values.first(), quint16(0x33));
+    QSignalSpy written(&agv, &AGVModbusManager::writeCompleted);
+    QVERIFY(agv.writeSingleRegister(53, 6));
+    QTRY_VERIFY_WITH_TIMEOUT(!written.isEmpty(), kTimeoutMs);
+    QCOMPARE(written.last().at(2).toBool(), true);
+    QTRY_COMPARE_WITH_TIMEOUT(m_slave->getRegister(53), quint16(6), kTimeoutMs);
+    agv.disconnectFromDevice();
+    agv.stopWorkerThread();
+    ModbusThreadManager::instance()->disconnectFromDevice();
 }
 
 QTEST_MAIN(TestModbusTcpIntegration)

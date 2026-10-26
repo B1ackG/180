@@ -1,6 +1,7 @@
 #include "featureswitchwidget.h"
 #include "buttonmodbusmapping.h"
 #include "featureswitchmanager.h"
+#include "modbusbackendmode.h"
 #include "mainwindow.h"
 #include "mappingconfig.h"
 #include "techvirtualkeyboard.h"
@@ -506,7 +507,7 @@ void FeatureSwitchWidget::setupUI()
     auto *title = new QLabel(QStringLiteral("系统功能控制台"), header);
     title->setObjectName(QStringLiteral("consoleTitle"));
     auto *subtitle = new QLabel(
-        QStringLiteral("厂家运行时配置 · 修改后可「立即生效」或「保存并写入 INI」"), header);
+        QStringLiteral("厂家运行时配置 · 其他参数可立即生效；Modbus 后端模式需重启 180"), header);
     subtitle->setObjectName(QStringLiteral("consoleSubtitle"));
     titleBlock->addWidget(title);
     titleBlock->addWidget(subtitle);
@@ -729,6 +730,7 @@ void FeatureSwitchWidget::setupUI()
     logsLayout->addWidget(logGroup);
 
     setupNetworkUI(commLayout);
+    setupModbusBackendModeUI(commLayout);
     setupPollingUI(commLayout);
     setupSliderLimitUI(displayLayout);
     setupInclinometerThresholdUI(displayLayout);
@@ -768,7 +770,7 @@ void FeatureSwitchWidget::setupUI()
         "QPushButton { background-color: #1a5f9a; border: 1px solid #4aa8e0; border-radius: 5px;"
         " padding: 8px 16px; color: #e8fbff; font-weight: bold; }"
         "QPushButton:hover { background-color: #2474b8; }"));
-    btnApply->setToolTip(QStringLiteral("写入配置并通知主窗口立刻应用，不关闭本页"));
+    btnApply->setToolTip(QStringLiteral("写入配置。其他运行参数可立即应用，Modbus 后端仍需重启 180"));
     connect(btnApply, &QPushButton::clicked, this, &FeatureSwitchWidget::onApply);
 
     QPushButton *btnSave = new QPushButton(QStringLiteral("保存并写入 INI"), footer);
@@ -807,12 +809,52 @@ void FeatureSwitchWidget::loadCurrentState()
         it.value()->setChecked(mgr->isSmallFeatureEnabled(it.key()));
     }
     loadNetworkState();
+    loadModbusBackendModeState();
     loadPollingState();
     loadSliderLimitState();
     loadTechSliderEditState();
     loadInclinometerThresholdState();
     loadPlaneHeightOffsetState();
     loadButtonVisibilityState();
+}
+
+void FeatureSwitchWidget::setupModbusBackendModeUI(QVBoxLayout *scrollLayout)
+{
+    QGroupBox *group = new QGroupBox(QStringLiteral("Modbus 后端模式"), this);
+    QVBoxLayout *layout = new QVBoxLayout(group);
+    layout->addWidget(makeHintLabel(
+        QStringLiteral("该设置同时作用于主控和 AGV；保存后必须重启 180 才会生效，当前连接不会立即切换。"),
+        group));
+
+    m_comboModbusBackendMode = new QComboBox(group);
+    m_comboModbusBackendMode->addItem(QStringLiteral("动态库（libmodbus_backend.so）"),
+                                      QStringLiteral("dynamic"));
+    m_comboModbusBackendMode->addItem(QStringLiteral("静态库（已编入 180）"),
+                                      QStringLiteral("static"));
+    layout->addWidget(m_comboModbusBackendMode);
+    scrollLayout->addWidget(group);
+}
+
+void FeatureSwitchWidget::loadModbusBackendModeState()
+{
+    if (!m_comboModbusBackendMode) {
+        return;
+    }
+    const QString value = modbusBackendModeValue(loadModbusBackendMode());
+    const int index = m_comboModbusBackendMode->findData(value);
+    m_comboModbusBackendMode->setCurrentIndex(index >= 0 ? index : 0);
+}
+
+bool FeatureSwitchWidget::saveModbusBackendModeState(QString *error)
+{
+    if (!m_comboModbusBackendMode) {
+        if (error) {
+            *error = QStringLiteral("后端模式下拉框未初始化");
+        }
+        return false;
+    }
+    const QString value = m_comboModbusBackendMode->currentData().toString();
+    return saveModbusBackendMode(parseModbusBackendMode(value), QStringLiteral("config.ini"), error);
 }
 
 void FeatureSwitchWidget::setupNetworkUI(QVBoxLayout *scrollLayout)
@@ -2307,6 +2349,7 @@ QString configFieldLabel(const QString &group, const QString &key)
         {QStringLiteral("Polling/agv_ui_state_sync_enabled"), QStringLiteral("底盘界面同步")},
         {QStringLiteral("Polling/main_modbus_poll_ms"), QStringLiteral("主控轮询间隔")},
         {QStringLiteral("Polling/agv_poll_ms"), QStringLiteral("底盘轮询间隔")},
+        {QStringLiteral("ModbusBackend/mode"), QStringLiteral("Modbus 后端模式")},
     };
     return labels.value(id, id);
 }
@@ -2318,6 +2361,12 @@ QString displayConfigValue(const QString &value)
     }
     if (value == QLatin1String("false")) {
         return QStringLiteral("关闭");
+    }
+    if (value == QLatin1String("dynamic")) {
+        return QStringLiteral("动态库");
+    }
+    if (value == QLatin1String("static")) {
+        return QStringLiteral("静态库");
     }
     return value;
 }
@@ -2347,7 +2396,7 @@ void FeatureSwitchWidget::recordIniChanges(const QString &fileName, const QStrin
     settings.endGroup();
 }
 
-void FeatureSwitchWidget::onApply()
+bool FeatureSwitchWidget::onApply()
 {
     if (m_virtualKeyboard) {
         m_virtualKeyboard->commitPendingInput();
@@ -2383,9 +2432,15 @@ void FeatureSwitchWidget::onApply()
     const QMap<QString, QString> sliderBefore = snapshotIniGroup(ini, QStringLiteral("SliderLabelLimits"));
     const QMap<QString, QString> techSliderBefore = snapshotIniGroup(ini, QStringLiteral("TechSliderEditLimits"));
     const QMap<QString, QString> buttonBefore = snapshotIniGroup(ini, QStringLiteral("ButtonVisibility"));
+    const QMap<QString, QString> backendBefore = snapshotIniGroup(ini, QStringLiteral("ModbusBackend"));
 
     if (!saveNetworkState()) {
-        return;
+        return false;
+    }
+    QString backendError;
+    if (!saveModbusBackendModeState(&backendError)) {
+        QMessageBox::warning(this, QStringLiteral("保存失败"), backendError);
+        return false;
     }
     savePollingState();
     saveSliderLimitState();
@@ -2401,17 +2456,21 @@ void FeatureSwitchWidget::onApply()
     recordIniChanges(ini, QStringLiteral("SliderLabelLimits"), sliderBefore);
     recordIniChanges(ini, QStringLiteral("TechSliderEditLimits"), techSliderBefore);
     recordIniChanges(ini, QStringLiteral("ButtonVisibility"), buttonBefore);
+    recordIniChanges(ini, QStringLiteral("ModbusBackend"), backendBefore);
 
     emit runtimeSettingsChanged();
 
     this->hide();
+    return true;
 }
 
 void FeatureSwitchWidget::onSave()
 {
-    onApply();
+    if (!onApply()) {
+        return;
+    }
     FeatureSwitchManager::instance()->save();
-    QMessageBox::information(this, "结果", "配置已成功保存到 feature_switches.ini。");
+    QMessageBox::information(this, "结果", "配置已保存。Modbus 后端模式将在重启 180 后生效。");
 }
 
 void FeatureSwitchWidget::onReload()

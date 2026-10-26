@@ -17,6 +17,8 @@
  * =============================================================================
  */
 
+#include "modbus_backend_c.h"
+
 #include <cerrno>
 #include <cstdlib>
 #include <mutex>

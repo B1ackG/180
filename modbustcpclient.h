@@ -16,6 +16,7 @@
 #define MODBUSTCPCLIENT_H
 
 #include "imodbusclient.h"
+#include "modbusbackendmode.h"
 
 #include <QThread>
 #include <QMutex>
@@ -262,9 +263,10 @@ private slots:
 private:
     void handleCommunicationFailure(const QString &reason);
 
-    // 动态库后端（可选）: 若加载成功，优先走动态库实现
-    bool ensureDynamicBackendLoaded();
-    void unloadDynamicBackend();
+    bool ensureBackendLoaded();
+    bool loadDynamicBackend();
+    bool bindStaticBackend();
+    void unloadBackend();
 
     using MbCreateHandleFn = void* (*)();
     using MbDestroyHandleFn = void (*)(void*);
@@ -278,8 +280,9 @@ private:
     QLibrary m_dynamicBackendLibrary;
     QString m_dynamicBackendPath;
     void *m_dynamicBackendHandle = nullptr;
-    bool m_useDynamicBackend = false;
-    bool m_dynamicBackendLoadAttempted = false;
+    ModbusBackendMode m_backendMode = ModbusBackendMode::Dynamic;
+    bool m_backendReady = false;
+    bool m_backendLoadAttempted = false;
     QString m_lastDynamicBackendError;
     MbCreateHandleFn m_backendCreate = nullptr;
     MbDestroyHandleFn m_backendDestroy = nullptr;

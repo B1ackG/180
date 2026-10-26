@@ -1,4 +1,5 @@
 include(../support/test_common.pri)
+include(../support/modbus_static_link.pri)
 QT += widgets network
 TARGET = tst_modbus_tcp_integration
 INCLUDEPATH += $$PWD
@@ -18,6 +19,7 @@ SOURCES += tst_modbus_tcp_integration.cpp \
     ../../motionwriteplan.cpp \
     ../../modbusregistercodec.cpp \
     ../../motionstoprecoverycontroller.cpp \
+    ../../agvmodbusmanager.cpp \
     ../support/sliderlinkstubs.cpp
 HEADERS += $$MODBUS_SIM_ROOT/modbusslave.h \
     ../../modbustcpclient.h \
@@ -28,4 +30,5 @@ HEADERS += $$MODBUS_SIM_ROOT/modbusslave.h \
     ../../motionwriteplan.h \
     ../../modbusregistercodec.h \
     ../../motionstoprecoverycontroller.h \
+    ../../agvmodbusmanager.h \
     ../../modbusasync.h
