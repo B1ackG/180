@@ -11905,9 +11905,9 @@ void MainWindow::applyNetworkRuntimeSettings()
             const int reconnectInterval = m_mainReconnectIntervalMs;
             QMetaObject::invokeMethod(manager, [manager, host, pollInterval, reconnectInterval]() {
                 manager->disconnectFromDevice();
-                manager->connectToDevice(host, 5020);
                 manager->setPollInterval(pollInterval);
                 manager->setAutoReconnect(true, reconnectInterval);
+                manager->connectToDevice(host, 5020);
             }, Qt::QueuedConnection);
             qCDebug(lcMainWindow) << "[MainModbus] 已排队切换模拟器并重新连接:" << simHost << ":5020";
         }

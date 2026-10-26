@@ -40,6 +40,7 @@ bool FakeModbusClient::connectToServer(const QString &host, quint16 port, int sl
 {
     Q_UNUSED(port);
     Q_UNUSED(slaveId);
+    m_callSequence.append(QStringLiteral("connectToServer"));
     if (host.isEmpty()) {
         return false;
     }
@@ -170,4 +171,22 @@ QVector<QPair<int, QVector<quint16>>> FakeModbusClient::writes() const
 void FakeModbusClient::clearWrites()
 {
     m_writes.clear();
+}
+
+void FakeModbusClient::setPollInterval(int ms)
+{
+    Q_UNUSED(ms);
+    m_callSequence.append(QStringLiteral("setPollInterval"));
+}
+
+void FakeModbusClient::setAutoReconnect(bool enable, int interval)
+{
+    Q_UNUSED(enable);
+    Q_UNUSED(interval);
+    m_callSequence.append(QStringLiteral("setAutoReconnect"));
+}
+
+QStringList FakeModbusClient::callSequence() const
+{
+    return m_callSequence;
 }

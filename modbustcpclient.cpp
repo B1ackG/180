@@ -296,6 +296,11 @@ void ModbusTCPClient::setAutoReconnect(bool enable, int interval)
 
     if (!enable) {
         m_reconnectTimer->stop();
+        return;
+    }
+
+    if (!m_connectedState && !m_host.isEmpty() && !m_reconnectTimer->isActive()) {
+        m_reconnectTimer->start(m_reconnectInterval);
     }
 }
 

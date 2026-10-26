@@ -5,6 +5,7 @@ TARGET = tst_modbusthreadmanager
 INCLUDEPATH += $$PWD
 SOURCES += tst_modbusthreadmanager.cpp \
     fakemodbusclient.cpp \
+    ../../mainmodbusconnector.cpp \
     ../../modbusthreadmanager.cpp \
     ../../modbustcpclient.cpp \
     ../../modbuswritegate.cpp \
@@ -13,6 +14,7 @@ SOURCES += tst_modbusthreadmanager.cpp \
     ../../modbusregistercodec.cpp \
     ../support/sliderlinkstubs.cpp
 HEADERS += fakemodbusclient.h \
+    ../../mainmodbusconnector.h \
     ../../modbusthreadmanager.h \
     ../../modbustcpclient.h \
     ../../imodbusclient.h \

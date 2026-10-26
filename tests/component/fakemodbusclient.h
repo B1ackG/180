@@ -5,6 +5,7 @@
 
 #include <QHash>
 #include <QPair>
+#include <QStringList>
 #include <QVector>
 
 class FakeModbusClient : public IModbusClient
@@ -21,6 +22,8 @@ public:
     bool readHoldingRegistersSync(int start, int count, QVector<quint16> &values) override;
     bool writeSingleRegister(int address, quint16 value) override;
     bool writeMultipleRegisters(int start, const QVector<quint16> &values) override;
+    void setPollInterval(int ms) override;
+    void setAutoReconnect(bool enable, int interval = 5000) override;
 
     void setConnectedForTest(bool connected);
     void setRegisterForTest(int address, quint16 value);
@@ -28,6 +31,7 @@ public:
     void failWriteAtAddress(int address, int times = 1);
     QVector<QPair<int, QVector<quint16>>> writes() const;
     void clearWrites();
+    QStringList callSequence() const;
 
 private:
     bool addressValid(int address) const;
@@ -36,6 +40,7 @@ private:
 
     bool m_connected = false;
     int m_failReads = 0;
+    QStringList m_callSequence;
     QHash<int, quint16> m_registers;
     QHash<int, int> m_failWrites;
     QVector<QPair<int, QVector<quint16>>> m_writes;

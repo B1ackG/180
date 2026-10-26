@@ -1,4 +1,5 @@
 #include "fakemodbusclient.h"
+#include "mainmodbusconnector.h"
 #include "modbusthreadmanager.h"
 #include "modbuswritegate.h"
 #include "motionwriteplan.h"
@@ -45,6 +46,7 @@ private slots:
     void diagonalJogValuesAndStaleGeneration();
     void gateRejectsDiagonalPlaneAndJog();
     void gateAppliesToSixAxisRunModeAndJointMode();
+    void connectAndConfigureEnablesReconnectBeforeConnect();
 
 private:
     void connectReady(quint16 interlockValue);
@@ -317,6 +319,23 @@ void TestModbusThreadManager::gateRejectsDiagonalPlaneAndJog()
     m_client->failNextRead();
     QVERIFY(!m_manager->writeSingleRegister(622, 0));
     QVERIFY(m_client->writes().isEmpty());
+}
+
+void TestModbusThreadManager::connectAndConfigureEnablesReconnectBeforeConnect()
+{
+    FakeModbusClient client;
+    ModbusThreadManager manager(&client, false);
+    MainModbusEndpoint endpoint;
+    endpoint.host = QStringLiteral("127.0.0.1");
+    endpoint.port = 15020;
+    QVERIFY(MainModbusConnector::connectAndConfigure(&manager, endpoint, 500, 5000));
+
+    const QStringList calls = client.callSequence();
+    const int reconnectIndex = calls.indexOf(QStringLiteral("setAutoReconnect"));
+    const int connectIndex = calls.indexOf(QStringLiteral("connectToServer"));
+    QVERIFY(reconnectIndex >= 0);
+    QVERIFY(connectIndex >= 0);
+    QVERIFY(reconnectIndex < connectIndex);
 }
 
 QTEST_MAIN(TestModbusThreadManager)
