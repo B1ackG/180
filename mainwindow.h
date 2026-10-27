@@ -309,6 +309,10 @@ public:
     void showCableMotionToast(bool extending);
     /** @brief 收起钢缆点动中的常驻提示 */
     void hideCableMotionToast();
+    /** @brief 工装点动中的常驻提示（正负同一句） */
+    void showFixtureMotionToast();
+    /** @brief 收起工装点动中的常驻提示 */
+    void hideFixtureMotionToast();
     /** @brief 结束钢缆锁定运动：关提示、结历史，可选写 514=0 */
     void stopLatchedCableMotion(const QString &historyEndReason, bool writeStop);
     /** @brief 显示驻车切换等待提示窗（与报警窗解耦） */
@@ -856,12 +860,12 @@ private:
     bool m_robotNegativeLimit102Bit3Flag = false;
     /** @brief 在途的 152 读取；0 表示没有 */
     quint64 m_robotSoftLimitDetailReadId = 0;
-    /** @brief 4 轴 × 正负，与 kRobotAxisLimits 下标一致 */
-    bool m_robotAxisLimitActive[8] = {};
+    /** @brief J1~J4 + 工装 × 正负，与 kRobotAxisLimits 下标一致 */
+    bool m_robotAxisLimitActive[10] = {};
     /** @brief 该位仍为 1 时用户已点确认，轮询不再补弹 */
-    bool m_robotAxisLimitAcked[8] = {};
+    bool m_robotAxisLimitAcked[10] = {};
     /** @brief 对应轴限位 Toast。控件销毁后自动变空，避免关闭后再次 dismiss 碰到已释放对象 */
-    QPointer<QWidget> m_robotAxisLimitToast[8];
+    QPointer<QWidget> m_robotAxisLimitToast[10];
     /** @brief 主控 151.bit0：卷样机钢缆已完全收回 */
     bool m_cableRetracted151Bit0Flag = false;
     /** @brief 主控 151.bit1：卷样机钢缆已完全放出 */
@@ -1427,14 +1431,16 @@ private:
     void applyRobotSoftLimitRegister(int address, quint16 value);
     /** @brief 按已缓存且未确认的细分辨位补弹 Toast */
     void syncRobotSoftLimitToasts();
-    /** @brief 生成「J{n}轴到达正/负限位」 */
+    /** @brief 生成「J{n}轴到达正/负限位」或「工装到达正/负限位」 */
     QString robotLimitToastMessage(int axisIndex, bool positiveLimit) const;
-    /** @brief 细分辨位 0→1 时显示该轴 Toast；已确认或不在机械臂页则不弹 */
+    /** @brief 细分辨位 0→1 时显示该轴 Toast；已确认或当前页不匹配则不弹 */
     void showRobotAxisLimitToast(int slot);
     /** @brief 关掉指定轴 Toast 并清除确认标记 */
     void hideRobotAxisLimitToast(int slot);
-    /** @brief 离开机械臂页时收起已显示的限位 Toast，不改到位标志和确认标志 */
+    /** @brief 离开机械臂页时收起 J 轴限位 Toast，不改到位标志和确认标志 */
     void suppressRobotAxisLimitToastsOffHome();
+    /** @brief 离开六自由度页时收起工装限位 Toast，不改到位标志和确认标志 */
+    void suppressFixtureLimitToastsOffSixAxis();
     /** @brief 机械臂页同向运动按下时，限位位仍为 1 则补弹 */
     void reshowRobotAxisLimitToastForMotion(int axisIndex, bool positiveLimit);
     /** @brief 隐藏指定 Toast 并重排剩余项 */

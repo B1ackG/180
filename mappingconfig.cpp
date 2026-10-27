@@ -472,6 +472,7 @@ void MappingConfig::initDefaultMappings()
     m_controlNameMap["btnStepTargetSixAxis5"] = "六轴步进目标 · 轴5";
     m_controlNameMap["btnStepTargetSixAxis6"] = "六轴步进目标 · 轴6";
     m_controlNameMap["btnStepTargetSixAxis7"] = "六轴步进目标 · 轴7";
+    m_controlNameMap["btnStepTargetSixAxis8"] = "六轴步进目标 · 工装";
     m_controlNameMap["btnStepTargetAxis1"] = "单轴步进目标 · 立柱旋转";
     m_controlNameMap["btnStepTargetAxis2"] = "单轴步进目标 · 立柱升降";
     m_controlNameMap["btnStepTargetAxis3"] = "单轴步进目标 · 伸缩平衡臂";
@@ -492,6 +493,7 @@ void MappingConfig::initDefaultMappings()
     m_controlNameMap["btnStepTargetSixAxis5"] = "六轴步进目标 · 轴5";
     m_controlNameMap["btnStepTargetSixAxis6"] = "六轴步进目标 · 轴6";
     m_controlNameMap["btnStepTargetSixAxis7"] = "六轴步进目标 · 轴7";
+    m_controlNameMap["btnStepTargetSixAxis8"] = "六轴步进目标 · 工装";
     m_controlNameMap["btnStepTargetAxis1"] = "单轴步进目标 · 立柱旋转";
     m_controlNameMap["btnStepTargetAxis2"] = "单轴步进目标 · 立柱升降";
     m_controlNameMap["btnStepTargetAxis3"] = "单轴步进目标 · 伸缩平衡臂";

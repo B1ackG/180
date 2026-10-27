@@ -113,10 +113,13 @@ const QString kCableRetractingToastText =
     QStringLiteral("卷样机当前正在收回");
 const QString kCableExtendingToastText =
     QStringLiteral("卷样机当前正在放出");
+const QString kFixtureMovingToastText =
+    QStringLiteral("工装正在运动中");
 
 constexpr int kRobotSoftLimitDetailReg = 152;
 constexpr int kRobotSoftLimitDetailCount = 1;
-constexpr int kRobotAxisLimitSlotCount = 8;
+constexpr int kRobotAxisLimitSlotCount = 10;
+constexpr int kFixtureLimitSlotBegin = 8;
 
 struct RobotAxisLimitDef {
     int axisIndex;
@@ -125,7 +128,7 @@ struct RobotAxisLimitDef {
     int bit;
 };
 
-/** 四轴都在主控 152：J1/J2 为 bit0~3，J3 为 bit10/11，J4 为 bit14/15。 */
+/** 主控 152：J1/J2 bit0~3，J3 bit10/11，工装 bit12/13，J4 bit14/15。 */
 constexpr RobotAxisLimitDef kRobotAxisLimits[kRobotAxisLimitSlotCount] = {
     {1, true,  152, 0},
     {1, false, 152, 1},
@@ -135,10 +138,20 @@ constexpr RobotAxisLimitDef kRobotAxisLimits[kRobotAxisLimitSlotCount] = {
     {3, false, 152, 11},
     {4, true,  152, 14},
     {4, false, 152, 15},
+    {6, true,  152, 12},
+    {6, false, 152, 13},
 };
+
+bool isFixtureLimitSlot(int slot)
+{
+    return slot >= kFixtureLimitSlotBegin && slot < kRobotAxisLimitSlotCount;
+}
 
 int robotAxisLimitSlotIndex(int axisIndex, bool positiveLimit)
 {
+    if (axisIndex == 6) {
+        return kFixtureLimitSlotBegin + (positiveLimit ? 0 : 1);
+    }
     if (axisIndex < 1 || axisIndex > 4) {
         return -1;
     }
@@ -2174,6 +2187,7 @@ void MainWindow::showRobotView()
     leaveSixAxisDiagonalForDeviceSwitch();
     applyInnerDeviceStacks(InnerDeviceView::Robot);
     setExclusiveNavButtonChecked(ui ? ui->TBtn_RobotControl : nullptr);
+    suppressFixtureLimitToastsOffSixAxis();
     syncRobotSoftLimitToasts();
     syncStepModeUiByCurrentPage();
     updateStepTargetButtonsState();
@@ -2186,6 +2200,7 @@ void MainWindow::showChassisView()
     applyInnerDeviceStacks(InnerDeviceView::Chassis);
     setExclusiveNavButtonChecked(ui ? ui->TBtn_ChassisControl : nullptr);
     suppressRobotAxisLimitToastsOffHome();
+    suppressFixtureLimitToastsOffSixAxis();
     syncStepModeUiByCurrentPage();
     updateStepTargetButtonsState();
     if (!m_stepModeUnknown && m_stepModeEnabled) {
@@ -2201,6 +2216,7 @@ void MainWindow::showSixAxisView()
     applyInnerDeviceStacks(InnerDeviceView::SixAxis);
     setExclusiveNavButtonChecked(ui ? ui->TBtn_SixAxies : nullptr);
     suppressRobotAxisLimitToastsOffHome();
+    syncRobotSoftLimitToasts();
     syncStepModeUiByCurrentPage();
     updateStepTargetButtonsState();
     updateSixAxisPoseActionButtons();
@@ -2219,6 +2235,7 @@ void MainWindow::showPermissionView()
     }
     leaveSixAxisDiagonalForDeviceSwitch();
     suppressRobotAxisLimitToastsOffHome();
+    suppressFixtureLimitToastsOffSixAxis();
     syncStepModeUiByCurrentPage();
     updateStepTargetButtonsState();
     hideCollapsibleControlPanels();
@@ -6252,6 +6269,7 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
     //   点动写 613（○1 负向、○2 正向；轴6 再取反）；步进写 614 → 601/602 → 615。
     // - 选中钢缆时：仅 ○1 放出、○2 收回；写 500=5，514=4/2。
     //   松开外部键不停轴，松开使能才写 514=0。
+    // - 选中工装时：写 500=6；○1/○2 点动写 514=4/2，松开外部键停轴。
     if (isSixAxisPage) {
         if (isSixAxisDiagonalMode()) {
             if (keyNumber != 1 && keyNumber != 2) {
@@ -6374,6 +6392,61 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
 
             qCDebug(lcMainWindow) << "六自由度页面钢缆外部按键○" << keyNumber
                                   << "写入 500=5, 514=" << value514;
+            return;
+        }
+
+        if (axisIndex == 8) {
+            if (keyNumber != 1 && keyNumber != 2) {
+                return;
+            }
+            if (!pressed) {
+                const bool wasPressed = m_sixAxisExternalKeyPressed.value(keyNumber, false);
+                m_sixAxisExternalKeyPressed[keyNumber] = false;
+                if (m_sixAxisActiveKey == keyNumber) {
+                    m_sixAxisActiveKey = -1;
+                }
+                if (wasPressed && m_motionStopRecovery) {
+                    m_motionStopRecovery->requestMotionStop(MainMotionStopKind::RobotJog514);
+                } else if (wasPressed) {
+                    writeToMainDevice(514, 0);
+                }
+                if (wasPressed) {
+                    hideFixtureMotionToast();
+                    finishActiveMotionsWithPrefix(
+                        QStringLiteral("fixture-"),
+                        QStringLiteral("操作员松开按键，运动记录结束"));
+                }
+                return;
+            }
+
+            if (m_sixAxisExternalKeyPressed.value(keyNumber, false)) {
+                qCDebug(lcMainWindow) << "六自由度工装外部按键去重：按键○" << keyNumber << "重复按下已忽略";
+                return;
+            }
+            if (rejectMotionUntilStopConfirmed()) {
+                return;
+            }
+
+            const int value514 = (keyNumber == 1) ? 4 : 2;
+            const QString fixtureKey = (keyNumber == 1)
+                ? QStringLiteral("fixture-neg")
+                : QStringLiteral("fixture-pos");
+            const QString fixtureName = (keyNumber == 1)
+                ? QStringLiteral("工装负向")
+                : QStringLiteral("工装正向");
+            writeToMainDevice(500, 6);
+            writeToMainDevice(514, value514);
+            m_sixAxisExternalKeyPressed[keyNumber] = true;
+            m_sixAxisActiveKey = keyNumber;
+            if (m_motionStopRecovery) {
+                m_motionStopRecovery->markMotionStarted(MainMotionStopKind::RobotJog514);
+            }
+            reshowRobotAxisLimitToastForMotion(6, keyNumber != 1);
+            showFixtureMotionToast();
+            beginMotionHistory(fixtureKey, fixtureName,
+                               QStringLiteral("%1开始%2").arg(historyOperatorName(), fixtureName));
+            qCDebug(lcMainWindow) << "六自由度页面工装外部按键○" << keyNumber
+                                  << "写入 500=6, 514=" << value514;
             return;
         }
 
@@ -10102,6 +10175,7 @@ void MainWindow::processEnableButton(bool enabled)
                 ? QStringLiteral("AGV页步进松开使能：寄存器0 bit4/bit5/bit9/bit10=0")
                 : QStringLiteral("AGV页松开使能：寄存器0 bit9/bit10=0"));
         stopLatchedCableMotion(QStringLiteral("操作员松开使能，运动记录结束"), true);
+        hideFixtureMotionToast();
         releaseHeldExternalKeysOnEnableRelease();
         finishStepMotionWait(true);
         const QString enableReleaseEnd = QStringLiteral("操作员松开使能，运动记录结束");
@@ -10110,6 +10184,7 @@ void MainWindow::processEnableButton(bool enabled)
         finishActiveMotionsWithPrefix(QStringLiteral("six-jog-"), enableReleaseEnd);
         finishActiveMotionsWithPrefix(QStringLiteral("six-diagonal-"), enableReleaseEnd);
         finishActiveMotionsWithPrefix(QStringLiteral("cable-"), enableReleaseEnd);
+        finishActiveMotionsWithPrefix(QStringLiteral("fixture-"), enableReleaseEnd);
         finishActiveMotionsWithPrefix(QStringLiteral("vertical-"), enableReleaseEnd);
         finishActiveMotionsWithPrefix(QStringLiteral("hori-"), enableReleaseEnd);
         finishActiveMotionsWithPrefix(QStringLiteral("eoat-"), enableReleaseEnd);
@@ -12227,6 +12302,7 @@ int MainWindow::selectedSixAxisTargetIndex() const
     if (name == QStringLiteral("btnStepTargetSixAxis5")) return 5;
     if (name == QStringLiteral("btnStepTargetSixAxis6")) return 6;
     if (name == QStringLiteral("btnStepTargetSixAxis7")) return 7;
+    if (name == QStringLiteral("btnStepTargetSixAxis8")) return 8;
     return 1;
 }
 
@@ -12321,15 +12397,25 @@ void MainWindow::updateStepTargetButtonsState()
     enableStepTargets(m_stepTargetGroup);
     enableStepTargets(m_sixAxisStepTargetGroup);
 
-    const bool hideSixAxisCable = (!m_stepModeUnknown && m_stepModeEnabled);
-    if (QAbstractButton *cableBtn = findChild<QAbstractButton*>(QStringLiteral("btnStepTargetSixAxis7"))) {
-        if (hideSixAxisCable && cableBtn->isChecked()) {
-            if (QAbstractButton *rxBtn = findChild<QAbstractButton*>(QStringLiteral("btnStepTargetSixAxis1"))) {
-                rxBtn->setChecked(true);
+    const bool hideJogOnlySixAxisTargets = (!m_stepModeUnknown && m_stepModeEnabled);
+    bool fallbackToRx = false;
+    const QStringList jogOnlySixAxisButtons = {
+        QStringLiteral("btnStepTargetSixAxis7"),
+        QStringLiteral("btnStepTargetSixAxis8")
+    };
+    for (const QString &name : jogOnlySixAxisButtons) {
+        if (QAbstractButton *btn = findChild<QAbstractButton*>(name)) {
+            if (hideJogOnlySixAxisTargets && btn->isChecked()) {
+                fallbackToRx = true;
             }
+            btn->setVisible(!hideJogOnlySixAxisTargets);
+            btn->setEnabled(!hideJogOnlySixAxisTargets);
         }
-        cableBtn->setVisible(!hideSixAxisCable);
-        cableBtn->setEnabled(!hideSixAxisCable);
+    }
+    if (fallbackToRx) {
+        if (QAbstractButton *rxBtn = findChild<QAbstractButton*>(QStringLiteral("btnStepTargetSixAxis1"))) {
+            rxBtn->setChecked(true);
+        }
     }
 }
 
@@ -12856,6 +12942,7 @@ void MainWindow::setupStepMoveControl()
 
     QToolButton *axis6Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis6");
     QToolButton *axis7Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis7");
+    QToolButton *axis8Btn2 = findChild<QToolButton*>("btnStepTargetSixAxis8");
     if (!axis6Btn2) {
         QWidget *stepTargetList2 = findChild<QWidget*>("widget_SixAxies_StepTargetList");
         QVBoxLayout *stepTargetLayout2 = findChild<QVBoxLayout*>("verticalLayout_SixAxies_StepTargetList");
@@ -12898,7 +12985,11 @@ void MainWindow::setupStepMoveControl()
         m_sixAxisStepTargetGroup->removeButton(btn);
     }
 
-    const QList<QToolButton*> sixAxisButtons = {axis1Btn2, axis2Btn2, axis3Btn2, axis4Btn2, axis5Btn2, axis6Btn2, axis7Btn2};
+    if (axis8Btn2) {
+        axis8Btn2->setText(QStringLiteral("工装"));
+    }
+
+    const QList<QToolButton*> sixAxisButtons = {axis1Btn2, axis2Btn2, axis3Btn2, axis4Btn2, axis5Btn2, axis6Btn2, axis7Btn2, axis8Btn2};
     for (QToolButton *btn : sixAxisButtons) {
         if (!btn) {
             continue;
@@ -12935,12 +13026,21 @@ void MainWindow::setupStepMoveControl()
                 dismissToastByMessage(kReselectMotionTargetHintText);
             }
 
+            const QString n = btn ? btn->objectName() : QString();
+            if (n == QStringLiteral("btnStepTargetSixAxis8")) {
+                if (btn->isChecked()) {
+                    writeToMainDevice(500, 6);
+                    ui->statusBar->showMessage(QString("六轴目标切换：%1 (500=6)")
+                                                   .arg(btn->text()), 1500);
+                }
+                return;
+            }
+
             if (!m_stepModeEnabled || m_stepModeUnknown || !btn || !btn->isChecked()) {
                 return;
             }
 
             int targetCode = 1;
-            const QString n = btn->objectName();
             if (n == "btnStepTargetSixAxis7") {
                 return;
             }
@@ -13329,6 +13429,7 @@ QString MainWindow::historySixAxisName(int axisIndex) const
     case 5: return QStringLiteral("第五轴Y轴");
     case 6: return QStringLiteral("第六轴Z轴");
     case 7: return QStringLiteral("卷样机钢缆");
+    case 8: return QStringLiteral("工装");
     default: return QStringLiteral("六自由度");
     }
 }
@@ -13447,6 +13548,7 @@ QString MainWindow::historyMotionTargetName(const QString &jointName) const
     if (name.contains(QStringLiteral("伸缩"))) return QStringLiteral("伸缩臂");
     if (name.contains(QStringLiteral("末端")) || name.contains(QStringLiteral("柔顺")) || name.contains(QStringLiteral("J4"))) return QStringLiteral("末端组件");
     if (name.contains(QStringLiteral("钢缆"))) return QStringLiteral("卷样机钢缆");
+    if (name.contains(QStringLiteral("工装"))) return QStringLiteral("工装");
     if (name.contains(QStringLiteral("底盘")) || name.contains(QStringLiteral("AGV"), Qt::CaseInsensitive)) return QStringLiteral("底盘");
     return name;
 }
@@ -16558,6 +16660,10 @@ void MainWindow::applyRobotSoftLimitRegister(int address, quint16 value)
             if (def.axisIndex >= 1 && def.axisIndex <= 4) {
                 finishActiveMotionsContaining(axisNames[def.axisIndex],
                                               QStringLiteral("达到限位，运动记录结束"));
+            } else if (def.axisIndex == 6) {
+                hideFixtureMotionToast();
+                finishActiveMotionsContaining(QStringLiteral("工装"),
+                                              QStringLiteral("达到限位，运动记录结束"));
             }
         } else {
             hideRobotAxisLimitToast(slot);
@@ -16579,11 +16685,14 @@ void MainWindow::syncRobotSoftLimitToasts()
 
 QString MainWindow::robotLimitToastMessage(int axisIndex, bool positiveLimit) const
 {
+    const QString limitDir = positiveLimit ? QStringLiteral("正") : QStringLiteral("负");
+    if (axisIndex == 6) {
+        return QStringLiteral("工装到达%1限位").arg(limitDir);
+    }
     if (axisIndex < 1 || axisIndex > 4) {
         return {};
     }
 
-    const QString limitDir = positiveLimit ? QStringLiteral("正") : QStringLiteral("负");
     return QStringLiteral("J%1轴到达%2限位").arg(axisIndex).arg(limitDir);
 }
 
@@ -16599,8 +16708,12 @@ void MainWindow::showRobotAxisLimitToast(int slot)
         return;
     }
     // 机械臂、六自由度、底盘共用 StackedWidget 的 page_Robot（index 0）。
-    // 限位 Toast 只在机械臂页显示，避免操作钢缆时弹出 J 轴限位。
-    if (!isRobotAxisViewActive()) {
+    // J 轴限位只在机械臂页；工装限位只在六自由度页，避免串页。
+    if (isFixtureLimitSlot(slot)) {
+        if (!isSixAxisViewActive()) {
+            return;
+        }
+    } else if (!isRobotAxisViewActive()) {
         return;
     }
 
@@ -16652,7 +16765,16 @@ void MainWindow::hideRobotAxisLimitToast(int slot)
 
 void MainWindow::suppressRobotAxisLimitToastsOffHome()
 {
-    for (int slot = 0; slot < kRobotAxisLimitSlotCount; ++slot) {
+    for (int slot = 0; slot < kFixtureLimitSlotBegin; ++slot) {
+        if (QWidget *toast = m_robotAxisLimitToast[slot].data()) {
+            dismissToast(toast);
+        }
+    }
+}
+
+void MainWindow::suppressFixtureLimitToastsOffSixAxis()
+{
+    for (int slot = kFixtureLimitSlotBegin; slot < kRobotAxisLimitSlotCount; ++slot) {
         if (QWidget *toast = m_robotAxisLimitToast[slot].data()) {
             dismissToast(toast);
         }
@@ -16970,6 +17092,20 @@ void MainWindow::hideCableMotionToast()
 {
     dismissToastByMessage(kCableRetractingToastText);
     dismissToastByMessage(kCableExtendingToastText);
+}
+
+void MainWindow::showFixtureMotionToast()
+{
+    hideFixtureMotionToast();
+    if (m_lastToastMessage == kFixtureMovingToastText) {
+        m_lastToastMessage.clear();
+    }
+    showToast(kFixtureMovingToastText, ToastKind::Warning, -1, nullptr, false);
+}
+
+void MainWindow::hideFixtureMotionToast()
+{
+    dismissToastByMessage(kFixtureMovingToastText);
 }
 
 void MainWindow::stopLatchedCableMotion(const QString &historyEndReason, bool writeStop)
