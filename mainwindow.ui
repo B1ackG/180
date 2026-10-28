@@ -710,7 +710,7 @@ QGroupBox#groupBox_4::title { color: #ffd0d0; background: rgba(56, 16, 16, 0.92)
          <widget class="TechSpeedGauge" name="AGV_speedGauge" native="true">
           <property name="geometry">
            <rect>
-            <x>60</x>
+            <x>59</x>
             <y>109</y>
             <width>221</width>
             <height>221</height>

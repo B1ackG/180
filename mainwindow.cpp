@@ -398,12 +398,12 @@ constexpr int kHeightLengthLockDefaultMm = 1000;
 constexpr int kLegGear1Mm = 400;
 constexpr int kLegGear2Mm = 750;
 constexpr int kLegGearFullMm = 1100;
-/** 主控 151 吊重-支腿-伸缩臂联锁：bit3~7 */
-constexpr quint16 kLegArmInterlock151Mask = 0x00F8;
+/** 主控 151 吊重-支腿-伸缩臂联锁：bit3~8 */
+constexpr quint16 kLegArmInterlock151Mask = 0x01F8;
 
 int highestLegArmInterlockBit(quint16 mask)
 {
-    static const int kOrder[] = {7, 4, 3, 5, 6};
+    static const int kOrder[] = {7, 8, 4, 3, 5, 6};
     for (int bit : kOrder) {
         if ((mask >> bit) & 0x1) {
             return bit;
@@ -430,6 +430,9 @@ QString legArmInterlockMessage(int bit)
         break;
     case 7:
         head = QStringLiteral("支腿伸出量错误，请立即收回伸缩臂");
+        break;
+    case 8:
+        head = QStringLiteral("支腿伸出量错误，请立即降低升降轴");
         break;
     default:
         return QString();
@@ -6694,6 +6697,10 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 }
                 return;
             }
+        }
+
+        if (pressed && blockLegArmInterlockExternalMotionIfNeeded()) {
+            return;
         }
 
         maybeShowZeroSpeedHintForHomePageExternalKey(keyNumber, pressed);
@@ -13836,7 +13843,7 @@ void MainWindow::checkAlarmConditions()
         if (isRobotLimit102Active()) {
             requestRobotSoftLimitDetailPoll();
         }
-        // 卷扬机到位：151.bit0/bit1；姿态调平门控：151.bit2；吊重-支腿-伸缩臂联锁：151.bit3~7
+        // 卷扬机到位：151.bit0/bit1；姿态调平门控：151.bit2；吊重-支腿-伸缩臂联锁：151.bit3~8
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 151, 1);
     }
 
@@ -17068,7 +17075,11 @@ void MainWindow::showLegArmInterlockToast()
     if (m_legArmInterlockUserAckedWhileActive) {
         return;
     }
-    const int bit = highestLegArmInterlockBit(m_legArmInterlock151Bits);
+    showLegArmInterlockToastForBit(highestLegArmInterlockBit(m_legArmInterlock151Bits));
+}
+
+void MainWindow::showLegArmInterlockToastForBit(int bit)
+{
     const QString message = legArmInterlockMessage(bit);
     if (message.isEmpty()) {
         hideLegArmInterlockToast();
@@ -17090,6 +17101,9 @@ void MainWindow::showLegArmInterlockToast()
             m_recorder->addRecord(record);
         }
     }
+    if (m_lastToastMessage == message) {
+        m_lastToastMessage.clear();
+    }
     showToast(message, ToastKind::Warning, -1, [this, message]() {
         if (m_legArmInterlockShownMessage == message) {
             m_legArmInterlockUserAckedWhileActive = true;
@@ -17098,9 +17112,36 @@ void MainWindow::showLegArmInterlockToast()
     });
 }
 
+bool MainWindow::blockLegArmInterlockExternalMotionIfNeeded()
+{
+    if (!m_legArmInterlockUserAckedWhileActive) {
+        return false;
+    }
+    if (!m_stepTargetGroup || !m_stepTargetGroup->checkedButton()) {
+        return false;
+    }
+
+    const QString name = m_stepTargetGroup->checkedButton()->objectName();
+    int bit = -1;
+    if (name == QLatin1String("btnStepTargetAxis3")) {
+        bit = 7;
+    } else if (name == QLatin1String("btnStepTargetAxis2")) {
+        bit = 8;
+    } else {
+        return false;
+    }
+    if ((m_legArmInterlock151Bits & static_cast<quint16>(1u << bit)) == 0) {
+        return false;
+    }
+
+    m_legArmInterlockUserAckedWhileActive = false;
+    showLegArmInterlockToastForBit(bit);
+    return true;
+}
+
 void MainWindow::hideLegArmInterlockToast()
 {
-    static const int kBits[] = {7, 4, 3, 5, 6};
+    static const int kBits[] = {7, 8, 4, 3, 5, 6};
     for (int bit : kBits) {
         dismissToastByMessage(legArmInterlockMessage(bit));
     }

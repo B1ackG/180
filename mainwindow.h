@@ -301,10 +301,14 @@ public:
     void hideRobotAxisSyncDeviationDialog();
     /** @brief 102 两位置 0：停读细分辨并清掉全部限位 Toast */
     void hideRobotLimitReachedDialog();
-    /** @brief 显示吊重-支腿-伸缩臂联锁 Toast（主控 151.bit3~7） */
+    /** @brief 显示吊重-支腿-伸缩臂联锁 Toast（主控 151.bit3~8，按当前最高优先级位） */
     void showLegArmInterlockToast();
+    /** @brief 按指定联锁位显示 Toast（再提示时用轴对应 bit，不走最高优先级） */
+    void showLegArmInterlockToastForBit(int bit);
     /** @brief 隐藏吊重-支腿-伸缩臂联锁 Toast */
     void hideLegArmInterlockToast();
+    /** @brief 确认隐藏后：选中伸缩平衡臂/立柱升降且对应 bit 仍为 1 时再弹并拦截外部键写入 */
+    bool blockLegArmInterlockExternalMotionIfNeeded();
     /** @brief 钢缆点动中的常驻提示：正在收回 / 正在放出 */
     void showCableMotionToast(bool extending);
     /** @brief 收起钢缆点动中的常驻提示 */
@@ -874,9 +878,9 @@ private:
     int m_cableLatch514 = 0;
     /** @brief 主控 151.bit2：1=姿态调平灭灯不可用 */
     bool m_sixAxisLevelingBlocked151Bit2 = false;
-    /** @brief 主控 151.bit3~7：吊重-支腿-伸缩臂联锁（保留原 bit 号） */
+    /** @brief 主控 151.bit3~8：吊重-支腿-伸缩臂联锁（保留原 bit 号） */
     quint16 m_legArmInterlock151Bits = 0;
-    /** @brief 联锁位仍为 1 时用户已点确认关闭 Toast，待出现新的 0→1 再弹 */
+    /** @brief 联锁位仍为 1 时用户已点确认关闭 Toast；新的 0→1，或对应轴使能+外部键，会再弹并拦写 */
     bool m_legArmInterlockUserAckedWhileActive = false;
     /** @brief 当前正在显示的联锁 Toast 文案，便于换条/关条 */
     QString m_legArmInterlockShownMessage;
