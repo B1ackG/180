@@ -110,9 +110,9 @@ const QString kColumnRotateScreenClearanceHintText =
 const QString kReselectMotionTargetHintText =
     QStringLiteral("请先选择运动目标");
 const QString kCableRetractingToastText =
-    QStringLiteral("卷样机当前正在收回");
+    QStringLiteral("卷扬机当前正在收回");
 const QString kCableExtendingToastText =
-    QStringLiteral("卷样机当前正在放出");
+    QStringLiteral("卷扬机当前正在放出");
 const QString kFixtureMovingToastText =
     QStringLiteral("工装正在运动中");
 
@@ -6376,8 +6376,8 @@ void MainWindow::handleMatrixKeyAction(int keyNumber, bool pressed)
                 ? QStringLiteral("cable-retract")
                 : QStringLiteral("cable-extend");
             const QString cableName = isCableRetractKey
-                ? QStringLiteral("卷样机钢缆收回")
-                : QStringLiteral("卷样机钢缆放出");
+                ? QStringLiteral("卷扬机收回")
+                : QStringLiteral("卷扬机放出");
             writeToMainDevice(500, 5);
             writeToMainDevice(514, value514);
             m_sixAxisExternalKeyPressed[keyNumber] = true;
@@ -8547,14 +8547,14 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             m_cableRetracted151Bit0Flag = cableRetracted;
             if (cableRetracted) {
                 if (m_cableLatch514 == 2) {
-                    stopLatchedCableMotion(QStringLiteral("卷样机钢缆已完全收回，运动记录结束"), true);
+                    stopLatchedCableMotion(QStringLiteral("卷扬机已完全收回，运动记录结束"), true);
                 }
-                static const QString kMsg = QStringLiteral("卷样机钢缆已完全收回");
+                static const QString kMsg = QStringLiteral("卷扬机已完全收回");
                 if (m_recorder) {
                     OperationRecord record;
                     record.timestamp = QDateTime::currentDateTime();
                     record.pageName = QStringLiteral("提示系统");
-                    record.controlName = QStringLiteral("卷样机钢缆到位提示");
+                    record.controlName = QStringLiteral("卷扬机到位提示");
                     record.controlType = QStringLiteral("提示窗口");
                     record.operation = QStringLiteral("提示触发");
                     record.oldValue = QString();
@@ -8569,14 +8569,14 @@ void MainWindow::onModbusRegisterValueChanged(int address, quint16 value)
             m_cableExtended151Bit1Flag = cableExtended;
             if (cableExtended) {
                 if (m_cableLatch514 == 4) {
-                    stopLatchedCableMotion(QStringLiteral("卷样机钢缆已完全放出，运动记录结束"), true);
+                    stopLatchedCableMotion(QStringLiteral("卷扬机已完全放出，运动记录结束"), true);
                 }
-                static const QString kMsg = QStringLiteral("卷样机钢缆已完全放出");
+                static const QString kMsg = QStringLiteral("卷扬机已完全放出");
                 if (m_recorder) {
                     OperationRecord record;
                     record.timestamp = QDateTime::currentDateTime();
                     record.pageName = QStringLiteral("提示系统");
-                    record.controlName = QStringLiteral("卷样机钢缆到位提示");
+                    record.controlName = QStringLiteral("卷扬机到位提示");
                     record.controlType = QStringLiteral("提示窗口");
                     record.operation = QStringLiteral("提示触发");
                     record.oldValue = QString();
@@ -12539,15 +12539,15 @@ void MainWindow::setupAGVStepPad()
         {QStringLiteral("techBtn_AGVStep_DownRight"), TechPushButton::GlyphDownRight},
     };
     static const QHash<QString, QString> kCaption{
-        {QStringLiteral("techBtn_AGVStep_UpLeft"), QStringLiteral("左上")},
-        {QStringLiteral("techBtn_AGVStep_Up"), QStringLiteral("上")},
-        {QStringLiteral("techBtn_AGVStep_UpRight"), QStringLiteral("右上")},
+        {QStringLiteral("techBtn_AGVStep_UpLeft"), QStringLiteral("左前")},
+        {QStringLiteral("techBtn_AGVStep_Up"), QStringLiteral("前")},
+        {QStringLiteral("techBtn_AGVStep_UpRight"), QStringLiteral("右前")},
         {QStringLiteral("techBtn_AGVStep_Left"), QStringLiteral("左")},
         {QStringLiteral("techBtn_AGVStep_Rotate"), QStringLiteral("原地旋转")},
         {QStringLiteral("techBtn_AGVStep_Right"), QStringLiteral("右")},
-        {QStringLiteral("techBtn_AGVStep_DownLeft"), QStringLiteral("左下")},
-        {QStringLiteral("techBtn_AGVStep_Down"), QStringLiteral("下")},
-        {QStringLiteral("techBtn_AGVStep_DownRight"), QStringLiteral("右下")},
+        {QStringLiteral("techBtn_AGVStep_DownLeft"), QStringLiteral("左后")},
+        {QStringLiteral("techBtn_AGVStep_Down"), QStringLiteral("后")},
+        {QStringLiteral("techBtn_AGVStep_DownRight"), QStringLiteral("右后")},
     };
 
     int buttonId = 0;
@@ -13428,7 +13428,7 @@ QString MainWindow::historySixAxisName(int axisIndex) const
     case 4: return QStringLiteral("第四轴X轴");
     case 5: return QStringLiteral("第五轴Y轴");
     case 6: return QStringLiteral("第六轴Z轴");
-    case 7: return QStringLiteral("卷样机钢缆");
+    case 7: return QStringLiteral("卷扬机");
     case 8: return QStringLiteral("工装");
     default: return QStringLiteral("六自由度");
     }
@@ -13547,7 +13547,7 @@ QString MainWindow::historyMotionTargetName(const QString &jointName) const
     if (name.contains(QStringLiteral("立柱升降")) || name.contains(QStringLiteral("升降")) || name.contains(QStringLiteral("J2"))) return QStringLiteral("立柱升降");
     if (name.contains(QStringLiteral("伸缩"))) return QStringLiteral("伸缩臂");
     if (name.contains(QStringLiteral("末端")) || name.contains(QStringLiteral("柔顺")) || name.contains(QStringLiteral("J4"))) return QStringLiteral("末端组件");
-    if (name.contains(QStringLiteral("钢缆"))) return QStringLiteral("卷样机钢缆");
+    if (name.contains(QStringLiteral("卷扬机")) || name.contains(QStringLiteral("钢缆"))) return QStringLiteral("卷扬机");
     if (name.contains(QStringLiteral("工装"))) return QStringLiteral("工装");
     if (name.contains(QStringLiteral("底盘")) || name.contains(QStringLiteral("AGV"), Qt::CaseInsensitive)) return QStringLiteral("底盘");
     return name;
@@ -13803,7 +13803,7 @@ void MainWindow::checkAlarmConditions()
         if (isRobotLimit102Active()) {
             requestRobotSoftLimitDetailPoll();
         }
-        // 卷样机钢缆到位：151.bit0/bit1；姿态调平门控：151.bit2；吊重-支腿-伸缩臂联锁：151.bit3~7
+        // 卷扬机到位：151.bit0/bit1；姿态调平门控：151.bit2；吊重-支腿-伸缩臂联锁：151.bit3~7
         MainDeviceModbusApi::readHoldingRegisters(m_modbusManager, 151, 1);
     }
 

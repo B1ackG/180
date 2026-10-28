@@ -304,15 +304,15 @@ void MappingConfig::initDefaultMappings()
         m_controlNameMap["legControlGear1Btn"] = "支腿 · 展出档位1";
         m_controlNameMap["legControlGear2Btn"] = "支腿 · 展出档位2";
         m_controlNameMap["legControlGearFullBtn"] = "支腿 · 展出全开";
-        m_controlNameMap["techBtn_AGVStep_UpLeft"] = "底盘步进 · 左上";
-        m_controlNameMap["techBtn_AGVStep_Up"] = "底盘步进 · 上";
-        m_controlNameMap["techBtn_AGVStep_UpRight"] = "底盘步进 · 右上";
+        m_controlNameMap["techBtn_AGVStep_UpLeft"] = "底盘步进 · 左前";
+        m_controlNameMap["techBtn_AGVStep_Up"] = "底盘步进 · 前";
+        m_controlNameMap["techBtn_AGVStep_UpRight"] = "底盘步进 · 右前";
         m_controlNameMap["techBtn_AGVStep_Left"] = "底盘步进 · 左";
         m_controlNameMap["techBtn_AGVStep_Rotate"] = "底盘步进 · 原地旋转";
         m_controlNameMap["techBtn_AGVStep_Right"] = "底盘步进 · 右";
-        m_controlNameMap["techBtn_AGVStep_DownLeft"] = "底盘步进 · 左下";
-        m_controlNameMap["techBtn_AGVStep_Down"] = "底盘步进 · 下";
-        m_controlNameMap["techBtn_AGVStep_DownRight"] = "底盘步进 · 右下";
+        m_controlNameMap["techBtn_AGVStep_DownLeft"] = "底盘步进 · 左后";
+        m_controlNameMap["techBtn_AGVStep_Down"] = "底盘步进 · 后";
+        m_controlNameMap["techBtn_AGVStep_DownRight"] = "底盘步进 · 右后";
         m_controlNameMap["lineEdit_AGVStep_Distance"] = "底盘步进距离";
 
         // 力控相关
@@ -471,7 +471,7 @@ void MappingConfig::initDefaultMappings()
     m_controlNameMap["btnStepTargetSixAxis4"] = "六轴步进目标 · 轴4";
     m_controlNameMap["btnStepTargetSixAxis5"] = "六轴步进目标 · 轴5";
     m_controlNameMap["btnStepTargetSixAxis6"] = "六轴步进目标 · 轴6";
-    m_controlNameMap["btnStepTargetSixAxis7"] = "六轴步进目标 · 轴7";
+    m_controlNameMap["btnStepTargetSixAxis7"] = "六轴步进目标 · 卷扬机";
     m_controlNameMap["btnStepTargetSixAxis8"] = "六轴步进目标 · 工装";
     m_controlNameMap["btnStepTargetAxis1"] = "单轴步进目标 · 立柱旋转";
     m_controlNameMap["btnStepTargetAxis2"] = "单轴步进目标 · 立柱升降";
@@ -492,7 +492,7 @@ void MappingConfig::initDefaultMappings()
     m_controlNameMap["btnStepTargetSixAxis4"] = "六轴步进目标 · 轴4";
     m_controlNameMap["btnStepTargetSixAxis5"] = "六轴步进目标 · 轴5";
     m_controlNameMap["btnStepTargetSixAxis6"] = "六轴步进目标 · 轴6";
-    m_controlNameMap["btnStepTargetSixAxis7"] = "六轴步进目标 · 轴7";
+    m_controlNameMap["btnStepTargetSixAxis7"] = "六轴步进目标 · 卷扬机";
     m_controlNameMap["btnStepTargetSixAxis8"] = "六轴步进目标 · 工装";
     m_controlNameMap["btnStepTargetAxis1"] = "单轴步进目标 · 立柱旋转";
     m_controlNameMap["btnStepTargetAxis2"] = "单轴步进目标 · 立柱升降";

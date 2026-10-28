@@ -866,9 +866,9 @@ private:
     bool m_robotAxisLimitAcked[10] = {};
     /** @brief 对应轴限位 Toast。控件销毁后自动变空，避免关闭后再次 dismiss 碰到已释放对象 */
     QPointer<QWidget> m_robotAxisLimitToast[10];
-    /** @brief 主控 151.bit0：卷样机钢缆已完全收回 */
+    /** @brief 主控 151.bit0：卷扬机已完全收回 */
     bool m_cableRetracted151Bit0Flag = false;
-    /** @brief 主控 151.bit1：卷样机钢缆已完全放出 */
+    /** @brief 主控 151.bit1：卷扬机已完全放出 */
     bool m_cableExtended151Bit1Flag = false;
     /** @brief 钢缆点动锁定：0=未运行，2=收回，4=放出。松开外部键不停，松开使能才清 514 */
     int m_cableLatch514 = 0;

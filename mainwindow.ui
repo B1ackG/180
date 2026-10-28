@@ -1035,7 +1035,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                 </size>
                </property>
                <property name="text">
-                <string>左上</string>
+                <string>左前</string>
                </property>
                <property name="checkable">
                 <bool>true</bool>
@@ -1057,7 +1057,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                 </size>
                </property>
                <property name="text">
-                <string>上</string>
+                <string>前</string>
                </property>
                <property name="checkable">
                 <bool>true</bool>
@@ -1079,7 +1079,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                 </size>
                </property>
                <property name="text">
-                <string>右上</string>
+                <string>右前</string>
                </property>
                <property name="checkable">
                 <bool>true</bool>
@@ -1167,7 +1167,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                 </size>
                </property>
                <property name="text">
-                <string>左下</string>
+                <string>左后</string>
                </property>
                <property name="checkable">
                 <bool>true</bool>
@@ -1189,7 +1189,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                 </size>
                </property>
                <property name="text">
-                <string>下</string>
+                <string>后</string>
                </property>
                <property name="checkable">
                 <bool>true</bool>
@@ -1211,7 +1211,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                 </size>
                </property>
                <property name="text">
-                <string>右下</string>
+                <string>右后</string>
                </property>
                <property name="checkable">
                 <bool>true</bool>
@@ -1612,7 +1612,7 @@ font: 800 italic 11pt &quot;Ubuntu Sans&quot;;</string>
                    </sizepolicy>
                   </property>
                   <property name="text">
-                   <string>钢缆</string>
+                   <string>卷扬机</string>
                   </property>
                   <property name="checkable">
                    <bool>true</bool>
