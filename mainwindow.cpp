@@ -7567,6 +7567,7 @@ void MainWindow::noteTeachPendantInterlockValue(quint16 registerValue)
     m_teachPendantOwnershipKnown = true;
     m_teachPendantOwnedByOther = !localActive;
     if (switchedBackToLocal) {
+        resyncControlModeFromAgvShadow();
         const bool alreadyThere =
             ui && ui->StackedWidget && ui->page_Permission
             && ui->StackedWidget->currentWidget() == ui->page_Permission;
@@ -7604,6 +7605,56 @@ void MainWindow::applyCachedMainControlSyncRegistersToUi()
         applyRobotSpeedUiFromRegister130(g_registerCache.value(130));
     }
     updateFunctionSwitchVisuals();
+}
+
+void MainWindow::applyControlModeFromRegister(quint16 value)
+{
+    const ButtonModbusMapping::Binding controlBinding = buttonModbusBinding(QStringLiteral("TBtn_ControlMode"));
+    const ModbusRegisterSpec controlRead = controlBinding.reads.isEmpty()
+        ? ModbusRegisterSpec{}
+        : controlBinding.reads.first();
+    const int wirelessReadValue = ButtonModbusMapping::stateValueOr(controlRead, 1, 1);
+    const int wiredReadValue = ButtonModbusMapping::stateValueOr(controlRead, 2, 2);
+    if (static_cast<int>(value) == wirelessReadValue) {
+        m_controlMode = WIRELESS_MODE;
+    } else if (static_cast<int>(value) == wiredReadValue) {
+        m_controlMode = WIRED_MODE;
+    } else {
+        return;
+    }
+
+    const QString modeText = (m_controlMode == WIRED_MODE)
+        ? QStringLiteral("示教器控制")
+        : QStringLiteral("遥控器控制");
+    if (m_controlModeBtn) {
+        m_controlModeBtn->setText(modeText);
+    }
+    QLabel *controlModeLabel = ui && ui->statusBar
+        ? ui->statusBar->findChild<QLabel*>(QStringLiteral("statusBarControlModeLabel"))
+        : nullptr;
+    if (controlModeLabel) {
+        controlModeLabel->setText(modeText);
+        controlModeLabel->setStyleSheet(QStringLiteral("color: %1; font-weight: bold; font-size: 11px;")
+                                            .arg(m_controlMode == WIRED_MODE
+                                                     ? QStringLiteral("#ffffff")
+                                                     : QStringLiteral("#ffff00")));
+    }
+    updateFunctionSwitchVisuals();
+}
+
+void MainWindow::resyncControlModeFromAgvShadow()
+{
+    const ButtonModbusMapping::Binding controlBinding = buttonModbusBinding(QStringLiteral("TBtn_ControlMode"));
+    const ModbusRegisterSpec controlRead = controlBinding.reads.isEmpty()
+        ? ModbusRegisterSpec{}
+        : controlBinding.reads.first();
+    const int controlReadAddr = ButtonModbusMapping::addressOr(controlRead, 100);
+    if (m_agvRegisterShadow.contains(controlReadAddr)) {
+        applyControlModeFromRegister(m_agvRegisterShadow.value(controlReadAddr));
+    }
+    if (m_agvModbusManager && m_agvModbusManager->isConnected()) {
+        m_agvModbusManager->readMultipleRegisters(controlReadAddr, 1);
+    }
 }
 
 void MainWindow::on_TBtn_Interlocking_clicked()
@@ -9142,6 +9193,15 @@ void MainWindow::setupAGVModbus()
             this, [this](int address, quint16 value, bool success) {
                 if (success) {
                     m_agvRegisterShadow[address] = value;
+                    return;
+                }
+                const ButtonModbusMapping::Binding modeBinding = buttonModbusBinding(QStringLiteral("TBtn_ControlMode"));
+                const ModbusRegisterSpec writeSpec = modeBinding.writes.isEmpty()
+                    ? ModbusRegisterSpec{}
+                    : modeBinding.writes.first();
+                const int writeAddr = ButtonModbusMapping::addressOr(writeSpec, 500);
+                if (address == writeAddr) {
+                    resyncControlModeFromAgvShadow();
                 }
             }, Qt::QueuedConnection);
 
@@ -9163,25 +9223,8 @@ void MainWindow::setupAGVModbus()
                     ? ModbusRegisterSpec{}
                     : controlBinding.reads.first();
                 const int controlReadAddr = ButtonModbusMapping::addressOr(controlRead, 100);
-                const int wirelessReadValue = ButtonModbusMapping::stateValueOr(controlRead, 1, 1);
-                const int wiredReadValue = ButtonModbusMapping::stateValueOr(controlRead, 2, 2);
-                if (address == controlReadAddr && m_controlModeBtn) {
-                    if (static_cast<int>(value) == wirelessReadValue) {
-                        m_controlMode = WIRELESS_MODE;
-                        m_controlModeBtn->setText("遥控器控制");
-                    } else if (static_cast<int>(value) == wiredReadValue) {
-                        m_controlMode = WIRED_MODE;
-                        m_controlModeBtn->setText("示教器控制");
-                    }
-
-                    QLabel *controlModeLabel = ui && ui->statusBar
-                                                    ? ui->statusBar->findChild<QLabel*>("statusBarControlModeLabel")
-                                                    : nullptr;
-                    if (controlModeLabel) {
-                        controlModeLabel->setText(m_controlMode == WIRED_MODE ? "示教器控制" : "遥控器控制");
-                        controlModeLabel->setStyleSheet(QString("color: %1; font-weight: bold; font-size: 11px;")
-                                                            .arg(m_controlMode == WIRED_MODE ? "#ffffff" : "#ffff00"));
-                    }
+                if (address == controlReadAddr) {
+                    applyControlModeFromRegister(value);
                 }
 
                 const ButtonModbusMapping::Binding oaBinding = buttonModbusBinding(QStringLiteral("techBtn_AGV_OA"));
@@ -9500,6 +9543,7 @@ void MainWindow::onAGVModbusConnected()
             }
             m_agvModbusManager->readMultipleRegisters(50, 1);
             m_agvModbusManager->readMultipleRegisters(51, 1);
+            m_agvModbusManager->readMultipleRegisters(100, 1);
             m_agvModbusManager->readMultipleRegisters(153, 2);
         });
     }
@@ -10468,6 +10512,9 @@ void MainWindow::onControlModeClicked()
         blockRobotWeightLockOperation(QStringLiteral("负载超重锁定：控制模式切换已无效"));
         return;
     }
+    if (!verifyTeachingWriteGateOrShowDialog()) {
+        return;
+    }
 
     const ButtonModbusMapping::Binding modeBinding = buttonModbusBinding(QStringLiteral("TBtn_ControlMode"));
     const ModbusRegisterSpec writeSpec = modeBinding.writes.isEmpty()
@@ -10476,55 +10523,41 @@ void MainWindow::onControlModeClicked()
     const int writeAddr = ButtonModbusMapping::addressOr(writeSpec, 500);
     const int wirelessValue = ButtonModbusMapping::stateValueOr(writeSpec, 1, 1);
     const int wiredValue = ButtonModbusMapping::stateValueOr(writeSpec, 2, 2);
-    const auto writeMode = [this, writeSpec, writeAddr](int value) {
+    const auto writeMode = [this, writeSpec, writeAddr](int value) -> bool {
         if (writeSpec.device == QStringLiteral("主控")) {
             writeToMainDevice(writeAddr, value);
-        } else {
-            writeToAGVDevice(writeAddr, value);
+            return true;
         }
+        return writeToAGVDevice(writeAddr, value, true);
     };
 
     const QString previousMode = (m_controlMode == WIRED_MODE)
         ? QStringLiteral("示教器控制")
         : QStringLiteral("遥控器控制");
+    bool writeOk = true;
     // 切换控制模式
     if (m_controlMode == WIRED_MODE) {
-        m_controlMode = WIRELESS_MODE;
-        m_controlModeBtn->setText("遥控器控制");
-
-        writeMode(wirelessValue);
+        applyControlModeFromRegister(static_cast<quint16>(wirelessValue));
+        writeOk = writeMode(wirelessValue);
 
         qCDebug(lcMainWindow) << "切换到遥控器控制模式";
         ui->statusBar->showMessage("已切换到遥控器控制模式", 2000);
-
-        // 更新状态栏显示
-        QLabel *controlModeLabel = ui->statusBar->findChild<QLabel*>("statusBarControlModeLabel");
-        if (controlModeLabel) {
-            controlModeLabel->setText("遥控器控制");
-            controlModeLabel->setStyleSheet("color: #ffff00; font-weight: bold; font-size: 11px;");
-        }
     } else {
-        m_controlMode = WIRED_MODE;
-        m_controlModeBtn->setText("示教器控制");
-
-        writeMode(wiredValue);
+        applyControlModeFromRegister(static_cast<quint16>(wiredValue));
+        writeOk = writeMode(wiredValue);
 
         qCDebug(lcMainWindow) << "切换到示教器控制模式";
         ui->statusBar->showMessage("已切换到示教器控制模式", 2000);
-
-        // 更新状态栏显示
-        QLabel *controlModeLabel = ui->statusBar->findChild<QLabel*>("statusBarControlModeLabel");
-        if (controlModeLabel) {
-            controlModeLabel->setText("示教器控制");
-            controlModeLabel->setStyleSheet("color: #ffffff; font-weight: bold; font-size: 11px;");
-        }
+    }
+    const QString currentMode = (m_controlMode == WIRED_MODE)
+        ? QStringLiteral("示教器控制")
+        : QStringLiteral("遥控器控制");
+    if (!writeOk) {
+        resyncControlModeFromAgvShadow();
     }
 
     updateFunctionSwitchVisuals();
     updateStepTargetButtonsState();
-    const QString currentMode = (m_controlMode == WIRED_MODE)
-        ? QStringLiteral("示教器控制")
-        : QStringLiteral("遥控器控制");
     appendBusinessHistory(
         QStringLiteral("设备控制"),
         QStringLiteral("控制模式"),
@@ -13989,21 +14022,17 @@ QStringList MainWindow::robotArmTeachPendantEstopFromRegister150(quint16 reg150)
 
 QStringList MainWindow::agvChassisEstopSourcesFromRegister150(quint16 reg150) const
 {
-    static const QString kNames[11] = {
-        QStringLiteral("前面板急停"),
-        QStringLiteral("后面板急停"),
-        QStringLiteral("前面板左急停"),
-        QStringLiteral("前面板右急停"),
-        QStringLiteral("后面板左急停"),
-        QStringLiteral("后面板右急停"),
-        QStringLiteral("右面板左急停"),
-        QStringLiteral("右面板右急停"),
-        QStringLiteral("左面板左急停"),
-        QStringLiteral("左面板右急停"),
-        QStringLiteral("遥控器急停"),
+    static const QString kNames[7] = {
+        QStringLiteral("左前急停"),
+        QStringLiteral("右前急停"),
+        QStringLiteral("左后急停"),
+        QStringLiteral("右后急停"),
+        QStringLiteral("左后工控屏急停"),
+        QStringLiteral("右后工控屏急停"),
+        QStringLiteral("遥控急停"),
     };
     QStringList out;
-    for (int bit = 0; bit <= 10; ++bit) {
+    for (int bit = 0; bit <= 6; ++bit) {
         if (((reg150 >> bit) & 0x01) != 0) {
             out << kNames[bit];
         }

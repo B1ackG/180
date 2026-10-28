@@ -222,7 +222,7 @@ public:
     void hideAlarm();
     /** @brief 刷新报警显示 */
     void updateAlarmDisplay();
-    /** @brief AGV 寄存器150 bit0~10 急停来源（与 192.168.1.88 设备约定一致） */
+    /** @brief AGV 寄存器150 bit0~6 急停来源：左前/右前/左后/右后/左后工控屏/右后工控屏/遥控 */
     QStringList agvChassisEstopSourcesFromRegister150(quint16 reg150) const;
     /** @brief 主设备(192.168.1.13)寄存器150 bit4/bit5 示教器急停；bit6 主副轴位置偏差过大 */
     QStringList robotArmTeachPendantEstopFromRegister150(quint16 reg150) const;
@@ -1216,6 +1216,10 @@ private:
     void applyRobotSpeedUiFromRegister130(quint16 value);
     /** @brief 从 g_registerCache 刷新步进/运动/速度等与主控同步的 UI（示教切换后等） */
     void applyCachedMainControlSyncRegistersToUi();
+    /** @brief 按 AGV 控制模式读寄存器（默认 100 的 1=遥控/2=示教）刷新按钮、状态栏与配色 */
+    void applyControlModeFromRegister(quint16 value);
+    /** @brief 用影子 100 强制对齐控制模式 UI，并补读一次（同值不发信号时仍能纠偏） */
+    void resyncControlModeFromAgvShadow();
 
     /** @brief 初始化窗口 UI（内部） */
     void initUI();
